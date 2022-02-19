@@ -3,10 +3,17 @@
   "version": "1.0.0",
   "description": "Javascript SDK designed to run with PressToJam API's. Builds beautiful front end displays and forms for any PressToJam API",
   "main": "dist/gc.es.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "browser" : "dist/gc.min.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AutocodeSoftwareLtd/presstojamsdk.git"
+  },
+  "bugs" : {
+    "url": "git+https://github.com/AutocodeSoftwareLtd/presstojamsdk/issues"
+  },
+  "files" : [
+      "dist"
+  ],
   "author": "Suzanne Clifford - PressToJam",
   "license": "MIT"
 }
