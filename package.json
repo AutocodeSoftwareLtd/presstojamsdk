@@ -2,7 +2,8 @@
   "name": "presstojam",
   "version": "1.0.0",
   "description": "Javascript SDK designed to run with PressToJam API's. Builds beautiful front end displays and forms for any PressToJam API",
-  "main": "dist/gc.es.js",
+  "main": "dist/gc.min.js",
+  "module" : "dist/gc.es.js",
   "browser" : "dist/gc.min.js",
   "repository": {
     "type": "git",
