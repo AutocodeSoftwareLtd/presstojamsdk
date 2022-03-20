@@ -370,11 +370,30 @@ export class Model {
         return obj;
     }
 
+    rGroupData(data, group) {
+        let groups = {};
+        for(const key in data) {
+            const row = data[key];
+            if (Array.isArray(row)) groups[key] = this.rGroupData(row, group);
+            else {
+                if (!groups[row[group]]) groups[row[group]] = [];
+                groups[row[group]].push(row);
+            }
+        }
+        return groups;
+    }
+
     mapRepoData(response) {
         this.store.data = [];
         for (const i in response.__data) {
             const data = this.rLoadObj(response.__data[i]);
             this.store.data.push(data);
+        }
+
+        
+        //now we need to group the data by
+        for(const group of this.store.groups) {
+            this.store.data = this.rGroupData(this.store.data, group);
         }
     }
 
@@ -418,7 +437,8 @@ export class Model {
                 if (this._states.post) {
                     this.store.actions.push({ r: this.buildlink("post"), n: this._states.get.actions.post });
                 }
-                this.store.rawcomponent = (this._circular || this._active_children.length > 0) ? "ptj-tree" : "ptj-table";
+
+                this.store.rawcomponent = (this.store.groups.length > 0) ? "ptj-list" : (this._circular || this._active_children.length > 0) ? "ptj-tree" : "ptj-table";
                 /*
                 if (this._states.getprimary) {
                     actions.getprimary = { r : this.buildlink("getprimary", params), n : this._states.getprimary.label };
@@ -453,6 +473,8 @@ export class Model {
                         this.store.fields[i].on = true;
                     }
                 }
+
+
                 this.store.submiturl = this.loadurl;
             },
             'getprimary': () => {

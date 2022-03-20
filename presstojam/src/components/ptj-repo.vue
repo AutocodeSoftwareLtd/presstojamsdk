@@ -8,9 +8,10 @@
 <script>
 
 
-import GCRepoHeader from "./ptj-repo-header.vue"
-import GCTree from "./ptj-tree.vue"
-import GCTable from "./ptj-table.vue"
+import PTJRepoHeader from "./ptj-repo-header.vue"
+import PTJTree from "./ptj-tree.vue"
+import PTJTable from "./ptj-table.vue"
+import PTJList from "./ptj-list.vue"
 import { defineComponent} from "vue"
 import Ctrl from "../js/controller.js"
 import Class from "../js/classinjection.js"
@@ -21,9 +22,10 @@ export default defineComponent({
       return { store : Ctrl.getStore(), Class }
   },
     components : {
-        "ptj-repo-header" : GCRepoHeader,
-        "ptj-tree" : GCTree,
-        "ptj-table" : GCTable
+        "ptj-repo-header" : PTJRepoHeader,
+        "ptj-tree" : PTJTree,
+        "ptj-table" : PTJTable,
+        "ptj-list" : PTJList
     }
 });
 </script>
