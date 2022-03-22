@@ -1,6 +1,7 @@
 <template>
     <ptj-widget :title="title" :active="active">
         <div :class="classes">
+            <span class="material-icons">view_carousel</span>
             <div v-for="(field, index) in store.fields" :key="index" :class="rowclass + ' ' + field.name">
                 <span :class="labelclass">{{ field.label }}:</span> 
                 <span :class="rowclass">{{ field.val }}</span>

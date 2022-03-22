@@ -8,7 +8,7 @@ Controller.setSettings({
     "mapper" : {},
     "models" : {
         "fields" : {
-            "groups" : ["id"]
+           
         }
     }
 });

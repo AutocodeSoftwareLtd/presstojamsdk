@@ -1,16 +1,16 @@
 {
-  "name": "presstojam",
-  "version": "1.0.1",
+  "name": "@presstojam/presstojamsdk",
+  "version": "1.0.2",
   "description": "Javascript SDK designed to run with PressToJam API's. Builds beautiful front end displays and forms for any PressToJam API",
-  "main": "dist/gc.min.js",
-  "module": "dist/gc.es.js",
-  "browser": "dist/gc.min.js",
+  "main": "dist/ptj.min.js",
+  "module": "dist/ptj.es.js",
+  "browser": "dist/ptj.min.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AutocodeSoftwareLtd/presstojamsdk.git"
+    "url": "git://github.com/presstojam/presstojamsdk.git"
   },
   "bugs": {
-    "url": "git+https://github.com/AutocodeSoftwareLtd/presstojamsdk/issues"
+    "url": "git://github.com/presstojam/presstojamsdk/issues"
   },
   "files": [
     "dist"

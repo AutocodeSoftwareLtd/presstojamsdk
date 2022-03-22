@@ -32,10 +32,10 @@ export class Field  {
 
         this.val = computed({ 
             get : () =>  {
-                return this.clean(this._value.value);
+                return this._value.value;
             },
             set : (val) => {
-                this._value.value = val;
+                this._value.value = (this._type == "checkbox") ? (val) ? 1 : 0 : val;
                 this._error = this.validate(val);
             }     
         });

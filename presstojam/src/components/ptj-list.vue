@@ -5,8 +5,7 @@
             <ul>
                 <li v-for="(row, index) in group" :key="index">
                     <a @click="next(row[store.primarykeyname]);">
-                        <span v-for="field in store.fields" :key="field.name" v-show="field.on">{{ field.val}}</span>                         {{ field.val }}
-                    </a>
+                        <span v-for="field in store.fields" :key="field.name" v-show="field.on">{{ row[field.name] }}</span>                   </a>
                 </li>
             </ul>
         </div>

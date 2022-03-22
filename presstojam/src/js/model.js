@@ -67,6 +67,7 @@ export class Model {
     }
 
     set groups(groups) {
+        console.log("Set groups ", groups);
         this.store.groups = groups;
     }
 
@@ -193,7 +194,9 @@ export class Model {
 
     }
 
+    /*
     init() {
+        console.log("Groups are ", this.store.groups);
         this._init = true;
         let url = "/route-" + this._name;
         let data = {};
@@ -220,6 +223,7 @@ export class Model {
             return response;
         });
     }
+*/
 
     mapResponse(response) {
         this._name = response.model;

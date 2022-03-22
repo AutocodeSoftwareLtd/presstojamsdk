@@ -149,6 +149,10 @@ function buildLink() {
         if (change.state) omaps[i].state = change.state;
         if (change.to) omaps[i].to = change.to;
         if (change.key) omaps[i].key = change.key;
+        if (change.end) {
+            omaps.splice(i + 1, omaps.length);
+            break;
+        }
     }
 
     for(const omap of omaps) {
