@@ -1,10 +1,11 @@
 {
   "name": "@presstojam/presstojamsdk",
-  "version": "1.0.2",
   "description": "Javascript SDK designed to run with PressToJam API's. Builds beautiful front end displays and forms for any PressToJam API",
   "main": "dist/ptj.min.js",
-  "module": "dist/ptj.es.js",
+  "module": "dist/ptj.esm.js",
   "browser": "dist/ptj.min.js",
+  "version" : "1.0.4",
+  "public" : true,
   "repository": {
     "type": "git",
     "url": "git://github.com/presstojam/presstojamsdk.git"
