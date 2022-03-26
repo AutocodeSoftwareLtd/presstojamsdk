@@ -1,9 +1,9 @@
 <template>
     <div :class="Class.getClass('ptj-tabs')">
-        <div :class="Class.getClass('ptj-tabs-card')" v-for="parent in store.parent_models" :key="parent.name + '-parent'">
+        <div :class="Class.getClass('ptj-tabs-card')" v-for="parent in parents" :key="parent.name + '-parent'">
             <ptj-card :store="parent.store" />
         </div>
-        <ptj-nav :actions="store.siblings" />
+      
         <div :class="Class.getClass('ptj-tabs-tab')" >
             <component :key="store.index" :is="store.component" />
         </div>
@@ -32,6 +32,11 @@ export default defineComponent({
     setup(props) {
         if (props.index) Ctrl.next();
         return { store : Ctrl.getStore(), Class }
+    },
+    computed : {
+        parents() {
+            return this.store.parent_models.slice().reverse();
+        }
     },
     components : {
         'ptj-form' : GCForm,

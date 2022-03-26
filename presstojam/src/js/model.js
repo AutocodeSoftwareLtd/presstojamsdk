@@ -6,19 +6,20 @@ import { Asset } from "./asset.js"
 
 export class Model {
     constructor() {
-        this._name;
-        this._states = {};
-        this._default_state;
-     
-        this._primary_key;
-        this._parent_key;
-        this._circular;
-        this._children = [];
         this._active_children = [];
-        this._key_states = { parent_key : null, primary_key : null };
-        this._settings = {};
         this._active_state;
         this._change_intention;
+        this._children = [];
+        this._circular;
+        this._default_state;
+        this._key_states = { parent_key : null, primary_key : null };
+        this._name;
+        this._parent_key;
+        this._primary_key;
+        this._settings = {};
+        this._states = {};
+        this._main_model;
+        this._to;
     
         this.store = reactive({
             fields : {},
@@ -38,7 +39,8 @@ export class Model {
             siblings : [],
             children : [],
             stage : 0,
-            groups : []
+            groups : [],
+            classes : ""
         });
     }
 
@@ -63,12 +65,21 @@ export class Model {
     set state(state) {
         this._active_state = (state) ? state : this._default_state;
         this._change_intention = null;
+        if (this._settings[this._active_state]) this.store.settings = this._settings[this._active_state];
+        this.applySettings();
         this.loadState();
     }
 
     set groups(groups) {
-        console.log("Set groups ", groups);
         this.store.groups = groups;
+    }
+
+    get main_model() {
+        return this._main_model;
+    }
+
+    set main_model(model) {
+        this._main_model = model;
     }
 
     get key() {
@@ -107,12 +118,16 @@ export class Model {
         this._name = name;
     }
 
+    set change_intention(intention) {
+        this._change_intention = intention;
+    }
+
     injectCustomSettings(settings) {
-        for(let i in settings) {
-            if (this[i]) this[i] = settings[i];
-            else if (this.store[i]) this.store[i] = settings[i];
-        }
         this._settings = settings;
+    }
+
+    snakeCase(name) {
+        return name.replace("-", "_");
     }
 
  
@@ -136,7 +151,7 @@ export class Model {
         } else if (this._active_state == "put" || this._active_state == "getprimary" || this._active_state == "delete") {
             params[this._primary_key] = this._key_states.primary_key;
         }
-        if (this._to) params.__to = this._to;
+        if (this.to) params.__to = this.to;
         return params;
     }
 
@@ -177,53 +192,64 @@ export class Model {
             model : this._name,
             key : this.key,
             state : this._active_state,
-            to : this._to,
-            stage : this._stage
+            to : this.to,
+            stage : this.stage
+        }
+    }
+
+    getSummary(field = null, row = null) {
+        if (!field) {
+            let sum = [];
+            for(let field in this.store.fields) {
+                if (this.store.fields[field].summary) sum.push(field.val);
+            }
+            return sum.join(" ");
+        } else if (field == this.snakeCase(this._parent_key)) {
+            return this.store.parent_models[0].getSummary();
+        } else {
+            let sum = [];
+            for(let tb of row[field.reference]) {
+                sum.push(tb);
+            }
+            return sum.join(" ");
+        }
+    }
+
+    applySettings() {
+        if (this.store.settings) {
+            if (this.store.settings.fields) {
+                for(let field of this.store.settings.fields) {
+                    this.store.fields[field].on = false;
+                }
+
+                for(let field of this.store.settings.fields) {
+                    this.store.fields[field].on = true;
+                }
+            }
+
+            if (this.store.settings.groups) {
+                this.store.groups = this.store.settings.groups;
+            }
+
+            if (this.store.settings.disable_filter) {
+                this.store.disable_filter = true;
+            }
+
+            if (this.store.settings.disable_selectfields) {
+                this.store.disable_selectfields = true;
+            }
         }
     }
 
     buildIntention(state, key = null) {
         if (!key) key = this._key;
-        this._change_intention = {state : state, key : key, intent : 0};
-        if (this._settings.intentions && this._settings.intentions.state) {
-            for(let i in this._settings.intentions.state) {
-                this._change_intention[i] = this._settings.intentions.state[i];
+        this._change_intention = {state : state, key : key, target : 0};
+        if (this.store.settings && this.store.settings.change_intention) {
+            for(let setting in this.store.settings.change_intention) {
+                this._change_intention[setting] = this.store.settings.change_intention[setting];
             }
         }
-        //now set any extra values
-
     }
-
-    /*
-    init() {
-        console.log("Groups are ", this.store.groups);
-        this._init = true;
-        let url = "/route-" + this._name;
-        let data = {};
-        if (this._to) data.__to = this._to;
-        return client.get(url, data)
-        .then(response => {
-            if (response.__status != "SUCCESS") {
-                throw new Error(response);
-            }
-
-            this.mapResponse(response);
-           
-            //build parent states
-            this._parent_models = [];
-            let par = response.to;
-            while(par) {
-                let pmodel = new Model();
-                pmodel.mapResponse(par);
-                pmodel.state = "getprimary";
-                this.store.parent_models.push(pmodel);
-                par = par.to;
-            }
-            this._parent_models = this._parent_models.reverse();
-            return response;
-        });
-    }
-*/
 
     mapResponse(response) {
         this._name = response.model;
@@ -236,7 +262,6 @@ export class Model {
             this.store.children.push({ r : () => {
                 this.buildIntention("get", this._key_states.primary_key);
                 this._change_intention.model = child.name;
-                this._change_intention.to = this._name;
             }, n : child.label });
         }
 
@@ -269,16 +294,15 @@ export class Model {
         this._states = response.states;
         this._default_state = response.default_state;
 
-        this._parent_models = [];
         let par = response.to;
         while(par) {
             let pmodel = new Model({ model : par.model, key : 0 });
             pmodel.mapResponse(par);
+            pmodel.main_model = this;
             pmodel.state = "getprimary";
             this.store.parent_models.push(pmodel);
             par = par.to;
         }
-        this._parent_models = this._parent_models.reverse();
     }
 
 
@@ -297,13 +321,12 @@ export class Model {
                 if (this.store.parent_models.length > 0) {
                     let parent = this.store.parent_models[0];
                     parent.key = this.key;
-                    parent.to = this._to;
+                    parent.to = this.to;
                     return client.get(parent.loadurl, parent.params)
                     .then(response => {
                         if (response.__status != "SUCCESS") throw new Error(response);
-                        let parent = this.store.parent_models[this.store.parent_models.length - 1];
                         parent.mapData(response);
-                        for(let i =0, n=this.store.parent_models.length - 1; i<n; ++i) {
+                        for(let i =1, n=this.store.parent_models.length; i<n; ++i) {
                             let parent = this.store.parent_models[i];
                             parent.mapData(response[parent.name]);
                         }
@@ -318,7 +341,7 @@ export class Model {
                 
                     this.mapData(response);
 
-                    for(let parent in this.store.parent_models) {
+                    for(let parent of this.store.parent_models) {
                         if (response[parent.name]) {
                                 //need to set the field data for this
                             parent.mapData(response[parent.name]);
@@ -328,14 +351,13 @@ export class Model {
         } else if (this._active_state == "post" && this.store.parent_models.length > 0) {
             let parent = this.store.parent_models[0];
             parent.keymanager = this._key_states.parent_key;
-            parent.to = this._to;
+            parent.to = this.to;
             return client.get(parent.loadurl, parent.params)
             .then(response => {
                 if (response.__status != "SUCCESS") throw new Error(response);
                 let parent = this.store.parent_models[this.store.parent_models.length - 1];
                 parent.mapData(response);
-                for(let i =0, n=this.store.parent_models.length - 1; i<n; ++i) {
-                    let parent = this.store.parent_models[i];
+                for(let parent of this.store.parent_models) {
                     parent.mapData(response[parent.name]);
                 }
             })
@@ -374,17 +396,22 @@ export class Model {
         return obj;
     }
 
-    rGroupData(data, group) {
-        let groups = {};
+    indexData(data) {
+        let indexes = {};
         for(const key in data) {
             const row = data[key];
-            if (Array.isArray(row)) groups[key] = this.rGroupData(row, group);
-            else {
-                if (!groups[row[group]]) groups[row[group]] = [];
-                groups[row[group]].push(row);
+            for(let group of this.store.groups) {
+                group = this.snakeCase(group);
+                if (!indexes[group]) indexes[group] = {};
+                let ckey = row[group];
+                if (!indexes[group][ckey]) {
+                    indexes[group][ckey] = {"display": "", "contains":[]};
+                    indexes[group][ckey].display=this.getSummary(group, row);
+                }
+                indexes[group][ckey].contains.push(key);
             }
         }
-        return groups;
+        return indexes;
     }
 
     mapRepoData(response) {
@@ -396,9 +423,7 @@ export class Model {
 
         
         //now we need to group the data by
-        for(const group of this.store.groups) {
-            this.store.data = this.rGroupData(this.store.data, group);
-        }
+        this.store.indexes = this.indexData(this.store.data);
     }
 
     mapData(data) {
@@ -424,16 +449,14 @@ export class Model {
         this.store.action = this._active_state;
         this.store.method = this.store.action;
         this.store.submiturl = this.saveurl;
+        this.store.classes = this._name + " " + this._active_state;
+        if (!this.store.settings) this.store.settings = {};
         this.store.primarykey = () => {
             return this._key_states.primary_key;
         }
 
         this.store.addKeys = () => {};
         this.store.resolveKeys = () => {};
-
-        for(let i in this.store.fields) {
-            this.store.fields[i].on = false;
-        }
     
         let states = {
             'get': () => {
@@ -472,9 +495,12 @@ export class Model {
 
                 };
 
-                for(let i in this.store.fields) {
-                    if (i == this.primarykey || this.store.fields[i].summary) {
-                        this.store.fields[i].on = true;
+                if (!this.store.settings.fields) {
+                    this.store.settings.fields = [];
+                    for(let i in this.store.fields) {
+                        if (i == this.primarykey || this.store.fields[i].summary) {
+                            this.store.settings.fields.push(i);
+                        }
                     }
                 }
 
@@ -498,10 +524,19 @@ export class Model {
                     }, n: this._states.getprimary.actions.delete });
                 }
                 this.store.component = "ptj-single-item";
-                for(let i in this.store.fields) {
-                    this.store.fields[i].on = true;
+
+                if (!this.store.settings.fields) {
+                    this.store.settings.fields = [];
+                    for(let i in this.store.fields) {
+                        this.store.settings.fields.push(i);
+                    }
                 }
 
+                if (this._main_model) {
+                    this.store.next = () => {
+                        this._main_model.change_intention = {state : "getprimary", key : this.key, target : 0, model : this._name };
+                    }
+                }
             },
             'post': () => {
                 this.store.component = (this._states.login) ? "ptj-account-handler" : "ptj-form";
@@ -515,9 +550,13 @@ export class Model {
                     this.buildIntention("get");
                 };
 
-                for(let name of this._states.post.fields) {
-                    this.store.fields[name].on = true;
+                if (!this.store.settings.fields) {
+                    this.store.settings.fields = [];
+                    for(let i of this._states.post.fields) {
+                        this.store.settings.fields.push(i);
+                    }
                 }
+
 
                 this.store.addKeys = data => {
                     data[this._parent_key] = this._key_states.parent_key;
@@ -538,9 +577,15 @@ export class Model {
                         this.buildIntention("get");
                     }
                 }
-                for(let name of this._states.put.fields) {
-                    this.store.fields[name].on = true;
+
+
+                if (!this.store.settings.fields) {
+                    this.store.settings.fields = [];
+                    for(let i of this._states.put.fields) {
+                        this.store.settings.fields.push(i);
+                    }
                 }
+               
 
                 this.store.addKeys = data => {
                     data[this._primary_key] = this._key_states.primary_key;
@@ -553,9 +598,14 @@ export class Model {
                 if (this._states.post) {
                     this.store.actions.push({ r: this.buildlink("post"), n: this._states.login.actions.post });
                 }
-                for(let name of this._states.login.fields) {
-                    this.store.fields[name].on = true;
+
+                if (!this.store.settings.fields) {
+                    this.store.settings.fields = [];
+                    for(let i of this._states.login.fields) {
+                        this.store.settings.fields.push(i);
+                    }
                 }
+
                 this.store.method = "post";
                 this.store.submiturl += "-login";
                 this.store.next = null;
@@ -563,6 +613,14 @@ export class Model {
         }
 
         states[this._active_state]();
+
+        for(let i in this.store.fields) {
+            this.store.fields[i].on = false;
+        }
+
+        for(let field of this.store.settings.fields) {
+            this.store.fields[field].on = true;
+        }
     }
     
 }

@@ -1,10 +1,9 @@
 <template>
     <ptj-widget :title="title" :active="active">
         <div :class="classes">
-            <span class="material-icons">view_carousel</span>
+            <a @click="next"><span class="material-icons">view_carousel</span></a>
             <div v-for="(field, index) in store.fields" :key="index" :class="rowclass + ' ' + field.name">
-                <span :class="labelclass">{{ field.label }}:</span> 
-                <span :class="rowclass">{{ field.val }}</span>
+                <span :class="labelclass">{{ field.label }}</span>&nbsp;<span :class="rowclass">{{ field.val }}</span>
             </div>
         </div>
     </ptj-widget>
@@ -14,6 +13,7 @@
 import { defineComponent  } from 'vue'
 import GCWidget from "./ptj-widget-window.vue"
 import Class from "../js/classinjection.js"
+import Ctrl from "../js/controller.js"
 
 export default defineComponent({
   name: 'ptj-card',
@@ -22,6 +22,12 @@ export default defineComponent({
       active : {
           type : Boolean,
           default : false
+      }
+  },
+  methods : {
+      next() {
+          this.store.next();
+          Ctrl.buildLink();
       }
   },
   computed : {

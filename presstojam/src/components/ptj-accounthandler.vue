@@ -20,8 +20,8 @@ export default defineComponent({
   name: 'ptj-login',
   setup() {
       let store = Ctrl.getStore()
-      store.next = instance => {
-           Ctrl.reloadFromBase(instance.next_profile);
+      store.next = () => {
+           Ctrl.reloadFromBase();
       }
       return { store : store, Class }
   },

@@ -20,7 +20,7 @@ export class Field  {
         this._reference;
         this._error = 0;
         this._label = "";
-        this.on = ref(true);
+        this._on = ref(true);
         this._summary = false;
         this._default = null;
         this._validator = new Validator();
@@ -29,6 +29,7 @@ export class Field  {
         this._is_validate_on = false;
         this._options = reactive([]);
         this._asset = null;
+        this._display_value;
 
         this.val = computed({ 
             get : () =>  {
@@ -39,6 +40,15 @@ export class Field  {
                 this._error = this.validate(val);
             }     
         });
+
+        this.on = computed({
+            get : () => {
+                return this._on.value;
+            },
+            set : (val) => {
+                this._on.value = val;
+            }
+        })
 
        
         if (obj) {
@@ -88,6 +98,10 @@ export class Field  {
 
     set conditions(conditions) {
         this._conditions = conditions;
+    }
+
+    set display_value(value) {
+        this._display_value = value;
     }
 
     set link(link) {
@@ -157,6 +171,10 @@ export class Field  {
 
     get summary() {
         return this._summary;
+    }
+
+    get display_value() {
+        return (this._display_value) ? this._display_value : this.val;
     }
 
     get readonly() {

@@ -1,8 +1,8 @@
 <template>
     <h1 :class="Class.getClass('ptj-repo-header-title')">{{ store.title }}</h1>
     <ptj-nav :actions="store.actions" :class="Class.getClass('ptj-repo-header-actions')"/>
-    <ptj-filter-form  />
-    <ptj-selectfields  />
+    <ptj-filter-form  v-if="store.disable_filter != true"/>
+    <ptj-selectfields v-if="store.disable_selectfields != true" />
 </template>
 
 <script>

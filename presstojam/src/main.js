@@ -7,8 +7,18 @@ Controller.setSettings({
     "client" : { "url" : "https://api.presstojam.com", "debug" : true },
     "mapper" : {},
     "models" : {
-        "fields" : {
-           
+        "projects" : {
+            "get" : {
+                "groups" : [
+                    "accounts-id"
+                ],
+                "fields" : ["name"],
+                "change_intention" : {
+                    "target" : 1
+                },
+                "disable_filter" : 1,
+                "disable_selectfields" : 1
+            }
         }
     }
 });

@@ -16,7 +16,10 @@ export default defineComponent({
   name: 'ptj-nav',
   props: {
     actions : Array,
-    classes : String
+    classes : {
+        type : String,
+        default : ""
+    }
   },
   setup() {
        return { Class };

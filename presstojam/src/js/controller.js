@@ -7,7 +7,6 @@ import Router from "./router.js"
 let _store = reactive({ 'models' : [], profile : null });
 let _settings = {};
 let _models = [];
-let _profile;
 let _seeker = -1;
 
 
@@ -40,25 +39,24 @@ function setSettings(settings) {
 function initProfile() {
     return Client.get("/core-check-user")
     .then(response => {
-        _profile = response.__profile;
-        _store.profile = _profile;
-        return _profile;
+        _store.profile = response.__profile;
+        return _store.profile;
     });
 }
 
 function assumeRole(role) {
     return Client.post('/core-assume-role', { 'role' : role })
     .then(request => {
-        _profile = request.__profile;
-        return request.__profile;
+        _store.profile = request.__profile;
+        return _store.profile;
     });
 }
 
 function removeRole() {
     return Client.post('/core-remove-role')
     .then(request => {
-        _profile = request.__profile;
-        return request.__profile;
+        _store.profile = request.__profile;
+        return _store.profile;
     });
 }
 
@@ -73,13 +71,12 @@ function buildModel(map, stage) {
         }
         let model_name = response.model;
         let model = new Model();
+        model.to = map.to;
         if (_settings[model_name]) model.injectCustomSettings(_settings[model_name]);
-        if (_settings[_profile] && _settings[_profile][model_name]) {
-            model.injectCustomSettings(_settings[_profile][model_name]);
-        }
         model.mapResponse(response);
         model.state = map.state;
         model.key = map.key;
+        
         model.stage = stage;
         _models[stage] = model;
         return model;
@@ -107,7 +104,7 @@ function run() {
             promise = buildModel(map, i);
         } else {
             model = _models[i];
-            if (model.state != map.state) {
+            if (model.state != map.state || model.key != map.key) {
                 model.state = map.state;
                 model.key = map.key;
             }
@@ -143,14 +140,15 @@ function buildLink() {
     for (let i =0,n=changes.length; i<n; ++i) {
         let change = changes[i];
         if (!change) continue;
-        let ni = i + change.intent;
-        if (ni < 0 || ni >= omaps.length) continue;
+        let ni = i + change.target;
+        if (ni < 0) omaps.unshift({ ...omaps[i] });
+        else if (ni >= omaps.length) omaps.push({ ... omaps[omaps.length - 1]});
         if (change.model) omaps[ni].model = change.model;
-        if (change.state) omaps[i].state = change.state;
-        if (change.to) omaps[i].to = change.to;
-        if (change.key) omaps[i].key = change.key;
+        if (change.state) omaps[ni].state = change.state;
+        if (change.to) omaps[ni].to = change.to;
+        if (change.key) omaps[ni].key = change.key;
         if (change.end) {
-            omaps.splice(i + 1, omaps.length);
+            omaps.splice(ni + 1, omaps.length);
             break;
         }
     }
@@ -180,7 +178,7 @@ function runData(uri = null) {
 function reloadFromBase() {
     Map.resetMaps();
     let url = Map.convertToURL();
-    Router.hardSetRoute(url);
+    Router.setRoute(url);
 }
 
 

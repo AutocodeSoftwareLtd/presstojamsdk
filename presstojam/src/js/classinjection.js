@@ -81,7 +81,8 @@ let classes_dict = {
     'ptj-filter-form-checkbox-label' : 'ptj-filter-form-checkbox-label',
     'ptj-filter-form-checkbox' : 'ptj-filter-form-checkbox',
     'ptj-account-details-logout' : 'ptj-account-details-logout',
-    'ptj-accounthandler' : 'ptj-accounthandler'
+    'ptj-accounthandler' : 'ptj-accounthandler',
+    'ptj-list' : 'ptj-list'
 };
 
 function regClass(name, value) {

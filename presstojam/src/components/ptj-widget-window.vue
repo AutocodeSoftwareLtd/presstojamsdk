@@ -22,7 +22,10 @@ export default defineComponent({
             type : Boolean,
             default : false
         },
-        classes : String
+        classes : {
+            type : String,
+            default : ''
+        }
     },
     setup() {
        return { Class };
