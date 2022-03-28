@@ -12,7 +12,7 @@
               v-for="field in store.fields"
               :key="field.name"
               v-show="field.on"
-              >{{ store.data[ckey][field.name] }}&nbsp;</span>
+              >{{ store.data[ckey][field.name].display }}&nbsp;</span>
           </a>
         </li>
       </ul>
@@ -39,13 +39,13 @@ export default defineComponent({
       const ncombos = [];
       if (combos.length == 0) {
           for(let d in data) {
-            ncombos.push({ tags : { tag : data[d].display }, data : data[d].contains});
+            ncombos.push({ tags : [ data[d].display ], data : data[d].contains});
           }
       } else {
         for (let c of combos) {
           for(let d in data) {
             let tags = c.tags;
-            tags[tag] = d.display;
+            tags.push(d.display);
             ncombos.push({ tags : tags, data : c.data.filter( value => data[d].contains.includes(value))});
           }
         }
@@ -59,6 +59,7 @@ export default defineComponent({
       for (let group in this.store.indexes) {
           combos = this.getCombinations(group, this.store.indexes[group], combos);
       }
+      console.log(combos);
       return combos;
     },
   },

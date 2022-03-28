@@ -2,6 +2,7 @@ import client from "./client.js"
 import { Field } from "./field.js"
 import { reactive } from "vue"
 import { Asset } from "./asset.js"
+import { DataCell } from "./data.js"
 
 
 export class Model {
@@ -65,6 +66,7 @@ export class Model {
     set state(state) {
         this._active_state = (state) ? state : this._default_state;
         this._change_intention = null;
+        this.store.settings = { "fields" : null};
         if (this._settings[this._active_state]) this.store.settings = this._settings[this._active_state];
         this.applySettings();
         this.loadState();
@@ -197,36 +199,17 @@ export class Model {
         }
     }
 
-    getSummary(field = null, row = null) {
-        if (!field) {
-            let sum = [];
-            for(let field in this.store.fields) {
-                if (this.store.fields[field].summary) sum.push(field.val);
-            }
-            return sum.join(" ");
-        } else if (field == this.snakeCase(this._parent_key)) {
-            return this.store.parent_models[0].getSummary();
-        } else {
-            let sum = [];
-            for(let tb of row[field.reference]) {
-                sum.push(tb);
-            }
-            return sum.join(" ");
+    getSummary(field, data) {
+        let sum = [];
+        for(let tb in data[field.reference]) {
+            sum.push(data[field.reference][tb]);
         }
+        return sum.join(" ");
     }
 
     applySettings() {
         if (this.store.settings) {
-            if (this.store.settings.fields) {
-                for(let field of this.store.settings.fields) {
-                    this.store.fields[field].on = false;
-                }
-
-                for(let field of this.store.settings.fields) {
-                    this.store.fields[field].on = true;
-                }
-            }
-
+            
             if (this.store.settings.groups) {
                 this.store.groups = this.store.settings.groups;
             }
@@ -316,23 +299,9 @@ export class Model {
             .then(response => {
                 if (response.__status != "SUCCESS") throw new Error(response);
                 this.mapRepoData(response);
-            })
-            .then(() => {
-                if (this.store.parent_models.length > 0) {
-                    let parent = this.store.parent_models[0];
-                    parent.key = this.key;
-                    parent.to = this.to;
-                    return client.get(parent.loadurl, parent.params)
-                    .then(response => {
-                        if (response.__status != "SUCCESS") throw new Error(response);
-                        parent.mapData(response);
-                        for(let i =1, n=this.store.parent_models.length; i<n; ++i) {
-                            let parent = this.store.parent_models[i];
-                            parent.mapData(response[parent.name]);
-                        }
-                    });
-                }
+                return response;
             });
+           
 
         } else if (this._active_state == "getprimary" || this._active_state == "put") {
             return client.get(this.loadurl, this.params)
@@ -373,7 +342,7 @@ export class Model {
     rLoadObj(data) {
         let obj={};
         for(const field in this.store.fields) {
-            obj[field] =  data[field];
+            obj[field] = (this.store.fields[field].reference) ? new DataCell(data[field], this.getSummary(this.store.fields[field], data)) : new DataCell(data[field]);
         }
         if (this._circular && data[this._name]) {
             if (data[this._name]) {
@@ -403,10 +372,10 @@ export class Model {
             for(let group of this.store.groups) {
                 group = this.snakeCase(group);
                 if (!indexes[group]) indexes[group] = {};
-                let ckey = row[group];
+                let ckey = row[group].val;
                 if (!indexes[group][ckey]) {
                     indexes[group][ckey] = {"display": "", "contains":[]};
-                    indexes[group][ckey].display=this.getSummary(group, row);
+                    indexes[group][ckey].display= row[group].display;
                 }
                 indexes[group][ckey].contains.push(key);
             }
@@ -419,6 +388,10 @@ export class Model {
         for (const i in response.__data) {
             const data = this.rLoadObj(response.__data[i]);
             this.store.data.push(data);
+            for(let x in this.store.parent_models) {
+                let parent = this.store.parent_models[x];
+                parent.mapData(response.__data[i][parent.name]);
+            }
         }
 
         

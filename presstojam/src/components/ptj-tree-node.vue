@@ -15,7 +15,7 @@
                 </a>
             </div>
             <div v-for="(field, cindex) in store.fields" :key="cindex" v-show="field.on">
-                <span>{{ field.label }}: {{ branch[field.name] }}</span>
+                <span>{{ field.label }}: {{ branch[field.name].display }}</span>
             </div>
             
         </div>

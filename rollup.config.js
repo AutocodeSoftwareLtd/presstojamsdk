@@ -4,29 +4,31 @@ import babel from "@rollup/plugin-babel";
 import vue from 'rollup-plugin-vue';
 import postcss from "rollup-plugin-postcss";
 import replace from 'rollup-plugin-replace';
+import node from "@rollup/plugin-node-resolve";
 
-const input = ["src/index.js"];
+//const input = ["src/index.js"];
 export default [
 {
     // UMD
     input: "./import.js",
     plugins : [
       nodeResolve(),
+      node({ browser : true}),
       babel({
-        babelHelpers: "bundled",
+        babelHelpers: "bundled", exclude: "node_modules/**"
       }),
       replace({
         'process.env.NODE_ENV': JSON.stringify( 'production' )
       }),
       terser(),
-      vue({ target : 'web'}),
+      vue(),
       postcss()
     ],
     output: [
       {
       file: "dist/ptj.min.js",
       format: "umd",
-      name: "gc",
+      name: "ptj",
       esModule: false,
       //exports: "named",
       sourcemap: true,

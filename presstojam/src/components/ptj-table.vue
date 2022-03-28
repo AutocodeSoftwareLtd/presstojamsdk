@@ -11,7 +11,7 @@
     </thead>
     <tbody>
       <tr v-for="(obj, rindex) in store.data" :key="rindex" :class="Class.getClass('ptj-table-row') + ' ' + this.getRowClass(obj)" @click="next(obj[store.primarykeyname]);">
-        <td v-for="(field, index) in store.fields" :key="index" :class="Class.getClass('ptj-table-cell') + ' ' + field.name.replace('_', '-')" v-show="store.fields[index].on">{{ obj[field.name] }}</td>
+        <td v-for="(field, index) in store.fields" :key="index" :class="Class.getClass('ptj-table-cell') + ' ' + field.name.replace('_', '-')" v-show="store.fields[index].on">{{ obj[field.name].display }}</td>
         <td :class="Class.getClass('ptj-table-cell-sortable')" v-if="sortable">
             <a data-action="more" class="button" @click.prevent="toggle" draggable="true">
                 <span class="material-icons">drag</span>

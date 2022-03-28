@@ -1,12 +1,14 @@
-import { Validator } from "./validator.js"
+
 import Errors from "./error.js"
 import { reactive, computed, ref } from "vue"
 import Client from "./client.js"
+import { Validator } from "./validator.js"
 
-export class Field  {
+export class Field {
 
     constructor(name, obj = null) {
         this._name = name;
+        this._value = ref(null);
         this._type;
         this._is_primary = false;
         this._is_parent = false;
@@ -24,7 +26,6 @@ export class Field  {
         this._summary = false;
         this._default = null;
         this._validator = new Validator();
-        this._value = ref(null);
         this._multiple;
         this._is_validate_on = false;
         this._options = reactive([]);
