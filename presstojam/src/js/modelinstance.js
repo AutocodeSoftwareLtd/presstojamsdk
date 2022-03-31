@@ -150,16 +150,31 @@ export class ModelInstance {
             this._data_template.limit = this._settings.limit;
         }
     
-    
-        if (map.state == "post" || map.state == "put") {
-            for(let name in this._meta_row.fields) {
-                if (this._meta_row.fields[name].type == "select") {
-                    let params = {};
-                    params[this._meta_primary_key_name] = this._key;
-                    this._meta_row.fields[name].setOptions(params);
+        let promises = [];
+        if (map.state == "put") {
+            const cells = this._meta_row.getCellByType("select");
+            for(let name in cells) {
+                let params = {};
+                params[this._meta_row.primary.name] = map.key;
+                if (cells[name].reference) {
+                    promises.push(cells[name].setReferenceOptions("/" + this._model + "-" + name.replace("_", "-") + "-reference", params));
+                } else {
+                    promises.push(cells[name].setOptions(params));
+                }
+            }
+        } else if (map.state == "post") {
+            const cells = this._meta_row.getCellByType("select");
+            for(let name in cells) {
+                let params = {};
+                if (this._meta_row.parent) params[this._meta_row.parent.name] = map.key;
+                if (cells[name].reference) {
+                    promises.push(cells[name].setReferenceOptions("/" + this._model + "-" + name.replace("_", "-") + "-reference", params));
+                } else {
+                    promises.push(cells[name].setOptions(params));
                 }
             }
         }
+        return Promise.all(promises);
         
     }
 

@@ -5,7 +5,7 @@ import GCRoot from "./components/ptj-root.vue"
 
 Controller.setSettings({ 
     "client" : { "url" : "https://api.presstojam.com", "debug" : true },
-    "mapper" : {},
+    "mapper" : { base : "/v3/admin/"},
     "models" : {
         "projects" : {
             "get" : {

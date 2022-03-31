@@ -184,7 +184,7 @@ function convertFromURL(url_obj) {
 function setBase(base) {
     //trim any leading or trailing / so we can be sure we are dealing with the correct format
     base = base.replace(/^\/+|\/+$/g, '');
-    route_base = "/" + base;
+    route_base = "/" + base + "/";
 }
 
 function getMaps() {

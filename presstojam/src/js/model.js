@@ -75,8 +75,8 @@ export class Model {
         })
         .then(() => {
             if (!this._previous_map || this._previous_map.key != this._map.key || this._previous_map.param_str != this._map.param_str) {
-                this._instance.initDataTemplate(this._map);
                 this._previous_map = null;
+                return this._instance.initDataTemplate(this._map);
             }
         })
         .then(() => {

@@ -234,26 +234,28 @@ export class Field {
 
     setOptions(params) {
         this._store.options = [];
-        if (this._reference) {
-            Client.get(this._reference, params)
-                .then(response => {
-                    for (let i in response.__data) {
-                        if (i.indexOf("__") === 0) continue;
-                        this._store.options.push({ key: response.__data[i].id, value: response.__data[i].value });
-                    }
-                })
-                .catch(e => {
-                    console.log(e);
-                });
-        } else {
-            try {
-                for (let opt of this._atts.options) {
-                    this._store.options.push({ key: opt, value: opt });
-                }
-            } catch (e) {
-                console.log("options not set for ", this._name);
+        try {
+            for (let opt of this._atts.options) {
+                this._store.options.push({ key: opt, value: opt });
             }
+        } catch (e) {
+            console.log("options not set for ", this._name);
         }
+        return Promise.resolve();
+    }
+
+    setReferenceOptions(url, params) {
+        this._store.options = [];
+        return Client.get(url, params)
+        .then(response => {
+            for (let i in response.__data) {
+                if (i.indexOf("__") === 0) continue;
+                this._store.options.push({ key: response.__data[i].id, value: response.__data[i].value });
+            }
+        })
+        .catch(e => {
+            console.log(e);
+        });
     }
 
     clean(val) {

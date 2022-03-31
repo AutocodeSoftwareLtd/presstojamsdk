@@ -80,4 +80,12 @@ export class MetaRow {
     exportToStore(store) {
        store.fields = this._fields;
     }
+
+    getCellByType(type) {
+        let cells = {};
+        for(let i in this._fields) {
+            if (this._fields[i].type == type) cells[i] = this._fields[i];
+        }
+        return cells;
+    }
 }
