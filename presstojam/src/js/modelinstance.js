@@ -363,6 +363,14 @@ export class ModelInstance {
                     this.buildLink({ param_str : this._data_template.convertToParams()})();
                     this.reload();
                 };
+
+                if (this._meta_row.parent) {
+                    this._store.actions.push({
+                        r : this.buildLink({ model : this._meta_row.parent.reference, "state" : "getprimary" }),
+                        n: "go back"
+                    });
+                }
+
                 if (this._states.post) {
                     this._store.actions.push({ r: this.buildLink({ "state" : "post"}), n: this._states.get.actions.post });
                 }
@@ -394,6 +402,14 @@ export class ModelInstance {
                 this._store.component = "ptj-single-item";
                 this._store.actions = [];
                 this._store.index = this._model + "-getprimary";
+
+                if (this._meta_row.parent) {
+                    this._store.actions.push({
+                        r : this.buildLink({ key : this._data.parent.toVal(), state : "get"}),
+                        n: this._states.getprimary.actions.get 
+                    });
+                }
+
                 if (this._states.put) {
                     this._store.actions.push({ 
                         r: this.buildLink({ state : "put"}), 
@@ -405,13 +421,15 @@ export class ModelInstance {
                         r: async () => {
                             if (confirm("Are you sure you want to delete this record and all associated children?")) {
                                 let data = {};
-                                data[this._primary_key] = this._store.key_states.primary_key;
-                                await client.delete("/" + this._name, data);
-                                this.buildLink({ state : "get", key : this._store.key_states.parent_key});
+                                data[this._meta_row.primary.name] = this._data.primary.toVal();
+                                await client.delete(this.saveURL(), data);
+                                this.buildLink({ state : "get", key : this._data.parent.toVal()})();
                             }
                         }, n: this._states.getprimary.actions.delete
                     });
                 }
+
+                
 
                 this._store.children = [];
                 for (let child of this._children) {

@@ -257,7 +257,8 @@ export class Field {
     }
 
     clean(val) {
-        return (this._type == "checkbox") ? Boolean(val) : val;
+        if (this._type == "checkbox") return (val) ? 1 : 0;
+        else return val;
     }
 
     validate(value) {

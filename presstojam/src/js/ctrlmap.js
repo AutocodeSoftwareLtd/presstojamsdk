@@ -147,7 +147,6 @@ function convertToURL() {
         str_parts.push(map.convertToURL());
     }
 
-    console.log(window.location.protocol + "//" + window.location.host + route_base);
     const base = new URL(window.location.protocol + "//" + window.location.host + route_base);
     const url_str = str_parts.join("/");
     const url = new URL(url_str, base);
