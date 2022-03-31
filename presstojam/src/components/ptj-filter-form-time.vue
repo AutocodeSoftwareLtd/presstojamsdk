@@ -1,8 +1,8 @@
 <template>
  <div :class="Class.getClass('ptj-form-row') + ' ' + Class.getClass('ptj-filter-form-time-row')">
-  <label :class="Class.getClass('ptj-filter-form-time-label')">{{ field.label }}</label>
-  <input :class="Class.getClass('ptj-filter-form-time-1')" type="date" v-model="field.val1">
-  <input :class="Class.getClass('ptj-filter-form-time-2')" type="date" v-model="field.val2">
+  <label :class="Class.getClass('ptj-filter-form-time-label')">{{ field.meta.label }}</label>
+  <input :class="Class.getClass('ptj-filter-form-time-1')" type="datetime-local" v-model="field.val1">
+  <input :class="Class.getClass('ptj-filter-form-time-2')" type="datetime-local" v-model="field.val2">
   <ptj-error v-show="field.error" :error="field.error" />
  </div>
 </template>

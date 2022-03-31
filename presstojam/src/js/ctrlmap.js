@@ -1,6 +1,3 @@
-import Params from "./params.js"
-
-
 const action_map = {
     'post' : '-create',
     'put' : '-update',
@@ -18,45 +15,57 @@ class CtrlGroupMap {
         this._state = "";
         this._key = 0;
         this._to;
+        this._param_str;
     }
 
     set model(model) {
         this._model = model;
     }
 
+    get model() {
+        return this._model;
+    }
+
     set state(state) {
         this._state = state;
+    }
+    
+    get state() {
+        return this._state;
     }
 
     set key(key) {
         this._key = key;
     }
 
-    set to(to) {
-        this._to = to;
-    }
-
-    get model() {
-        return this._model;
-    }
-
-    get state() {
-        return this._state;
-    }
-
     get key() {
         return this._key;
+    }
+
+    set to(to) {
+        this._to = to;
     }
 
     get to() {
         return this._to;
     }
 
-    swap(map) {
-        this._model = map.model;
-        this._state = map.state;
-        this._key = map.key;
-        this._to = map.to;
+    set param_str(str) {
+        this._param_str = str;
+    } 
+
+    get param_str() {
+        return this._param_str;
+    }
+
+    copy() {
+        return {
+            model : this._model,
+            state : this._state,
+            key : this._key,
+            to : this._to,
+            param_str : this._param_str
+        }
     }
 
 
@@ -103,16 +112,19 @@ class CtrlGroupMap {
 
 let maps = [];
 let trigger_cb = null;
-let route_base = "";
-let params = {};
+let route_base = "/";
 
-function regParam(name, val) {
-    params[name] = val;
-}
 
-function removeParam(name) {
-    delete params[name];
-}
+function decodeParams(param_str) {
+    const params = new URLSearchParams(param_str);
+    let param_obj = {};
+    params.forEach(function(value, key) {
+        param_obj[key] = value;
+    });
+    return param_obj;
+} 
+
+
 
 
 function resetMaps() {
@@ -134,16 +146,24 @@ function convertToURL() {
     for(let map of maps) {
         str_parts.push(map.convertToURL());
     }
-    let url = route_base + "/" + str_parts.join("/");
 
-    const param_str = Params.encodeParams(params);
-    if (param_str) url += "?" + param_str;
+    console.log(window.location.protocol + "//" + window.location.host + route_base);
+    const base = new URL(window.location.protocol + "//" + window.location.host + route_base);
+    const url_str = str_parts.join("/");
+    const url = new URL(url_str, base);
 
+
+    let cstr = [];
+    for(let i in maps) {
+        if (maps[i].param_str) {
+            url.searchParams.set("stage_" + i, maps[i].param_str);
+        }
+    }
     return url;
 }
 
-function convertFromURL(url) {
-    url = url.replace(route_base, "");
+function convertFromURL(url_obj) {
+    let url = url_obj.pathname.replace(route_base, "");
     url = url.replace(/^\/+|\/+$/g, '');
     let parts = url.split("/");
     maps = [];
@@ -151,6 +171,13 @@ function convertFromURL(url) {
         let map = createMap();
         map.convertFromURL(parts[i]);
     }
+
+    const param_obj = url_obj.searchParams;
+    for(let i in maps) {
+        const param = param_obj.get("stage_" + i);
+        if (param) maps[i].param_str = param;
+    }
+
     if (trigger_cb) trigger_cb();
 }
 
@@ -164,8 +191,6 @@ function setBase(base) {
 function getMaps() {
     return maps;
 }
-
-
 
 
 export default {

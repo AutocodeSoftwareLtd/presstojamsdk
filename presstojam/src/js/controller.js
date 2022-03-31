@@ -3,6 +3,7 @@ import { Model } from "./model.js"
 import Map from "./ctrlmap.js"
 import Client from "./client.js"
 import Router from "./router.js"
+import ChangeAction from "./changeaction.js"
 
 let _store = reactive({ 'models' : [], profile : null });
 let _settings = {};
@@ -61,30 +62,12 @@ function removeRole() {
 }
 
 function buildModel(map, stage) {
-    let url = (!map.model) ? "/route-core-default" : "/route-" + map.model;
-    let data = {};
-    if (map.to) data.__to = map.to;
-    return Client.get(url, data)
-    .then(response => {
-        if (response.__status != "SUCCESS") {
-            throw new Error(response);
-        }
-        let model_name = response.model;
-        let model = new Model();
-        model.to = map.to;
-        if (_settings[model_name]) model.injectCustomSettings(_settings[model_name]);
-        model.mapResponse(response);
-        model.state = map.state;
-        model.key = map.key;
-        
-        model.stage = stage;
-        _models[stage] = model;
-        return model;
-    })
-    .then(model=> {
-        return model.load();
-    });
-    
+    let model = new Model(stage);
+    model.map = map;
+    if (_settings[map.model]) model.injectCustomSettings(_settings[map.model]);
+    _models[stage] = model;
+    return _models[stage];
+   
 }
 
 function run() {
@@ -101,16 +84,15 @@ function run() {
         const map = maps[i];
         let model, promise;
         if (i >= _models.length || _models[i].name != map.model) {
-            promise = buildModel(map, i);
+            model = buildModel(map, i);
         } else {
             model = _models[i];
-            if (model.state != map.state || model.key != map.key) {
-                model.state = map.state;
-                model.key = map.key;
-            }
-            promise = _models[i].load()
-            .catch(e => console.log(e));
         }
+        if (_settings && _settings[map.model]) {
+            model.injectCustomSettings(_settings[map.model]);
+        }
+        promise = model.init()
+        .catch(e => console.log(e));
         promises.push(promise);
     }
 
@@ -119,7 +101,7 @@ function run() {
     Promise.all(promises)
     .then(() => {
         for(let model of _models) {
-            _store.models.push(model);
+            _store.models.push(model.exportToStore());
         }
     })
     .catch(e => {
@@ -127,31 +109,15 @@ function run() {
     })    
 }
 
-function buildLink() {
+function buildLink(soft = false) {
     Map.resetMaps();
     let omaps = [];
-    let changes = [];
     for(let i in _models) {
         let model = _models[i];
         omaps.push(model.map);
-        changes.push(model.change_intention);
     }
 
-    for (let i =0,n=changes.length; i<n; ++i) {
-        let change = changes[i];
-        if (!change) continue;
-        let ni = i + change.target;
-        if (ni < 0) omaps.unshift({ ...omaps[i] });
-        else if (ni >= omaps.length) omaps.push({ ... omaps[omaps.length - 1]});
-        if (change.model) omaps[ni].model = change.model;
-        if (change.state) omaps[ni].state = change.state;
-        if (change.to) omaps[ni].to = change.to;
-        if (change.key) omaps[ni].key = change.key;
-        if (change.end) {
-            omaps.splice(ni + 1, omaps.length);
-            break;
-        }
-    }
+    ChangeAction.convertMaps(omaps);
 
     for(const omap of omaps) {
         let cmap = Map.createMap();
@@ -160,7 +126,8 @@ function buildLink() {
         }
     }
     let url = Map.convertToURL();
-    Router.setRoute(url);
+    if (!soft) Router.setRoute(url);
+    else Router.softRoute(url);
 }
 
 function runLink() {
@@ -169,7 +136,7 @@ function runLink() {
 
 
 function runData(uri = null) {
-    if (!uri) uri = window.location.pathname;
+    if (!uri) uri = new URL(window.location.href);
     Map.convertFromURL(uri);
 }
 
@@ -183,7 +150,7 @@ function reloadFromBase() {
 
 
 function getStore() {
-    return _store.models[_seeker].store;
+    return _store.models[_seeker];
 }
 
 

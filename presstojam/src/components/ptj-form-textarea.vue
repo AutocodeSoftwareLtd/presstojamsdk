@@ -1,7 +1,7 @@
 <template>
     <div :class="Class.getClass('ptj-form-row') + ' ' + Class.getClass('ptj-form-textarea-row') + ' ' + field.name.replace('_', '-')">
-       <label :class="Class.getClass('ptj-form-textarea-label')">{{ field.label }}</label>
-       <textarea :class="Class.getClass('ptj-form-textarea')" :name="field.name" v-model="field.val" :readonly="field.readonly" :data-html="field.atts.html"></textarea>        
+       <label :class="Class.getClass('ptj-form-textarea-label')">{{ field.meta.label }}</label>
+       <textarea :class="Class.getClass('ptj-form-textarea')" :name="field.meta.name" v-model="field.val" :readonly="field.meta.readonly" :data-html="field.meta.atts.html"></textarea>        
        <ptj-error v-show="field.error" :error="field.error" />
     </div>
 </template>

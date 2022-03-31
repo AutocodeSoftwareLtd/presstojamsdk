@@ -10,7 +10,7 @@ import Class from "../js/classinjection.js"
 export default defineComponent({
     name : 'ptj-error',
     props : {
-        'error' : String
+        'error' : [Number, String]
     },
     setup() { 
         return { Class }

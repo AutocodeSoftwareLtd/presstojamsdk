@@ -1,6 +1,6 @@
 
 import Errors from "./error.js"
-import { reactive, computed, ref } from "vue"
+import { reactive, computed } from "vue"
 import Client from "./client.js"
 import { Validator } from "./validator.js"
 
@@ -8,8 +8,7 @@ export class Field {
 
     constructor(name, obj = null) {
         this._name = name;
-        this._value = ref(null);
-        this._type;
+        this._type = "";
         this._is_primary = false;
         this._is_parent = false;
         this._valid = 1;
@@ -18,49 +17,47 @@ export class Field {
         this._readonly = false;
         this._placeholder = "";
         this._conditions;
-        this._link;
-        this._reference;
+        this._link = "";
+        this._reference = "";
         this._error = 0;
         this._label = "";
-        this._on = ref(true);
-        this._summary = false;
+        this._on = true;
+        this._store = reactive({ summary : 0, options : null});
         this._default = null;
         this._validator = new Validator();
-        this._multiple;
-        this._is_validate_on = false;
-        this._options = reactive([]);
-        this._asset = null;
-        this._display_value;
-
-        this.val = computed({ 
-            get : () =>  {
-                return this._value.value;
-            },
-            set : (val) => {
-                this._value.value = (this._type == "checkbox") ? (val) ? 1 : 0 : val;
-                this._error = this.validate(val);
-            }     
-        });
-
-        this.on = computed({
+        this._multiple = false;
+      
+      
+        this.summary = computed({
             get : () => {
-                return this._on.value;
+                return this._store.summary;
             },
             set : (val) => {
-                this._on.value = val;
+                this._store.summary = val;
             }
         })
+
+        this.options = computed({
+            get : () => {
+                return this._store.options;
+            },
+            set : (options) => {
+                this._store.options = options;
+            }
+        });
 
        
         if (obj) {
             for (let x in obj) {
-                if (x == "field" || x == "validator") continue;
-                this[x] = obj[x];
+                if (x == "summary") this._store.summary = obj[x];
+                else if (x == "field" || x == "validation") continue;
+                else this[x] = obj[x];
             }
 
             if (obj.field) {
                 for(let x in obj.field) {
-                    this[x] = obj.field[x];
+                    if (x == "summary") this._store.summary = obj.field[x];
+                    else this[x] = obj.field[x];
                 }
             }
 
@@ -70,6 +67,7 @@ export class Field {
                 }
             }
         }
+
     }
 
     set confirm(confirm) {
@@ -99,10 +97,6 @@ export class Field {
 
     set conditions(conditions) {
         this._conditions = conditions;
-    }
-
-    set display_value(value) {
-        this._display_value = value;
     }
 
     set link(link) {
@@ -141,14 +135,10 @@ export class Field {
         this._label = label;
     }
 
-    set summary(summary) {
-        this._summary = summary;
+    
+    set on(on) {
+        this._on = on;
     }
-
-    set validateon(on) {
-        this._is_validate_on = on;
-    }
-
 
     get name() {
         return this._name;
@@ -158,9 +148,12 @@ export class Field {
         return this._type;
     }
 
-    get options() {
-        return this._options;
+    
+
+    get on() {
+        return this._on;
     }
+
 
     get isprimary() {
         return this._is_primary;
@@ -168,14 +161,6 @@ export class Field {
 
     get required() {
         return (this._min > 0) ? true : false;
-    }
-
-    get summary() {
-        return this._summary;
-    }
-
-    get display_value() {
-        return (this._display_value) ? this._display_value : this.val;
     }
 
     get readonly() {
@@ -218,18 +203,23 @@ export class Field {
         return this._reference;
     }
 
+    get asset() {
+        return this._asset;
+    }
+
     get error() {
         if (!this._error) return "";
         else if (isNaN(this._error)) return this._error;
         else return Errors.getError(this._error);
     }
 
-    get showError() {
-        return (this._is_validate_on && this._error) ? true : false;
-    }
 
     get label() {
         return this._label;
+    }
+
+    isSummary() {
+        return this._store.summary;
     }
 
 
@@ -243,13 +233,13 @@ export class Field {
 
 
     setOptions(params) {
-        this._options.length = 0;
+        this._store.options = [];
         if (this._reference) {
             Client.get(this._reference, params)
                 .then(response => {
                     for (let i in response.__data) {
                         if (i.indexOf("__") === 0) continue;
-                        this._options.push({ key: response.__data[i].id, value: response.__data[i].value });
+                        this._store.options.push({ key: response.__data[i].id, value: response.__data[i].value });
                     }
                 })
                 .catch(e => {
@@ -258,7 +248,7 @@ export class Field {
         } else {
             try {
                 for (let opt of this._atts.options) {
-                    this._options.push({ key: opt, value: opt });
+                    this._store.options.push({ key: opt, value: opt });
                 }
             } catch (e) {
                 console.log("options not set for ", this._name);

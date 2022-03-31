@@ -1,9 +1,9 @@
 <template>
   <div :class="Class.getClass('ptj-form-row') + ' ' + Class.getClass('ptj-form-select-row')">
-  <label :class="Class.getClass('ptj-form-select-label')">{{ field.label }}</label>
-  <select :class="Class.getClass('ptj-form-select')" v-model="field.val" :readonly="field.readonly" :name="field.name" :multiple="field.multiple">
-    <option value="0">Select Option</option>
-    <option v-for="option in field.options" :key="option.key" :value="option.key">{{ option.value }}</option>
+  <label :class="Class.getClass('ptj-form-select-label')">{{ field.meta.label }}</label>
+  <select :class="Class.getClass('ptj-form-select')" v-model="field.val" :readonly="field.meta.readonly" :name="field.meta.name" :multiple="field.meta.multiple">
+    <option value="0" selected disabled>Select Option</option>
+    <option v-for="option in field.meta.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
   <ptj-error v-show="field.showError" :error="field.error" />
   </div>

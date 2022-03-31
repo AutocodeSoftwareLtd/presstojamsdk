@@ -1,7 +1,12 @@
 <template>
-  <div :class="Class.getClass('ptj-form-row') + ' ' + Class.getClass('ptj-form-input-row') + ' ' + field.name">
-    <label v-if="field.atts.type != 'hidden'" :class="Class.getClass('ptj-form-input-label')">{{ field.label }}</label>
-    <input :class="Class.getClass('ptj-form-input')" :name="field.name" :type="field.atts.type" v-model="field.val" @blur="field.validateon = true" :readonly="field.readonly">
+  <div :class="Class.getClass('ptj-form-row') + ' ' + Class.getClass('ptj-form-input-row') + ' ' + field.meta.name">
+    <label v-if="field.meta.atts.type != 'hidden'" :class="Class.getClass('ptj-form-input-label')">{{ field.meta.label }}</label>
+    <input 
+        :class="Class.getClass('ptj-form-input')" 
+        :name="field.meta.name" 
+        :type="field.meta.atts.type" 
+        v-model="field.val" 
+        @blur="field.validateon = true" :readonly="field.meta.readonly">
     <ptj-error v-show="field.showError" :error="field.error" />
   </div>
 </template>

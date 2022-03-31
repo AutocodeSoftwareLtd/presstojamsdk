@@ -2,10 +2,10 @@
  <ptj-widget title="search">
    <form @submit.prevent="submit" :class="Class.getClass('ptj-filter-form')">
       <h1>Search {{ store.title }}</h1>
-      <div v-for="field in store.fields" :key="field.name" :class="Class.getClass('ptj-filter-form-group')">
-          <ptj-select v-if="field.type=='select'" :field="field" :multiple="true"  :stores="store"/>
-          <ptj-filter-checkbox v-else-if="field.type=='checkbox'" :field="field"  :stores="store"/>
-          <ptj-time-range v-else-if="field.atts.type=='datetime'" :field="field"  :stores="store"/>
+      <div v-for="field in store.data_template.cells" :key="field.meta.name" :class="Class.getClass('ptj-filter-form-group')">
+          <ptj-select v-if="field.meta.type=='select'" :field="field" :multiple="true"  :stores="store"/>
+          <ptj-filter-checkbox v-else-if="field.meta.type=='checkbox'" :field="field"  :stores="store"/>
+          <ptj-time-range v-else-if="field.meta.atts.type=='datetime'" :field="field"  :stores="store"/>
           <ptj-input v-else :field="field" :stores="store" />
                
           <!-- REMOVED: -->
@@ -38,6 +38,7 @@ export default defineComponent({
   methods : {
     submit() {
       this.store.reload();
+      Ctrl.buildLink(true);
     }
   },
   components : 

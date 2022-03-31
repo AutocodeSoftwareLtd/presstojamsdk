@@ -2,16 +2,25 @@
     <table :class="Class.getClass('ptj-table') + ' ' + store.classes">
     <thead>
         <tr :class="Class.getClass('ptj-table-header')">
-        <th v-for="(cell, index) in store.fields" :key="cell.name" :class="Class.getClass('ptj-table-header-cell') + ' ' + cell.name.replace('_', '-')" v-show="store.fields[index].on">{{ cell.label }}
-            <span v-if="sortable == false" class="material-icons" @click="orderBy(cell, false);">keyboard_arrow_up</span>
-            <span v-if="sortable == false" class="material-icons" @click="orderBy(cell, true);">keyboard_arrow_down</span>
+        <th v-for="cell in store.fields" 
+            v-show="cell.summary" 
+            :key="cell.name" 
+            :class="Class.getClass('ptj-table-header-cell') + ' ' + cell.name.replace('_', '-')"
+            @click="orderBy(cell.name);"
+        >{{ cell.label }}
+            <span v-if="this.order.name == cell.name && this.order.dir == 'asc'" 
+                class="material-icons" 
+                >keyboard_arrow_up</span>
+            <span v-if="this.order.name == cell.name && this.order.dir == 'desc'" 
+                class="material-icons" 
+                >keyboard_arrow_down</span>
         </th>
         <th v-if="sortable">&nbsp;</th>
         </tr>
     </thead>
     <tbody>
-      <tr v-for="(obj, rindex) in store.data" :key="rindex" :class="Class.getClass('ptj-table-row') + ' ' + this.getRowClass(obj)" @click="next(obj[store.primarykeyname]);">
-        <td v-for="(field, index) in store.fields" :key="index" :class="Class.getClass('ptj-table-cell') + ' ' + field.name.replace('_', '-')" v-show="store.fields[index].on">{{ obj[field.name].display }}</td>
+      <tr v-for="(obj, rindex) in store.data" :key="rindex" :class="Class.getClass('ptj-table-row') + ' ' + this.getRowClass(obj)" @click="next(obj.primary.toVal());">
+        <td v-for="(field, name) in obj.cells" :key="name" v-show="field.meta.summary" :class="Class.getClass('ptj-table-cell') + ' ' + name.replace('_', '-')">{{ field.display }}</td>
         <td :class="Class.getClass('ptj-table-cell-sortable')" v-if="sortable">
             <a data-action="more" class="button" @click.prevent="toggle" draggable="true">
                 <span class="material-icons">drag</span>
@@ -20,7 +29,7 @@
       </tr>
     </tbody>
     </table>
-    <ptj-pagination v-if="overlimit" />
+    <ptj-pagination v-if="store.data_template.limit > 0" />
 </template>
 
 <script>
@@ -34,25 +43,27 @@ import Class from "../js/classinjection.js"
 export default defineComponent({
     name: 'ptj-table',
     setup() {
-        return { store : Ctrl.getStore(), Class}
+        return { store : Ctrl.getStore(), Class, order : { name : '', dir : ''}}
     },
     methods : {
         next(key) {
             this.store.next(key);
             Ctrl.buildLink();
         },
-        orderBy(cell, dir) {
-            let order = {};
-            order[cell.name] = dir;
-            this.store.orderby = order;
+        orderBy(name) {
             if (this.store.pages > 0) {
+                this.order.dir = (!this.order.name != name || this.order.dir  == "desc") ? "asc" : "desc";
+                this.order.name = name;
+                let sort = [];
+                sort[this.order.name] = this.order.dir;
+                this.store.data_template.sort = sort;
                 this.store.load();
             } else {
                 //custom sort on the table
-                if (dir) {
+                if (this.order.name != name || this.order.dir == "desc") {
                     this.store.data.sort(function(x, y) {
-                        let xval = x[cell.name];
-                        let yval = y[cell.name];
+                        let xval = x.getCell(name).toVal();
+                        let yval = y.getCell(name).toVal();
                         if (xval < yval) {
                             return -1;
                         } else if (xval > yval) {
@@ -61,10 +72,12 @@ export default defineComponent({
                             return 0;
                         }
                     });
+                    this.order.name = name;
+                    this.order.dir = "asc";
                 } else {
                     this.store.data.sort(function(x, y) {
-                        let xval = x[cell.name];
-                        let yval = y[cell.name];
+                        let xval = x.getCell(name).toVal();
+                        let yval = y.getCell(name).toVal();
                         if (xval < yval) {
                             return 1;
                         } else if (xval > yval) {
@@ -73,6 +86,8 @@ export default defineComponent({
                             return 0;
                         }
                     });
+                    this.order.name = name;
+                    this.order.dir = "desc";
                 }
             }
         },

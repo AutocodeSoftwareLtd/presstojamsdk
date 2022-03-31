@@ -1,12 +1,7 @@
-
-const history = [];
 let cb;
 
-
-
 function setRoute(uri, title = '') {
-    history.push({ r : uri, label : title });
-    window.history.pushState({'name' : uri}, document.title, uri);
+    window.history.pushState({'name' : uri.pathname}, document.title, uri);
     runRoute(uri);
 }
 
@@ -16,14 +11,18 @@ function hardSetRoute(route) {
 }
 
 
-window.onpopstate = function() {
-    runRoute(document.location.pathname);
+window.onpopstate = function(event) {
+    runRoute(new URL(document.location.href));
 }
 
 
 function runRoute(uri) {
-    if (!uri) uri = window.location.pathname;
-    if (cb) cb(uri);
+    if (!uri) uri = new URL(window.location.href);
+    if (cb) cb(uri, window.location.search);
+}
+
+function softRoute(uri, title = '') {
+    window.history.pushState({'name' : uri.pathname}, document.title, uri);
 }
 
 function regCallback(callback) {
@@ -31,11 +30,10 @@ function regCallback(callback) {
 }
 
 
-
-
 export default {
     setRoute,
     hardSetRoute,
     runRoute,
-    regCallback
+    regCallback,
+    softRoute
 }

@@ -35,7 +35,7 @@ export default defineComponent({
     },
     computed : {
         parents() {
-            return this.store.parent_models.slice().reverse();
+            return [];
         }
     },
     components : {

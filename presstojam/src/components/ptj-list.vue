@@ -7,12 +7,8 @@
               >{{ tag }}&nbsp;</span></h3>
       <ul>
         <li v-for="ckey in combinations.data" :key="ckey">
-          <a @click="next(store.data[ckey][store.primarykeyname])">
-            <span
-              v-for="field in store.fields"
-              :key="field.name"
-              v-show="field.on"
-              >{{ store.data[ckey][field.name].display }}&nbsp;</span>
+          <a @click="next(store.data[ckey].primary.toVal())">
+            {{ store.data[ckey].getSummary() }}
           </a>
         </li>
       </ul>
@@ -59,7 +55,6 @@ export default defineComponent({
       for (let group in this.store.indexes) {
           combos = this.getCombinations(group, this.store.indexes[group], combos);
       }
-      console.log(combos);
       return combos;
     },
   },

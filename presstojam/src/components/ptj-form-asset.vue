@@ -1,7 +1,7 @@
 <template>
  <div :class="Class.getClass('ptj-form-row') + ' ' + Class.getClass('ptj-form-asset-row')">
-  <label :class="Class.getClass('ptj-form-asset-label')">{{ field.label }}</label>
-  <input :class="Class.getClass('ptj-form-asset')" ref="input" @change="setFile" :name="field.name" type="file" >
+  <label :class="Class.getClass('ptj-form-asset-label')">{{ field.meta.label }}</label>
+  <input :class="Class.getClass('ptj-form-asset')" ref="input" @change="setFile" :name="field.meta.name" type="file" >
   <ptj-error v-show="field.showError" :error="field.error" />
  </div>
 </template>

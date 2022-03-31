@@ -1,7 +1,9 @@
 <template>
   <div :class="Class.getClass('ptj-form-row') + ' ' + Class.getClass('ptj-form-confirm-row')">
-    <label :class="Class.getClass('ptj-form-confirm-label')">{{ field.label }}</label>
-    <input :class="Class.getClass('ptj-form-confirm')" :name="name" :type="field.atts.type" v-model="cval" @blur="field.setValidateOn()">
+    <label :class="Class.getClass('ptj-form-confirm-label')">{{ field.meta.label }}</label>
+    <input :class="Class.getClass('ptj-form-confirm')" 
+    :name="name" 
+    :type="field.meta.atts.type" v-model="cval" @blur="field.setValidateOn()">
     <ptj-error v-show="error" :error="error" />
   </div>
 </template>
