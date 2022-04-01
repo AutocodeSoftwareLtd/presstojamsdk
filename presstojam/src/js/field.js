@@ -68,6 +68,17 @@ export class Field {
             }
         }
 
+        if (!this._reference && this._type == "select") {
+            this._store.options = [];
+            try {
+                for (let opt of this._atts.options) {
+                    this._store.options.push({ key: opt, value: opt });
+                }
+            } catch (e) {
+                console.log("options not set for ", this._name);
+            }
+        }
+
     }
 
     set confirm(confirm) {
@@ -231,18 +242,6 @@ export class Field {
         return Promise.resolve();
     }
 
-
-    setOptions(params) {
-        this._store.options = [];
-        try {
-            for (let opt of this._atts.options) {
-                this._store.options.push({ key: opt, value: opt });
-            }
-        } catch (e) {
-            console.log("options not set for ", this._name);
-        }
-        return Promise.resolve();
-    }
 
     setReferenceOptions(url, params) {
         this._store.options = [];

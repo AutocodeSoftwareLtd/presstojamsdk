@@ -29,12 +29,13 @@ export class ModelInstance {
         this._settings = {};
         this._limit_fields = [];
         this._meta_row = new MetaRow();
+        this._global_meta_row = new MetaRow();
         this._data_template = null;
         this._data = null;
+        this._global_data;
         this._indexes = null;
         this._stage = stage;
         this._states;
-        this._primary_field;
         this._to;
         this._store = reactive({});
     }
@@ -86,9 +87,13 @@ export class ModelInstance {
         }
         this._meta_row.map(cfields);
 
+        let global_fields = {};
         for(let field in response.fields) {
-            if (response.fields[field].is_primary) this._primary_field = new Field(response.fields[field]);
+            if (response.fields[field].is_primary) global_fields[field] = response.fields[field];
+            else if (response.fields[field].is_parent) global_fields[field] = response.fields[field];
         }
+
+        this._global_meta_row.map(global_fields);
 
         let par = response.to;
         while(par) {
@@ -132,8 +137,14 @@ export class ModelInstance {
         this._to = map.to;
         this._data_template = new DataTemplate(this._meta_row);
 
-        if (map.state == "get" || map.state == "post") {
+        if (map.state == "get") {
             if (map.key) this._data_template.parent.setVal(map.key);
+        } else if (map.state == "post") {
+            this._global_data = new DataRow(this._global_meta_row);
+            if (map.key) {
+                this._data_template.parent.setVal(map.key);
+                this._global_data.parent.setVal(map.key);
+            }
         } else if (map.state != "login") {
             this._data_template.primary.setVal(map.key);
         }
@@ -150,32 +161,7 @@ export class ModelInstance {
             this._data_template.limit = this._settings.limit;
         }
     
-        let promises = [];
-        if (map.state == "put") {
-            const cells = this._meta_row.getCellByType("select");
-            for(let name in cells) {
-                let params = {};
-                params[this._meta_row.primary.name] = map.key;
-                if (cells[name].reference) {
-                    promises.push(cells[name].setReferenceOptions("/" + this._model + "-" + name.replace("_", "-") + "-reference", params));
-                } else {
-                    promises.push(cells[name].setOptions(params));
-                }
-            }
-        } else if (map.state == "post") {
-            const cells = this._meta_row.getCellByType("select");
-            for(let name in cells) {
-                let params = {};
-                if (this._meta_row.parent) params[this._meta_row.parent.name] = map.key;
-                if (cells[name].reference) {
-                    promises.push(cells[name].setReferenceOptions("/" + this._model + "-" + name.replace("_", "-") + "-reference", params));
-                } else {
-                    promises.push(cells[name].setOptions(params));
-                }
-            }
-        }
-        return Promise.all(promises);
-        
+   
     }
 
 
@@ -217,10 +203,19 @@ export class ModelInstance {
                 if (response.__status != "SUCCESS") throw new Error(response);
                     this._data = {};
                     this.mapData(response);
+                    return response;
+            })
+            .then(response => {
+                this._global_data = new DataRow(this._global_meta_row);
+                this._global_data.row = response;
+                if (state == "put") {
+                    return this.setReferences()
+                }
             });
         } else if (state == "post") {
             this._data = new DataRow(this._meta_row);
             if (this._data_template.parent) this._data.parent.setVal(this._data_template.parent.toVal());
+            return this.setReferences();
         } else {
             this._data = new DataRow(this._meta_row);
             
@@ -293,7 +288,7 @@ export class ModelInstance {
                 throw { message : request.statusText }
             }
             if (state == "post") {
-                this._store.data.primary.setVal(request[this._store.data.primary.meta.name]);
+                this._global_data.primary.setVal(request[this._global_meta_row.primary.name]);
             }
         })
         .then(() => {
@@ -314,6 +309,20 @@ export class ModelInstance {
             }
             return Promise.all(promises);
         });
+    }
+
+
+    setReferences() {
+        let promises = [];
+        const cells = this._meta_row.getCellByType("select");
+        for(let name in cells) {
+            if (cells[name].reference) {
+                let params = {};
+                if (this._global_meta_row.parent) params[this._global_meta_row.parent.name] = this._global_data.parent.toVal();
+                promises.push(cells[name].setReferenceOptions("/" + this._model + "-" + name.replace("_", "-") + "-reference", params));
+            } 
+        }
+        return Promise.all(promises);
     }
 
     mapRepoData(response) {
@@ -341,6 +350,7 @@ export class ModelInstance {
                 intention[setting] = this._change_settings[setting];
             }
             ChangeAction.updateIntention(this._stage, intention);
+            return Promise.resolve();
         }
     }
 
@@ -375,8 +385,10 @@ export class ModelInstance {
                 this._store.index = this._model + "-get";
                 this._store.submiturl = this.loadurl;
                 this._store.reload = () => { 
-                    this.buildLink({ param_str : this._data_template.convertToParams()})();
-                    this.reload();
+                    this.buildLink({ param_str : this._data_template.convertToParams()})()
+                    .then(() => {
+                        this.reload();
+                    });
                 };
 
                 if (this._meta_row.parent) {
@@ -408,8 +420,8 @@ export class ModelInstance {
                 if (this._data_template.limit > 0) {
                     this._store.setPage = (page) => {
                         this._store.data_template.page = page;
-                        this.buildLink({ param_str : this._data_template.convertToParams()})();
-                        this.reload();
+                        this.buildLink({ param_str : this._data_template.convertToParams()})()
+                        .then(() => { this.reload(); });
                     }
                 }
             },
@@ -433,13 +445,18 @@ export class ModelInstance {
                 }
                 if (this._states.delete) {
                     this._store.actions.push({
-                        r: async () => {
+                        r: () => {
                             if (confirm("Are you sure you want to delete this record and all associated children?")) {
                                 let data = {};
                                 data[this._meta_row.primary.name] = this._data.primary.toVal();
-                                await client.delete(this.saveURL(), data);
-                                this.buildLink({ state : "get", key : this._data.parent.toVal()})();
-                            }
+                                return client.delete(this.saveURL(), data)
+                                .then(() => {
+                                    let map = { "state" : "get"};
+                                    if (this._global_data.parent) map.key = this._global_data.parent.toVal();
+                                    return this.buildLink(map)();
+                                })
+                            } 
+                            return Promise.reject("Delete cancelled");
                         }, n: this._states.getprimary.actions.delete
                     });
                 }
@@ -463,15 +480,11 @@ export class ModelInstance {
                     this._store.actions.push({r : this.buildLink({ state : "login"}), n: this._states.post.actions.login });
                 }
 
-                this._store.next = response => {
-                    this.buildLink({ state : "getprimary", key : response[this._primary_key_name]})();
+                this._store.next = () => {
+                    return this.buildLink({ state : "getprimary", key : this._global_data.primary.toVal()})();
                 }
 
-                this._store.createPrimaryKey = response => {
-                    this._store.data.appendPrimary(this._primary_field);
-                    this._store.data.primary.setVal(response[this._primary_field.name]);
-                }
-
+                
                 this._store.submit = () => {
                     return this.submit("post");
                 }
@@ -482,8 +495,11 @@ export class ModelInstance {
                 this._store.index = this._model + "-put";
                 this._store.actions = [];
                 if (this._states.getprimary) this._store.next = this.buildLink({ state : "getprimary"});
-                else this._store.next = this.buildLink({ state : "get", key : this._keys.parent_key});
-            
+                else {
+                    let map = { "state" : "get"};
+                    if (this._global_data.parent) map.key = this._global_data.parent.toVal();
+                    this._store.next = this.buildLink(map);
+                }
                 this._store.submit = () => {
                     return this.submit("put");
                 }

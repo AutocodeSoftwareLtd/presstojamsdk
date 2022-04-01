@@ -26,8 +26,11 @@ export default defineComponent({
   },
   methods : {
       setRoute(route) {
-          route.r();
-          Ctrl.buildLink();
+          route.r().
+          then(() => {
+            Ctrl.buildLink();
+          })
+          .catch(e => console.log(e));
       }
   }   
 });

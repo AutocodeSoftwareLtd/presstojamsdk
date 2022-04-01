@@ -18,7 +18,7 @@ Controller.setSettings({
                 },
                 "disable_filter" : 1,
                 "disable_selectfields" : 1,
-                "limit" : 10
+               
             }
         }
     }
