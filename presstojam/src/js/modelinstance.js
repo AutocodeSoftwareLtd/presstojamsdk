@@ -355,8 +355,8 @@ export class ModelInstance {
     buildLink = (intention) => {
         return key => {
             if (key) intention.key = key;
-            for(let setting in this._change_settings) {
-                intention[setting] = this._change_settings[setting];
+            for(let setting in this._settings.change_intention) {
+                intention[setting] = this._settings.change_intention[setting];
             }
             ChangeAction.updateIntention(this._stage, intention);
             return Promise.resolve();
