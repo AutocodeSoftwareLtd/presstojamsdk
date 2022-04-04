@@ -30,12 +30,6 @@ export class Validator {
         this._has_not.push(nhas);
     }
 
-    get ishtml() {
-        for(let i in this._has) {
-            if (this._has[i] == "html") return true;
-        }
-        return false;
-    }
 
 
     validateSize(val) {
