@@ -107,7 +107,7 @@ export class Asset {
               const data = {};
               data.__chunk = i;
               data.__blob = this.getChunk(i);
-              data.id = id;
+              data[this._key_field] = id;
               promises.push(Client.put(this._url, data));
           }
           return Promise.all(promises);

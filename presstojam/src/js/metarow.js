@@ -48,22 +48,7 @@ export class MetaRow {
         for (let i in fields) {
             if (fields[i].is_primary) this._primary = new Field(i, fields[i]);
             else if (fields[i].is_parent) this._parent = new Field(i, fields[i]);
-            else {
-                this._fields[i] = new Field(i, fields[i]);
-                if (this._fields[i].type == "asset") {
-                    let asset = new Asset();
-                    asset.url = this._model + "-" + i;
-                    this._fields[i].asset = asset;
-                }
-            }
-        }
-
-        if (this._primary) {
-            for(let i in this._fields) {
-                if (this._fields[i].type == "asset") {
-                    this._fields[i].asset.keyfield = this._primary.name;
-                }
-            }
+            else  this._fields[i] = new Field(i, fields[i]);
         }
     }
 

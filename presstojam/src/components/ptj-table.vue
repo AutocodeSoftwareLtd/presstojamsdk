@@ -57,7 +57,7 @@ export default defineComponent({
                 let sort = [];
                 sort[this.order.name] = this.order.dir;
                 this.store.data_template.sort = sort;
-                this.store.load();
+                this.store.reload();
             } else {
                 //custom sort on the table
                 if (this.order.name != name || this.order.dir == "desc") {

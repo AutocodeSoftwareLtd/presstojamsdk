@@ -168,7 +168,10 @@ export class ModelInstance {
     load(state) {
         if (state == "get") {
             let params = this._data_template.convertToAPIParams(state);
-            if (this._to) params.__to = this._to;
+            if (this._to) {
+                if (!params) params = {};
+                params.__to = this._to;
+            }
 
             if (this._data_template.limit > 0) {
                 return client.get(this.loadURL("get") + "-count", params)
@@ -227,8 +230,13 @@ export class ModelInstance {
     reload() {
         let params = this._data_template.convertToAPIParams("get");
         if (this._to) params.__to = this._to;
-        return client.get(this.loadURL("get"), params)
+        return client.get(this.loadURL("get") + "-count", params)
         .then(response => {
+            this._data_template.max_pages = Math.ceil(response.count / this._data_template.limit);
+        })
+        .then(() => {
+            return client.get(this.loadURL("get"), params)
+        }).then(response => {
             if (response.__status != "SUCCESS") throw new Error(response);
             this._data = [];
             this.mapRepoData(response);
@@ -301,6 +309,7 @@ export class ModelInstance {
                 ++this._store.progress.total;
                 const asset = new Asset();
                 asset.url = this.saveURL() + "-" + i;
+                asset.keyfield = this._store.data.primary.name;
                 let promise = asset.saveFile(assets[i].toVal(), this._store.data.primary.toVal())
                 .then(() => {
                     ++this._store.progress.progress;
@@ -507,13 +516,21 @@ export class ModelInstance {
             'login': () => {
                 this._store.component = "ptj-account-handler";
                 this._store.index = this._model + "-login";
-                this._store.method = "post";
-                this._store.submiturl += "-login";
+                this._store.progress = {total : 0, progress : 0};
+                this._store.submit = () => {
+                    let data = this._data.serialize("login");
+                    return client.post(this.saveURL() + "-login", data)
+                    .then(request=>{
+                        if (request.__status!= "SUCCESS") {
+                            throw { message : request.statusText }
+                        }
+                        return request;
+                    });
+                } 
                 this._store.actions = [];
                 if (this._states.post) {
                     this._store.actions.push({ r: this.buildLink({ state : "post"}), n: this._states.login.actions.post });
                 }
-                this._store.next = null;
             }
         }
 
