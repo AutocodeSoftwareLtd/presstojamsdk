@@ -159,6 +159,10 @@ export class Field {
         return this._type;
     }
 
+    get ishtml() {
+        return this._validator.ishtml;
+    }
+
     
 
     get on() {

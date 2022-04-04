@@ -23,22 +23,8 @@ Controller.setSettings({
                     "parent" : true
                 }
                
-            },
-            "getprimary" : {
-                "hide_actions" : {
-                    "children" : true
-                }
             }
         },
-        "fields" : {
-            "getprimary" : {
-                "hide_actions" : {
-                    "put" : true,
-                    "delete" : true,
-                    "parent" : true
-                }
-            }
-        }
     }
 });
 

@@ -30,6 +30,13 @@ export class Validator {
         this._has_not.push(nhas);
     }
 
+    get ishtml() {
+        for(let i in this._has) {
+            if (this._has[i] == "html") return true;
+        }
+        return false;
+    }
+
 
     validateSize(val) {
         if (val < this._min) return this._errors.MIN_VALUE;
