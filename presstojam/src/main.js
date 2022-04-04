@@ -18,7 +18,25 @@ Controller.setSettings({
                 },
                 "disable_filter" : 1,
                 "disable_selectfields" : 1,
+                "hide_actions" : {
+                    "post" : true,
+                    "parent" : true
+                }
                
+            },
+            "getprimary" : {
+                "hide_actions" : {
+                    "children" : true
+                }
+            }
+        },
+        "fields" : {
+            "getprimary" : {
+                "hide_actions" : {
+                    "put" : true,
+                    "delete" : true,
+                    "parent" : true
+                }
             }
         }
     }

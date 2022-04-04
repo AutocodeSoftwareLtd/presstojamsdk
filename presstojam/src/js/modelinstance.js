@@ -26,7 +26,7 @@ export class ModelInstance {
         this._classes= "";
         this._states = {};
         this._default_state = "";
-        this._settings = {};
+        this._settings = { hide_actions : {}};
         this._limit_fields = [];
         this._meta_row = new MetaRow();
         this._global_meta_row = new MetaRow();
@@ -63,6 +63,8 @@ export class ModelInstance {
 
     applySettings(settings) {
         this._settings = settings;
+        if (!this._settings) this._settings = {};
+        if (!this._settings.hide_actions) this._settings.hide_actions = {};
     }
 
 
@@ -400,14 +402,14 @@ export class ModelInstance {
                     });
                 };
 
-                if (this._meta_row.parent) {
+                if (this._meta_row.parent && !this._settings.hide_actions.parent) {
                     this._store.actions.push({
                         r : this.buildLink({ model : this._meta_row.parent.reference, "state" : "getprimary" }),
                         n: "go back"
                     });
                 }
 
-                if (this._states.post) {
+                if (this._states.post && !this._settings.hide_actions.post) {
                     this._store.actions.push({ r: this.buildLink({ "state" : "post"}), n: this._states.get.actions.post });
                 }
 
@@ -419,11 +421,13 @@ export class ModelInstance {
                 }
 
                 this._store.siblings = [];
-                for (let sibling of this._siblings) {
-                    this._store.siblings.push({
-                        r: this.buildLink({ model : sibling.name, param_str : ""}), 
-                        n: sibling.label
-                    });
+                if (!this._settings.hide_actions.children) {
+                    for (let sibling of this._siblings) {
+                        this._store.siblings.push({
+                            r: this.buildLink({ model: sibling.name, param_str: "" }),
+                            n: sibling.label
+                        });
+                    }
                 }
 
                 if (this._data_template.limit > 0) {
@@ -439,20 +443,20 @@ export class ModelInstance {
                 this._store.actions = [];
                 this._store.index = this._model + "-getprimary";
 
-                if (this._meta_row.parent) {
+                if (this._meta_row.parent && !this._settings.hide_actions.parent) {
                     this._store.actions.push({
                         r : this.buildLink({ key : this._data.parent.toVal(), state : "get"}),
                         n: this._states.getprimary.actions.get 
                     });
                 }
 
-                if (this._states.put) {
+                if (this._states.put && !this._settings.hide_actions.put) {
                     this._store.actions.push({ 
                         r: this.buildLink({ state : "put"}), 
                         n: this._states.getprimary.actions.put 
                     });
                 }
-                if (this._states.delete) {
+                if (this._states.delete && !this._settings.hide_actions.delete) {
                     this._store.actions.push({
                         r: () => {
                             if (confirm("Are you sure you want to delete this record and all associated children?")) {
@@ -473,11 +477,13 @@ export class ModelInstance {
                 
 
                 this._store.children = [];
-                for (let child of this._children) {
-                    this._store.children.push({
-                        r: this.buildLink({ state : "get", model : child.name }), 
-                        n: child.label
-                    });
+                if (!this._settings.hide_actions.children) {
+                    for (let child of this._children) {
+                        this._store.children.push({
+                            r: this.buildLink({ state: "get", model: child.name }),
+                            n: child.label
+                        });
+                    }
                 }
             },
             'post': () => {
