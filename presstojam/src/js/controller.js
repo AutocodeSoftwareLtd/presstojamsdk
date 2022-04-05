@@ -162,6 +162,11 @@ Map.trigger(() => {
     run();
 });
 
+
+function runRoute(method, url, params) {
+    return Client[method](url, params);
+}
+
 Router.regCallback(Map.convertFromURL)
 
 export default {
@@ -178,5 +183,6 @@ export default {
     runData,
     reloadFromBase,
     getStore,
-    next
+    next,
+    runRoute
 }
