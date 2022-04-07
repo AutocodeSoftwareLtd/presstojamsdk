@@ -242,6 +242,7 @@ export class ModelInstance {
         if (this._to) params.__to = this._to;
         return client.get(this.loadURL("get") + "-count", params)
         .then(response => {
+            this._data_template.count = response.count;
             this._data_template.max_pages = Math.ceil(response.count / this._data_template.limit);
         })
         .then(() => {
@@ -254,7 +255,7 @@ export class ModelInstance {
         })
         .then(() => {
             this._store.data = this._data;
-            this._store.count = this._data_template.count;
+            this._store.data_template = this._data_template.count;
         });
     }
 
