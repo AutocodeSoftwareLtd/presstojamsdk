@@ -89,11 +89,13 @@ class CtrlGroupMap {
             url = parts[0];
         }
         parts = url.split("-");
-        let key = parseInt(parts[parts.length - 1]);
-        if (isNaN(key)) this._key = 0;
-        else {
-            parts.pop();
+        let key = parts[parts.length - 1];
+        if (key == "first") {
             this._key = key;
+            parts.pop();
+        } else if (!isNaN(key)) {
+            this._key = key;
+            parts.pop();
         }
         
         if (parts.length == 0) {

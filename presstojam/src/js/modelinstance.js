@@ -27,7 +27,6 @@ export class ModelInstance {
         this._states = {};
         this._default_state = "";
         this._settings = { hide_actions : {}};
-        this._limit_fields = [];
         this._meta_row = new MetaRow();
         this._global_meta_row = new MetaRow();
         this._data_template = null;
@@ -140,7 +139,8 @@ export class ModelInstance {
         this._data_template = new DataTemplate(this._meta_row);
 
         if (map.state == "get") {
-            if (map.key) this._data_template.parent.setVal(map.key);
+            if (map.key == "first") this._data_template.limit = 1;
+            else if (map.key) this._data_template.parent.setVal(map.key);
         } else if (map.state == "post") {
             this._global_data = new DataRow(this._global_meta_row);
             if (map.key) {
@@ -173,6 +173,11 @@ export class ModelInstance {
             if (this._to) {
                 if (!params) params = {};
                 params.__to = this._to;
+            }
+
+            if (this._settings.fields) {
+                if (!params) params = {};
+                params.__fields = this._settings.fields;
             }
 
             if (this._data_template.limit > 0) {
