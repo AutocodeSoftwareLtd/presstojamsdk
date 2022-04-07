@@ -91,6 +91,7 @@ export class DataTemplate  {
         this._children = [];
         this._active;
         this._max_pages = 0;
+        this._count = 0;
 
         if (metarow) this.applyMetaRow(metarow);
     }
@@ -186,6 +187,14 @@ export class DataTemplate  {
 
     set max_pages(pages) {
         this._max_pages = pages;
+    }
+
+    get count() {
+        return this._count;
+    }
+
+    set count(count) {
+        this._count = count;
     }
 
     convertToParams() {

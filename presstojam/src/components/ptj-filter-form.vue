@@ -1,5 +1,5 @@
 <template>
- <ptj-widget title="search">
+ <ptj-widget title="search" v-slot="slotScope">
    <form @submit.prevent="submit" :class="Class.getClass('ptj-filter-form')">
       <h1>Search {{ store.title }}</h1>
       <div v-for="field in store.data_template.cells" :key="field.meta.name" :class="Class.getClass('ptj-filter-form-group')">
@@ -10,7 +10,7 @@
                
           <!-- REMOVED: -->
       </div>
-      <input type="submit" value="Submit" :class="Class.getClass('ptj-filter-form-submit')">
+      <input type="submit" value="Submit" :class="Class.getClass('ptj-filter-form-submit')" @click="slotScope.toggleWidget">
   </form>
  </ptj-widget>
 </template>

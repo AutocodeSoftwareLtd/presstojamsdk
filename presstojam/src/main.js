@@ -9,12 +9,9 @@ Controller.setSettings({
     "models" : {
         "projects" : {
             "get" : {
-                "groups" : [
-                    "accounts-id"
-                ],
                 "fields" : ["name"],
                 "change_intention" : {
-                    "target" : 1
+                    "target" : 0
                 },
                 "disable_filter" : 1,
                 "disable_selectfields" : 1,

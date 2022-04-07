@@ -6,7 +6,7 @@
             </h1>
         </div>
         <div class="Class.getClass('ptj-widget-window-body')" v-show="show">
-            <slot />
+            <slot :toggleWidget="toggleWidget" />
         </div>
     </div>
 </template>

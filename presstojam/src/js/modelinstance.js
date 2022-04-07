@@ -183,6 +183,7 @@ export class ModelInstance {
             if (this._data_template.limit > 0) {
                 return client.get(this.loadURL("get") + "-count", params)
                 .then(response => {
+                    this._data_template.count = response.count;
                     this._data_template.max_pages = Math.ceil(response.count / this._data_template.limit);
                 })
                 .then(() => {
@@ -198,6 +199,7 @@ export class ModelInstance {
                 return client.get(this.loadURL("get"), params)
                 .then(response => {
                     if (response.__status != "SUCCESS") throw new Error(response);
+                    this._data_template.count = response.__data.length;
                     this._data = [];
                     this.mapRepoData(response);
                     return response;
@@ -235,6 +237,7 @@ export class ModelInstance {
 
 
     reload() {
+        this._data_template.page = 0;
         let params = this._data_template.convertToAPIParams("get");
         if (this._to) params.__to = this._to;
         return client.get(this.loadURL("get") + "-count", params)
@@ -249,7 +252,10 @@ export class ModelInstance {
             this.mapRepoData(response);
             return response;
         })
-        .then(() => this._store.data = this._data);
+        .then(() => {
+            this._store.data = this._data;
+            this._store.count = this._data_template.count;
+        });
     }
 
 
@@ -400,6 +406,7 @@ export class ModelInstance {
                 this._store.component = "ptj-repo";
                 this._store.index = this._model + "-get";
                 this._store.submiturl = this.loadurl;
+                this._store.count = this._data_template.count;
                 this._store.reload = () => { 
                     this.buildLink({ param_str : this._data_template.convertToParams()})()
                     .then(() => {
