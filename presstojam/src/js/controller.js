@@ -61,14 +61,6 @@ function removeRole() {
     });
 }
 
-function buildModel(map, stage) {
-    let model = new Model(stage);
-    model.map = map;
-    if (_settings[map.model]) model.injectCustomSettings(_settings[map.model]);
-    _models[stage] = model;
-    return _models[stage];
-   
-}
 
 function run() {
     _seeker = -1;
@@ -79,21 +71,23 @@ function run() {
     _store.models = [];
     let promises = [];
 
-    if (_models.length > maps.length) _models.splice(maps.length, _models.length - maps.length);
+    if (_models.length > maps.length) {
+        _models.splice(maps.length, _models.length - maps.length);
+    }
+
     for (let i in maps) {
         const map = maps[i];
-        let model, promise;
-        if (i >= _models.length || _models[i].name != map.model) {
-            model = buildModel(map, i);
+        if (i >= _models.length || !map.matches(_models[i].map)) {
+            const model = new Model(map.copy(), i);
+            _models[i] = model;
+         
+            if (_settings && _settings[map.model] && _settings[map.model][map.state]) {
+                model.injectCustomSettings(_settings[map.model][map.state]);
+            }
+            promises.push(model.init().then(() => model.load()));
         } else {
-            model = _models[i];
+            promises.push(_models[i].load());
         }
-        if (_settings && _settings[map.model]) {
-            model.injectCustomSettings(_settings[map.model]);
-        }
-        promise = model.init()
-        .catch(e => console.log(e));
-        promises.push(promise);
     }
 
     //check the last map to see if it needs a child group
@@ -114,7 +108,7 @@ function buildLink(soft = false) {
     let omaps = [];
     for(let i in _models) {
         let model = _models[i];
-        omaps.push(model.map);
+        omaps.push({ ...model.map });
     }
 
     ChangeAction.convertMaps(omaps);
@@ -177,7 +171,6 @@ export default {
     assumeRole,
     removeRole,
     run,
-    buildModel,
     buildLink,
     runLink,
     runData,

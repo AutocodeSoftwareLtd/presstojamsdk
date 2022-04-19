@@ -4,7 +4,7 @@ const action_map = {
     'delete' : '-delete',
     'login' : '-login',
     'logout' : '-logout',
-    'getprimary' : '-primary',
+    'primary' : '-primary',
     'get' : ''
 };
 
@@ -66,6 +66,14 @@ class CtrlGroupMap {
             to : this._to,
             param_str : this._param_str
         }
+    }
+
+
+    matches(map) {
+        if (this._model != map.model) return false;
+        if (this._state != map.state) return false;
+        if (this._to != map.to) return false;
+        return true;
     }
 
 

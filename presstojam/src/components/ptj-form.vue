@@ -1,20 +1,15 @@
 <template>
  <form @submit.prevent="submit" v-show="fstate==0" :class="Class.getClass('ptj-form') + ' ' + store.classes">
     <div :class="Class.getClass('ptj-form-error')" v-show="globalerror">{{ globalerror }}</div>
-    <div v-for="field in store.data.cells" :key="field.meta.name" :class="Class.getClass('ptj-form-group')">
-          <ptj-select v-if="field.meta.type=='select'" :field="field" :stores="store" />
-          <ptj-radio v-else-if="field.meta.type=='radio'" :field="field" :stores="store" />
-          <ptj-checkbox v-else-if="field.meta.type=='checkbox'" :field="field" :stores="store" />
-          <ptj-textarea v-else-if="field.meta.type=='textarea'" :field="field" :stores="store" />
-          <ptj-asset-field v-else-if="field.meta.type=='asset'" :field="field" :stores="store" />
-          <ptj-input v-else :field="field" :stores="store" />
-          <div v-if="field.meta.confirm">
-            <ptj-confirm :field="field" :stores="store"/> 
-          </div>
-          <!-- REMOVED: -->
-    </div>
+    <ptj-form-row v-for="field in store.data.cells" :key="field.meta.name" :field="field" :class="Class.getClass('ptj-form-group')">
+          <ptj-asset v-if="field.meta.type=='asset'" :editable="true"  :field="field" />
+          <ptj-number v-else-if="field.meta.type=='number'" :editable="true" :field="field"/>
+          <ptj-flag v-else-if="field.meta.type=='flag'" :editable="true" :field="field" />
+          <ptj-id v-else-if="field.meta.type=='id'" :field="field" />
+          <ptj-time v-else-if="field.meta.type=='time'" :editable="true"  :field="field" />
+          <ptj-string v-else-if="field.meta.type=='string'" :editable="true" :field="field" />
+    </ptj-form-row>
     <input type="submit" value="Submit" :class="Class.getClass('ptj-form-submit')">
-
   </form>
   <ptj-progress-bar v-show="fstate == 1" :total="store.progress.total" :progress="store.progress.progress" />
 </template>
@@ -23,18 +18,17 @@
 
 
 import { defineComponent } from 'vue'
-import GCInput from "./ptj-form-input.vue"
-import GCConfirm from "./ptj-form-confirm.vue"
-import GCSelect from "./ptj-form-select.vue"
-import GCRadio from "./ptj-form-radio.vue"
-import GCCheckbox from "./ptj-form-checkbox.vue"
-import GCTextarea from "./ptj-form-textarea.vue"
-import GCAssetField from "./ptj-form-asset.vue"
-import GCProgressBar from "./ptj-progress-bar.vue"
+import PtjProgressBar from "./ptj-progress-bar.vue"
 import Errors from "../js/error.js"
 import Ctrl from "../js/controller.js"
 import Class from "../js/classinjection.js"
-
+import PtjFormRow from "./ptj-form-row.vue"
+import PtjNumber from "./ptj-number.vue"
+import PtjFlag from "./ptj-flag.vue"
+import PtjId from "./ptj-id.vue"
+import PtjTime from "./ptj-time.vue"
+import PtjString from "./ptj-string.vue"
+import PtjAsset from "./ptj-asset.vue"
  
 export default defineComponent({
   name: 'ptj-form',
@@ -82,14 +76,14 @@ export default defineComponent({
   },
   components : 
     {
-      "ptj-input" : GCInput,
-      "ptj-confirm" : GCConfirm,
-      "ptj-select" : GCSelect,
-      "ptj-radio" : GCRadio,
-      "ptj-checkbox" : GCCheckbox,
-      "ptj-textarea": GCTextarea,
-      "ptj-asset-field" : GCAssetField,
-      "ptj-progress-bar" : GCProgressBar
+      "ptj-string" : PtjString,
+      "ptj-time" : PtjTime,
+      "ptj-asset" : PtjAsset,
+      "ptj-id" : PtjId,
+      "ptj-progress-bar" : PtjProgressBar,
+      "ptj-form-row" : PtjFormRow,
+      "ptj-flag" : PtjFlag,
+      "ptj-number" : PtjNumber
     }
        
   

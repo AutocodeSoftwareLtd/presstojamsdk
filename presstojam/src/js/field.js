@@ -21,11 +21,11 @@ export class Field {
         this._reference = "";
         this._error = 0;
         this._label = "";
-        this._on = true;
         this._store = reactive({ summary : 0, options : null});
         this._default = null;
         this._validator = new Validator();
         this._multiple = false;
+        this._encrypted = false;
       
       
         this.summary = computed({
@@ -50,15 +50,8 @@ export class Field {
         if (obj) {
             for (let x in obj) {
                 if (x == "summary") this._store.summary = obj[x];
-                else if (x == "field" || x == "validation") continue;
+                else if (x == "validation") continue;
                 else this[x] = obj[x];
-            }
-
-            if (obj.field) {
-                for(let x in obj.field) {
-                    if (x == "summary") this._store.summary = obj.field[x];
-                    else this[x] = obj.field[x];
-                }
             }
 
             if (obj.validation) {
@@ -119,7 +112,7 @@ export class Field {
     }
 
     set type(type) {
-        this._type = type;
+        this._type = type.toLowerCase();
     }
 
     set multiple(mult) {
@@ -145,11 +138,11 @@ export class Field {
     set label(label) {
         this._label = label;
     }
-
     
-    set on(on) {
-        this._on = on;
+    set encrypted(encrypted) {
+        this._encrypted = encrypted;
     }
+    
 
     get name() {
         return this._name;
@@ -157,11 +150,6 @@ export class Field {
 
     get type() {
         return this._type;
-    }
-
-
-    get on() {
-        return this._on;
     }
 
 
@@ -223,11 +211,15 @@ export class Field {
         else return Errors.getError(this._error);
     }
 
+    get validator() {
+        return this._validator;
+    }
 
     get label() {
         return this._label;
     }
 
+    
     isSummary() {
         return this._store.summary;
     }

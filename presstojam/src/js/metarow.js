@@ -5,9 +5,8 @@ export class MetaRow {
 
     constructor() {
         this._fields = {};
-        this._parent;
         this._primary;
-        this._references = {};
+        this._parent;
         this._children = {};
     }
 
@@ -19,27 +18,21 @@ export class MetaRow {
         return this._fields;
     }
 
-    addReference(name, ref) {
-        this._references[name] = ref;
-    }
-
     addChild(name, child) {
         this._children[name] = child;
     }
 
-    get references() {
-        return this._references;
-    }
 
     get children() {
         return this._children;
     }
 
+
     get parent() {
         return this._parent;
     }
 
- 
+  
     get primary() {
         return this._primary;
     }

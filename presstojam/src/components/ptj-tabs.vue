@@ -1,9 +1,5 @@
 <template>
     <div :class="Class.getClass('ptj-tabs')">
-        <div :class="Class.getClass('ptj-tabs-card')" v-for="parent in parents" :key="parent.name + '-parent'">
-            <ptj-card :store="parent.store" />
-        </div>
-      
         <div :class="Class.getClass('ptj-tabs-tab')" >
             <component :key="store.index" :is="store.component" />
         </div>

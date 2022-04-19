@@ -1,16 +1,11 @@
 <template>
-  <div :class="Class.getClass('ptj-form-row') + ' ' + Class.getClass('ptj-form-confirm-row')">
-    <label :class="Class.getClass('ptj-form-confirm-label')">{{ field.meta.label }}</label>
     <input :class="Class.getClass('ptj-form-confirm')" 
     :name="name" 
     :type="field.meta.atts.type" v-model="cval" @blur="field.setValidateOn()">
-    <ptj-error v-show="error" :error="error" />
-  </div>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
-import GCError from "./ptj-error.vue"
 import Class from "../js/classinjection.js"
 
 
@@ -37,9 +32,6 @@ export default defineComponent({
             else return "Doesn't match " + this.field.name; 
         }      
     }
-  },
-  components : {
-      'ptj-error' : GCError
   }
 });
 </script>

@@ -2,7 +2,7 @@ import Controller from "./js/controller.js"
 import { createApp } from "vue"
 import GCRoot from "./components/ptj-root.vue"
 
-
+//https//api.localhost
 Controller.setSettings({ 
     "client" : { "url" : "https://api.presstojam.com", "debug" : true },
     "mapper" : { base : "/v3/admin/"},
