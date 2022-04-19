@@ -227,7 +227,7 @@ export class Model {
                 this._global_data = new DataRow(this._global_meta_row);
                 this._global_data.row = response;
                 if (this._map.state == "put") {
-                    return this.setReferences()
+                    return this.setReferences();
                 }
             });
         } else if (this._map.state == "post") {
@@ -271,9 +271,9 @@ export class Model {
         obj.row = data;
 
         if (this._circular) {
-            if (data[this._model]) {
-                for(const i in data[this._model]) {
-                    obj.addChild(this._model, this.rLoadObj(data[this._model][i]));
+            if (data[this._map.model]) {
+                for(const i in data[this._map.model]) {
+                    obj.addChild(this._map.model, this.rLoadObj(data[this._map.model][i]));
                 }
             }
         }
@@ -364,12 +364,13 @@ export class Model {
 
     setReferences() {
         let promises = [];
-        const cells = this._meta_row.getCellByType("select");
+
+        const cells = this._meta_row.getCellByType("id");
         for(let name in cells) {
-            if (cells[name].reference) {
+            if (cells[name].reference || cells[name].circular) {
                 let params = {};
                 if (this._global_meta_row.parent) params[this._global_meta_row.parent.name] = this._global_data.parent.toVal();
-                promises.push(cells[name].setReferenceOptions("/" + this._model + "-" + name.replace("_", "-") + "-reference", params));
+                promises.push(cells[name].setReferenceOptions("/" + this._map.model + "-" + name.replace("_", "-") + "-reference", params));
             } 
         }
         return Promise.all(promises);
@@ -415,8 +416,8 @@ export class Model {
         this._store.action = this._map.state;
         this._store.method = this._store.action;
         this._store.submiturl = this.saveurl;
-        this._store.model = this._model;
-        this._store.classes = this._model + " " + this._map.state;
+        this._store.model = this._map.model;
+        this._store.classes = this._map.model + " " + this._map.state;
         this._store.groups = this._data_template.groups;
         if (!this._store.settings) this._store.settings = {};
 
@@ -431,7 +432,7 @@ export class Model {
         if (this._map.state == "get") {
             this._store.rawcomponent = (this._data_template.groups.length > 0) ? "ptj-list" : (this._circular || this._data_template.children.length > 0) ? "ptj-tree" : "ptj-table";
             this._store.component = "ptj-repo";
-            this._store.index = this._model + "-get";
+            this._store.index = this._map.model + "-get";
             this._store.submiturl = this.loadurl;
             this._store.count = this._data_template.count;
             this._store.reload = () => { 
@@ -479,7 +480,7 @@ export class Model {
         } else if (this._map.state == "primary") {
             this._store.component = "ptj-single-item";
             this._store.actions = [];
-            this._store.index = this._model + "-primary";
+            this._store.index = this._map.model + "-primary";
 
             if (this._meta_row.parent && !this._settings.hide_actions.parent) {
                 this._store.actions.push({
@@ -523,7 +524,7 @@ export class Model {
             }
         } else if (this._map.state == "post") {
             this._store.component = (this._actions.login) ? "ptj-account-handler" : "ptj-form";
-            this._store.index = this._model + "-post";
+            this._store.index = this._map.model + "-post";
             this._store.progress = {total : 0, progress : 0};
             this._store.actions = [];
             if (this._actions.login) {
@@ -541,7 +542,7 @@ export class Model {
         } else if (this._map.state == "put") {
             this._store.component = "ptj-form";
             this._store.progress = {total : 0, progress : 0};
-            this._store.index = this._model + "-put";
+            this._store.index = this._map.model + "-put";
             this._store.actions = [];
             if (this._actions.primary) this._store.next = this.buildLink({ state : "primary"});
             else {

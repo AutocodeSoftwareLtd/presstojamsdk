@@ -21,7 +21,7 @@ export class Field {
         this._reference = "";
         this._error = 0;
         this._label = "";
-        this._store = reactive({ summary : 0, options : null});
+        this._store = reactive({ summary : 0, options : []});
         this._default = null;
         this._validator = new Validator();
         this._multiple = false;
@@ -240,7 +240,8 @@ export class Field {
         .then(response => {
             for (let i in response.__data) {
                 if (i.indexOf("__") === 0) continue;
-                this._store.options.push({ key: response.__data[i].id, value: response.__data[i].value });
+             
+                this._store.options.push({ key: response.__data[i].key, value: response.__data[i].value });
             }
         })
         .catch(e => {

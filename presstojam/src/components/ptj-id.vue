@@ -6,10 +6,10 @@
         v-bind="atts"
          @blur="field.validateon = true"
         >
-        <option value="0" selected disabled>Select Option</option>
-        <option v-for="option in options" :key="option.key" :value="option.key">{{ option.value }}</option>
+        <option value="0" selected>Select Option</option>
+        <option v-for="option in field.meta.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
-  <select v-if="filter"
+  <select v-else-if="filter"
     :class="Class.getClass('ptj-form-select')" 
         v-model="field.val"
         :name="field.meta.name"
@@ -18,7 +18,7 @@
          multiple="true"
         >
         <option value="0" selected disabled>All</option>
-        <option v-for="option in options" :key="option.key" :value="option.key">{{ option.value }}</option>
+        <option v-for="option in field.meta.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
   <span v-else>{{ field.val }}</span>
 </template>
@@ -47,9 +47,6 @@ export default defineComponent({
       }
   },
   computed : {
-      options() {
-
-      },
       atts() {
           
       }

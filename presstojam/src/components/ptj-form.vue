@@ -5,7 +5,7 @@
           <ptj-asset v-if="field.meta.type=='asset'" :editable="true"  :field="field" />
           <ptj-number v-else-if="field.meta.type=='number'" :editable="true" :field="field"/>
           <ptj-flag v-else-if="field.meta.type=='flag'" :editable="true" :field="field" />
-          <ptj-id v-else-if="field.meta.type=='id'" :field="field" />
+          <ptj-id v-else-if="field.meta.type=='id'" :editable="true" :field="field" />
           <ptj-time v-else-if="field.meta.type=='time'" :editable="true"  :field="field" />
           <ptj-string v-else-if="field.meta.type=='string'" :editable="true" :field="field" />
     </ptj-form-row>
