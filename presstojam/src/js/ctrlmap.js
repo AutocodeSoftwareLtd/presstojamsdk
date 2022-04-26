@@ -5,6 +5,7 @@ const action_map = {
     'login' : '-login',
     'logout' : '-logout',
     'primary' : '-primary',
+    'parent' : '-parent',
     'get' : ''
 };
 

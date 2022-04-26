@@ -205,6 +205,10 @@ export class Field {
         return this._asset;
     }
 
+    get encrypted() {
+        return this._encrypted;
+    }
+
     get error() {
         if (!this._error) return "";
         else if (isNaN(this._error)) return this._error;

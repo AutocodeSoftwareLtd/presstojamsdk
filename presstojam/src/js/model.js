@@ -32,6 +32,7 @@ export class Model {
         this._data = null;
         this._global_data;
         this._store = reactive({});
+        this._back;
     }
 
     
@@ -54,8 +55,8 @@ export class Model {
     init() {
         let url = (!this._map.model) ? "/route-core-default" : "/route-" + this._map.model;
         let method = "get";
-        if (this._map.state == "primary" || this._map.state == "parent") {
-            url += "-primary";
+        if (this._map.state == "primary" || this._map.state == "parent" ) {
+            url += "-" + this._map.state;
         } else if (this._map.state == "login") {
             url += "-" + login;
             method = "post";
@@ -80,6 +81,8 @@ export class Model {
             this._label = response.label;
             this._title = response.title;
         
+            this._back = response.back;
+
             for(let i in response.children) {
                 this._children.push({ name : i, label : response.children[i]});
             }
@@ -132,6 +135,7 @@ export class Model {
     loadURL(state) {
         let url = "/" + this._map.model;
         if (state == "primary" ||  state == "put") url += "-primary";
+        else if (state == "parent") url += "-parent";
         return url;
     }
 
@@ -144,6 +148,9 @@ export class Model {
         this._data_template = new DataTemplate(this._meta_row);
 
         if (this._map.state == "get") {
+            if (this._map.key == "first") this._data_template.limit = 1;
+            else if (this._map.key) this._data_template.parent.setVal(this._map.key);
+        } else if (this._map.state == "parent") {
             if (this._map.key == "first") this._data_template.limit = 1;
             else if (this._map.key) this._data_template.parent.setVal(this._map.key);
         } else if (this._map.state == "post") {
@@ -174,7 +181,7 @@ export class Model {
 
     load() {
         this.initDataTemplate();
-        if (this._map.state == "get") {
+        if (this._map.state == "get" || this._map.state == "parent") {
             let params = this._data_template.convertToAPIParams(this._map.state);
             if (this._map.to) {
                 if (!params) params = {};
@@ -187,13 +194,13 @@ export class Model {
             }
 
             if (this._data_template.limit > 0) {
-                return client.get(this.loadURL("get") + "-count", params)
+                return client.get(this.loadURL(this._map.state) + "-count", params)
                 .then(response => {
                     this._data_template.count = response.count;
                     this._data_template.max_pages = Math.ceil(response.count / this._data_template.limit);
                 })
                 .then(() => {
-                    return client.get(this.loadURL("get"), params);
+                    return client.get(this.loadURL(this._map.state), params);
                 })
                 .then(response => {
                     if (response.__status != "SUCCESS") throw new Error(response);
@@ -202,7 +209,7 @@ export class Model {
                     return response;
                 });
             } else {
-                return client.get(this.loadURL("get"), params)
+                return client.get(this.loadURL(this._map.state), params)
                 .then(response => {
                     if (response.__status != "SUCCESS") throw new Error(response);
                     this._data_template.count = response.__data.length;
@@ -330,6 +337,7 @@ export class Model {
     }
 
     submit() {
+        let key = 0;
         let data = this._data.serialize(this._map.state);
         return client[this._map.state](this.saveURL(), data)
         .then(request=>{
@@ -337,7 +345,7 @@ export class Model {
                 throw { message : request.statusText }
             }
             if (this._map.state == "post") {
-                this._global_data.primary.setVal(request[this._global_meta_row.primary.name]);
+                key = request.__key;
             }
         })
         .then(() => {
@@ -358,6 +366,9 @@ export class Model {
                 promises.push(promise);
             }
             return Promise.all(promises);
+        })
+        .then(() => {
+            return key;
         });
     }
 
@@ -429,7 +440,7 @@ export class Model {
             this._store.disable_selectfields = true;
         }
     
-        if (this._map.state == "get") {
+        if (this._map.state == "get" || this._map.state == "parent") {
             this._store.rawcomponent = (this._data_template.groups.length > 0) ? "ptj-list" : (this._circular || this._data_template.children.length > 0) ? "ptj-tree" : "ptj-table";
             this._store.component = "ptj-repo";
             this._store.index = this._map.model + "-get";
@@ -442,9 +453,9 @@ export class Model {
                 });
             };
 
-            if (this._meta_row.parent && !this._settings.hide_actions.parent) {
+            if (this._back && !this._settings.hide_actions.parent) {
                 this._store.actions.push({
-                    r : this.buildLink({ model : this._meta_row.parent.reference, "state" : "primary" }),
+                    r : this.buildLink({ model : this._back.model, "state" : "primary", key : this._data_template.parent.toVal() }),
                     n: "go back"
                 });
             }
@@ -482,11 +493,11 @@ export class Model {
             this._store.actions = [];
             this._store.index = this._map.model + "-primary";
 
-            if (this._meta_row.parent && !this._settings.hide_actions.parent) {
-                this._store.actions.push({
-                    r : this.buildLink({ key : this._data.parent.toVal(), state : "get"}),
+            if (this._back && !this._settings.hide_actions.parent) {
+               /* this._store.actions.push({
+                    r : this.buildLink({ key : this._data_template.parent.toVal(), state : this._back.state}),
                     n: this._actions.get 
-                });
+                });*/
             }
 
             if (this._actions.put && !this._settings.hide_actions.put) {
@@ -517,7 +528,7 @@ export class Model {
             if (!this._settings.hide_actions.children) {
                 for (let child of this._children) {
                     this._store.children.push({
-                        r: this.buildLink({ state: "get", model: child.name }),
+                        r: this.buildLink({ state: "parent", model: child.name }),
                         n: child.label
                     });
                 }
@@ -531,8 +542,15 @@ export class Model {
                 this._store.actions.push({r : this.buildLink({ state : "login"}), n: this._actions.login });
             }
 
-            this._store.next = () => {
-                return this.buildLink({ state : "primary", key : this._global_data.primary.toVal()})();
+            this._store.next = key => {
+                let state = "";
+                if (this._actions.parent) state = "parent";
+                else if (this._actions.get) state = "get";
+                else if (this._actions.primary) state = "primary";
+                return this.buildLink({ 
+                    state : state, 
+                    active : key
+                })();
             }
 
                 

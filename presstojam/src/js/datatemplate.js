@@ -240,7 +240,7 @@ export class DataTemplate  {
             this._cells[i].addParam(obj);
         }
 
-        if (state == "get" || state == "post") {
+        if (state == "parent" || state == "post") {
             if (this._parent && this._parent.toVal()) obj[this._parent.meta.name] = this._parent.toVal();
         } else if (state != "login") {
             obj[this._primary.meta.name] = this._primary.toVal();

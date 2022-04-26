@@ -71,7 +71,7 @@ export default defineComponent({
       atts() {
           let atts = {};
           if (this.field.meta.encrypted) {
-              atts.type = "hidden";
+              atts.type = "password";
           }
 
           if (this.field.meta.readonly) {

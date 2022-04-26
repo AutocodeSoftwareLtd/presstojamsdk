@@ -52,8 +52,8 @@ export default defineComponent({
         this.fstate = (this.total > 0) ? 1 : 2;
         this.clearErrors();
         return this.store.submit()
-        .then(() => {
-            this.store.next();
+        .then(key => {
+            this.store.next(key);
             Ctrl.buildLink();
         })
         .catch(err => {
