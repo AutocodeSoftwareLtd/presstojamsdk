@@ -45,6 +45,12 @@ export class Model {
         return this.store.stage;
     }
 
+    applySettingsToParams(params) {
+        if (this._settings) {
+            if (this._settings.to) params.__to = this._settings.to;
+            if (this._settings.fields) params.__fields = this._settings.fields;
+        }
+    }
 
     injectCustomSettings(settings) {
         this._settings = settings;
@@ -65,8 +71,10 @@ export class Model {
         }
    
         let data = {};
-        if (this._settings && this._settings.to) data.__to = this._settings.to;
-        else if (this._map.to) data.__to = this._map.to;
+        if (this._map.to) data.__to = this._map.to;
+
+        this.applySettingsToParams(data);
+        
         return client[method](url, data)
         .then(response => {
             if (response.__status != "SUCCESS") {
@@ -185,18 +193,11 @@ export class Model {
         if (this._map.state == "get" || this._map.state == "parent") {
             let params = this._data_template.convertToAPIParams(this._map.state);
             if (!params) params = {};
-            if (this._settings && this._settings.to) {
-                params.__to = this._settings.to;
-            } else if (this._map.to) {
+            if (this._map.to) {
                 params.__to = this._map.to;
             }
    
-            if (this._settings.fields) {
-                if (!params) params = {};
-                params.__fields = this._settings.fields;
-            }
-
-            console.log(params);
+            this.applySettingsToParams(params);
 
             if (this._data_template.limit > 0) {
                 return client.get(this.loadURL(this._map.state) + "-count", params)
@@ -227,7 +228,9 @@ export class Model {
 
         } else if (this._map.state == "primary" || this._map.state == "put") {
             let params = this._data_template.convertToAPIParams(this._map.state);
-            if(this._map.to) params.__to = this._map.to;
+            if (!params) params = {};
+            if (this._settings && this._settings.to) params.__to = this._settings.to;
+            else if(this._map.to) params.__to = this._map.to;
             return client.get(this.loadURL(this._map.state), params)
             .then(response => {
                 if (response.__status != "SUCCESS") throw new Error(response);
