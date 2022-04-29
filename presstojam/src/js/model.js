@@ -65,7 +65,8 @@ export class Model {
         }
    
         let data = {};
-        if (this._map.to) data.__to = this._map.to;
+        if (this._settings && this._settings.to) data.__to = this._settings.to;
+        else if (this._map.to) data.__to = this._map.to;
         return client[method](url, data)
         .then(response => {
             if (response.__status != "SUCCESS") {
@@ -183,15 +184,19 @@ export class Model {
         this.initDataTemplate();
         if (this._map.state == "get" || this._map.state == "parent") {
             let params = this._data_template.convertToAPIParams(this._map.state);
-            if (this._map.to) {
-                if (!params) params = {};
+            if (!params) params = {};
+            if (this._settings && this._settings.to) {
+                params.__to = this._settings.to;
+            } else if (this._map.to) {
                 params.__to = this._map.to;
             }
-
+   
             if (this._settings.fields) {
                 if (!params) params = {};
                 params.__fields = this._settings.fields;
             }
+
+            console.log(params);
 
             if (this._data_template.limit > 0) {
                 return client.get(this.loadURL(this._map.state) + "-count", params)

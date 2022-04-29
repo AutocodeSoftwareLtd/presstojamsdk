@@ -5,11 +5,12 @@ import GCRoot from "./components/ptj-root.vue"
 //https//api.localhost
 Controller.setSettings({ 
     "client" : { "url" : "https://api.presstojam.com", "debug" : true },
-    "mapper" : { base : "/v3/admin/"},
+    "mapper" : { base : ""},
     "models" : {
         "projects" : {
             "get" : {
-                "fields" : ["name"],
+                "fields" : ["name", "accounts/name"],
+                "to" : "accounts",
                 "change_intention" : {
                     "target" : 0
                 },
