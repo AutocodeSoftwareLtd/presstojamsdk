@@ -22,6 +22,16 @@ Controller.setSettings({
                
             }
         },
+        "fields" : {
+            "parent" : {
+                "disable_filter" : 1,
+                "disable_selectfields" : 1,
+                "hide_actions" : {
+                    "post" : true,
+                    "parent" : true
+                }
+            }
+        }
     }
 });
 
