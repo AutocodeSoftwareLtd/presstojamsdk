@@ -81,6 +81,7 @@ function run() {
             const model = new Model(map.copy(), i);
             _models[i] = model;
          
+            console.log("Settings are ", _settings, map);
             if (_settings && _settings[map.model] && _settings[map.model][map.state]) {
                 model.injectCustomSettings(_settings[map.model][map.state]);
             }
