@@ -110,6 +110,8 @@ class CtrlGroupMap {
         if (parts.length == 0) {
             throw new Error("Can't convert this url string: " + url);
         }
+
+        this._state = "get";
         for(let i in action_map) {
             if (action_map[i] == "-" + parts[parts.length - 1]) {
                 this._state = i
@@ -162,8 +164,6 @@ function convertToURL() {
     const url_str = str_parts.join("/");
     const url = new URL(url_str, base);
 
-
-    let cstr = [];
     for(let i in maps) {
         if (maps[i].param_str) {
             url.searchParams.set("stage_" + i, maps[i].param_str);
