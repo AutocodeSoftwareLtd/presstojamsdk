@@ -10,7 +10,6 @@ export class Asset {
       this._chunk_size = 0;
       this._url;
       this._key = 0;
-      this._key_field;
     }
 
     set chunk_size(chunk) {
@@ -29,9 +28,6 @@ export class Asset {
         this._key = key;
     }
 
-    set keyfield(field) {
-        this._key_field = field;
-    }
 
     get blob() {
       return this._blob;
@@ -70,7 +66,7 @@ export class Asset {
 
     loadFile(id) {
         let data = {};
-        data[this._key_field] = id;
+        data.__key = id;
         return Client.get(this._url, data)
         .catch(e => {
             alert(e);
@@ -79,7 +75,7 @@ export class Asset {
 
     delFile(id) {
         let data = {};
-        data[this._key_field] = id;
+        data.__key = id;
         return Client.delete(this._url, data)
         .catch(e => {
             alert(e);
@@ -107,7 +103,7 @@ export class Asset {
               const data = {};
               data.__chunk = i;
               data.__blob = this.getChunk(i);
-              data[this._key_field] = id;
+              data.__key = id;
               promises.push(Client.put(this._url, data));
           }
           return Promise.all(promises);

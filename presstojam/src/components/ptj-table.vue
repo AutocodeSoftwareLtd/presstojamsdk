@@ -1,17 +1,20 @@
 <template>
+<ptj-filter-form  v-if="settngs.disable_filter != true" @submit="submitFilter" />
+        <ptj-selectfields v-if="settings.disable_selectfields != true" />
+        <p v-if="data_template.count">Number of rows: {{ data_template.count }}</p>
     <table :class="Class.getClass('ptj-table') + ' ' + store.classes">
     <thead>
         <tr :class="Class.getClass('ptj-table-header')">
-        <th v-for="cell in store.fields" 
+        <th v-for="cell in meta.fields" 
             v-show="cell.summary" 
             :key="cell.name" 
             :class="Class.getClass('ptj-table-header-cell') + ' ' + cell.name.replace('_', '-')"
             @click="orderBy(cell.name);"
         >{{ cell.label }}
-            <span v-if="this.order.name == cell.name && this.order.dir == 'asc'" 
+            <span v-if="order.name == cell.name && order.dir == 'asc'" 
                 class="material-icons" 
                 >keyboard_arrow_up</span>
-            <span v-if="this.order.name == cell.name && this.order.dir == 'desc'" 
+            <span v-if="order.name == cell.name && order.dir == 'desc'" 
                 class="material-icons" 
                 >keyboard_arrow_down</span>
         </th>
@@ -19,9 +22,9 @@
         </tr>
     </thead>
     <tbody>
-      <tr v-for="(obj, rindex) in store.data" :key="rindex" :class="Class.getClass('ptj-table-row') + ' ' + this.getRowClass(obj)" @click="next(obj.primary.toVal());">
+      <tr v-for="(obj, rindex) in data" :key="rindex" :class="Class.getClass('ptj-table-row') + ' ' + this.getRowClass(obj)" @click="$emit('next', obj.primary.toVal())">
         <td v-for="(field, name) in obj.cells" :key="name" v-show="field.meta.summary" :class="Class.getClass('ptj-table-cell') + ' ' + name.replace('_', '-')">
-            <ptj-asset v-if="field.meta.type=='asset'" :field="field" />
+          <ptj-asset v-if="field.meta.type=='asset'" :field="field" />
           <ptj-number v-else-if="field.meta.type=='number'" :field="field" />
           <ptj-flag v-else-if="field.meta.type=='flag'" :field="field" />
           <ptj-id v-else-if="field.meta.type=='id'" :field="field"  />
@@ -36,9 +39,19 @@
       </tr>
     </tbody>
     </table>
-    <ptj-pagination v-if="store.data_template.limit > 0" />
+    <ptj-pagination v-if="data_template.limit > 0" />
 </template>
 
+<script setup>
+defineProps({
+    data_template : Object,
+    data : Array,
+    meta : Object
+});
+
+let order = reactive( { name : '', dir : ''});
+
+</script>
 <script>
 
 

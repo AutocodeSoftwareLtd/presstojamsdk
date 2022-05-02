@@ -1,3 +1,5 @@
+import Settings from "./settings.js"
+
 let custom_headers  = {};
 let main_url;
 let status_handlers = {};
@@ -7,22 +9,40 @@ let last_ok;
 
 export default {
 
-    regCustomHeader(name, value) {
-        custom_headers[name] = value;
+    initSettings() {
+        const settings = Settings.getSettings("client");
+        if (!settings.url) {
+            throw("No URL defined for client");
+        }
+        main_url = settings.url;
+
+        if (settings.custom_headers) {
+            for(let name in settings.custom_headers) {
+                custom_headers[name] = settings.custom_headers[name];
+            }
+        }
+
+        if (settings.debug) {
+            debug = settings.debug;
+        }
+
+        status_handlers[403] = function() {
+            alert("Page not found");
+        }
+
+        if (settings.status_handlers) {
+            for(let handler in status_handlers) {
+                status_handlers[handler] = status_handlers[handler];
+            }
+        }
     },
 
-    regStatusHandler(status, handler) {
-        status_handlers[status] = handler;
-    },
-
-    setURL(url) {
-        main_url = url;
-    },
-    regDebug(is_debug) {
-        debug = is_debug;
-    },
 
     run(url, headers) {
+
+        if (!main_url) {
+            this.initSettings();
+        }
         
         headers.mode = 'cors';
         headers.cache = 'no-cache';

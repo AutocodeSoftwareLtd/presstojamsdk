@@ -1,26 +1,16 @@
 <template>
-    <p :class="Class.getClass('ptj-error')">{{ error }}</p>
+    <p class="ptj-error">{{ error }}</p>
 </template>
 
-<script>
-
-import { defineComponent } from 'vue'
-import Class from "../js/classinjection.js"
-
-export default defineComponent({
-    name : 'ptj-error',
-    props : {
-        'error' : [Number, String]
-    },
-    setup() { 
-        return { Class }
-    }
+<script setup>
+defineProps({
+    'error' : [Number, String, Object]
 });
 
 </script>
 
 <style>
-.error {
+.ptj-error {
   color : red;
 }
 </style>

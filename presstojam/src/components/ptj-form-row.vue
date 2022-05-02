@@ -1,31 +1,16 @@
 <template>
-  <div :class="classes">
-  <label :class="Class.getClass('ptj-form-label')">{{ field.meta.label }}</label>
+  <div class="ptj-form-row" :class="field.meta.name">
+  <label class="ptj-form-label">{{ field.meta.label }}</label>
   <slot />
   <ptj-error v-show="field.showError" :error="field.error" />
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-import GCError from "./ptj-error.vue"
-import Class from "../js/classinjection.js"
+<script setup>
+import PtjError from "./ptj-error.vue"
 
-
-export default defineComponent({
-   props : {
+const props = defineProps({
     field : Object
-  },
-  setup(props) {
-       return { Class };
-  },
-  computed : {
-      classes() {
-          return Class.getClass('ptj-form-row') + ' ' + this.field.meta.type;
-      }
-  },
-  components : {
-      'ptj-error' : GCError
-  }
 });
+
 </script>

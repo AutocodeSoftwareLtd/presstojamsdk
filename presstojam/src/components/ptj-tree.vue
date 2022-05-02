@@ -1,4 +1,6 @@
 <template >
+  <ptj-filter-form  v-if="settngs.disable_filter != true" @submit="submitFilter" />
+  <ptj-selectfields v-if="settings.disable_selectfields != true" />
   <div :class="Class.getClass('ptj-tree') + ' ' + store.classes + ' ptj-drop-target'" ref="treeroot">
     <ptj-tree-node v-for="(obj, index) in store.data" :key="index" :branch="obj"  />
   </div>

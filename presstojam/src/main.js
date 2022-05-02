@@ -1,9 +1,10 @@
-import Controller from "./js/controller.js"
+
 import { createApp } from "vue"
-import GCRoot from "./components/ptj-root.vue"
+import PTJModel from "./components/ptj-model.vue"
+import Settings from "./js/settings.js"
 
 //https//api.localhost
-Controller.setSettings({ 
+let settings = { 
     "client" : { "url" : "https://api.presstojam.com", "debug" : true },
     "mapper" : { base : ""},
     "models" : {
@@ -34,23 +35,14 @@ Controller.setSettings({
             }
         }
     }
-});
+};
 
+Settings.regSettings(settings);
 
-function runApp(mount) {
-    const app = createApp(GCRoot);
-    app.mount(mount);
-    return app;
-}
+settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
 
-
-runApp("#app");
-Controller.runData();
-
-
-
-
-
+const app = createApp(PTJModel, {  map : settings.map });
+app.mount("#app");
 
 
 /*
