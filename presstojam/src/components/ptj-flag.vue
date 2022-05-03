@@ -1,6 +1,6 @@
 <template>
-    <input :class="Class.getClass('ptj-checkbox')" type="checkbox" :true-value="1" :false-value="0" :name="field.meta.name" v-model="field.val" v-if="editable">
-    <select v-else-if="filter" :name="field.meta.name" v-model="field.val" :class="Class.getClass('ptj-filter-form-checkbox')">
+    <input class="ptj-checkbox" type="checkbox" :true-value="1" :false-value="0" :name="field.name" v-model="field.val" v-if="type=='edit'">
+    <select v-else-if="type=='filter'" :name="field.name" v-model="field.val" class="ptj-filter-form-checkbox">
         <option :value='0'>{{ "All" }}</option>
         <option :value='1'>{{ "Checked" }}</option>
         <option :value='2'>{{ "Unchecked" }}</option>
@@ -8,30 +8,12 @@
     <button v-else>{{ field.val }}</button>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-import Class from "../js/classinjection.js"
-
-export default defineComponent({
-  name: 'ptj-flag',
-  props : {
+<script setup>
+defineProps({
     field : Object,
-    editable : {
-        type : Boolean,
-        default : false
-    },
-    filter : {
-        type : Boolean,
-        default : false
+    type : {
+        type : String,
+        default : 'view'
     }
-  },
-  data() {
-      return {
-          cval : ""
-      }
-  },
-  setup() {
-       return { Class };
-  }
 });
 </script>

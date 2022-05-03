@@ -1,7 +1,12 @@
 <template>
     <div :class="[map.model, map.state]">
+        <ptj-button v-if="actions.back" :route="actions.back"><span class="material-icons">back</span></ptj-button>
         <h1>{{ title }}</h1>
-        <component v-if="component" :is="component" :metarow="meta_row" :actions="actions" />
+        <ptj-button v-for="action in actions.sibling" :key="action" :route="action">{{ action.n}}</ptj-button>
+        <component v-if="component" :is="component" />
+        <ptj-button v-for="action in actions.children" :key="action" :route="action">
+            {{ action.n }}
+        </ptj-button>
     </div>
 </template>
 
@@ -10,10 +15,10 @@
 
 import client from "./../js/client.js"
 import { MetaRow } from "./../js/metarow.js"
-import ChangeAction from "./../js/changeaction.js"
 import Settings from "./../js/settings.js"
 import ModuleLoader from "./../js/moduleloader.js"
-import { ref, computed, defineAsyncComponent } from "vue"
+import { ref, computed, defineAsyncComponent, reactive, provide } from "vue"
+import PtjButton from "./ptj-button.vue"
 
 const props = defineProps({
     "map" : Object,
@@ -29,165 +34,14 @@ let component = computed(() => {
         return null;
     }
 });
-let actions = {};
-let recursive = '';
-let children = [];
+let actions = reactive({ back : null, sibling : [], children : []});
 
+const meta_row = reactive(new MetaRow());
+if (settings.fields) meta_row.limited_fields = settings.fields;
 
-const meta_row = new MetaRow();
+provide("map", props.map);
+provide("meta", meta_row);
 
-
-function loadURL(map, state) {
-    let url = "/" + map.model;
-    if (state == "primary" ||  state == "put") url += "-primary";
-    else if (state == "parent") url += "-parent";
-    return url;
-}
-
-function saveURL(map) {
-    let url = "/" + map.model;
-    return url;
-}
-
-function initDataTemplate() {
-     data_template = new DataTemplate(meta_row);
-
-    if (props.map.state == "get") {
-        if (props.map.key == "first") data_template.limit = 1;
-        else if (props.map.key) data_template.parent.setVal(props.map.key);
-    } else if (props.map.state == "parent") {
-        if (props.map.key == "first") data_template.limit = 1;
-        else if (props.map.key) data_template.parent.setVal(props.map.key);
-    } else if (props.map.state == "post") {
-        
-     } else if (props.map.state != "login") {
-            data_template.primary.setVal(props.map.key);
-    }
-    
-    if (props.map.param_str) {
-        data_template.convertFromParams(props.map.param_str);
-    }
-    
-    if (props.settings.groups) {
-        data_template.groups = props.settings.groups;
-    }
-
-    if (props.settings.limit) {
-        data_template.limit = props.settings.limit;
-    }
-    
-}
-
-
-function load() {
-        this.initDataTemplate();
-        if (props.map.state == "get" || props.map.state == "parent") {
-            let params = this._data_template.convertToAPIParams(props.map.state);
-            if (!params) params = {};
-            if (props.map.to) {
-                params.__to = props.map.to;
-            }
-   
-            this.applySettingsToParams(params);
-
-            if (this._data_template.limit > 0) {
-                return client.get(this.loadURL(props.map.state) + "-count", params)
-                .then(response => {
-                    this._data_template.count = response.count;
-                    this._data_template.max_pages = Math.ceil(response.count / this._data_template.limit);
-                })
-                .then(() => {
-                    return client.get(this.loadURL(props.map.state), params);
-                })
-                .then(response => {
-                    if (response.__status != "SUCCESS") throw new Error(response);
-                    this._data = [];
-                    this.mapRepoData(response);
-                    return response;
-                });
-            } else {
-                return client.get(this.loadURL(props.map.state), params)
-                .then(response => {
-                    if (response.__status != "SUCCESS") throw new Error(response);
-                    this._data_template.count = response.__data.length;
-                    this._data = [];
-                    this.mapRepoData(response);
-                    return response;
-                });
-           
-            }
-
-        } else if (props.map.state == "primary" || props.map.state == "put") {
-            let params = this._data_template.convertToAPIParams(props.map.state);
-            if (!params) params = {};
-            if (this._settings && this._settings.to) params.__to = this._settings.to;
-            else if(props.map.to) params.__to = props.map.to;
-            return client.get(this.loadURL(props.map.state), params)
-            .then(response => {
-                if (response.__status != "SUCCESS") throw new Error(response);
-                    data.row = response;
-                    return response;
-            })
-            .then(response => {
-                this._global_data = new DataRow(this._global_meta_row);
-                this._global_data.row = response;
-                if (props.map.state == "put") {
-                    return this.setReferences();
-                }
-            });
-        } else if (props.map.state == "post") {
-            this._data = new DataRow(this._meta_row);
-            if (this._data_template.parent) this._data.parent.setVal(this._data_template.parent.toVal());
-            return this.setReferences();
-        } else {
-            this._data = new DataRow(this._meta_row);
-            
-            return Promise.resolve();
-        }
-    }
-
-
-
-function rLoadObj(data) {
-        let obj= new DataRow(this._meta_row);
-        obj.row = data;
-
-        if (this._circular) {
-            if (data[props.map.model]) {
-                for(const i in data[props.map.model]) {
-                    obj.addChild(props.map.model, this.rLoadObj(data[props.map.model][i]));
-                }
-            }
-        }
-
-        for(const i in this._active_children) {
-            const name = this._active_children[i];
-            if (data[name]) {
-                for(const x in data[name]) {
-                    obj.addChild(name, this.rLoadObj(data[name][x]));
-                }
-            }
-        }
-        return obj;
-    }
-
-function indexData(data) {
-        let indexes = {};
-        for(const key in data) {
-            const row = data[key];
-            for(let group of this._data_template.groups) {
-                group = this.snakeCase(group);
-                if (!indexes[group]) indexes[group] = {};
-                let ckey = row.getCell(group).toVal();
-                if (!indexes[group][ckey]) {
-                    indexes[group][ckey] = {"display": "", "contains":[]};
-                    indexes[group][ckey].display= row.getCell(group).display;
-                }
-                indexes[group][ckey].contains.push(key);
-            }
-        }
-        return indexes;
-    }
 
 
 function importCSV(file) {
@@ -228,32 +82,6 @@ function setReferences() {
         return Promise.all(promises);
     }
 
-function mapRepoData(response) {
-        this._data = [];
-        for (const i in response.__data) {
-            const data = this.rLoadObj(response.__data[i]);
-            this._data.push(data);
-        }
-
-        
-        //now we need to group the data by
-        if (this._data_template.groups.length > 0) this._indexes = this.indexData(this._data);
-    }
-
-  
-
-let buildLink = (intention) => {
-        return key => {
-            if (key) intention.key = key;
-            for(let setting in this._settings.change_intention) {
-                intention[setting] = this._settings.change_intention[setting];
-            }
-            ChangeAction.updateIntention(this._stage, intention);
-            return Promise.resolve();
-        }
-    }
-
-
 
 const init = async() => {
     let url = (!props.map.model) ? "/route-core-default" : "/route-" + props.map.model;
@@ -270,8 +98,6 @@ const init = async() => {
     let data = {};
     if (props.map.to) data.__to = props.map.to;
     if (settings.fields) data.__fields = settings.fields;
-
-    console.log(url, data);
         
     client[method](url, data)
     .then(response => {
@@ -283,153 +109,62 @@ const init = async() => {
     .then(response => {   
 
         let data = {};
+        let recursive = false;
 
         title.value = response.title;
         
         data.back = response.back;
 
+        props.map.model = response.model;
+        props.map.state = response.state;
+
+        const child_state = (props.map.key) ? "parent" : "get";
         for(let i in response.children) {
-             children.push({ name : i, label : response.children[i]});
+            let route = {
+                n : response.children[i],
+                model : i,
+                state : child_state,
+            }
+            actions.children.push(route);
         }
 
-   
-        for(let i in response.fields) {
-            if (response.fields[i].circular) recursive = i;
+        for(let i in response.actions) {
+            let route = { n : response.actions[i], state : i };
+            actions.sibling.push(route);
         }
 
-        actions = response.actions;
+        if (response.back) {
+            actions.back = response.back;
+        }
 
-
+        if (settings.hide_actions) {
+            if (settings.hide_actions.children) actions.children = [];
+            if (settings.hide_actions.sibling) actions.sibling = [];
+            if (settings.hide_actions.parent) actions.back = null;
+        }
+       
         meta_row.map(response.fields);
-        console.log(meta_row);
+
+        if (settings.fields) {
+            meta_row.resetSummary(settings.fields);
+        }
 
 
-         if (response.state == "get" || response.state == "parent") {
-            component.value = (data_template.groups.length > 0) ? "ptj-list" : (this._circular || this._data_template.children.length > 0) ? "ptj-tree" : "ptj-table";
-          
-            this._store.reload = () => { 
-                this.buildLink({ param_str : this._data_template.convertToParams()})()
-                .then(() => {
-                    this.reload();
-                });
-            };
-
-            if (this._back && !this._settings.hide_actions.parent) {
-                this._store.actions.push({
-                    r : this.buildLink({ model : this._back.model, "state" : "primary", key : this._data_template.parent.toVal() }),
-                    n: "go back"
-                });
-            }
-
-            if (this._actions.post && !this._settings.hide_actions.post) {
-                this._store.actions.push({ r: this.buildLink({ "state" : "post"}), n: this._actions.post });
-            }
-
-
-            if (this._actions.primary) {
-                this._store.next = this.buildLink({ param_str : "", state : "primary"});
-            } else if (this._actions.put) {
-                this._store.next = this.buildLink({ param_str : "", state : "put"});
-            }
-
-            this._store.siblings = [];
-            if (!this._settings.hide_actions.children) {
-                for (let sibling of this._siblings) {
-                    this._store.siblings.push({
-                        r: this.buildLink({ model: sibling.name, param_str: "" }),
-                        n: sibling.label
-                    });
-                }
-            }
-
-            if (this._data_template.limit > 0) {
-                this._store.setPage = (page) => {
-                    this._store.data_template.page = page;
-                    this.buildLink({ param_str : this._data_template.convertToParams()})()
-                    .then(() => { this.reload(); });
-                }
-            }
-        } else if (response.state == "primary") {
-            component.value = "ptj-single-item";
-            this._store.actions = [];
+        meta_row.applySettings(settings);
+        meta_row.applyMap(props.map);
         
-            if (this._back && !this._settings.hide_actions.parent) {
-               /* this._store.actions.push({
-                    r : this.buildLink({ key : this._data_template.parent.toVal(), state : this._back.state}),
-                    n: this._actions.get 
-                });*/
-            }
+    
 
-            if (this._actions.put && !this._settings.hide_actions.put) {
-                this._store.actions.push({ 
-                    r: this.buildLink({ state : "put"}), 
-                    n: this._actions.put 
-                });
-            }
-            if (this._actions.delete && !this._settings.hide_actions.delete) {
-                this._store.actions.push({
-                    r: () => {
-                        if (confirm("Are you sure you want to delete this record and all associated children?")) {
-                            let data = {};
-                            data[this._meta_row.primary.name] = this._data.primary.toVal();
-                            return client.delete(this.saveURL(), data)
-                            .then(() => {
-                                let map = { "state" : "get"};
-                                if (this._global_data.parent) map.key = this._global_data.parent.toVal();
-                                return this.buildLink(map)();
-                            })
-                        } 
-                        return Promise.reject("Delete cancelled");
-                    }, n: this._actions.delete
-                });
-            }
-
-            if (!this._settings.hide_actions.children) {
-                for (let child of this._children) {
-                    this._store.children.push({
-                        r: this.buildLink({ state: "parent", model: child.name }),
-                        n: child.label
-                    });
-                }
-            }
+        if (response.state == "get" || response.state == "parent") {
+            component_name.value = "ptj-repo";
+        } else if (response.state == "primary") {
+            component_name.value = "ptj-primary";
         } else if (response.state == "post") {
-            component.value = (this._actions.login) ? "ptj-account-handler" : "ptj-form";
-            this._store.progress = {total : 0, progress : 0};
-            this._store.actions = [];
-            if (this._actions.login) {
-                this._store.actions.push({r : this.buildLink({ state : "login"}), n: this._actions.login });
-            }
-
-            this._store.next = key => {
-                let state = "";
-                if (this._actions.parent) state = "parent";
-                else if (this._actions.get) state = "get";
-                else if (this._actions.primary) state = "primary";
-                return this.buildLink({ 
-                    state : state, 
-                    active : key
-                })();
-            }
-
+            component_name.value = (actions.sibling.login) ? "ptj-account-handler" : "ptj-form";
         } else if (response.state == "put") {
             component_name.value = "ptj-form";
-            this._store.progress = {total : 0, progress : 0};
-
-            this._store.actions = [];
-            if (this._actions.primary) this._store.next = this.buildLink({ state : "primary"});
-            else {
-                let map = { "state" : "get"};
-                if (this._global_data.parent) map.key = this._global_data.parent.toVal();
-                this._store.next = this.buildLink(map);
-            }
-            this._store.submit = () => {
-                return this.submit("put");
-            }
         } else if (response.state == "login") {
             component_name.value = "ptj-account-handler";
-           /* if (this._actions.post) {
-                this._store.actions.push({ r: this.buildLink({ state : "post"}), n: this._actions.post });
-            }*/
         }
 
 

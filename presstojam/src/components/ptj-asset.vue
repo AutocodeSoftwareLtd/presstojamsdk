@@ -1,5 +1,5 @@
 <template>
-   <input v-if="editable" :class="Class.getClass('ptj-form-asset')" 
+   <input v-if="type=='edit'" class="ptj-form-asset" 
     ref="input" @change="setFile" 
     :name="field.meta.name" 
     type="file" >
@@ -7,26 +7,12 @@
    
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-import Class from "../js/classinjection.js"
-
-
-export default defineComponent({
-  name: 'ptj-asset',
-  props : {
+<script setup>
+defineProps({
     field : Object,
-    editable : {
-        type : Boolean,
-        default : false
-    },
-    filter : {
-        type : Boolean,
-        default : false
+    type : {
+        type : String,
+        default : 'view'
     }
-  },
-  setup() {
-       return { Class };
-  }
 });
 </script>

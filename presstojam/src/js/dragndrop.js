@@ -1,4 +1,4 @@
-class GCDragNDrop {
+class PTJDragNDrop {
 
     constructor(props = {}) {
         this._handle = props.handle;
@@ -168,7 +168,7 @@ class GCDragNDrop {
 
 
 function initDD(props) {
-    let drag = new GCDragNDrop(props);
+    let drag = new PTJDragNDrop(props);
     let handles = document.querySelectorAll(props.handle);
     handles.forEach(el => el.addAttribute("draggable", true));
 

@@ -1,6 +1,6 @@
 <template>
-  <div class="ptj-form-row" :class="field.meta.name">
-  <label class="ptj-form-label">{{ field.meta.label }}</label>
+  <div class="ptj-form-row" :class="field.name">
+  <label class="ptj-form-label">{{ field.label }}</label>
   <slot />
   <ptj-error v-show="field.showError" :error="field.error" />
   </div>

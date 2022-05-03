@@ -5,13 +5,46 @@ export class DataRow {
 
     constructor(metarow) {
         this._cells = {};
-        this._references = {};
         this._children = {};
-        this._parent;
-        this._primary;
+        this._parent = null;
+        this._primary = null;
 
-        if (metarow) this.applyMetaRow(metarow);
+        if (metarow) {
+            this.applyMetaRow(metarow);
+        }
+
+        const keys = Object.keys(this);
+
+        keys.forEach(property => {
+          if (property[0] == "_") {
+            Object.defineProperty(this, property.substring(1), {
+                get: function() { 
+                    return this[property];
+                },
+                set: function(newValue) {
+                    this[property] = newValue;
+                }
+            });
+          } 
+        });
         
+    }
+
+    clone() {
+        const data = new DataRow();
+        let cells = {};
+        for(let i in this._cells) {
+            cells[i] = this._cells[i].clone();
+        }
+        data.cells = cells;
+        let children = {};
+        for(let i in data.children) {
+            children[i] = data.children[i].clone();
+        }
+        data.children = children;
+        if (this._parent) data.parent = this._parent.clone();
+        if (this._primary) data.primary = this._primary.clone();
+        return data;
     }
 
     
@@ -19,8 +52,8 @@ export class DataRow {
         if (metarow.primary) this._primary = new DataCell(metarow.primary);
         if (metarow.parent) this._parent = new DataCell(metarow.parent);
 
-        for(const i in metarow.fields) {
-            const field = metarow.fields[i];
+        for(const i in metarow.cells) {
+            const field = metarow.cells[i];
             this._cells[field.name] = new DataCell(field);
         }
 
@@ -48,19 +81,14 @@ export class DataRow {
     }
 
     set row(row) {
-
         if (!row) return;
 
-        if (this._primary && row[this._primary.meta.name]) this._primary.setVal(row[this._primary.meta.name]);
-        if (this._parent && row[this._parent.meta.name]) this._parent.setVal(row[this._parent.meta.name]);
+      
+        if (this._primary && row[this._primary.name]) this._primary.setVal(row[this._primary.name]);
+        if (this._parent && row[this._parent.name]) this._parent.setVal(row[this._parent.name]);
         
         for(let field in this._cells) {
-            if (!row[field]) continue;
             this._cells[field].setVal(row[field]);
-        }
-
-        for(let ref in this._references) {
-            this._references[ref].row = row[ref];
         }
 
         for(let child in this._children) {
@@ -68,9 +96,6 @@ export class DataRow {
         }
 
 
-        if (this._parent && this._references[this._parent.meta.reference]) {
-            this._parent.display = this._references[this._parent.meta.reference].getSummary();
-        }
         for(let cell in this._cells) {
             let field = this._cells[cell].meta;
             if (field.reference && this._references[field.reference]) {
@@ -80,27 +105,10 @@ export class DataRow {
 
     }
 
-    get cells() {
-        return this._cells;
-    }
-
-
-    get parent() {
-        return this._parent;
-    }
-
-
-    get primary() {
-        return this._primary;
-    }
-
-    get children() {
-        return this._children;
-    }
 
     getCell(name) {
-        if (this._primary && this._primary.meta.name == name) return this._primary;
-        else if (this._parent && this._parent.meta.name == name) return this._parent;
+        if (this._primary && this._primary.name == name) return this._primary;
+        else if (this._parent && this._parent.name == name) return this._parent;
         else return this._cells[name];
     }
 
@@ -109,7 +117,7 @@ export class DataRow {
         let str = [];
         for(let i in this._cells) {
             const cell = this._cells[i];
-            if (cell.meta.isSummary()) {
+            if (cell.isSummary()) {
                 const display = cell.display;
                 str.push(display);
             }
@@ -129,9 +137,9 @@ export class DataRow {
     serialize(state) {
         let data = {};
         if (state == "post") {
-            if (this._parent) data[this._parent.meta.name] = this._parent.toVal();
+            if (this._parent) data[this._parent.name] = this._parent.toVal();
         } else if (state == "put" || state == "delete") {
-            data[this._primary.meta.name] = this._primary.toVal();
+            data[this._primary.name] = this._primary.toVal();
         }
         for(let i in this._cells) {
             data[i] = this._cells[i].toVal();
@@ -143,7 +151,7 @@ export class DataRow {
     getCellByType(type) {
         let cells = {};
         for(let i in this._cells) {
-            if (this._cells[i].meta.type == type) cells[i] = this._cells[i];
+            if (this._cells[i].type == type) cells[i] = this._cells[i];
         }
         return cells;
     }

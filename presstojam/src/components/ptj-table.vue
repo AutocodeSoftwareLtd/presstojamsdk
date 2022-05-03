@@ -1,14 +1,12 @@
 <template>
-<ptj-filter-form  v-if="settngs.disable_filter != true" @submit="submitFilter" />
-        <ptj-selectfields v-if="settings.disable_selectfields != true" />
-        <p v-if="data_template.count">Number of rows: {{ data_template.count }}</p>
-    <table :class="Class.getClass('ptj-table') + ' ' + store.classes">
+    <table class="ptj-table" :class="map.model">
     <thead>
-        <tr :class="Class.getClass('ptj-table-header')">
-        <th v-for="cell in meta.fields" 
+        <tr class="ptj-table-header">
+        <th v-for="cell in meta.cells" 
             v-show="cell.summary" 
             :key="cell.name" 
-            :class="Class.getClass('ptj-table-header-cell') + ' ' + cell.name.replace('_', '-')"
+            class="ptj-table-header-cell"
+            :class="cell.name"
             @click="orderBy(cell.name);"
         >{{ cell.label }}
             <span v-if="order.name == cell.name && order.dir == 'asc'" 
@@ -18,137 +16,91 @@
                 class="material-icons" 
                 >keyboard_arrow_down</span>
         </th>
-        <th v-if="sortable">&nbsp;</th>
+        <th class="ptj-actions">&nbsp;</th>
         </tr>
     </thead>
     <tbody>
-      <tr v-for="(obj, rindex) in data" :key="rindex" :class="Class.getClass('ptj-table-row') + ' ' + this.getRowClass(obj)" @click="$emit('next', obj.primary.toVal())">
-        <td v-for="(field, name) in obj.cells" :key="name" v-show="field.meta.summary" :class="Class.getClass('ptj-table-cell') + ' ' + name.replace('_', '-')">
-          <ptj-asset v-if="field.meta.type=='asset'" :field="field" />
-          <ptj-number v-else-if="field.meta.type=='number'" :field="field" />
-          <ptj-flag v-else-if="field.meta.type=='flag'" :field="field" />
-          <ptj-id v-else-if="field.meta.type=='id'" :field="field"  />
-          <ptj-time v-else-if="field.meta.type=='time'" :field="field" />
-          <ptj-string v-else-if="field.meta.type=='string'" :field="field"  />
+      <tr v-for="(obj, rindex) in data" :key="rindex" class="ptj-table-row">
+        <td v-for="(field, name) in obj.cells" :key="name" v-show="field.summary" class="ptj-table-cell" :class="field.meta.name">
+          <ptj-asset v-if="field.type=='asset'" :field="field" />
+          <ptj-number v-else-if="field.type=='number'" :field="field" />
+          <ptj-flag v-else-if="field.type=='flag'" :field="field" />
+          <ptj-id v-else-if="field.type=='id'" :field="field"  />
+          <ptj-time v-else-if="field.type=='time'" :field="field" />
+          <ptj-string v-else-if="field.type=='string'" :field="field"  />
         </td>
-        <td :class="Class.getClass('ptj-table-cell-sortable')" v-if="sortable">
-            <a data-action="more" class="button" @click.prevent="toggle" draggable="true">
-                <span class="material-icons">drag</span>
-            </a>
+        <td class="ptj-actions" >
+            <ptj-button :route="{state:'primary', key:obj.primary.toVal()}"><span class="material-icons">arrow_forward_ios</span></ptj-button>
         </td>
       </tr>
     </tbody>
     </table>
-    <ptj-pagination v-if="data_template.limit > 0" />
 </template>
 
 <script setup>
-defineProps({
-    data_template : Object,
-    data : Array,
-    meta : Object
-});
 
-let order = reactive( { name : '', dir : ''});
-
-</script>
-<script>
-
-
-import PtjPagination from "./ptj-pagination.vue"
-import { defineComponent} from "vue"
-import Ctrl from "../js/controller.js"
-import Class from "../js/classinjection.js"
 import PtjNumber from "./ptj-number.vue"
 import PtjFlag from "./ptj-flag.vue"
 import PtjId from "./ptj-id.vue"
 import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
 import PtjAsset from "./ptj-asset.vue"
+import PtjButton from "./ptj-button.vue"
+import { reactive, ref, inject } from "vue"
+import { DataRow } from "./../js/datarow.js"
+import client from "./../js/client.js"
 
-export default defineComponent({
-    name: 'ptj-table',
-    setup() {
-        console.log(Ctrl.getStore().fields);
-        return { store : Ctrl.getStore(), Class, order : { name : '', dir : ''}}
-    },
-    methods : {
-        next(key) {
-            this.store.next(key);
-            Ctrl.buildLink();
-        },
-        orderBy(name) {
-            if (this.store.pages > 0) {
-                this.order.dir = (!this.order.name != name || this.order.dir  == "desc") ? "asc" : "desc";
-                this.order.name = name;
-                let sort = [];
-                sort[this.order.name] = this.order.dir;
-                this.store.data_template.sort = sort;
-                this.store.reload();
-            } else {
-                //custom sort on the table
-                if (this.order.name != name || this.order.dir == "desc") {
-                    this.store.data.sort(function(x, y) {
-                        let xval = x.getCell(name).toVal();
-                        let yval = y.getCell(name).toVal();
-                        if (xval < yval) {
-                            return -1;
-                        } else if (xval > yval) {
-                            return 1;
-                        } else {
-                            return 0;
-                        }
-                    });
-                    this.order.name = name;
-                    this.order.dir = "asc";
+
+const map = inject("map");
+const meta = inject("meta");
+const data = inject("data");
+
+
+let order = reactive( { name : '', dir : ''});
+
+function orderBy(name) {
+    if (meta.pages > 0) {
+        order.dir = (!order.name != name || order.dir  == "desc") ? "asc" : "desc";
+        order.name = name;
+        let sort = [];
+        sort[order.name] = order.dir;
+        meta.sort = sort;
+        load();
+    } else {
+        //custom sort on the table
+        if (order.name != name || order.dir == "desc") {
+            data.value.sort(function(x, y) {
+                let xval = x.getCell(name).toVal();
+                let yval = y.getCell(name).toVal();
+                if (xval < yval) {
+                    return -1;
+                } else if (xval > yval) {
+                    return 1;
                 } else {
-                    this.store.data.sort(function(x, y) {
-                        let xval = x.getCell(name).toVal();
-                        let yval = y.getCell(name).toVal();
-                        if (xval < yval) {
-                            return 1;
-                        } else if (xval > yval) {
-                            return -1;
-                        } else {
-                            return 0;
-                        }
-                    });
-                    this.order.name = name;
-                    this.order.dir = "desc";
+                    return 0;
                 }
-            }
-        },
-        getRowClass(obj) {
-            let str = [];
-            for(let name of this.store.groups) {
-                str.push(this.store.model + "-" + name.replace("_", "-") + "-" + obj[name]);
-            }
-            return str.join(" ");
+            });
+            order.name = name;
+            order.dir = "asc";
+        } else {
+            data.value.sort(function(x, y) {
+                let xval = x.getCell(name).toVal();
+                let yval = y.getCell(name).toVal();
+                if (xval < yval) {
+                    return 1;
+                } else if (xval > yval) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+            order.name = name;
+            order.dir = "desc";
         }
-    },
-    computed : {
-        sortable() {
-            return (this.store.sort) ? true : false;
-        },
-        overlimit() {
-            return false;
-        },
-        rowclass() {
-
-        }
-    },
-    components : {
-        "ptj-pagination" : PtjPagination,
-        "ptj-string" : PtjString,
-      "ptj-time" : PtjTime,
-      "ptj-asset" : PtjAsset,
-      "ptj-id" : PtjId,
-      "ptj-flag" : PtjFlag,
-      "ptj-number" : PtjNumber
     }
+}
 
-   
-});
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

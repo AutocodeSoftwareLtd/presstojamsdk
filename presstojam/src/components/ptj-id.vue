@@ -1,58 +1,36 @@
 <template>
-    <select v-if="editable" 
-        :class="Class.getClass('ptj-form-select')" 
+    <select v-if="type=='edit'" 
         v-model="field.val"
-        :name="field.meta.name"
-        v-bind="atts"
+        v-bind="field.atts"
+        :name="field.name"
          @blur="field.validateon = true"
         >
         <option value="0" selected>Select Option</option>
-        <option v-for="option in field.meta.options" :key="option.key" :value="option.key">{{ option.value }}</option>
+        <option v-for="option in field.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
-  <select v-else-if="filter"
-    :class="Class.getClass('ptj-form-select')" 
+  <select v-else-if="type=='filter'"
         v-model="field.val"
-        :name="field.meta.name"
-        v-bind="atts"
+        :name="field.name"
          @blur="field.validateon = true"
+        v-bind="field.atts"
          multiple="true"
         >
         <option value="0" selected disabled>All</option>
-        <option v-for="option in field.meta.options" :key="option.key" :value="option.key">{{ option.value }}</option>
+        <option v-for="option in field.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
   <span v-else>{{ field.val }}</span>
 </template>
 
 
-<script>
-import { defineComponent } from 'vue'
-import Class from "../js/classinjection.js"
-
-export default defineComponent({
-  name: 'ptj-flag',
-  props : {
+<script setup>
+defineProps({
     field : Object,
-    editable : {
-        type : Boolean,
-        default : false
-    },
-    filter : {
-        type : Boolean,
-        default : false
+    type : {
+        default : 'view',
+        type : String
     }
-  },
-  data() {
-      return {
-          cval : ""
-      }
-  },
-  computed : {
-      atts() {
-          
-      }
-  },
-  setup() {
-       return { Class };
-  }
 });
+
+
+
 </script>

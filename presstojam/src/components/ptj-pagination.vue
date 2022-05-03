@@ -1,26 +1,15 @@
 <template>
- <div :class="Class.getClass('ptj-pagination')">
-     <a v-for="index in store.data_template.max_pages" :key="index" @click="setPage(index)" :class="getActiveClass(index)">{{ index }}</a>
+ <div class="ptj-pagination">
+     <a v-for="index in data_template.max_pages" :key="index" @click="$emit('setPage', index - 1)" :class="getActiveClass(index)">{{ index }}</a>
  </div>
 </template>
-<script>
-import { defineComponent } from 'vue'
-import Class from "../js/classinjection.js"
-import Ctrl from "../js/controller.js"
+<script setup>
 
-
-export default defineComponent({
-    setup() {
-        return { store : Ctrl.getStore(), Class }
-    },
-    methods : {
-        setPage(index) {
-            this.store.setPage(index - 1);
-            Ctrl.buildLink(true);
-        },
-        getActiveClass(index) {
-            return (index - 1 == this.store.data_template.page) ? "ptj-pagination-active" : "";
-        }
-    }
+const props = defineProps({
+    data_template : Object
 });
+
+function getActiveClass(index) {
+    return (index - 1 == props.data_template.page) ? "ptj-pagination-active" : "";
+}
 </script>

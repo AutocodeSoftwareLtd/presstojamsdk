@@ -1,96 +1,59 @@
 <template >
-    <div :class="Class.getClass('ptj-tree-node') + ' ptj-draggable' + this.getRowClass()" :id="branch.primary.toVal()" draggable="false">
-        <div :class="Class.getClass('ptj-tree-node-row')" @click="selectRow(branch);">  
+    <div class="ptj-tree-node ptj-draggable" :id="branch.primary.toVal()" draggable="false">
+        <div class="ptj-tree-node-row">  
             <div>
-                <a v-if="ischild" data-action="more" class="button" @click.prevent.stop="toggle(branch.primary.toVal(), false)">
+                <a v-if="ischild" data-action="more" class="button" @click.prevent.stop="toggle(branch.primary.toVal())">
                     <span class="material-icons">subdirectory_arrow_right</span>
                 </a>
-                <a v-else data-action="more" class="button" @click.prevent.stop="toggle(branch.primary.toVal(), true)">
+                <a v-else data-action="more" class="button" @click.prevent.stop="toggle(branch.primary.toVal())">
                     <span class="material-icons">keyboard_arrow_right</span>
                 </a>
             </div>
-            <div v-if="sortable">
+            <div v-if="meta.sortable">
                 <a data-action="more" class="button" @click="prevent.stop" @mousedown="setDraggable" @mouseup="endDraggable">
                     <span class="material-icons">drag_handle</span>
                 </a>
             </div>
             <div>{{ branch.getSummary() }}</div>
-            
+            <ptj-button :route="{state:'primary', key:branch.primary.toVal() }"><span class="material-icons">arrow_forward_ios</span></ptj-button>
         </div>
-        <ptj-tree-node v-for="(obj, index) in children" :branch="obj" :ischild="true"  :key="index" v-show="toggle_state[branch.primary.toVal()]" :store="store" />
+        <ptj-tree-node v-for="(key, index) in children" :row="key" :ischild="true"  :key="index" v-show="toggle_state[branch.primary.toVal()]" />
     </div>
 </template>
 
-<script>
-import { defineComponent} from "vue"
-import Ctrl from "../js/controller.js"
-import Class from "../js/classinjection.js"
+<script setup>
+import { inject, reactive, computed } from "vue"
+import PtjButton from "./ptj-button.vue"
 
-export default defineComponent({
-	name : "ptj-tree-node",
-	props : {
-		branch : {
-            type : Object,
-            required : true
-        },
-        draggable : Boolean,
-        ischild : {
-            type : Boolean,
-            default : false
-        }
-
-	},
-    data() {
-        return {
-            toggle_state : {}
-        }
+const props = defineProps({
+    row : { 
+        type : [String, Number],
+        required : true
     },
-    setup() {
-        return { store : Ctrl.getStore(), Class }
-    },
-	methods : {
-        toggle(index) {
-            this.toggle_state[index] = (this.toggle_state[index]) ? false : true;
-        },
-        setDraggable(e) {
-            e.target.closest(".ptj-draggable").setAttribute("draggable", true);
-        },
-        endDraggable(e) {
-            e.target.closest(".ptj-draggable").setAttribute("draggable", false);
-        },
-        selectRow(branch) {
-            let key = branch.primary.toVal();
-            this.store.next(key);
-            Ctrl.buildLink();
-        },
-        getRowClass() {
-            let str = [];
-            for(let name of this.store.groups) {
-                str.push(this.store.model + "-" + name.replace("_", "-") + "-" + this.branch[name]);
-            }
-            return str.join(" ");
-        }
-	},
-    computed : {
-        sortable() {
-            return true;
-        },
-        children() {
-            let arr = [];
-            let children = this.branch.children;
-            for(let i in children) {
-                const carr = children[i];
-                arr.push(...carr);
-            }
-            return arr;
-        }
-    },
-	components : {
-	
-	}
+    draggable : Boolean,
+    ischild : {
+        type : Boolean,
+        default : false
+    }
 });
 
 
+const data = inject("data");
+const indexes = inject("indexes");
+const meta = inject("meta");
+const branch = data.value[props.row];
+
+const toggle_state = reactive({});
+   
+function toggle(index) {
+    toggle_state[index] = (toggle_state[index]) ? false : true;
+}
+    
+
+const children = computed(() => {
+    const id = branch.primary.toVal();
+    return (indexes[id]) ? indexes[id] : [];
+});
 </script>
 
 <style scoped>

@@ -1,45 +1,34 @@
 <template>
-  <input v-if="editable"
-        :class="Class.getClass('ptj-form-time')" 
-        :name="field.meta.name" 
+  <input v-if="type=='edit'"
+        :name="field.name" 
         type="datetime-local" 
         v-model="field.val" 
-        @blur="field.validateon = true" :readonly="field.meta.readonly">
-   <div v-else-if="filter">
+        v-bind="field.atts"
+        @blur="field.validateon = true">
+   <div v-else-if="type=='filter'">
       <input 
-        :class="Class.getClass('ptj-filter-form-time-1')" 
         type="datetime-local" 
+        :name="field.name + 'min'"
+        v-bind="field.atts"
         v-model="field.val1">
         -
         <input 
-            :class="Class.getClass('ptj-filter-form-time-2')" 
             type="datetime-local" 
+            :name="field.name + 'max'"
+            v-bind="field.atts"
             v-model="field.val2"
         >
    </div>
    <span v-else>{{ field.val }}</span>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-import Class from "../js/classinjection.js"
+<script setup>
 
-
-export default defineComponent({
-  name: 'ptj-time',
-  props : {
+defineProps({
     field : Object,
-    editable : {
-        type : Boolean,
-        default : false
-    },
-    filter : {
-        type : Boolean,
-        default : false
+    type : {
+        default : 'view',
+        type : String
     }
-  },
-  setup() {
-       return { Class };
-  }
 });
 </script>

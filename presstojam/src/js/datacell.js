@@ -25,8 +25,31 @@ export class DataCell {
             return this._store.is_validate_on && this._store.error ? true : false;
         });
 
-        if (this._meta.default) this._store.value = this._meta.default;
+        if (this._meta.default_val) this._store.value = this._meta.default_val;
         else if (this._meta.type == "select") this._store.value = 0; 
+
+        const meta_keys = Object.getOwnPropertyNames(this._meta);
+        const keys = Object.keys(this);
+
+        meta_keys.forEach(property => {
+          if (property[0] != "_" && !keys.includes(property)) {
+            Object.defineProperty(this, property, {
+                get: function() { 
+                    return this._meta[property];
+                },
+                set: function(newValue) {
+                    this._meta[property] = newValue;
+                }
+            })
+          }
+        });
+
+    }
+
+    clone() {
+        let cell = new DataCell(this._meta);
+        cell.store.value = this._store.value;
+        return cell;
     }
 
     get meta() {
@@ -46,6 +69,10 @@ export class DataCell {
         else return this._store.value;
     }
 
+    get store() {
+        return this._store;
+    }
+
     toString() {
         return this._store.display;
     }
@@ -57,5 +84,9 @@ export class DataCell {
 
     setVal(val) {
         this._store.value = val;
+    }
+
+    isSummary() {
+        return this._meta.summary;
     }
 }

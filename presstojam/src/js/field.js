@@ -2,30 +2,54 @@
 import Errors from "./error.js"
 import { reactive, computed } from "vue"
 import Client from "./client.js"
-import { Validator } from "./validator.js"
+
 
 export class Field {
 
     constructor(name, obj = null) {
         this._name = name;
         this._type = "";
-        this._is_primary = false;
-        this._is_parent = false;
-        this._valid = 1;
         this._atts={}
         this._confirm = false;
-        this._readonly = false;
-        this._placeholder = "";
-        this._conditions;
-        this._link = "";
         this._reference = "";
         this._error = 0;
         this._label = "";
-        this._store = reactive({ summary : 0, options : []});
-        this._default = null;
-        this._validator = new Validator();
-        this._multiple = false;
+        this._store = reactive({ summary : 0, options : [], value :  null, is_validate_on : false, error : 0});
+        this._default_val = null;
         this._encrypted = false;
+        this._min = null;
+        this._max = null;
+        this._contains = [];
+        this._notcontains = [];
+        this._error = {
+            'OK' : 0,
+            'MIN_VALUE' : 1,
+            'MAX_VALUE' : 2,
+            'HAS' : 3,
+            'HAS_NOT' : 4
+        }
+
+        const keys = Object.keys(this);
+       
+        keys.forEach(property => {
+          if (property != "_store" && property[0] == "_") {
+            Object.defineProperty(this, property.substring(1), {
+                get: function() { 
+                    if (property == "_error") {
+                        if (!this._error) return "";
+                        else if (isNaN(this._error)) return this._error;
+                        else return Errors.getError(this._error);
+                    } else {
+                        return this[property];
+                    }
+                },
+                set: function(newValue) {
+                    if (property == "_type") this._type = newValue.toLowerCase();
+                    else this[property] = newValue;
+                }
+            })
+          }
+        });
       
       
         this.summary = computed({
@@ -51,14 +75,14 @@ export class Field {
             for (let x in obj) {
                 if (x == "summary") this._store.summary = obj[x];
                 else if (x == "validation") continue;
-                else this[x] = obj[x];
+                else if (x == "type") this.type = obj[x].toLowerCase();
+                else this["_" + x] = obj[x];
             }
 
-            if (obj.validation) {
-                for(let x in obj.validation) {
-                    this._validator[x] = obj.validation[x];
-                }
-            }
+            this._min = obj.validation.min;
+            this._max = obj.validation.max;
+            if (obj.validation.contains) this._contains = obj.validation.contains.split("|");
+            if (obj.validation.notcontains) this._notcontains = obj.validation.notcontains.split("|");
         }
 
         if (!this._reference && this._type == "select") {
@@ -72,170 +96,101 @@ export class Field {
             }
         }
 
-    }
-
-    set confirm(confirm) {
-        this._confirm = confirm;
-    }
-
-    set readonly(readonly) {
-        this._readonly = readonly;
-    }
-
-    set placeholder(placeholder) {
-        this._placeholder = placeholder;
-    }
-
-    set atts(atts) {
-        this._atts = atts;
-    }
-
-    set default(def) {
-        this._default = def;
-    }
-
-    set asset(asset) {
-        this._asset = asset;
-    }
 
 
-    set conditions(conditions) {
-        this._conditions = conditions;
-    }
+        this.val = computed({ 
+            get : () =>  {
+                return this._store.value;
+            },
+            set : (val) => {
+                this._store.value = this.clean(val);
+                this._store.error = this.validate(val);
+            }     
+        });
 
-    set link(link) {
-        this._link = link;
-    }
+        this.error = computed({
+            get : () => this._store.error,
+            set : val => { this._store.error = val }
+        });
 
-    set name(name) {
-        this._name = name;
-    }
+        this.showError = computed(() => {
+            return this._store.is_validate_on && this._store.error ? true : false;
+        });
 
-    set type(type) {
-        this._type = type.toLowerCase();
-    }
-
-    set multiple(mult) {
-        this._multiple = mult;
-    }
-
-    set is_primary(val) {
-        this._is_primary = val;
-    }
-
-    set is_parent(val) {
-        this._is_parent = val;
-    }
-
-    set reference(ref) {
-        this._reference = ref;
-    }
-
-    set error(err) {
-        this._error = err;
-    }
-
-    set label(label) {
-        this._label = label;
-    }
-    
-    set encrypted(encrypted) {
-        this._encrypted = encrypted;
-    }
-    
-
-    get name() {
-        return this._name;
-    }
-
-    get type() {
-        return this._type;
-    }
+        if (this.default) this._store.value = this.default;
+        else if (this._type == "select") this._store.value = 0; 
 
 
-    get isprimary() {
-        return this._is_primary;
-    }
+        if (this._type == "datetime") {
+            this._store.value = {min : null, max : null };
 
-    get required() {
-        return (this._min > 0) ? true : false;
-    }
+            this.val = computed({
+                get : () =>  {
+                    return this._store.value;
+                },
+                set : (val) => {
+                    if (val.min) this._store.value.min = val.min;
+                    if (val.max) this._store.value.max = val.max;
+                    this._store.error = this.validate(val);
+                }  
+            });
 
-    get readonly() {
-        return this._readonly;
-    }
+            this.val1 = computed({
+                get : () =>  {
+                    return this._store.value.min;
+                },
+                set : (val) => {
+                    this._store.value.min = val;
+                    this._store.error = this.validate(val);
+                }     
+            });
 
-    get placeholder() {
-        return this._placeholder;
-    }
+            this.val2 = computed({
+                get : () =>  {
+                    return this._store.value.max;
+                },
+                set : (val) => {
+                    this._store.value.max = val;
+                    this._store.error = this.validate(val);
+                }     
+            });
 
-    get default() {
-        return this._default;
-    }
-
-    get atts() {
-        return this._atts;
-    }
-
-    get conditions() {
-        return this._conditions;
-    }
-
-    get link() {
-        return this._link;
-    }
-
-    get isparent() {
-        return this._is_parent
-    }
-
-    get multiple() {
-        return this._multiple;
-    }
-    
-    get confirm() {
-        return this._confirm;
-    }
-
-    get reference() {
-        return this._reference;
-    }
-
-    get asset() {
-        return this._asset;
-    }
-
-    get encrypted() {
-        return this._encrypted;
-    }
-
-    get error() {
-        if (!this._error) return "";
-        else if (isNaN(this._error)) return this._error;
-        else return Errors.getError(this._error);
-    }
-
-    get validator() {
-        return this._validator;
-    }
-
-    get label() {
-        return this._label;
-    }
-
-    
-    isSummary() {
-        return this._store.summary;
-    }
+            this.addParam = obj => {
+                let cobj = {};
+                if (this._store.value.min) cobj.min = this._store.value.min;
+                if (this._store.value.max) cobj.max = this._store.value.max;
+                if (Object.keys(cobj).length > 0) obj[this._name] = cobj;
+            };
 
 
-    saveAsset(id) {
-        if (this._asset) {
-            let file = this.val;
-            if (file) return this._asset.saveFile(this.val, id);
-        } 
-        return Promise.resolve();
+        } else if (this._type == "flag") {
+            this._store.value = 0;
+
+            this.addParam = (obj) => {
+                if (this._store.value == 1) {
+                    obj[this._name] = 1;
+                } else if (this._store.value == 2) {
+                    obj[this._name] = 0;
+                }
+            }
+
+        } else if (this._type == "str") {
+            this._store.value = [];
+
+            this.addParam = obj => {
+                if (this._store.value.length > 0) obj[this._name] = this._store.value;
+            }
+
+        } else {
+
+            this.addParam = obj => {
+                if (this._store.value) obj[this._name] = ["%" + this._store.value + "%"];
+            }
+
+        }
+
     }
+
 
 
     setReferenceOptions(url, params) {
@@ -258,21 +213,40 @@ export class Field {
         else return val;
     }
 
-    validate(value) {
-        return this._validator.validate(value);
-    }
-
-    exp() {
-        return {
-            name : this._name,
-            type : this._type,
-            atts : this._atts
-        }
-    }
 
     calcValue(value) {
         if (!value) return "";
         else return value;
+    }
+
+
+    validateSize(val) {
+        if (val < this._min) return this._error.MIN_VALUE;
+        else if (val > this._max) return this._error.MAX_VALUE;
+        else return this._error.OK;
+    }
+
+
+    validate(val) {
+        let err;
+        if (isNaN(val)) {
+            const length = (val) ? val.length : 0;
+            err = this.validateSize(length);
+        } else {
+            err = this.validateSize(val);
+        }
+        if (err != this._error.OK) return err;
+
+        for(let nhas of this._notcontains) {
+            if (val.match(nhas)) return this._error.HAS_NOT;
+        }
+
+        if (this._contains.length == 0) return this._error.OK;
+        
+        for(let has of this._contains) {
+            if (val.match(this._contains)) return this._error.OK;
+        }
+        return this._error.HAS;
     }
 
 

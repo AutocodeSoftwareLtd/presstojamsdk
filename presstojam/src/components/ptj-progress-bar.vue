@@ -1,35 +1,25 @@
 <template>
-    <div :class="Class.getClass('ptj-progress-bar-wrapper')">
-        <div :class="Class.getClass('ptj-progress-bar-holder') + ' ptj-progress-holder'">
-            <div :class="Class.getClass('ptj-progress-bar') + ' ptj-bar'" :style="style">&nbsp;</div> 
+    <div class="ptj-progress-bar-wrapper">
+        <div class="ptj-progress-holder">
+            <div class="ptj-progress-bar" :style="'width:' + num + 'px'">&nbsp;</div> 
         </div>   
         <span>{{ num }}%</span>
     </div> 
 </template>
 
-<script>
+<script setup>
 
-import { defineComponent} from "vue"
-import Class from "../js/classinjection.js"
+import { computed } from "vue"
 
-export default defineComponent({
-  name: 'ptj-progress-bar',
-  props : {
-      total : Number,
-      progress : Number
-  },
-  setup() {
-       return { Class };
-  },
-  computed : {
-      num() {
-          let num = Math.floor((this.progress / this.total) * 100);
-          return (isNaN(num)) ? 0 : num;
-      },
-      style() {
-          return "width:" +  this.num + "%;";
-      }
-  }
+const props = defineProps({
+    total : Number,
+    progress : Number
+});
+
+
+const num = computed(() => {
+    let num = Math.floor((props.progress / props.total) * 100);
+    return (isNaN(num)) ? 0 : num;
 });
 </script>
 
@@ -43,7 +33,7 @@ export default defineComponent({
      padding : 2px;
  }
 
- .ptj-bar {
+ .ptj-progress-bar {
      width : 0;
      height : 100%;
      position : relative;

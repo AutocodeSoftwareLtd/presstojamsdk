@@ -11,7 +11,7 @@
 
 <script>
 import { defineComponent  } from 'vue'
-import GCWidget from "./ptj-widget-window.vue"
+import GCWidget from "./ptj-widget.vue"
 import Class from "../js/classinjection.js"
 import Ctrl from "../js/controller.js"
 

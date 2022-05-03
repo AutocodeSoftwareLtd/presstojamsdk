@@ -1,47 +1,36 @@
 <template>
-  <input v-if="editable"
-        :class="Class.getClass('ptj-form-number')" 
-        :name="field.meta.name" 
+  <input v-if="type=='edit'"
+        class="ptj-form-number" 
+        :name="field.name" 
         type="number" 
         v-model="field.val" 
-        @blur="field.validateon = true" :readonly="field.meta.readonly">
-   <div v-else-if="filter">
-       <input v-if="editable"
-        :class="Class.getClass('ptj-form-number')" 
-        :name="field.meta.name" 
+        v-bind="field.atts"
+        @blur="field.validateon = true" >
+   <div v-else-if="type=='filter'">
+       <input
+        class="ptj-form-filter-number ptj-min" 
+        :name="field.name" 
         type="number" 
         v-model="field.val" 
-        @blur="field.validateon = true" :readonly="field.meta.readonly"> - 
-        <input v-if="editable"
-        :class="Class.getClass('ptj-form-number')" 
-        :name="field.meta.name" 
+        v-bind="field.atts"
+        @blur="field.validateon = true"> - 
+        <input
+        class="ptj-form-filter-number ptj-max" 
+        :name="field.name" 
         type="number" 
         v-model="field.val" 
-        @blur="field.validateon = true" :readonly="field.meta.readonly">
+        v-bind="field.atts"
+        @blur="field.validateon = true">
    </div>
    <span v-else>{{ field.val }}</span>
 </template>
 
-<script>
-import { defineComponent } from 'vue'
-import Class from "../js/classinjection.js"
-
-
-export default defineComponent({
-  name: 'ptj-number',
-  props : {
+<script setup>
+defineProps({
     field : Object,
-    editable : {
-        type : Boolean,
-        default : false
-    },
-    filter : {
-        type : Boolean,
-        default : false
+    type : {
+        type : String,
+        default : 'view'
     }
-  },
-  setup() {
-       return { Class };
-  }
 });
 </script>

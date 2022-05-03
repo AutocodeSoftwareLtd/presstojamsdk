@@ -1,6 +1,6 @@
 
 import { createApp } from "vue"
-import PTJModel from "./components/ptj-model.vue"
+import PTJRouter from "./components/ptj-router.vue"
 import Settings from "./js/settings.js"
 
 //https//api.localhost
@@ -14,20 +14,13 @@ let settings = {
                 "to" : "accounts",
                 "change_intention" : {
                     "target" : 0
-                },
-                "disable_filter" : 1,
-                "disable_selectfields" : 1,
-                "hide_actions" : {
-                    "post" : true,
-                    "parent" : true
                 }
                
             }
         },
         "fields" : {
             "parent" : {
-                "disable_filter" : 1,
-                "disable_selectfields" : 1,
+               
                 "hide_actions" : {
                     "post" : true,
                     "parent" : true
@@ -41,7 +34,7 @@ Settings.regSettings(settings);
 
 settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
 
-const app = createApp(PTJModel, {  map : settings.map });
+const app = createApp(PTJRouter);
 app.mount("#app");
 
 

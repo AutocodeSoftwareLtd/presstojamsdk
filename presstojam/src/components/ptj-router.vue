@@ -1,13 +1,16 @@
 <template>
-    <ptj-model v-for="map in maps" :map="map" :key="map.id" @redirect="redirect" :settings="map.settings" />    
+    <ptj-model v-for="map in maps" :map="map" :key="map.id"  />    
 </template>
 <script setup>
 
-defineProps({
-    route_base : String
-});
+import Events from "./../js/events.js"
+import Settings from "./../js/settings.js"
+import { ref } from "vue"
+import PtjModel from "./ptj-model.vue"
 
-let maps = reactive([]);
+
+let route_base = '';
+let maps = ref([]);
 
 const action_map = {
     'post' : '-create',
@@ -29,6 +32,7 @@ function createMap() {
         param_str : '',
         id : '',
         stage : 0,
+        target : 0,
         settings : {}
     }
 }
@@ -38,7 +42,7 @@ function convertToURL(map) {
     let model = map.model;
     let state = map.state;
     let key = map.key;
-    let to = mapto;
+    let to = map.to;
 
     let url = model + action_map[state];
     if (key) url += "-" + key;
@@ -77,7 +81,7 @@ function convertFromURL(url) {
         }
     }
     map.model = parts.join("-");
-    map.id = model.model + "-" + model.state + "-" + model.to;
+    map.id = map.model + "-" + map.state + "-" + map.to;
     return map;
 }
 
@@ -93,47 +97,73 @@ function runRoute(url_obj = null) {
     let url = url_obj.pathname.replace(route_base, "");
     url = url.replace(/^\/+|\/+$/g, '');
     let parts = url.split("/");
-    maps = [];
+    maps.value = [];
     for(let i in parts) {
         let map = convertFromURL(parts[i]);
+        if (!map) continue;
+        map.stage = i;
         const param = url_obj.searchParams.get("stage_" + i);
         if (param) map.param_str = param
-        maps.push(map);
+        maps.value.push(map);
+    }
+
+    if (maps.length == 0) {
+        let map = createMap();
+        maps.value.push(map);
     }
 }
 
 
 
-function redirect(change, target, soft=false) {
-    let ni = change.stage + target;
-    if (ni < 0) maps.unshift({ ...maps[0] });
-    else if (ni >= maps.length) maps.push({ ...maps[maps.length - 1]});
+function redirect(change, map, soft=false) {
+    let ni = parseInt(map.stage) + parseInt(map.target);
+    if (ni < 0) maps.value.unshift({ ...maps[0] });
+    else if (ni >= maps.length) maps.value.push({ ...maps[maps.length - 1]});
 
     for(let i in change) {
         if (change[i] !== null) {
-            if (i == "_end") maps.splice(ni + 1, maps.length);
-            else maps[ni][i] = change[i];
+            if (i == "_end") maps.value.splice(ni + 1, maps.length);
+            else maps.value[ni][i] = change[i];
         }
     }
 
 
     let url_parts = [];
-    for(let map of maps) {
+    for(let map of maps.value) {
         url_parts.push(convertToURL(map));
     }
 
-    const base = new URL(window.location.protocol + "//" + window.location.host + "/" +  props.route_base.replace(/^\/+|\/+$/g, '') + "/");
+    const base = new URL(window.location.protocol + "//" + window.location.host +  route_base);
     const url_str = url_parts.join("/");
     const url = new URL(url_str, base);
 
-    for(let i in maps) {
-        if (maps[i].param_str) {
-            url.searchParams.set("stage_" + i, maps[i].param_str);
+    for(let i in maps.value) {
+        if (maps.value[i].param_str) {
+            url.searchParams.set("stage_" + i, maps.value[i].param_str);
         }
     }
 
-    window.history.pushState({'name' : uri.pathname}, document.title, url);
+    window.history.pushState({'name' : url.pathname}, document.title, url);
     if (!soft) runRoute(url);
 }
+
+Events.on("redirect", data => {
+    redirect(data.change, data.map);
+});
+
+Events.on("history", data => {
+    redirect(data.change, data.map, true);
+});
+
+Events.on("reload", () => {
+    location.href = route_base;
+});
+
+
+const settings = Settings.getSettings("mapper");
+if (settings) {
+    route_base = "/" + settings.base.replace(/^\/+|\/+$/g, '');
+}
+runRoute();
 
 </script>
