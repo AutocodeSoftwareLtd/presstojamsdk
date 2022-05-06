@@ -109,15 +109,12 @@ export default {
         if (debug) data = this.setDebug(data);
         if (data) {
             const params = new URLSearchParams();
-            let graph = {};
             for(let i in data) {
-                if (Array.isArray(data[i]) || (typeof data[i] == 'object' && data[i] !== null)) graph[i] = data[i];
-                else params.append(i, data[i]);
+                if (Array.isArray(data[i]) || (typeof data[i] == 'object' && data[i] !== null)) {
+                   params.append(JSON.stringify(data[i]));
+                } else params.append(i, data[i]);
             }
 
-            if (graph) {
-                params.append("graph", JSON.stringify(graph));
-            }
             if (url.indexOf("?") == -1) url += "?";
             else url += "&";
             url += params.toString();

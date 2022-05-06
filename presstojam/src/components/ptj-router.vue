@@ -107,7 +107,7 @@ function runRoute(url_obj = null) {
         maps.value.push(map);
     }
 
-    if (maps.length == 0) {
+    if (maps.value.length == 0) {
         let map = createMap();
         maps.value.push(map);
     }

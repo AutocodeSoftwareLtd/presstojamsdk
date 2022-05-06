@@ -17,10 +17,14 @@
         :name="field.name"
         v-model="field.val" 
         @blur="field.validateon = true" />
+  <span v-else-if="type=='view' && field.reference">
+    <ptj-button :route="{model : field.reference, key : field.val, state:'primary' }">{{ field.val }}</ptj-button>
+  </span>
   <span v-else>{{ field.val }}</span>
 </template>
 
 <script setup>
+import PtjButton from "./ptj-button.vue"
 
 import { computed } from "vue"
 const props = defineProps({
