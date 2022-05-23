@@ -6,18 +6,22 @@
 
 <script setup>
 
-import client from "./../js/client.js"
-import Events from "./../js/events.js"
-import { inject, ref } from "vue";
+import client from "../js/client.js"
+import { ref } from "vue";
+import { Map, redirect } from "../js/route.js"
 
 const props = defineProps({
     check_str : {
         type : String,
         default : "delete"
+    },
+    parentid : {
+        default : 0
     }
 });
 
-const map = inject("map");
+const emits = defineEmits(['close']);
+
 let delval = ref("");
 let disabled = ref(true);
 
@@ -26,9 +30,11 @@ function checkStatus() {
 }
 
 function del() {
-    client.delete("/" + map.model, {"__key":map.key})
+    client.delete("/data/" + Map.route + "/" + Map.model, {"--id":Map.key})
     .then(res => {
-        $emit("back");
+        Map.state = "parent";
+        Map.key = props.parentid.val;
+        redirect();
     })
     .catch(e => console.log(e));
 }

@@ -5,7 +5,7 @@
             <button
           type="button"
           class="btn-close"
-          @click="$emit('close')"
+          @click="$emit('close');"
         >
           x
         </button>
@@ -20,9 +20,9 @@
 
 const props = defineProps({
     active : {
-        type : Boolean,
         required : true
     }
 });
+
 
 </script>

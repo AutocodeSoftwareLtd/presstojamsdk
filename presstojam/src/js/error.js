@@ -6,10 +6,14 @@ const error_invalid_map = {
             5 : "not unique"
 }
 
-function getError(code) {
+export function getError(code) {
     return error_invalid_map[code];
 }
 
-export default {
-    getError
+export const Errors = {
+    OK : 0,
+    MIN_VALUE : 1,
+    MAX_VALUE : 2,
+    HAS : 3,
+    HAS_NOT : 4
 }

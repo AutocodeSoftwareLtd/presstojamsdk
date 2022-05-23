@@ -1,11 +1,11 @@
 
 import { createApp } from "vue"
-import PTJRouter from "./components/ptj-router.vue"
 import Settings from "./js/settings.js"
+import PTJUser from "./components/ptj-user.vue"
 
-//https//api.localhost
+//https://api.presstojam.com
 let settings = { 
-    "client" : { "url" : "https://api.presstojam.com", "debug" : true },
+    "client" : { "url" : "http://api.localhost", "debug" : true },
     "mapper" : { base : ""},
     "models" : {
         "projects" : {
@@ -34,7 +34,7 @@ Settings.regSettings(settings);
 
 settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
 
-const app = createApp(PTJRouter);
+const app = createApp(PTJUser);
 app.mount("#app");
 
 

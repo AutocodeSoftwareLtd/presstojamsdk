@@ -1,23 +1,25 @@
 <template>
-   <textarea v-if="tag=='textarea' && type=='edit'"
+   <textarea v-if="tag=='textarea' && ctype=='edit'"
         v-bind="atts" 
         :name="field.name" 
-        v-model="field.val"></textarea>
-   <div v-else-if="tag=='textarea' && type=='view'">{{ field.val }}</div>
-   <select v-else-if="tag=='select' && (type=='edit' || type == 'filter')" 
-        v-model="field.val"
+        v-model="field.change"></textarea>
+   <div v-else-if="tag=='textarea' && ctype=='view'">{{ field.val }}</div>
+   <ptj-multiple-select v-else-if="tag=='select' && ctype == 'filter'" :field="field" />
+  <select v-else-if="tag=='select' && ctype=='edit'" 
+        v-model="field.change"
         :name="field.name"
         v-bind="atts"
          @blur="field.validateon = true"
         >
-        <option value="0" selected disabled>Select Option</option>
+        <option value="" selected disabled>Select Option</option>
         <option v-for="option in options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
-  <input v-else-if="type=='edit' || type == 'filter'" v-bind="atts"
+  <input v-else-if="ctype=='edit'" v-bind="atts"
         :name="field.name"
-        v-model="field.val" 
+        v-model="field.change" 
         @blur="field.validateon = true" />
-  <span v-else-if="type=='view' && field.reference">
+   <ptj-multiple-input :field="field" v-else-if="ctype=='filter'"/>
+  <span v-else-if="ctype=='view' && field.reference">
     <ptj-button :route="{model : field.reference, key : field.val, state:'primary' }">{{ field.val }}</ptj-button>
   </span>
   <span v-else>{{ field.val }}</span>
@@ -25,6 +27,8 @@
 
 <script setup>
 import PtjButton from "./ptj-button.vue"
+import PtjMultipleInput from "./ptj-multiple-input.vue"
+import PtjMultipleSelect from "./ptj-multiple-select.vue"
 
 import { computed } from "vue"
 const props = defineProps({
@@ -38,6 +42,9 @@ const props = defineProps({
     }
 });
 
+let ctype = computed(() => {
+    return (props.type == 'edit' && props.field.immutable) ? "view" : props.type;
+});
 
 function isEnum(contains) {
     if (contains.length == 0) return null;
@@ -57,7 +64,9 @@ function isEnum(contains) {
 const tag = computed(() => {
 if (isEnum(props.field.contains)) {
     return "select";
-} else if (props.field.html || props.field.max > 150) {
+} else if (props.field.encrypted) {
+    return "input";
+} else if (props.field.html || props.field.max > 300) {
     return "textarea";
 } else {
     return "input";

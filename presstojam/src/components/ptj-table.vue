@@ -1,8 +1,8 @@
 <template>
-    <table class="ptj-table" :class="map.model">
+    <table class="ptj-table" :class="Map.model">
     <thead>
         <tr class="ptj-table-header">
-        <th v-for="cell in meta.cells" 
+        <th v-for="cell in RepoStore.meta.cells" 
             v-show="cell.summary" 
             :key="cell.name" 
             class="ptj-table-header-cell"
@@ -20,7 +20,7 @@
         </tr>
     </thead>
     <tbody>
-      <tr v-for="(obj, rindex) in data" :key="rindex" class="ptj-table-row">
+      <tr v-for="(obj, rindex) in RepoStore.data" :key="rindex" class="ptj-table-row">
         <td v-for="(field, name) in obj.cells" :key="name" v-show="field.summary" class="ptj-table-cell" :class="field.meta.name">
           <ptj-asset v-if="field.type=='asset'" :field="field" />
           <ptj-number v-else-if="field.type=='number'" :field="field" />
@@ -30,7 +30,7 @@
           <ptj-string v-else-if="field.type=='string'" :field="field"  />
         </td>
         <td class="ptj-actions" >
-            <ptj-button :route="{state:'primary', key:obj.primary.toVal()}"><span class="material-icons">arrow_forward_ios</span></ptj-button>
+            <ptj-button :route="{state:'primary', key:obj.cells['--id'].val}"><span class="material-icons">arrow_forward_ios</span></ptj-button>
         </td>
       </tr>
     </tbody>
@@ -49,27 +49,25 @@ import PtjButton from "./ptj-button.vue"
 import { reactive, ref, inject } from "vue"
 import { DataRow } from "./../js/datarow.js"
 import client from "./../js/client.js"
+import { Map } from "../js/route.js"
+import { RepoStore } from "../js/repo.js"
 
-
-const map = inject("map");
-const meta = inject("meta");
-const data = inject("data");
 
 
 let order = reactive( { name : '', dir : ''});
 
 function orderBy(name) {
-    if (meta.pages > 0) {
+    if (RepoStore.meta.pages > 0) {
         order.dir = (!order.name != name || order.dir  == "desc") ? "asc" : "desc";
         order.name = name;
         let sort = [];
         sort[order.name] = order.dir;
-        meta.sort = sort;
+        RepoStore.meta.sort = sort;
         load();
     } else {
         //custom sort on the table
         if (order.name != name || order.dir == "desc") {
-            data.value.sort(function(x, y) {
+            RepoStore.data.sort(function(x, y) {
                 let xval = x.getCell(name).toVal();
                 let yval = y.getCell(name).toVal();
                 if (xval < yval) {
@@ -83,7 +81,7 @@ function orderBy(name) {
             order.name = name;
             order.dir = "asc";
         } else {
-            data.value.sort(function(x, y) {
+            RepoStore.data.sort(function(x, y) {
                 let xval = x.getCell(name).toVal();
                 let yval = y.getCell(name).toVal();
                 if (xval < yval) {

@@ -1,27 +1,24 @@
 import { Field } from "./field.js"
 import { Asset } from "./asset.js"
+import { reactive } from "vue"
 
 export class MetaRow {
 
     constructor() {
         this._cells = {};
-        this._primary = false;
-        this._parent = false;
         this._children = {};
         this._states = {};
         this._limit = 0;
         this._page = 0;
         this._sort = {};
         this._groups = [];
-        this._index = null;
-        this._children = [];
         this._active = 0;
         this._max_pages = 0;
         this._count = 0;
-        this._key = 0;
         this._limited_fields = [];
-
-
+        this._init = false;
+        this._store = reactive({index : null});
+      
         const keys = Object.keys(this);
 
         keys.forEach(property => {
@@ -54,36 +51,8 @@ export class MetaRow {
         if (this._page) obj._page = this._page;
         if (this._limited_fields.length > 0) obj._fields = this._limited_fields;
         if (Object.keys(this._sort).length > 0) obj._sort = this._sort;
-        for(let i in this._cells) {
-            let param = this._cells[i].toVal();
-            if (param) obj[i] = param;
-        }
-        return JSON.stringify(obj);
+        return obj;
     }
-
-    convertDataToParams() {
-        let obj = {};
-        for(let i in this._cells) {
-            obj[i] = this._cells[i].toVal();
-        }
-        return (Object.keys(obj).length > 0) ? JSON.stringify(obj) : null;
-    }
-
-
-    convertToAPIParams(state) {
-        let obj = {};
-        if (this._limit) obj.__limit = this._limit;
-        if (this._page) obj.__page = (this._page * this._limit);
-        if (this._limited_fields) obj.__fields = this._limited_fields;
-        if (Object.keys(this._sort).length > 0) obj.__sort = this._sort;
-        for(let i in this._cells) {
-            this._cells[i].addParam(obj);
-        }
-
-        if (this._key) obj.__key = this._key;
-        return (Object.keys(obj).length) ? obj : null;
-    }
-
 
     resetSummary(arr) {
 
@@ -98,31 +67,23 @@ export class MetaRow {
         }
     }
 
-    map(fields) {
-        for (let i in fields) {
-            if (fields[i].is_primary) this._primary = new Field(i, fields[i]);
-            else if (fields[i].is_parent) this._parent = new Field(i, fields[i]);
-            else {
-                this._cells[i] = new Field(i, fields[i]);
-                if (fields[i].circular) this._index = i;
+    mapField(field, obj) {
+        this._cells[field] = new Field(field, obj);
+        if (this._cells[field].recursive) this._store.index = field;
+    }
+
+    map(fields, custom_fields = []) {
+        if (custom_fields.length > 0) {
+            for(let field of custom_fields) {
+                this.mapField(field, fields[field]);
+            }
+        } else {
+            for (let i in fields) {
+                this.mapField(i, fields[i]);
             }
         }
     }
 
-
-    exportFields(state, store) {
-        let cfields = this._states[state].fields;
-        store.fields = [];
-        for(let i in cfields) {
-            if (this._limit_fields.length == 0 || this._limit_fields.contains(i)) {
-                store.fields.push(cfields[i]);
-            }
-        }
-    }
-
-    exportToStore(store) {
-       store.fields = this._cells;
-    }
 
     getCellByType(type) {
         let cells = {};

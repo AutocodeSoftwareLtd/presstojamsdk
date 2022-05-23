@@ -3,7 +3,7 @@
         class="ptj-form-number" 
         :name="field.name" 
         type="number" 
-        v-model="field.val" 
+        v-model="field.change" 
         v-bind="field.atts"
         @blur="field.validateon = true" >
    <div v-else-if="type=='filter'">
@@ -11,14 +11,14 @@
         class="ptj-form-filter-number ptj-min" 
         :name="field.name" 
         type="number" 
-        v-model="field.val" 
+        v-model="field.change1" 
         v-bind="field.atts"
         @blur="field.validateon = true"> - 
         <input
         class="ptj-form-filter-number ptj-max" 
         :name="field.name" 
         type="number" 
-        v-model="field.val" 
+        v-model="field.change2" 
         v-bind="field.atts"
         @blur="field.validateon = true">
    </div>

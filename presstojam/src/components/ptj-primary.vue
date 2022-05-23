@@ -1,22 +1,25 @@
 <template>
-    <button @click="toggleState" :disabled="editable_ready?false:true">{{ next_state }}</button>
-    <button @click="toggleDel">Delete</button>
+    <button v-if="RouteStore.route.perms.includes('put')" @click="toggleState">{{ next_state }}</button>
+    <button v-if="RouteStore.route.perms.includes('delete')" @click="toggleDel">Delete</button>
     <ptj-modal :active="show_del" @close="toggleDel()">
-    <ptj-delete  />
+        <ptj-delete :parentid="store.data.parent" @close="toggleDel()" />
     </ptj-modal>
-    <div class="ptj-primary" :class="map.model" v-show="editable == false">
-        <div v-for="(field, index) in data.cells" :key="index" :field="field">  
-          <span>{{ field.meta.label }}</span>&nbsp;
-          <ptj-asset v-if="field.meta.type=='asset'" :field="field" />
-          <ptj-number v-else-if="field.meta.type=='number'" :field="field" />
-          <ptj-flag v-else-if="field.meta.type=='flag'" :field="field" />
-          <ptj-id v-else-if="field.meta.type=='id'" :field="field"  />
-          <ptj-time v-else-if="field.meta.type=='time'" :field="field" />
-          <ptj-string v-else-if="field.meta.type=='string'" :field="field"  />
-        </div>
+    <div class="ptj-primary" :class="Map.model">
+        <ptj-form-row v-for="field in store.data.cells" :key="field.name" :field="field"> 
+          <ptj-asset v-if="field.meta.type=='asset'" :type="store.type" :field="field" />
+          <ptj-number v-else-if="field.meta.type=='number'" :type="store.type" :field="field" />
+          <ptj-flag v-else-if="field.meta.type=='flag'" :type="store.type" :field="field" />
+          <ptj-id v-else-if="field.meta.type=='id'" :type="store.type" :field="field"  />
+          <ptj-time v-else-if="field.meta.type=='time'" :type="store.type" :field="field" />
+          <ptj-string v-else-if="field.meta.type=='string'" :type="store.type" :field="field"  />
+        </ptj-form-row>
+        <input v-if="store.type =='edit'" type="submit" value="Submit" class="ptj-form-submit" @click="submit">
     </div>
-    <ptj-form v-if="editable_ready" state="put" v-show="editable == true" :data="data" />
-    
+    <div class="ptj-children">
+        <ptj-button v-for="action in RouteStore.route.children" :key="action" :route="{ model : action, state : 'parent'}">
+            {{ action }}
+        </ptj-button>
+    </div>
 </template>
 
 <script setup>
@@ -29,27 +32,31 @@ import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
 import { DataRow } from "./../js/datarow.js"
 import Settings from "./../js/settings.js"
-import { inject, reactive, ref, computed } from "vue"
+import { reactive, ref, computed, onMounted } from "vue"
 import PtjDelete from "./ptj-delete.vue"
 import PtjModal from "./ptj-modal.vue"
-import PtjForm from "./ptj-form.vue"
+import PtjForm from "./ptj-create-form.vue"
+import PtjButton from "./ptj-button.vue"
+import PtjFormRow from "./ptj-form-row.vue"
+import { MetaRow } from "./../js/metarow.js"
+import { Map, RouteStore } from "./../js/route.js"
   
-const map = inject("map");
-const meta = inject("meta");
-const data = reactive(new DataRow(meta));
-const settings = Settings.getModelSettings(map.model, map.state);
-const show_del = ref(false);
-const editable = ref(false);
-let editable_ready = ref(false);
+
+const settings = Settings.getModelSettings(Map.model, Map.state);
+
+
+const store = reactive({ data : new DataRow(), fstate : 0,  type : 'view', show_def : false, progress : { total : 0, progress : 0} });
+
+let show_del = ref(false);
+
+
 
 function toggleState() {
-    if (editable_ready.value) {
-        editable.value = (editable.value) ? false : true;
-    }
+    store.type = (store.type == "view") ? "edit" : "view";
 }
 
 let next_state = computed(() => {
-    return (editable.value) ? "view" : "edit";
+    return (store.type == "edit") ? "view" : "edit";
 });
 
 function toggleDel() {
@@ -57,23 +64,88 @@ function toggleDel() {
 }
 
 
+
 const load = async() => {
     let params = {};
-    if (map.to) params.__to = map.to;
-    if (map.key) params.__key = map.key;
+    if (Map.to) params.__to = Map.to;
+    if (Map.key) params["--id"] = Map.key;
     if (settings.fields) params.__fields = settings.fields;
-    return client.get("/" + map.model + "-primary", params)
+    return client.get("/route/" + Map.route + "/" + Map.model + "/primary", params)
     .then(response => {
-        if (response.__status != "SUCCESS") throw new Error(response);
-        data.row = response;
-        editable_ready.value = true;
-        return response;
+        const meta = new MetaRow();
+        meta.map(response.fields, settings.fields);
+        store.data.applyMetaRow(meta);
+    }).then(() => {
+        return client.get("/data/" + Map.route + "/" + Map.model + "/primary", params);
+    }).then(response => {
+        store.data.row = response;
+        //set the change values as well for each row
+        for(let i in store.data.cells) {
+            store.data.cells[i].change = store.data.cells[i].val;
+        }
+    }).then(response => {
+        for(let i in store.data.cells) {
+            if (store.data.cells[i].type == "id" && store.data.cells[i].reference) {
+                let url = "/reference/" + Map.model + "/" + i;
+                store.data.cells[i].setReferenceOptions(url, {"--id" : Map.key});
+            }
+        }
+    }).catch(e => console.log(e));
+
+}
+
+
+function submit() {
+
+    store.fstate = (store.progress.total > 0) ? 1 : 2;
+    store.data.clearErrors();
+    let key = 0;
+    let ndata = store.data.serialize(true);
+    if (Object.keys(ndata).length == 0) {
+        toggleState();
+        return;
+    }
+    ndata["--id"] = Map.key;
+    return client.put("/data/" + Map.route + "/" + Map.model, ndata)
+    .then(response=>{
+        let promises = [];
+        let assets = store.data.getCellByType("asset");
+        store.progress.total = 0;
+        for(let i in assets) {
+            const val = assets[i].val;
+            if (!val) continue;
+            ++store.progress.total;
+            const asset = new Asset();
+            asset.url = "/asset/" + Map.model + "/" + i + "/" + response["--id"];
+            let promise = asset.saveFile(assets[i].val)
+            .then(() => {
+                ++store.progress.progress;
+            });
+            promises.push(promise);
+        }
+        return Promise.all(promises);
     })
-    .catch(e => {
-        console.log(e);
+    .then(() => {
+        for(let i in store.data.cells) {
+            store.data.cells[i].val = store.data.cells[i].change;
+        }
+    })
+    .then(() => {
+        toggleState();
+    })
+    .catch(err => {
+            //show error fields, mark fields as invalidated
+        store.fstate = 0;
+        if (typeof err == "string") {
+            globalerror = err;
+        } else {
+            store.data.setErrors(err);
+        }
     });
 }
 
-load();
+onMounted(async () => {
+ await load();
+});
 
 </script>

@@ -82,7 +82,7 @@ export class Asset {
         });
     }
 
-    saveFile(file, id) {
+    saveFile(file) {
         //this needs to be a promise
         this._size = file.size;
         return new Promise(( resolve, reject) => {
@@ -103,7 +103,6 @@ export class Asset {
               const data = {};
               data.__chunk = i;
               data.__blob = this.getChunk(i);
-              data.__key = id;
               promises.push(Client.put(this._url, data));
           }
           return Promise.all(promises);

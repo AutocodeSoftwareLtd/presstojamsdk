@@ -1,24 +1,24 @@
 <template>
-  <a class="ptj-button" :key="route" @click="redirect">
+  <a class="ptj-button" :key="route" @click="run">
     <slot />
   </a> 
 </template>
 
 <script setup>
 
-import Events from "./../js/events.js"
-import { inject } from "vue"
+
+import { redirect, Map } from "./../js/route.js"
 
 const props = defineProps({
     route : Object
 });
 
-const map = inject("map");
 
-function redirect() {
-    let route = { ... props.route };
-    route.target = 0;
-    Events.trigger("redirect", { change : route, map });
+function run() {
+    for(let i in props.route) {
+        Map[i] = props.route[i];
+    }
+    redirect();
 }
 
 </script>

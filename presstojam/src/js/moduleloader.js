@@ -8,9 +8,9 @@ function addModule(name, location) {
 
 function loadModule(name) {
     if (module_address[name]) {
-        return import(module_address[name]);
+        return import(/* @vite-ignore */module_address[name]);
     } else {
-        return import("./../components/" + name + ".vue");
+        return import(/* @vite-ignore */"./../components/" + name + ".vue");
     }
 }
 
