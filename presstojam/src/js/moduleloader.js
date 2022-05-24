@@ -1,3 +1,5 @@
+const path = require('path');
+
 const module_address = {
 }
 
@@ -10,7 +12,7 @@ function loadModule(name) {
     if (module_address[name]) {
         return import(/* @vite-ignore */module_address[name]);
     } else {
-        return import(/* @vite-ignore */"./../components/" + name + ".vue");
+        return import(/* @vite-ignore */path.resolve(__dirname, "/../components/" + name + ".vue"));
     }
 }
 
