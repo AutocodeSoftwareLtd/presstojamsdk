@@ -46,10 +46,7 @@ import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
 import PtjAsset from "./ptj-asset.vue"
 import PtjButton from "./ptj-button.vue"
-import { reactive, ref, inject } from "vue"
-import { DataRow } from "./../js/datarow.js"
-import client from "./../js/client.js"
-import { Map } from "../js/route.js"
+import { reactive } from "vue"
 import { RepoStore } from "../js/repo.js"
 
 

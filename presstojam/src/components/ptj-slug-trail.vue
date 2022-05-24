@@ -5,19 +5,16 @@
 </template>
 <script setup>
 import PtjButton from "./ptj-button.vue"
-import { ref, inject } from "vue"
-import client from "./../js/client.js"
+import { ref } from "vue"
+import client from "../js/client.js"
+import { Map } from "../js/route.js"
 
 const trails = ref([]);
-const map = inject("map");
 
 const init = async() => {
-    let params = {};
-    if (map.state == "primary") params["--id"] = map.key;
-    else params["--parentid"] = map.key;
-    return client.get("/data/" + map.route + "/" + map.model + "/slug", params)
+    trails.value.splice(0);
+    return client.get("/slug/" + Map.route + "/" + Map.model + "/" + Map.key)
     .then(response => {
-        trails.value.splice(0);
         for(let i in response) {
             let values = [];
             for(let x in response[[i]]) {
@@ -25,16 +22,15 @@ const init = async() => {
                 values.push(response[i][x]);
             }
             trails.value.push({
-                id : response[i]["--id"],
-                value : values.join(" "),
-                route : {
-                    model : response[i].model
-                }
-            })
+                id : response[i]["--parentid"],
+                model : response[i].model
+            });
         }
     });
 }
 
-
+onMounted(async () => {
+    await init();
+});
 
 </script>
