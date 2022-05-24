@@ -5,7 +5,7 @@ import { createApp } from "vue"
 
 function runApp(mount, user_settings) {
     Settings.regSettings(user_settings);
-    const app = createApp(PTJRoot);
+    const app = createApp(PTJUser);
     app.mount(mount);
     return app;
 }

@@ -13,7 +13,6 @@
 
 <script setup>
 import PtjWidget from "./ptj-widget.vue"
-import { inject } from "vue"
 import { RepoStore } from "../js/repo.js"
 import { getFieldDictionary } from "../js/dictionary.js"
 
