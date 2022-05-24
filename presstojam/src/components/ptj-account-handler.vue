@@ -27,7 +27,6 @@ import PtjString from "./ptj-string.vue"
 import PtjNumber from "./ptj-number.vue"
 import PtjFlag from "./ptj-flag.vue"
 import PtjTime from "./ptj-time.vue"
-import Events from "./../js/events.js"
 import { Map, refresh } from "./../js/route.js"
 
 

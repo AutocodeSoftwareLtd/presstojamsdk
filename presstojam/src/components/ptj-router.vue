@@ -21,16 +21,20 @@
 </template>
 <script setup>
 
-import { computed, defineAsyncComponent, onMounted } from "vue"
+import { computed, onMounted } from "vue"
 import PtjButton from "./ptj-button.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
 import { init, RouteStore, runRoute } from "./../js/route.js"
-import ModuleLoader from "./../js/moduleloader.js"
+import PtjRepo from "./ptj-repo.vue"
+import PtjPrimary from "./ptj-primary.vue"
+import PtjAccountHandler from "./ptj-account-handler.vue"
 
 
 const component = computed(() => {
     if (!RouteStore.component) return null;
-    else return defineAsyncComponent(() => ModuleLoader.loadModule(RouteStore.component));
+    else if (RouteStore.component == "ptj-primary") return PtjPrimary;
+    else if (RouteStore.component == "ptj-repo") return PtjRepo;
+    else if (RouteStore.component == "ptj-account-handler") return PtjAccountHandler;
 });
 
 

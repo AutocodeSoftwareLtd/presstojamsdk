@@ -1,4 +1,4 @@
-import { reactive, defineAsyncComponent } from "vue"
+import { reactive } from "vue"
 import client from "./client.js"
 import Settings from "./settings.js"
 import { MapModel } from "./map.js"

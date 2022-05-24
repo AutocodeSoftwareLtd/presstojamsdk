@@ -5,7 +5,7 @@
 </template>
 <script setup>
 import PtjButton from "./ptj-button.vue"
-import { ref } from "vue"
+import { ref, onMounted } from "vue"
 import client from "./../js/client.js"
 import { Map } from "./../js/route.js"
 
