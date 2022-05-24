@@ -18,7 +18,9 @@ const init = async() => {
         for(let i in response) {
             let values = [];
             for(let x in response[[i]]) {
-                if (x == "--id") continue;
+                if (x == "--id") {
+                    continue;
+                }
                 values.push(response[i][x]);
             }
             trails.value.push({
