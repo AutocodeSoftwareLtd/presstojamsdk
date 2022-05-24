@@ -2,7 +2,8 @@
 import { createApp } from "vue"
 import Settings from "./js/settings.js"
 import PTJUser from "./components/ptj-user.vue"
-
+import { Map } from "./js/map.js"
+import { loadNav } from "./js/user.js"
 //https://api.presstojam.com
 let settings = { 
     "client" : { "url" : "http://api.localhost", "debug" : true },
@@ -34,9 +35,12 @@ Settings.regSettings(settings);
 
 settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
 
-const app = createApp(PTJUser);
-app.mount("#app");
-
+Map.init();
+loadNav()
+.then(() => {
+    const app = createApp(PTJUser);
+    app.mount("#app");
+});
 
 /*
 const queryString = window.location.search;

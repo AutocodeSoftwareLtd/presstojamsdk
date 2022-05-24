@@ -41,6 +41,7 @@ class MapModel {
             'parent' : '-parent',
             'get' : ''
         };
+
     }
 
     get id() {
@@ -86,8 +87,8 @@ class MapModel {
         return url;
     }
     
-    convertFromURL(url_obj) {
-        if (!url_obj) url_obj = new URL(window.location.href);
+    init() {
+        let url_obj = new URL(window.location.href);
         let url = url_obj.pathname.replace(this.base, "");
         url = url.replace(/^\/+|\/+$/g, '');
 
@@ -95,6 +96,10 @@ class MapModel {
 
 
         let parts = url.split("/");
+
+        if (parts.length < 2) {
+            throw "Map can't init as can't convert url of " + url_obj.pathname;
+        }
         this.route = parts[0];
         url = parts[1];
 
@@ -157,4 +162,4 @@ class MapModel {
 
 
 export const Map = new MapModel();
-Map.convertFromURL();
+

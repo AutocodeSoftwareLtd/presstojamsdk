@@ -20,7 +20,7 @@ import PtjString from "./ptj-string.vue"
 import { User, checkLoginStatus, logout, NavStore, loadNav } from "./../js/user.js"
 import PtjRouter from "./ptj-router.vue"
 import PtjButton from "./ptj-button.vue"
-import { onMounted } from "vue"
+import { Map } from "./../js/map.js"
 
 checkLoginStatus();
 
@@ -34,8 +34,6 @@ checkLoginStatus();
 */
 
 
-onMounted(async () => {
-    await loadNav();
-});
+
 
 </script>
