@@ -10,6 +10,7 @@ function runApp(mount, user_settings) {
     return app;
 }
 
+
 function getClient(user_settings) {
     Settings.regSettings(user_settings);
     return Client;
