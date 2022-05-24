@@ -10,8 +10,8 @@
 
 <script setup>
 import { computed } from "vue"
-import { Map } from "../js/route.js"
-import client from "../js/client.js"
+import { Map } from "./../js/route.js"
+import client from "./../js/client.js"
 
 const props = defineProps({
     field : Object,

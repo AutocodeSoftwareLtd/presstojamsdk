@@ -26,12 +26,12 @@ import PtjFlag from "./ptj-flag.vue"
 import PtjId from "./ptj-id.vue"
 import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
-import Settings from "../js/settings.js"
-import client from "../js/client.js"
-import { DataRow } from "../js/datarow.js"
-import { MetaRow } from "../js/metarow.js"
-import { Map } from "../js/route.js"
-import { loadRepo } from "../js/repo.js"
+import Settings from "./../js/settings.js"
+import client from "./../js/client.js"
+import { DataRow } from "./../js/datarow.js"
+import { MetaRow } from "./../js/metarow.js"
+import { Map } from "./../js/route.js"
+import { loadRepo } from "./../js/repo.js"
 
 const emit = defineEmits(['close']);
 let globalerror = ref('');

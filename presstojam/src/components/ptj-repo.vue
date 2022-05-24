@@ -17,18 +17,18 @@
 
 import { ref, computed, onMounted } from "vue"
 import { DataRow } from "../js/datarow.js"
-import client from "../js/client.js"
+import client from "./../js/client.js"
 import PtjTree from "./ptj-tree.vue"
 import PtjTable from "./ptj-table.vue"
 import PtjList from "./ptj-list.vue"
 import PtjFilterForm from "./ptj-filter-form.vue"
 import PtjSelectfields from "./ptj-selectfields.vue"
 import PtjPagination from "./ptj-pagination.vue"
-import Settings from "../js/settings.js"
+import Settings from "./../js/settings.js"
 import PtjModal from "./ptj-modal.vue"
 import PtjCreateForm from "./ptj-create-form.vue"
-import { MetaRow } from "../js/metarow.js"
-import { RepoStore, loadRepo } from "../js/repo.js"
+import { MetaRow } from "./../js/metarow.js"
+import { RepoStore, loadRepo } from "./../js/repo.js"
 
 
 const settings = Settings.getModelSettings(Map.model, Map.state);

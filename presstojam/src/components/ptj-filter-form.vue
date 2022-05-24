@@ -23,8 +23,8 @@ import PtjTime from "./ptj-time.vue"
 import PtjNumber from "./ptj-number.vue"
 import PtjString from "./ptj-string.vue"
 import PtjWidget from "./ptj-widget.vue"
-import { Map, addToHistory } from "../js/route.js"
-import { RepoStore, loadRepo } from "../js/repo.js"
+import { Map, addToHistory } from "./../js/route.js"
+import { RepoStore, loadRepo } from "./../js/repo.js"
 
 
 function searchData() {

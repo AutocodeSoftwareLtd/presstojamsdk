@@ -6,7 +6,7 @@
 
 <script>
 import { defineComponent } from 'vue'
-import Class from "../js/classinjection.js"
+import Class from "./../js/classinjection.js"
 
 
 export default defineComponent({

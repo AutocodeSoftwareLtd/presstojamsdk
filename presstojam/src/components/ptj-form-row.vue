@@ -8,7 +8,7 @@
 
 <script setup>
 import PtjError from "./ptj-error.vue"
-import { getFieldDictionary } from "../js/dictionary.js"
+import { getFieldDictionary } from "./../js/dictionary.js"
 
 
 const props = defineProps({

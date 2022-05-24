@@ -2,7 +2,6 @@ import { reactive, defineAsyncComponent } from "vue"
 import client from "./client.js"
 import Settings from "./settings.js"
 import { MapModel } from "./map.js"
-import ModuleLoader from "./moduleloader.js"
 import { setDictionary } from "./dictionary.js"
 
 window.onpopstate = function() {

@@ -24,7 +24,7 @@
 <script setup>
 import { reactive, computed, onMounted } from "vue"
 import PtjButton from "./ptj-button.vue"
-import { RepoStore } from "../js/repo.js"
+import { RepoStore } from "./../js/repo.js"
 
 const props = defineProps({
     row : { 

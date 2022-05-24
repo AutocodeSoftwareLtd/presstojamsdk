@@ -6,9 +6,9 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import PTJDragDrop from "../js/dragndrop.js"
+import PTJDragDrop from "./../js/dragndrop.js"
 import PtjTreeNode from "./ptj-tree-node.vue"
-import { RepoStore } from "../js/repo.js"
+import { RepoStore } from "./../js/repo.js"
 
 
 onMounted(() => {

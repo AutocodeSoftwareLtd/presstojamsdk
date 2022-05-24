@@ -19,7 +19,7 @@
 <script setup>
 
 import { reactive, onMounted } from "vue"
-import { Map } from "../js/route.js"
+import { Map } from "./../js/route.js"
 
 const props = defineProps({
     field : Object,

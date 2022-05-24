@@ -47,7 +47,7 @@ import PtjString from "./ptj-string.vue"
 import PtjAsset from "./ptj-asset.vue"
 import PtjButton from "./ptj-button.vue"
 import { reactive } from "vue"
-import { RepoStore } from "../js/repo.js"
+import { RepoStore } from "./../js/repo.js"
 
 
 

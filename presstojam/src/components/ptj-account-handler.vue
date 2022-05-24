@@ -27,14 +27,14 @@ import PtjString from "./ptj-string.vue"
 import PtjNumber from "./ptj-number.vue"
 import PtjFlag from "./ptj-flag.vue"
 import PtjTime from "./ptj-time.vue"
-import Events from "../js/events.js"
-import { Map, refresh } from "../js/route.js"
+import Events from "./../js/events.js"
+import { Map, refresh } from "./../js/route.js"
 
 
 import { reactive } from 'vue'
-import { DataRow } from '../js/datarow.js';
-import { MetaRow } from "../js/metarow.js"
-import client from "../js/client.js"
+import { DataRow } from './../js/datarow.js';
+import { MetaRow } from "./../js/metarow.js"
+import client from "./../js/client.js"
 
 const props = defineProps({
     actions : []

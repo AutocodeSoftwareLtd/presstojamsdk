@@ -6,9 +6,9 @@
 
 <script setup>
 
-import client from "../js/client.js"
+import client from "./../js/client.js"
 import { ref } from "vue";
-import { Map, redirect } from "../js/route.js"
+import { Map, redirect } from "./../js/route.js"
 
 const props = defineProps({
     check_str : {

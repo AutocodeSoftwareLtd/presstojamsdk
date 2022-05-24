@@ -11,7 +11,7 @@
 
 import PtjModal from "./ptj-modal.vue"
 import PtjString from "./ptj-string.vue"
-import { User, checkLoginStatus, logout } from "../js/user.js"
+import { User, checkLoginStatus, logout } from "./../js/user.js"
 import PtjRouter from "./ptj-router.vue"
 
 

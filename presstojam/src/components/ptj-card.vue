@@ -12,8 +12,8 @@
 <script>
 import { defineComponent  } from 'vue'
 import GCWidget from "./ptj-widget.vue"
-import Class from "../js/classinjection.js"
-import Ctrl from "../js/controller.js"
+import Class from "./../js/classinjection.js"
+import Ctrl from "./../js/controller.js"
 
 export default defineComponent({
   name: 'ptj-card',
