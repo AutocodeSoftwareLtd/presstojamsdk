@@ -1,6 +1,4 @@
-import { computed, reactive } from "vue"
-
-export class MapModel {
+class MapModel {
 
     constructor() {
         this._route = '';
@@ -23,8 +21,10 @@ export class MapModel {
                     return this[property];
                 },
                 set: function(newValue) {
-                    this._changes[property.substring(1)] = this[property];
-                    this[property] = newValue;
+                    if (newValue != this[property]) {
+                        this._changes[property.substring(1)] = this[property];
+                        this[property] = newValue;
+                    }
                 }
             });
           } 
@@ -155,3 +155,6 @@ export class MapModel {
     }
 }
 
+
+export const Map = new MapModel();
+Map.convertFromURL();

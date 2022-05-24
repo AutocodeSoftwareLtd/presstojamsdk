@@ -7,7 +7,8 @@
 <script setup>
 
 
-import { redirect, Map } from "./../js/route.js"
+import { redirect } from "./../js/route.js"
+import { Map } from "./../js/map.js"
 
 const props = defineProps({
     route : Object

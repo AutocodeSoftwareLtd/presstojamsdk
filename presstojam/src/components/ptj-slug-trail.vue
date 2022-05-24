@@ -7,7 +7,7 @@
 import PtjButton from "./ptj-button.vue"
 import { ref, onMounted } from "vue"
 import client from "./../js/client.js"
-import { Map } from "./../js/route.js"
+import { Map } from "./../js/map.js"
 
 const trails = ref([]);
 

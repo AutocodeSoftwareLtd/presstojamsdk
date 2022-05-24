@@ -27,9 +27,8 @@ import PtjString from "./ptj-string.vue"
 import PtjNumber from "./ptj-number.vue"
 import PtjFlag from "./ptj-flag.vue"
 import PtjTime from "./ptj-time.vue"
-import { Map, refresh } from "./../js/route.js"
-
-
+import { refresh } from "./../js/route.js"
+import { Map } from "./../js/map.js"
 import { reactive } from 'vue'
 import { DataRow } from './../js/datarow.js';
 import { MetaRow } from "./../js/metarow.js"

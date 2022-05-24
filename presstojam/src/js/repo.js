@@ -1,7 +1,7 @@
 import Settings from "./settings.js"
 import { MetaRow } from "./metarow.js"
 import { DataRow } from "./datarow.js"
-import { Map } from "./route.js"
+import { Map } from "./map.js"
 import { reactive } from "vue"
 import client from "./client.js"
 

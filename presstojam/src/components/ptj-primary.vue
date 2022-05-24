@@ -39,7 +39,8 @@ import PtjForm from "./ptj-create-form.vue"
 import PtjButton from "./ptj-button.vue"
 import PtjFormRow from "./ptj-form-row.vue"
 import { MetaRow } from "./../js/metarow.js"
-import { Map, RouteStore } from "./../js/route.js"
+import {RouteStore } from "./../js/route.js"
+import { Map } from "./../js/map.js"
   
 
 const settings = Settings.getModelSettings(Map.model, Map.state);

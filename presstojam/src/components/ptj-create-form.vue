@@ -30,7 +30,7 @@ import Settings from "./../js/settings.js"
 import client from "./../js/client.js"
 import { DataRow } from "./../js/datarow.js"
 import { MetaRow } from "./../js/metarow.js"
-import { Map } from "./../js/route.js"
+import { Map } from "./../js/map.js"
 import { loadRepo } from "./../js/repo.js"
 
 const emit = defineEmits(['close']);

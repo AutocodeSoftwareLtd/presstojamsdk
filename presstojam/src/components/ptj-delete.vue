@@ -8,7 +8,8 @@
 
 import client from "./../js/client.js"
 import { ref } from "vue";
-import { Map, redirect } from "./../js/route.js"
+import { redirect } from "./../js/route.js"
+import { Map } from "./../js/map.js"
 
 const props = defineProps({
     check_str : {

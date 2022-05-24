@@ -2,6 +2,12 @@
     <Teleport to="#ptj-accountdetails">
     <a v-if="User.user != 'public'" class="ptj-account-details-logout" @click="logout">Logout</a>
     </Teleport>
+    <div class="ptj-nav">
+        <div v-for="(routes, title) in NavStore.cats" :key="title">
+            <span v-if="routes.length > 1">{{ title }}</span>
+            <ptj-button v-for="(route) in routes" :route="{ 'route' : route.route, 'model' : route.model, 'state':route.state, 'key' : 0}" :key="route.route">{{ route.route }}</ptj-button>
+        </div>
+    </div>
     <ptj-router />
     <ptj-modal :active="User.login">
         
@@ -11,9 +17,10 @@
 
 import PtjModal from "./ptj-modal.vue"
 import PtjString from "./ptj-string.vue"
-import { User, checkLoginStatus, logout } from "./../js/user.js"
+import { User, checkLoginStatus, logout, NavStore, loadNav } from "./../js/user.js"
 import PtjRouter from "./ptj-router.vue"
-
+import PtjButton from "./ptj-button.vue"
+import { onMounted } from "vue"
 
 checkLoginStatus();
 
@@ -25,5 +32,10 @@ checkLoginStatus();
             <input type="submit" value="Login" class="ptj-form-submit" @click="submit">
         </form>
 */
+
+
+onMounted(async () => {
+    await loadNav();
+});
 
 </script>

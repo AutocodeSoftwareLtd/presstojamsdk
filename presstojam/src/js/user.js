@@ -1,14 +1,30 @@
 import { reactive } from "vue"
 import { refresh } from "./route.js"
 import Client from "./client.js"
+import { Map } from "./map.js"
 
 export const User = reactive({init : false, login : false, user : "public" });
+
+export const NavStore = reactive({
+    cats : {}, 
+    routes : [], 
+});
 
 export function logout() {
     Client.post("/core/logout")
     .then(() => {
         refresh();
     });
+}
+
+function getDefault() {
+    for(let cat in NavStore.cats) {
+        for(let route of NavStore.cats[cat]) {
+            if (route.default) {
+                return route;
+            }
+        }
+    }
 }
 
 
@@ -43,3 +59,30 @@ export function checkLoginStatus() {
     });
 }
 
+export function loadNav() {
+    NavStore.cats = {};
+    NavStore.routes = [];
+    return Client.get("/nav/site-map")
+    .then(response => {
+        for(let cat in response) {
+            for(let route_name in response[cat]) {
+                const route = { model : route_name, state : response[cat][route_name].state };
+                if (response[cat][route_name].default) route.default = true;
+                route.route = route_name;
+                NavStore.routes.push(route);
+
+                if (!NavStore.cats[cat]) NavStore.cats[cat] = [];
+                NavStore.cats[cat].push(route);
+            }
+        }
+    })
+    .then(() => {
+        if (!Map.model) {
+            Map.apply(getDefault());
+        }
+        return true;
+    })
+    .catch(e => {
+        console.log(e);
+    });
+}
