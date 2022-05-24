@@ -30,7 +30,7 @@ const init = async() => {
 }
 
 onMounted(async () => {
-    await init();
+   // await init();
 });
 
 </script>
