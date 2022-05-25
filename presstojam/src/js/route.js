@@ -14,6 +14,7 @@ export const RouteStore = reactive({
     title : '',
     name : '',
     route : { "children" : [], parent : null, "perms" : []}, 
+    slug : []
 });
 
 function setComponent() {
@@ -41,6 +42,7 @@ export function init() {
 
 
 export function loadRoute() {
+    RouteStore.component = "";
     return client.get("/nav/route-points/" + Map.route + "/" + Map.model)
     .then(response => {   
         RouteStore.route.children = response.children;
@@ -51,10 +53,40 @@ export function loadRoute() {
         setDictionary(response.dictionary);
         setComponent();
     })
+    .then(response => {
+
+    })
     .catch(e => console.log(e));
 }
 
+export function loadSlugTrail() {
+    RouteStore.slug = [];
+    let params = {};
+    if (Map.state == "parent") params["--parentid"] = Map.key;
+    else if (Map.state == "primary") params["--id"] = Map.key;
+    else return;
 
+    return client.get("/slug/" + Map.route + "/" + Map.model, params)
+    .then(response => {
+        RouteStore.slug = response;
+        for(let i in RouteStore.slug) {
+            i=parseInt(i);
+            if (i > 0) {
+                RouteStore.slug[i].route = {
+                    model : RouteStore.slug[i].model,
+                    state : 'parent',
+                    key : RouteStore.slug[i].id
+                }
+            } else {
+                RouteStore.slug[i].route = {
+                    model : RouteStore.slug[i].model,
+                    state : 'get',
+                    key : 0
+                }
+            }
+        }
+    });
+}
 
 
 export function refresh() {
@@ -73,7 +105,6 @@ export function addToHistory() {
 }
 
 export function runRoute() {
-    if (Map.hasChange("model")) {
-        return loadRoute()
-    }
+    loadRoute();
+    loadSlugTrail();
 }
