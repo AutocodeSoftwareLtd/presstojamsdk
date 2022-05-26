@@ -93,7 +93,7 @@ class MapModel {
     init() {
         let settings = Settings.getSettings("mapper");
         if (!settings) settings = Settings.getSettings("map");
-
+        console.log("Applying map settings of", settings);
         this._base = settings.base;
         this.convertFromURL();
     }

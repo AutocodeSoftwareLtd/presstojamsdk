@@ -10,6 +10,7 @@ export default {
         if (!settings.url) {
             throw("No URL defined for client");
         }
+        console.log("Applying client settings of", settings);
         main_url = settings.url;
 
         if (settings.custom_headers) {
