@@ -7,7 +7,7 @@ import { loadNav } from "./js/user.js"
 //https://api.presstojam.com
 let settings = { 
     "client" : { "url" : "http://api.localhost", "debug" : true },
-    "mapper" : { base : ""},
+    "mapper" : { base : "/admin/"},
     "models" : {
         "projects" : {
             "get" : {

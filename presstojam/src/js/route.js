@@ -30,9 +30,8 @@ function setComponent() {
 
 export function init() {
     let role = "";
-    const settings = Settings.getSettings("mapper");
+    const settings = Settings.getSettings("user");
     if (settings) {
-        Map.base = "/" + settings.base.replace(/^\/+|\/+$/g, '');
         if (settings.role) {
             role = settings.role;
         }

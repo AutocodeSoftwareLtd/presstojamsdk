@@ -1,3 +1,5 @@
+import Settings from "./settings.js"
+
 class MapModel {
 
     constructor() {
@@ -48,6 +50,7 @@ class MapModel {
         return this.model + "-" + this.state + "-" + this.to;
     }
 
+
     hasChange(key) {
         return this._changes.hasOwnProperty(key);
     }
@@ -88,6 +91,11 @@ class MapModel {
     }
     
     init() {
+        let settings = Settings.getSettings("mapper");
+        if (!settings) settings = Settings.getSettings("map");
+
+        this._base = settings.base;
+
         let url_obj = new URL(window.location.href);
         let url = url_obj.pathname.replace(this.base, "");
         url = url.replace(/^\/+|\/+$/g, '');
