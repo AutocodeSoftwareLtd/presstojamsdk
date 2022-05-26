@@ -95,7 +95,10 @@ class MapModel {
         if (!settings) settings = Settings.getSettings("map");
 
         this._base = settings.base;
+        this.convertFromURL();
+    }
 
+    convertFromURL() {
         let url_obj = new URL(window.location.href);
         let url = url_obj.pathname.replace(this.base, "");
         url = url.replace(/^\/+|\/+$/g, '');
