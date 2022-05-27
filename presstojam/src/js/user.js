@@ -39,24 +39,41 @@ export function checkLoginStatus() {
                 checkLoginStatus();
             });
         }
-        if (!User.init) {
-            User.user = response.user;
-            User.role = response.role;
-            User.init = true;
-            /*if (user.user != "public") {
-                return Client.post("/route/" + user.user + "/" + user.user + "/login")
-                .then(response => {
-                    let meta = new MetaRow();
-                    meta.map(response.fields);
-                    register_data.applyMetaRow(meta);
-                });
-            }*/
-        }
     }).then(response => {
         if (User.user != "public") setTimeout(checkLoginStatus, user_check);
     }).catch(e => {
         User.login = true;
     });
+}
+
+export function initUser(role = "") {
+    return Client.get("/core/check-user")
+    .then(response => {
+        if (response.is_expired) {
+            return Client.put("/core/switch-tokens")
+            .then(() => {
+                return Client.get("/core/check-user");
+            });
+        } else {
+            return response;
+        }
+    })
+    .then(response => {
+        User.user = response.user;
+        User.role = response.role;
+        User.init = true;
+
+        if (User.role != role) {
+            let url = "/core/change-role";
+            if (role) url += "/" + role;
+            return Client.post(url)
+            .then(response => {
+                User.role = role;
+            });
+        }
+    }).then(() => {
+        checkLoginStatus();
+    }).catch(e => console.log(e));
 }
 
 export function loadNav() {

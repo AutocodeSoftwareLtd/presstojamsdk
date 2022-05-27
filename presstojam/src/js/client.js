@@ -1,16 +1,9 @@
-import Settings from "./settings.js"
-
 let custom_headers  = {};
 let main_url;
 
 export default {
 
-    initSettings() {
-        const settings = Settings.getSettings("client");
-        if (!settings.url) {
-            throw("No URL defined for client");
-        }
-        console.log("Applying client settings of", settings);
+    initSettings(settings) {
         main_url = settings.url;
 
         if (settings.custom_headers) {
@@ -21,10 +14,6 @@ export default {
     },
 
     run(url, headers) {
-
-        if (!main_url) {
-            this.initSettings();
-        }
         
         headers.mode = 'cors';
         headers.cache = 'no-cache';

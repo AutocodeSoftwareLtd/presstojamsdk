@@ -30,7 +30,7 @@
           <ptj-string v-else-if="field.type=='string'" :field="field"  />
         </td>
         <td class="ptj-actions" >
-            <ptj-button :route="{state:'primary', key:obj.cells['--id'].val}"><span class="material-icons">arrow_forward_ios</span></ptj-button>
+            <ptj-button :route="{state:'primary', key:obj.primary}"><span class="material-icons">arrow_forward_ios</span></ptj-button>
         </td>
       </tr>
     </tbody>

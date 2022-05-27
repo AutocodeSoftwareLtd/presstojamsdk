@@ -1,15 +1,23 @@
 <template>
  <div class="ptj-pagination">
-     <a v-for="index in data_template.max_pages" :key="index" @click="$emit('setPage', index - 1)" :class="getActiveClass(index)">{{ index }}</a>
+     <a v-for="index in RepoStore.max_pages" 
+     :key="index" 
+     @click="changePage(index - 1)" 
+     :class="getActiveClass(index)">{{ index }}</a>
  </div>
 </template>
 <script setup>
-
-const props = defineProps({
-    data_template : Object
-});
+import { addToHistory } from "./../js/route.js"
+import { loadRepo, RepoStore } from "./../js/repo.js"
+import { Map } from "./../js/map.js"
 
 function getActiveClass(index) {
-    return (index - 1 == props.data_template.page) ? "ptj-pagination-active" : "";
+    return (index - 1 == Map.params._page ?? 0) ? "ptj-pagination-active" : "";
+}
+
+function changePage(page) {
+    Map.params_page = page;
+    addToHistory();
+    loadRepo();
 }
 </script>

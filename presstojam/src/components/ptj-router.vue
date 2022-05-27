@@ -17,7 +17,7 @@
 import { computed, onMounted } from "vue"
 import PtjButton from "./ptj-button.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
-import { init, RouteStore, loadRoute, loadSlugTrail } from "./../js/route.js"
+import { RouteStore, loadRoute, loadSlugTrail } from "./../js/route.js"
 import PtjRepo from "./ptj-repo.vue"
 import PtjPrimary from "./ptj-primary.vue"
 import PtjAccountHandler from "./ptj-account-handler.vue"
@@ -34,11 +34,8 @@ const component = computed(() => {
 
 
 onMounted(() => {
-    init()
-    .then(() => {
-        loadSlugTrail();
-        return loadRoute();
-    });
+    loadSlugTrail();
+    return loadRoute();
 });
 
 </script>

@@ -26,7 +26,6 @@ import PtjFlag from "./ptj-flag.vue"
 import PtjId from "./ptj-id.vue"
 import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
-import Settings from "./../js/settings.js"
 import client from "./../js/client.js"
 import { DataRow } from "./../js/datarow.js"
 import { MetaRow } from "./../js/metarow.js"
@@ -35,7 +34,6 @@ import { loadRepo } from "./../js/repo.js"
 
 const emit = defineEmits(['close']);
 let globalerror = ref('');
-const settings = Settings.getModelSettings(Map.model, Map.state);
 
 const cdata = reactive(new DataRow());
 

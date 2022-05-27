@@ -1,7 +1,7 @@
 <template>
-    <Teleport to="#ptj-accountdetails">
+    <div class="ptj-account-details">
     <a v-if="User.user != 'public'" class="ptj-account-details-logout" @click="logout">Logout</a>
-    </Teleport>
+    </div>
     <div class="ptj-nav">
         <div v-for="(routes, title) in NavStore.cats" :key="title">
             <span v-if="routes.length > 1">{{ title }}</span>
@@ -17,12 +17,9 @@
 
 import PtjModal from "./ptj-modal.vue"
 import PtjString from "./ptj-string.vue"
-import { User, checkLoginStatus, logout, NavStore, loadNav } from "./../js/user.js"
+import { User, logout, NavStore } from "./../js/user.js"
 import PtjRouter from "./ptj-router.vue"
 import PtjButton from "./ptj-button.vue"
-import { Map } from "./../js/map.js"
-
-checkLoginStatus();
 
 /*
 <form @submit.prevent="submit" class="ptj-login">

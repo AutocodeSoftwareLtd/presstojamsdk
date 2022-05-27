@@ -8,6 +8,7 @@ export class DataRow {
         this._metarow = metarow;
         this._cells = reactive({});
         this._children = {};
+        this._ids = reactive({});
         
         
 
@@ -33,11 +34,11 @@ export class DataRow {
     }
 
     get primary() {
-        return this._cells["--id"];
+        return this._ids["--id"];
     }
 
     get parent() {
-        return this._cells["--parentid"];
+        return this._ids["--parentid"];
     }
 
 
@@ -78,6 +79,9 @@ export class DataRow {
 
     set row(row) {
         if (!row) return;
+
+        if (row["--id"]) this._ids["--id"] = row["--id"];
+        if (row["--parentid"]) this._ids["--parentid"] = row["--parentid"];
 
         for(let field in this._cells) {
             if (row.hasOwnProperty(field)) this._cells[field].val = row[field];
@@ -164,7 +168,7 @@ export class DataRow {
         return obj;
     }
 
-    convertToAPIParams() {
+    convertToParams() {
         let obj = {};
         for(let i in this._cells) {
             if (this._cells[i].type == "asset") continue;

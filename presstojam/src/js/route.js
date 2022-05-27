@@ -1,8 +1,9 @@
 import { reactive } from "vue"
 import client from "./client.js"
-import Settings from "./settings.js"
 import { Map } from "./map.js"
 import { setDictionary } from "./dictionary.js"
+
+let model_settings = {};
 
 window.onpopstate = function() {
     Map.convertFromURL();
@@ -28,15 +29,16 @@ function setComponent() {
 }
 
 
-export function init() {
-    let role = "";
-    const settings = Settings.getSettings("user");
-    if (settings) {
-        if (settings.role) {
-            role = settings.role;
-        }
+export function initSettings(settings) {
+    model_settings = settings;
+}
+
+
+export function getModelSettings() {
+    if (model_settings[Map.model] && model_settings[Map.model][Map.state]) {
+        return model_settings[Map.model][Map.state];
     }
-    return Promise.resolve();
+    return {};
 }
 
 

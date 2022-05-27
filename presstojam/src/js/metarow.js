@@ -8,14 +8,7 @@ export class MetaRow {
         this._cells = {};
         this._children = {};
         this._states = {};
-        this._limit = 0;
-        this._page = 0;
-        this._sort = {};
-        this._groups = [];
         this._active = 0;
-        this._max_pages = 0;
-        this._count = 0;
-        this._limited_fields = [];
         this._init = false;
         this._store = reactive({index : null});
       
@@ -45,15 +38,6 @@ export class MetaRow {
     }
 
 
-    convertToParams() {
-        let obj = {};
-        if (this._limit) obj._limit = this._limit;
-        if (this._page) obj._page = this._page;
-        if (this._limited_fields.length > 0) obj._fields = this._limited_fields;
-        if (Object.keys(this._sort).length > 0) obj._sort = this._sort;
-        return obj;
-    }
-
     resetSummary(arr) {
 
         for(let i in this._cells) {
@@ -72,9 +56,9 @@ export class MetaRow {
         if (this._cells[field].recursive) this._store.index = field;
     }
 
-    map(fields, custom_fields = []) {
-        if (custom_fields.length > 0) {
-            for(let field of custom_fields) {
+    map(fields, limited_fields = []) {
+        if (limited_fields.length > 0) {
+            for(let field of limited_fields) {
                 this.mapField(field, fields[field]);
             }
         } else {
@@ -93,32 +77,4 @@ export class MetaRow {
         return cells;
     }
 
-
-    applyMap(map) {
-        if (map.key == "first") this._limit = 1;
-        else if (map.key) this._key = map.key;
-
-        if (map.param_str) {
-            const obj = JSON.parse(map.param_str);
-            if (obj._limit) this._limit = obj._limit;
-            if (obj._fields) this._cells = obj._fields;
-            if (obj.hasOwnProperty("_page")) this._page = obj._page;
-            if (obj.hasOwnProperty("_sort")) this._sort = obj._sort;
-            for(const i in this._cells) {
-                if (obj.hasOwnProperty(i)) this._cells[i].setVal(obj[i]);
-            }
-        }
-    }
-
-
-    applySettings(settings) {
-        
-        if (settings.groups) {
-           this._groups = settings.groups;
-        }
-     
-        if (settings.limit) {
-            this._limit = settings.limit;
-        }
-    }
 }

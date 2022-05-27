@@ -31,7 +31,6 @@ import PtjId from "./ptj-id.vue"
 import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
 import { DataRow } from "./../js/datarow.js"
-import Settings from "./../js/settings.js"
 import { reactive, ref, computed, onMounted } from "vue"
 import PtjDelete from "./ptj-delete.vue"
 import PtjModal from "./ptj-modal.vue"
@@ -39,11 +38,9 @@ import PtjForm from "./ptj-create-form.vue"
 import PtjButton from "./ptj-button.vue"
 import PtjFormRow from "./ptj-form-row.vue"
 import { MetaRow } from "./../js/metarow.js"
-import {RouteStore } from "./../js/route.js"
+import {RouteStore, getModelSettings } from "./../js/route.js"
 import { Map } from "./../js/map.js"
   
-
-const settings = Settings.getModelSettings(Map.model, Map.state);
 
 
 const store = reactive({ data : new DataRow(), fstate : 0,  type : 'view', show_def : false, progress : { total : 0, progress : 0} });
@@ -65,16 +62,26 @@ function toggleDel() {
 }
 
 
-
-const load = async() => {
+function buildParams(meta_settings) {
     let params = {};
     if (Map.to) params.__to = Map.to;
-    if (Map.key) params["--id"] = Map.key;
-    if (settings.fields) params.__fields = settings.fields;
+    if (Map.key) {
+        if (Map.key == "first") params.__limit = 1;
+        else params["--id"] = Map.key;
+    }
+    if (meta_settings.fields) params.__fields = meta_settings.fields;
+    return params;
+}
+
+
+const load = async() => {
+    let meta_settings = getModelSettings();
+    let params = buildParams(meta_settings);
+   
     return client.get("/route/" + Map.route + "/" + Map.model + "/primary", params)
     .then(response => {
         const meta = new MetaRow();
-        meta.map(response.fields, settings.fields);
+        meta.map(response.fields, meta_settings.fields ?? []);
         store.data.applyMetaRow(meta);
     }).then(() => {
         return client.get("/data/" + Map.route + "/" + Map.model + "/primary", params);

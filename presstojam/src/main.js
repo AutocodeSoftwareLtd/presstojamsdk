@@ -1,21 +1,21 @@
 
 import { createApp } from "vue"
-import Settings from "./js/settings.js"
 import PTJUser from "./components/ptj-user.vue"
-import { Map } from "./js/map.js"
+import { PtjRun } from "./js/controller.js"
 import { loadNav } from "./js/user.js"
 //https://api.presstojam.com
 let settings = { 
     "client" : { "url" : "http://api.localhost", "debug" : true },
-    "mapper" : { base : "/admin/"},
+    "map" : { base : "/admin/"},
+    "user" : {
+        "teleport" : "#ptj-accountdetails"
+    },
     "models" : {
         "projects" : {
-            "get" : {
-                "fields" : ["name", "accounts/name"],
+            "parent" : {
+                "fields" : ["name", "accounts/firstname"],
                 "to" : "accounts",
-                "change_intention" : {
-                    "target" : 0
-                }
+                "limit" : 5
                
             }
         },
@@ -31,13 +31,13 @@ let settings = {
     }
 };
 
-Settings.regSettings(settings);
 
-settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
+//settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
 
-Map.init();
-loadNav()
+PtjRun(settings)
 .then(() => {
+    return loadNav();
+}).then(() => {
     const app = createApp(PTJUser);
     app.mount("#app");
 });
