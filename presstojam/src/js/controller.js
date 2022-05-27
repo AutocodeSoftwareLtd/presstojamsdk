@@ -5,7 +5,8 @@ import { initUser } from "./user.js"
 import { initSettings} from "./route.js"
 
 
-export function PtjRun(settings) {
+export function PtjRun(settings = {}) {
+    if (!settings) settings = {};
     if (!settings.client) {
         throw "Must set client settings";
     }
