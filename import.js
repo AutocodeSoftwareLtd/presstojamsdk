@@ -31,7 +31,7 @@ export function runRoute(mount, user_settings) {
 }
 
 
-export function getClient(user_settings) {
+export function getClient(settings) {
 
     if (!settings.client) {
         throw "Must set client settings";
