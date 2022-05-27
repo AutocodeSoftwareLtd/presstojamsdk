@@ -32,7 +32,16 @@ export function runRoute(mount, user_settings) {
 
 
 export function getClient(user_settings) {
-    Settings.regSettings(user_settings);
+
+    if (!settings.client) {
+        throw "Must set client settings";
+    }
+
+    if (!settings.client.url) {
+        throw("No URL defined for client");
+    }
+
+    Client.initSettings(settings.client);
     return Client;
 }
 
