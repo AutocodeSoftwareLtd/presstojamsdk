@@ -103,11 +103,11 @@ class MapModel {
 
         let parts = url.split("/");
 
-        if (parts.length < 2) {
-            throw "Map can't init as can't convert url of " + url_obj.pathname;
+        if (parts.length >= 2) {
+            this.route = parts[0];
+            url = parts[1];
         }
-        this.route = parts[0];
-        url = parts[1];
+        
 
         const _self = this;
         url_obj.searchParams.forEach(function(value, key) {
@@ -144,6 +144,7 @@ class MapModel {
             }
         }
         this.model = parts.join("-");
+        if (!this.route) this.route = this.model;
     }
 
     getAll() {
