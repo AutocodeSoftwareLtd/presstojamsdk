@@ -41,19 +41,19 @@ const props = defineProps({
 const store = reactive({ toggle_state : {}, branch : null });
 
 function toggle() {
-    const index = store.branch.primary.val;
+    const index = store.branch.primary;
     store.toggle_state[index] = (store.toggle_state[index]) ? false : true;
 }
 
 const children = computed(() => {
     if (!store.branch) return [];
-    const id = store.branch.primary.val;
+    const id = store.branch.primary;
     return (RepoStore.indexes[id]) ? RepoStore.indexes[id] : [];
 });
 
 const primary = computed(() => {
     if (!store.branch) return 0;
-    return store.branch.primary.val;
+    return store.branch.primary;
 });
 
 const summary = computed(() => {
