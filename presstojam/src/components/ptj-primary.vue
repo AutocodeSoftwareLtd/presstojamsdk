@@ -70,6 +70,7 @@ function buildParams(meta_settings) {
         else params["--id"] = Map.key;
     }
     if (meta_settings.fields) params.__fields = meta_settings.fields;
+    console.log("Params is ", params);
     return params;
 }
 

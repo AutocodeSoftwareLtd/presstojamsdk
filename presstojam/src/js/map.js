@@ -127,7 +127,7 @@ class MapModel {
             this.key = key;
             parts.pop();
         } else if (!isNaN(key)) {
-            this.key = key;
+            this.key = parseInt(key);
             parts.pop();
         }
             

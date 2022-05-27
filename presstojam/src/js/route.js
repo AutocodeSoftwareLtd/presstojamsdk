@@ -63,9 +63,12 @@ export function loadRoute() {
 export function loadSlugTrail() {
     RouteStore.slug = [];
     let params = {};
-    if (Map.state == "parent") params["--parentid"] = Map.key;
-    else if (Map.state == "primary") params["--id"] = Map.key;
-    else return;
+    if (Map.key) {
+        if (Map.state == "parent") params["--parentid"] = Map.key;
+        else if (Map.state == "primary") params["--id"] = Map.key;
+    } else {
+        return;
+    }
 
     return client.get("/slug/" + Map.route + "/" + Map.model, params)
     .then(response => {
