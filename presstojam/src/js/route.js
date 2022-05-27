@@ -30,7 +30,7 @@ function setComponent() {
 
 
 export function initSettings(settings) {
-    model_settings = settings;
+    if (settings) model_settings = settings;
 }
 
 
