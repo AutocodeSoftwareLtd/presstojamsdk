@@ -21,7 +21,7 @@ export default {
         }
 
         for(let i in custom_headers) {
-            headers.set(i, custom_headers);
+            headers.set(i, custom_headers[i]);
         }
 
         const options = {
