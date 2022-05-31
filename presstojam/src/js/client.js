@@ -13,17 +13,29 @@ export default {
         }
     },
 
-    run(url, headers) {
-        
-        headers.mode = 'cors';
-        headers.cache = 'no-cache';
-        headers.credentials = 'include';
-        headers['Content-Type'] = 'application/json';
-        headers.headers = custom_headers;
+    run(method, url, params, body) {
+        const headers = new Headers();
+        if (params) {
+            headers.set('Content-Type', 'application/json');
+            body = params;
+        }
+
+        for(let i in custom_headers) {
+            headers.set(i, custom_headers);
+        }
+
+        const options = {
+            method  : method,
+            mode : 'cors',
+            cache : 'no-cache',
+            credentials : 'include',
+            headers  : headers,
+            body : body
+        }
 
         const _self = this;
 
-        return fetch(main_url + url, headers)
+        return fetch(main_url + url, options)
         .then(response => {
             if (response.ok) {
                 return response.json();
@@ -45,9 +57,7 @@ export default {
             else url += "&";
             url += params.toString();
         }
-        let headers = {};
-        headers.method = 'GET';
-        return  this.run(url, headers);
+        return  this.run('GET', url);
     },
 
     getprimary(url, data) {
@@ -56,30 +66,18 @@ export default {
 
     post(url, data) {
         //call our fetch response and return
-        let headers = {};
-        headers.method = 'POST';
-        headers.body = JSON.stringify(data);
-        return this.run(url, headers);
+        return this.run('POST', url, JSON.stringify(data));
     },
 
     put(url, data) {
-        let headers = {};
-        headers.method = 'PUT';
-        headers.body = JSON.stringify(data);
-        return this.run(url, headers);
+        return this.run('PUT', url, JSON.stringify(data));
     },
 
     patch(url, data) {
-        let headers = {};
-        headers.method = 'PATCH';
-        headers.body = JSON.stringify(data);
-        return this.run(url, headers);
+        return this.run('PATCH', url, null, data);
     },
 
     delete(url, data) {
-        let headers = {};
-        headers.method = 'DELETE';
-        headers.body = JSON.stringify(data);
-        return this.run(url, headers);
+        return this.run('DELETE', url, JSON.stringify(data));
     }
 }
