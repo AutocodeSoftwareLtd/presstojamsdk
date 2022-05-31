@@ -7,7 +7,7 @@
           <ptj-number v-else-if="field.type=='number'" type="filter" :field="field" />
           <ptj-time v-else-if="field.type=='time'" type="filter" :field="field" />
           <ptj-string v-else-if="field.type=='string'" type="filter" :field="field" />
-          <a @click="field.reset()">x</a>
+          <a class="ptj-filter-form-reset" @click="field.reset()">x</a>
       </ptj-form-row>
       <input type="submit" value="Submit" class="ptj-filter-form-submit" @click="slotScope.toggleWidget">
   </form>

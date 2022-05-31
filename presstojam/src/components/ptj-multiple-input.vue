@@ -8,7 +8,7 @@
                 </div>
             </div>
             <input type="text" v-model="custom_val" />
-            <a @click="selectCustom">add</a>
+            <a @click="selectCustom" class="ptj-multiple-select-add">add</a>
         </div>
     </div>
 </template>
