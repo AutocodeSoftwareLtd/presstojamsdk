@@ -1,11 +1,21 @@
 <template>
   <div :class="[Map.model, Map.state]">
-    <button @click="toggleCreate()">Create</button>
-    <ptj-modal :active="show_create" @close="toggleCreate()">
-        <ptj-create-form @close="toggleCreate()" />
+    <ptj-modal>
+        <template #button>
+            Create
+        </template>
+        <template #default="createScope">
+            <ptj-create-form @close="createScope.toggleShow" />
+        </template>
     </ptj-modal>
-    <ptj-filter-form  v-if="settings.disable_filter != true"/>
-    <ptj-selectfields v-if="settings.disable_selectfields != true" />
+    <ptj-modal v-if="settings.disable_filter != true">
+        <template #button>
+            Search <span class="material-icons">search</span>
+        </template>
+        <template #default="filterScope">
+            <ptj-filter-form @close="filterScope.toggleShow" />
+        </template>
+    </ptj-modal>
     <ptj-tree v-if="RepoStore.component=='tree'" />
     <ptj-list v-else-if="RepoStore.component=='list'" />
     <ptj-table v-else-if="RepoStore.component=='table'" />
@@ -28,20 +38,24 @@ import { RepoStore, loadRepo } from "./../js/repo.js"
 import { getModelSettings } from "./../js/route.js" 
 
 
-const show_create = ref(false);
-
 let settings = getModelSettings();
 
-function toggleCreate() {
-    show_create.value = (show_create.value) ? false : true;
-}
+
 
 
 onMounted(async () => {
     await loadRepo();
+
+    function toggleCreate() {
+    this.$refs.create.toggleShow();
+}
 });
 
 </script>
+<script>
+
+</script>
+
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>

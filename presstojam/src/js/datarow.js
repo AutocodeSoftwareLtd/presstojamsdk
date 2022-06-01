@@ -168,7 +168,7 @@ export class DataRow {
         return obj;
     }
 
-    convertToParams() {
+    convertToAPIParams() {
         let obj = {};
         for(let i in this._cells) {
             if (this._cells[i].type == "asset") continue;

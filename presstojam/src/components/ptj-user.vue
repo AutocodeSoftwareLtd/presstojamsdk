@@ -9,9 +9,7 @@
         </div>
     </div>
     <ptj-router />
-    <ptj-modal :active="User.login">
-        
-    </ptj-modal>
+    <ptj-modal v-if="User.login" />
 </template>
 <script setup>
 

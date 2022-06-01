@@ -72,7 +72,7 @@ export const loadRepo = async() => {
         else if (!RepoStore.meta.cells) RepoStore.component = "";
         else RepoStore.component = (RepoStore.meta.store.index || RepoStore.meta.children.length > 0) ? "tree" : "table";
     }).then(() => {
-        params = { ...params, ...RepoStore.search.convertToParams()};
+        params = { ...params, ...RepoStore.search.convertToAPIParams()};
         if (meta_settings.limit > 0) {
             return client.get("/count/" + Map.route + "/" + Map.model, params)
             .then(response => {

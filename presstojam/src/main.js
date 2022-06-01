@@ -5,7 +5,7 @@ import { PtjRun } from "./js/controller.js"
 import { loadNav } from "./js/user.js"
 //https://api.presstojam.com
 let settings = { 
-    "client" : { "url" : "https://api.presstojam.com", "debug" : true, "custom_headers" : { "X-Domain" : "petinsure"} },
+    "client" : { "url" : "https://api.presstojam.com", "debug" : true },
     "map" : { base : "/admin/"},
     "user" : {
         "teleport" : "#ptj-accountdetails"

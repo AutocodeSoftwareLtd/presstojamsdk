@@ -1,7 +1,8 @@
 <template>
+  <div class="ptj-table-wrapper">
     <table class="ptj-table" :class="Map.model">
     <thead>
-        <tr class="ptj-table-header">
+        <tr class="ptj-table-header" ref="tableheader">
         <th v-for="cell in RepoStore.meta.cells" 
             v-show="cell.summary" 
             :key="cell.name" 
@@ -16,7 +17,16 @@
                 class="material-icons" 
                 >keyboard_arrow_down</span>
         </th>
-        <th class="ptj-actions">&nbsp;</th>
+        <th class="ptj-actions">
+            <ptj-modal v-if="settings.disable_selectfields != true" :location="false" :relative="tableheader">
+                <template #button>
+                    <span class="material-icons">add</span> 
+                </template>
+                <template #default>
+                    <ptj-selectfields ></ptj-selectfields> 
+                </template>
+            </ptj-modal>
+        </th>
         </tr>
     </thead>
     <tbody>
@@ -35,6 +45,7 @@
       </tr>
     </tbody>
     </table>
+  </div>
 </template>
 
 <script setup>
@@ -46,12 +57,16 @@ import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
 import PtjAsset from "./ptj-asset.vue"
 import PtjButton from "./ptj-button.vue"
-import { reactive } from "vue"
+import PtjSelectfields from "./ptj-selectfields.vue"
+import PtjModal from "./ptj-modal.vue"
+import { reactive, ref } from "vue"
 import { RepoStore } from "./../js/repo.js"
+import { getModelSettings } from "./../js/route.js"
 
 
-
+let settings = getModelSettings();
 let order = reactive( { name : '', dir : ''});
+const tableheader = ref(null);
 
 function orderBy(name) {
     if (RepoStore.meta.pages > 0) {
@@ -101,9 +116,13 @@ function orderBy(name) {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
-.table, .thead, .tbody, .tr {
+table, thead, tbody, tr {
     width : 100%;
 }
 
+
+.ptj-table-wrapper {
+    position : relative;
+}
 
 </style>

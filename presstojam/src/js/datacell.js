@@ -119,7 +119,7 @@ export class DataCell {
             });
 
             this.addAPIParam = obj => {
-                if (this._store.value!= null) {
+                if (this._store.value) {
                     obj[this.name] = this._store.value;
                 }
             }
@@ -206,7 +206,7 @@ export class DataCell {
             });
 
             this.addAPIParam = obj => {
-                if (this._store.value!= null) {
+                if (this._store.value) {
                     obj[this.name] = [];
                     for(let i in this._store.value) {
                         obj[this.name].push("%" + this._store.value[i] + "%");

@@ -4,7 +4,7 @@
   "main": "dist/ptj.min.js",
   "module": "dist/ptj.esm.js",
   "browser": "dist/ptj.min.js",
-  "version": "3.0.23",
+  "version": "3.0.24",
   "public": true,
   "repository": {
     "type": "git",
