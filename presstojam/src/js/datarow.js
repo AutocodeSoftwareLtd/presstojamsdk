@@ -93,6 +93,15 @@ export class DataRow {
     }
 
 
+    set filter(row) {
+        if (!row) return;
+
+        for(let field in this._cells) {
+            if (row.hasOwnProperty(field)) this._cells[field].filter = row[field];
+        }
+    }
+
+
     getSummary() {
         let str = [];
         for(let i in this._cells) {

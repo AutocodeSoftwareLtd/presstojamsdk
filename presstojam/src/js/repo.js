@@ -43,7 +43,7 @@ function buildParams(meta_settings) {
     if (meta_settings.limit) params.__limit = meta_settings.limit;
     if (meta_settings.fields) params.__fields = meta_settings.fields;
     if (meta_settings.group) params.group = meta_settings.group;
-    if (Map.params._page) params.__limit = (Map.params._page * params.__limit) + "," + params.__limit;
+    if (Map.params._page) params.__limit = ((Map.params._page - 1) * params.__limit) + "," + params.__limit;
     return params;
 }
 
@@ -65,7 +65,7 @@ export const loadRepo = async() => {
         RepoStore.meta.map(response.fields, meta_settings.fields);
         
         RepoStore.search.applyMetaRow(RepoStore.meta);
-        RepoStore.search.row = Map.params;
+        RepoStore.search.filter = Map.params;
         RepoStore.meta.init = true;
 
         if (meta_settings.component) RepoStore.component = meta_settings.component;

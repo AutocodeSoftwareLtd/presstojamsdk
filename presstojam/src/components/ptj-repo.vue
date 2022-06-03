@@ -46,9 +46,6 @@ let settings = getModelSettings();
 onMounted(async () => {
     await loadRepo();
 
-    function toggleCreate() {
-    this.$refs.create.toggleShow();
-}
 });
 
 </script>

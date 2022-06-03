@@ -59,10 +59,11 @@ export class DataCell {
         });
 
         this.addParam = obj => {
-            if (this._store.value!== null) {
+            if (this._store.value) {
                 obj[this.name] = this._store.value;
             }
         }
+
 
         if (this.type == "time") {
 
@@ -92,11 +93,28 @@ export class DataCell {
                 }
             });
 
+            this.filter = computed({
+                get: () => {
+                    return this._store.value;
+                },
+                set:(val) => {
+                    if (val) {
+                        this._store.value = val;
+                    }
+                }
+            });
+
             this.addAPIParam = obj => {
-                if (this._store.value!= null) {
-                    obj[this.name] = this._store.value;
+                let cobj = {};
+                if (this._store.value) {
+                    if (this._store.value.min) cobj.min = this._store.value.min;
+                    if (this._store.value.max) cobj.max = this._store.value.max;
+                    if (Object.keys(cobj).length > 0) {
+                        obj[this.name] = cobj;
+                    }
                 }
             }
+
 
         } else if (this.type == "flag") {
 
@@ -118,11 +136,21 @@ export class DataCell {
                 }
             });
 
+            this.filter = computed({
+                get: () => {
+                    return this._store.value;
+                },
+                set:(val) => {
+                    this._store.value = val;
+                }
+            });
+
             this.addAPIParam = obj => {
                 if (this._store.value) {
                     obj[this.name] = this._store.value;
                 }
             }
+
 
         } else if (this.type == "id") {
             this.change1 = computed({
@@ -136,6 +164,15 @@ export class DataCell {
                     if (this._store.change.includes(val)) return;
                     this._store.change.push(this._meta.clean(val));
                     this._store.error = this._meta.validate(val);
+                }
+            });
+
+            this.filter = computed({
+                get: () => {
+                    return this._store.value;
+                },
+                set:(val) => {
+                    this._store.value = val;
                 }
             });
 
@@ -157,6 +194,15 @@ export class DataCell {
                     if (!this._store.change) this._store.change = { min: null, max: null }
                     this._store.change.min = this._meta.clean(val);
                     this._store.error = this._meta.validate(val);
+                }
+            });
+
+            this.filter = computed({
+                get: () => {
+                    return this._store.value;
+                },
+                set:(val) => {
+                    this._store.value = val;
                 }
             });
 
@@ -205,12 +251,24 @@ export class DataCell {
                 }
             });
 
+
+            this.filter = computed({
+                get: () => {
+                    return this._store.value;
+                },
+                set:(val) => {
+                    if (Array.isArray(val)) this._store.value = val;
+                    else if (val) this._store.value = [val];
+                }
+            });
+
             this.addAPIParam = obj => {
                 if (this._store.value) {
-                    obj[this.name] = [];
+                    let arr = [];
                     for(let i in this._store.value) {
-                        obj[this.name].push("%" + this._store.value[i] + "%");
+                        if (this._store.value[i]) arr.push("%" + this._store.value[i] + "%");
                     }
+                    if (arr.length > 0) obj[this.name] = arr;
                 }
             }
 
@@ -257,6 +315,7 @@ export class DataCell {
 
     reset() {
         this._store.change = null;
+        this._store.value = null;
     }
 
     getOption(key) {

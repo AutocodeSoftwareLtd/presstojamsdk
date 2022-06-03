@@ -19,6 +19,7 @@ function run() {
     for(let i in props.route) {
         Map[i] = props.route[i];
     }
+    Map.params = {};
     redirect();
 }
 

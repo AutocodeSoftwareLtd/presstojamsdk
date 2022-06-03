@@ -20,7 +20,7 @@
         <input v-if="store.type =='edit'" type="submit" value="Submit" class="ptj-form-submit" @click="submit">
     </div>
     <div class="ptj-children">
-        <ptj-button v-for="action in RouteStore.route.children" :key="action" :route="{ model : action, state : 'parent'}">
+        <ptj-button v-for="action in RouteStore.route.children" :key="action" :route="{ model : action, state : 'parent', key : Map.key}">
             {{ action }}
         </ptj-button>
     </div>

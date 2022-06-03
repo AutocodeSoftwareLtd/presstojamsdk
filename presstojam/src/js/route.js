@@ -6,6 +6,7 @@ import { setDictionary } from "./dictionary.js"
 let model_settings = {};
 
 window.onpopstate = function() {
+    Map.reset();
     Map.convertFromURL();
     runRoute();
 }

@@ -7,11 +7,9 @@ class MapModel {
         this._key = 0;
         this._to = '';
         this._params = {};
-        this._settings = {};
         this._base = "/";
         this._default = false;
-        this._changes = {};
-
+    
         const keys = Object.keys(this);
 
         keys.forEach(property => {
@@ -22,7 +20,6 @@ class MapModel {
                 },
                 set: function(newValue) {
                     if (newValue != this[property]) {
-                        this._changes[property.substring(1)] = this[property];
                         this[property] = newValue;
                     }
                 }
@@ -48,11 +45,6 @@ class MapModel {
         return this.model + "-" + this.state + "-" + this.to;
     }
 
-
-    hasChange(key) {
-        return this._changes.hasOwnProperty(key);
-    }
-
     reset() {
         this.route = '';
         this.model = '';
@@ -60,12 +52,6 @@ class MapModel {
         this.key = 0;
         this.to = '';
         this.params = {};
-        this.settings = {};
-        this._changes = {};
-    }
-
-    resetChanges() {
-        this._changes = {};
     }
 
 
@@ -74,16 +60,17 @@ class MapModel {
         if (this.key) url += "-" + this.key;
         if (this.to) url += "-to-" + this.to;
 
-        let param_str = [];
+        let param_str = new URLSearchParams();
         for(const i in this.params) {
-            if (typeof this.params[i] == 'Array' || typeof this.params[i] == 'Object') {
+            /*if (Array.isArray(this.params[i]) || typeof this.params[i] == 'object') {
                 param_str.push(i + "=" + JSON.stringify(this.params[i]));
             } else {
                 param_str.push(i + "=" + this.params[i]);
-            }
+            }*/
+            param_str.append(i, this.params[i]);
         }
 
-        if (param_str.length > 0) url += "?" + param_str.join("&");
+        if (param_str.length > 0) url += "?" + param_str.toString();
 
         return url;
     }

@@ -12,11 +12,8 @@ let settings = {
     },
     "models" : {
         "projects" : {
-            "parent" : {
-                "fields" : ["name", "accounts/firstname"],
-                "to" : "accounts",
-                "limit" : 5
-               
+            "get" : {
+                "limit" : 2
             }
         },
         "fields" : {
