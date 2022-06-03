@@ -2,7 +2,7 @@
   <a @click="toggleShow" class="ptj-modal-button"><slot name="button"></slot></a>
   <teleport :disabled="disabled" :to="location">
   <div class="ptj-modal-backdrop" v-show="active" :class="getClass" :style="relstyle">
-    <div class="ptj-modal">
+    <div class="ptj-modal" :class="cls">
         <header>
             <button
           type="button"
@@ -28,7 +28,8 @@ const props = defineProps({
     },
     relative : {
         default : false
-    }
+    },
+    cls : String
 });
 
 let active = ref(false);

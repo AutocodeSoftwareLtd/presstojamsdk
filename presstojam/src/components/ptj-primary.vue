@@ -1,8 +1,12 @@
 <template>
     <button v-if="RouteStore.route.perms.includes('put')" @click="toggleState">{{ next_state }}</button>
-    <button v-if="RouteStore.route.perms.includes('delete')" @click="toggleDel">Delete</button>
-    <ptj-modal :active="show_del" @close="toggleDel()">
-        <ptj-delete :parentid="store.data.parent" @close="toggleDel()" />
+    <ptj-modal v-if="RouteStore.route.perms.includes('delete')" cls="ptj-del-modal">
+        <template #button>
+            delete
+        </template>
+        <template #default="delScope">
+            <ptj-delete :parentid="store.data.parent" @close="delScope.toggleShow" />
+        </template>
     </ptj-modal>
     <div class="ptj-primary" :class="Map.model">
         <ptj-form-row v-for="field in store.data.cells" :key="field.name" :field="field"> 
@@ -45,8 +49,6 @@ import { Map } from "./../js/map.js"
 
 const store = reactive({ data : new DataRow(), fstate : 0,  type : 'view', show_def : false, progress : { total : 0, progress : 0} });
 
-let show_del = ref(false);
-
 
 
 function toggleState() {
@@ -57,9 +59,6 @@ let next_state = computed(() => {
     return (store.type == "edit") ? "view" : "edit";
 });
 
-function toggleDel() {
-    show_del.value = (show_del.value) ? false : true;
-}
 
 
 function buildParams(meta_settings) {
