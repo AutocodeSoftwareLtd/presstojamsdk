@@ -1,6 +1,6 @@
 <template>
     <div class="ptj-account-details">
-    <a v-if="User.user != 'public'" class="ptj-account-details-logout" @click="logout">Logout</a>
+    <a v-if="User.user != 'public'" class="ptj-account-details-logout" @click="logout">{{ getDictionary('ptj-user-logout') }}</a>
     </div>
     <div class="ptj-nav">
         <div v-for="(routes, title) in NavStore.cats" :key="title">
@@ -18,6 +18,7 @@ import PtjString from "./ptj-string.vue"
 import { User, logout, NavStore } from "./../js/user.js"
 import PtjRouter from "./ptj-router.vue"
 import PtjButton from "./ptj-button.vue"
+import { getDictionary } from "./../js/dictionary.js"
 
 /*
 <form @submit.prevent="submit" class="ptj-login">

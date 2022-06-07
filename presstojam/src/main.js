@@ -8,12 +8,14 @@ let settings = {
     "client" : { "url" : "https://api.presstojam.com", "debug" : true },
     "map" : { base : "/admin/"},
     "user" : {
-        "teleport" : "#ptj-accountdetails"
+        "teleport" : "#ptj-accountdetails",
+        "role" : ""
     },
     "models" : {
         "projects" : {
             "get" : {
-                "limit" : 2
+                "limit" : 2,
+                "show" : "all"
             }
         },
         "fields" : {

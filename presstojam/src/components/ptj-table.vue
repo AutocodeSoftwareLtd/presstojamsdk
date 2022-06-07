@@ -9,7 +9,7 @@
             class="ptj-table-header-cell"
             :class="cell.name"
             @click="orderBy(cell.name);"
-        >{{ cell.label }}
+        >{{ getDictionary('label', { "model" : Map.model, "field" : cell.name, def : cell.label }) }}
             <span v-if="order.name == cell.name && order.dir == 'asc'" 
                 class="material-icons" 
                 >keyboard_arrow_up</span>
@@ -62,6 +62,8 @@ import PtjModal from "./ptj-modal.vue"
 import { reactive, ref } from "vue"
 import { RepoStore } from "./../js/repo.js"
 import { getModelSettings } from "./../js/route.js"
+import { getDictionary } from "./../js/dictionary.js"
+import { Map } from "./../js/map.js"
 
 
 let settings = getModelSettings();

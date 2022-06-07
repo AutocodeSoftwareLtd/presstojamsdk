@@ -1,7 +1,7 @@
 import { reactive } from "vue"
 import client from "./client.js"
 import { Map } from "./map.js"
-import { setDictionary } from "./dictionary.js"
+
 
 let model_settings = {};
 
@@ -45,6 +45,11 @@ export function getModelSettings() {
 
 export function loadRoute() {
     RouteStore.component = "";
+    RouteStore.route.children = [];
+    RouteStore.route.parent = null;
+    RouteStore.route.perms = [];
+    RouteStore.route.title = "";
+    RouteStore.route.name = "";
     return client.get("/nav/route-points/" + Map.route + "/" + Map.model)
     .then(response => {   
         RouteStore.route.children = response.children;
@@ -52,7 +57,6 @@ export function loadRoute() {
         RouteStore.route.parent = response.parent;
         RouteStore.title = response.title;
         RouteStore.name = response.name;
-        setDictionary(response.dictionary);
         setComponent();
     })
     .then(response => {

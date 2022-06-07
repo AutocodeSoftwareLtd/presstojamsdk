@@ -2,7 +2,7 @@
   <div :class="[Map.model, Map.state]">
     <ptj-modal>
         <template #button>
-            Create
+            {{ getDictionary('ptj-repo-post') }}
         </template>
         <template #default="createScope">
             <ptj-create-form @close="createScope.toggleShow" />
@@ -10,7 +10,7 @@
     </ptj-modal>
     <ptj-modal v-if="settings.disable_filter != true">
         <template #button>
-            Search <span class="material-icons">search</span>
+            {{ getDictionary('ptj-repo-search') }} <span class="material-icons">search</span>
         </template>
         <template #default="filterScope">
             <ptj-filter-form @close="filterScope.toggleShow" />
@@ -25,7 +25,7 @@
 
 <script setup>
 
-import { ref, onMounted } from "vue"
+import { ref, onMounted, onBeforeUnmount } from "vue"
 import PtjTree from "./ptj-tree.vue"
 import PtjTable from "./ptj-table.vue"
 import PtjList from "./ptj-list.vue"
@@ -34,8 +34,9 @@ import PtjSelectfields from "./ptj-selectfields.vue"
 import PtjPagination from "./ptj-pagination.vue"
 import PtjModal from "./ptj-modal.vue"
 import PtjCreateForm from "./ptj-create-form.vue"
-import { RepoStore, loadRepo } from "./../js/repo.js"
+import { RepoStore, loadRepo, resetRepo } from "./../js/repo.js"
 import { getModelSettings } from "./../js/route.js" 
+import { getDictionary } from "./../js/dictionary.js"
 
 
 let settings = getModelSettings();
@@ -46,6 +47,10 @@ let settings = getModelSettings();
 onMounted(async () => {
     await loadRepo();
 
+});
+
+onBeforeUnmount(() => {
+    resetRepo();
 });
 
 </script>

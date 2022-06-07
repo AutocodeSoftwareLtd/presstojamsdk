@@ -47,22 +47,29 @@ function buildParams(meta_settings) {
     return params;
 }
 
-
-export const loadRepo = async() => {
-    let meta_settings = getModelSettings();
-    
+export function resetRepo() {
     RepoStore.meta = new MetaRow();
     RepoStore.data = [];
     RepoStore.indexes = {};
     RepoStore.search = new DataRow();
     RepoStore.component = "";
     RepoStore.max_pages = 0;
+}
+
+
+export const loadRepo = async() => {
+    let meta_settings = getModelSettings();
+    
+    resetRepo();
     let params = buildParams(meta_settings);
     let url = "/" + Map.route + "/" + Map.model;
     if (Map.state == "parent") url += "/parent";
     return client.get("/route" +url, params)
     .then(response => {
         RepoStore.meta.map(response.fields, meta_settings.fields);
+        if (meta_settings.show == 'all') {
+            RepoStore.meta.showAll();
+        }
         
         RepoStore.search.applyMetaRow(RepoStore.meta);
         RepoStore.search.filter = Map.params;
@@ -77,7 +84,6 @@ export const loadRepo = async() => {
             return client.get("/count/" + Map.route + "/" + Map.model, params)
             .then(response => {
                 RepoStore.max_pages = Math.ceil(response.count / meta_settings.limit);
-                console.log("Max pages is", RepoStore.max_pages);
             })
             .then(() => {
                 return client.get("/data" + url, params);

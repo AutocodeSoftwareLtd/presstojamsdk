@@ -108,6 +108,13 @@ export class Field {
         });
     }
 
+    setContainsAsOptions() {
+        this._store.options = [];
+        for(let exp of this._contains) {
+            this._store.options.push({ key : exp, value : exp});
+        }
+    }
+
     clean(val) {
         if (this._type == "checkbox") return (val) ? 1 : 0;
         else return val;

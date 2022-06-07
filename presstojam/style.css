@@ -1,3 +1,336 @@
+#main {
+    margin : 0 auto;
+    width : 50vw;
+}
+#app{
+    position:relative;
+    margin-left:auto;
+    margin-right:auto;
+   /* width: 50vw; */
+    clear : both;
+}
+
+label{
+    float : left;
+    display : block;
+    color : #337ab7;
+    text-transform: capitalize;
+    width: 223px;
+}
+
+input, select, textarea{
+    border : 1px solid #337ab7;
+    color :#337ab7;
+    padding: 3px;
+}
+
+input[type="submit"]{
+    margin: 35px auto;
+    display: block;
+    border: 0 solid;
+    width: 200px;
+    color: #ffffff;
+    background-color: #e27a0d;
+    cursor: pointer;
+    padding: 6px;
+    font-size: 20px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0px 2px 5px 1px rgba(0,0,0,0.49); 
+    box-shadow: 0px 2px 5px 1px rgba(0,0,0,0.49);
+}
+
+h1{
+    text-transform: capitalize;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 35px;
+    margin: 0 0 12px 0;
+    padding: 0 0 10px 0;
+    border-bottom: 1px solid #337ab7;
+    color: #337ab7;
+}
+
+.gc-form, .gc-table, .tab{
+    background-color : #dee4ea;
+    padding: 20px;
+}
+
+.gc-tabs .gc-nav{
+    margin : 12px 0;
+    display: block;
+}
+
+.gc-nav a{
+    cursor: pointer;
+    font-weight: 700;
+    color: #fff;
+    background-color: #e27a0d;
+    padding: 6px;
+    border-radius: 5px;
+    margin: 0 6px 0 0;
+}
+
+.gc-form-row{
+    display :grid;
+    grid-template-columns: 40% auto ;
+    margin: 0 0 8px 0;
+}
+
+a.ptj-account-details-logout{
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 7px 0;
+    display: block;
+    width: fit-content;
+
+}
+.ptj-nav-link {
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    padding: 5px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 7px 5px 0 0;
+    display: block;
+    width: fit-content;
+    float: right;
+}
+
+
+
+.ptj-repo-header-title{ grid-area : title}
+.ptj-nav{ grid-area : create}
+.ptj-widget-window.undefined { grid-area : search}
+.ptj-pagination { grid-area : pagination}
+.ptj-widget-window.ptj-selectfields{ grid-area : fields }
+.ptj-table{ grid-area : table }
+
+
+.ptj-repo {
+    display: grid;
+    grid-template-areas:
+        'title title title title title title title title title create'
+        'search search search search search search search search search fields'
+        'table table table table table table table table table table'
+		'pagination pagination pagination pagination pagination pagination pagination pagination pagination pagination';
+}
+
+
+.ptj-filter-form h1{
+    display  :none;
+}
+
+.ptj-widget-window.ptj-selectfields > div:last-child{
+
+	position: absolute;
+    background-color: #efefef;
+    border: 1px solid #337ab7;
+    top: 88px;
+    padding: 16px;
+}
+
+
+.ptj-form-row {
+
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    column-gap: 5px;
+    row-gap: 5px;
+    padding: 2px;
+
+}
+
+.ptj-selectfields > div > div{
+    display : grid;
+    grid-template-columns : 1fr 1fr;
+    column-gap: 5px;
+    row-gap: 5px;
+    padding : 2px;
+}
+
+.material-icons{
+    cursor : pointer;
+    color : #337ab7
+}
+
+
+.ptj-filter-form {
+        background-color: #efefef;
+        padding: 14px 23px 1px 23px;
+        position: absolute;
+        top: 88px;
+        border: 1px solid #337ab7;
+        width: 554px;
+    }
+
+.ptj-table{
+    color : #337ab7;
+
+}
+
+
+.ptj-table td, .ptj-table th{
+    padding: 4px;
+    font-size: 15px;
+    min-width: 4vw;
+    border: 2px solid #337ab7;
+    vertical-align: bottom;
+
+}
+
+.ptj-table th{
+    background-color :#337ab7;
+    color : #fff;
+    font-weight : 700;
+}
+
+.ptj-table th .material-icons{
+    color : #fff;
+}
+
+
+.ptj-widget-window-title{
+    font-size: 16px;
+    margin: 0 3px 6px 3px;
+    padding: 0 0 0px 6px;
+    border-bottom: 0px solid #337ab7;
+    background-color : transparent;
+    }
+
+
+.ptj-table-row:hover{
+    color : #337ab7;
+    background-color :#efefef;
+    cursor : pointer;
+ 
+
+}
+
+.ptj-table-row > .ptj-table td{
+    border: 2px solid #efefef;
+}
+
+.ptj-filter-form-time-row{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+.ptj-filter-form-time-row label{
+    width: 223px;
+}
+
+.ptj-filter-form-time-row input[type='date']{
+    width : 94px;
+}
+
+.ptj-repo-header-title {
+    grid-area: title;
+    margin: 0 0 0 6px;
+    border-bottom: 0;
+}
+
+.ptj-selectfields h1{
+	text-align : right;
+}
+
+.material-icons{
+	color: #fff;
+    background: orange;
+    margin: 0px 0 0 0;
+    font-size: 20px;
+    line-height: 21px;
+}
+
+.ptj-pagination-active{
+	background-color : orange;
+	border : 1px solid orange;
+}
+
+.ptj-tabs-tab {
+    color :#337ab7;
+}
+
+.notification {
+    color :#ff0000;
+}
+
+
+
+.agent-bottom-notifications{
+    color : #000;
+    background-color :#d8e9e8;
+    width : 100%;
+    padding: 12px 0 0 0;
+}
+
+.agent-bottom-notifications table{
+    border-spacing: 0px;
+}
+
+.agent-bottom-notifications h1.ptj-repo-header-title{
+    margin-left : 0;
+}
+
+.agent-bottom-notifications h1.ptj-repo-header-title,
+.notifications h1,
+.agent-bottom-notifications .ptj-table td,
+.notifications p,
+.agent-bottom-notifications p,
+.notifications .ptj-tabs-tab,
+.notifications .ptj-single-item-value,
+.notifications .ptj-single-item-label,
+.notifications .ptj-form-input-label,
+.notifications .ptj-form-input,
+.notifications .ptj-checkbox-label{
+        color : #000;
+    }
+
+.notifications .ptj-form-input,
+.notifications .ptj-checkbox{
+    border : 1px solid #000;
+    color : #000;
+}
+
+
+
+.agent-bottom-notifications h1.ptj-repo-header-title{
+    border-bottom:  0px none;
+}
+
+
+
+.agent-bottom-notifications .ptj-table td{
+    background-color : #fff;
+}
+.agent-bottom-notifications .ptj-table th
+{
+    background-color : #000;
+   
+}
+
+
+
+.agent-bottom-notifications .ptj-table th,
+.agent-bottom-notifications .ptj-table td{
+    border-top :1px dotted #999;
+    border-bottom :1px dotted #999;
+    border-right :1px dotted #999;
+    border-left :1px dotted #999;
+}
+
+.agent-bottom-notifications .ptj-nav-link{
+    background-color: #e27a0d;
+}
+
 
 :root {
     --light-grey: #fafafa;

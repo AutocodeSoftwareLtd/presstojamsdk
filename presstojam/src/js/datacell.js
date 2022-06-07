@@ -313,6 +313,10 @@ export class DataCell {
         this._meta.setReferenceOptions(url, params);
     }
 
+    setContainsAsOptions() {
+        this._meta.setContainsAsOptions();
+    }
+
     reset() {
         this._store.change = null;
         this._store.value = null;
@@ -322,4 +326,6 @@ export class DataCell {
         if (this._meta.type == 'string') return key;
         else return this._meta.getOption(key);
     }
+
+    
 }

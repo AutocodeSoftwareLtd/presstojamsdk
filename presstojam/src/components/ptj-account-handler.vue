@@ -5,7 +5,7 @@
         <ptj-form-row v-for="field in store.login_data.cells" :key="field.meta.name" :field="field">
           <ptj-string type="edit" :field="field" />
         </ptj-form-row>
-        <input type="submit" value="Submit" class="ptj-form-submit">
+        <input type="submit" :value="getDictionary('ptj-account-handler-btn-login')" class="ptj-form-submit">
     </form>
     <form  @submit.prevent="submit" v-show="store.state=='create'" class="ptj-register">
         <div class="ptj-form-error" v-show="store.globalerror">{{ store.globalerror }}</div>
@@ -15,7 +15,7 @@
           <ptj-time v-else-if="field.meta.type=='time'" type="edit" :field="field" />
           <ptj-string v-else-if="field.meta.type=='string'" type="edit" :field="field" />
         </ptj-form-row>
-        <input type="submit" value="Submit" class="ptj-form-submit">
+        <input type="submit" :value="getDictionary('ptj-account-handler-btn-create')" class="ptj-form-submit">
     </form>
  </div>
 </template>
@@ -33,6 +33,7 @@ import { reactive } from 'vue'
 import { DataRow } from './../js/datarow.js';
 import { MetaRow } from "./../js/metarow.js"
 import client from "./../js/client.js"
+import { getDictionary } from "./../js/dictionary.js"
 
 const props = defineProps({
     actions : []

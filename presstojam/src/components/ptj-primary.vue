@@ -1,8 +1,8 @@
 <template>
-    <button v-if="RouteStore.route.perms.includes('put')" @click="toggleState">{{ next_state }}</button>
+    <a v-if="RouteStore.route.perms.includes('put')" @click="toggleState" class="ptj-edit-toggle">{{ next_state }}</a>
     <ptj-modal v-if="RouteStore.route.perms.includes('delete')" cls="ptj-del-modal">
         <template #button>
-            delete
+            {{ getDictionary('ptj-primary-delete') }}
         </template>
         <template #default="delScope">
             <ptj-delete :parentid="store.data.parent" @close="delScope.toggleShow" />
@@ -17,7 +17,7 @@
           <ptj-time v-else-if="field.meta.type=='time'" :type="store.type" :field="field" />
           <ptj-string v-else-if="field.meta.type=='string'" :type="store.type" :field="field"  />
         </ptj-form-row>
-        <input v-if="store.type =='edit'" type="submit" value="Submit" class="ptj-form-submit" @click="submit">
+        <input v-if="store.type =='edit'" type="submit" :value="getDictionary('ptj-primary-put-btn')" class="ptj-form-submit" @click="submit">
     </div>
     <div class="ptj-children">
         <ptj-button v-for="action in RouteStore.route.children" :key="action" :route="{ model : action, state : 'parent', key : Map.key}">
@@ -35,7 +35,7 @@ import PtjId from "./ptj-id.vue"
 import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
 import { DataRow } from "./../js/datarow.js"
-import { reactive, ref, computed, onMounted } from "vue"
+import { reactive, ref, computed, onMounted, onBeforeUnmount } from "vue"
 import PtjDelete from "./ptj-delete.vue"
 import PtjModal from "./ptj-modal.vue"
 import PtjForm from "./ptj-create-form.vue"
@@ -44,6 +44,7 @@ import PtjFormRow from "./ptj-form-row.vue"
 import { MetaRow } from "./../js/metarow.js"
 import {RouteStore, getModelSettings } from "./../js/route.js"
 import { Map } from "./../js/map.js"
+import { getDictionary } from "./../js/dictionary.js"
   
 
 
@@ -69,10 +70,17 @@ function buildParams(meta_settings) {
         else params["--id"] = Map.key;
     }
     if (meta_settings.fields) params.__fields = meta_settings.fields;
-    console.log("Params is ", params);
     return params;
 }
 
+
+function reset() {
+    store.data = new DataRow();
+    store.fstate = 0;
+    store.type = "view";
+    store.show_def = false;
+    store.progress = { total : 0, progress : 0};
+}
 
 const load = async() => {
     let meta_settings = getModelSettings();
@@ -154,6 +162,10 @@ function submit() {
 
 onMounted(async () => {
  await load();
+});
+
+onBeforeUnmount(() => {
+    reset();
 });
 
 </script>

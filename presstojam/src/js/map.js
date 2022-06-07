@@ -60,17 +60,22 @@ class MapModel {
         if (this.key) url += "-" + this.key;
         if (this.to) url += "-to-" + this.to;
 
-        let param_str = new URLSearchParams();
+        let params = new URLSearchParams();
         for(const i in this.params) {
-            /*if (Array.isArray(this.params[i]) || typeof this.params[i] == 'object') {
-                param_str.push(i + "=" + JSON.stringify(this.params[i]));
+            if (!this.params[i]) continue;
+            if (typeof this.params[i] == 'object') {
+                let pts = [];
+                for(let x in this.params[i]) {
+                    pts.push(this.params[i][x]);
+                }
+                params.append(i, pts.join(","));
             } else {
-                param_str.push(i + "=" + this.params[i]);
-            }*/
-            param_str.append(i, this.params[i]);
+                params.append(i, this.params[i]);
+            }
         }
 
-        if (param_str.length > 0) url += "?" + param_str.toString();
+        let param_str = params.toString();
+        if (param_str) url += "?" + param_str;
 
         return url;
     }
@@ -95,12 +100,12 @@ class MapModel {
             url = parts[1];
         }
         
-
         const _self = this;
         url_obj.searchParams.forEach(function(value, key) {
             _self.params[key] = (value.indexOf(",") > -1) ? value.split(",") : value;
         });
 
+       
         parts = url.split("-to-");
         if (parts.length > 1) {
             this.to = parts[1];

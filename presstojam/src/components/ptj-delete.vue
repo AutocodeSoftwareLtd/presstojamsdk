@@ -1,15 +1,16 @@
 <template>
-    <p>Are you sure you want to permanently delete this record? Type {{ check_str }} in the box below to continue.</p>
+    <p>{{ title }}</p>
     <input type="text" :placeholder="check_str" @keyup="checkStatus" v-model="delval">
-    <button :disabled="disabled" @click="del">Delete</button>
+    <button :disabled="disabled" @click="del">{{ btn }}</button>
 </template>
 
 <script setup>
 
 import client from "./../js/client.js"
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { redirect } from "./../js/route.js"
 import { Map } from "./../js/map.js"
+import { getDictionary } from "./../js/dictionary.js"
 
 const props = defineProps({
     check_str : {
@@ -25,6 +26,13 @@ const emits = defineEmits(['close']);
 
 let delval = ref("");
 let disabled = ref(true);
+let title = computed(() => {
+    return getDictionary("ptj-delete-title",  { val : props.check_str});
+});
+
+let btn = computed(() => {
+    return getDictionary("ptj-delete-btn");
+});
 
 function checkStatus() {
     disabled.value = (delval.value == props.check_str) ? false : true;

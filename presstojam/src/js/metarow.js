@@ -77,4 +77,10 @@ export class MetaRow {
         return cells;
     }
 
+    showAll() {
+        for(let i in this._cells) {
+            this._cells[i].summary = true;
+        }
+    }
+
 }

@@ -5,7 +5,7 @@
         :name="field.name"
          @blur="field.validateon = true"
         >
-        <option value="0" selected>Select Option</option>
+        <option value="0" selected>{{ getDictionary('ptj-id-default') }}</option>
         <option v-for="option in field.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
   <ptj-multiple-select v-else-if="ctype=='filter'" :field="field" />
@@ -16,6 +16,7 @@
 <script setup>
 import { computed } from "vue"
 import PtjMultipleSelect from "./ptj-multiple-select.vue"
+import { getDictionary } from "./../js/dictionary.js"
 
 const props = defineProps({
     field : Object,

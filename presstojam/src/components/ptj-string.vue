@@ -11,8 +11,8 @@
         v-bind="atts"
          @blur="field.validateon = true"
         >
-        <option value="" selected disabled>Select Option</option>
-        <option v-for="option in options" :key="option.key" :value="option.key">{{ option.value }}</option>
+        <option value="" selected disabled>{{ getDictionary('ptj-string-default') }}</option>
+        <option v-for="option in field.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
   <input v-else-if="ctype=='edit'" v-bind="atts"
         :name="field.name"
@@ -29,6 +29,7 @@
 import PtjButton from "./ptj-button.vue"
 import PtjMultipleInput from "./ptj-multiple-input.vue"
 import PtjMultipleSelect from "./ptj-multiple-select.vue"
+import { getDictionary } from "./../js/dictionary.js"
 
 import { computed } from "vue"
 const props = defineProps({
@@ -63,6 +64,7 @@ function isEnum(contains) {
 
 const tag = computed(() => {
 if (isEnum(props.field.contains)) {
+    props.field.setContainsAsOptions();
     return "select";
 } else if (props.field.encrypted) {
     return "input";
@@ -73,13 +75,6 @@ if (isEnum(props.field.contains)) {
 }
 });
 
-const options = computed(() => {
-let options = [];
-for(let exp of props.field.contains) {
-    options.push({ key : exp, value : exp});
-}
-return options;
-});
 
 const atts = computed(() => {
 let atts = {};

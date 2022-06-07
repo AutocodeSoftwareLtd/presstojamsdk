@@ -5,13 +5,14 @@
                 v-model="field.summary" 
                 :true-value="1" :false-value="0"
                 class="ptj-selectfields-checkbox"> 
-        <label class="ptj-selectfields-label">{{ getFieldDictionary(field.name, 'label', field.name) }}</label>
+        <label class="ptj-selectfields-label">{{ getDictionary('label', {'field' :  field.name, model : Map.model })  }}</label>
     </div>
 </template>
 
 <script setup>
 import { RepoStore } from "./../js/repo.js"
-import { getFieldDictionary } from "./../js/dictionary.js"
+import { getDictionary } from "./../js/dictionary.js"
+import { Map } from "./../js/map.js"
 
 
 

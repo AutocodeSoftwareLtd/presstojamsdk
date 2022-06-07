@@ -9,7 +9,7 @@
           <ptj-time v-else-if="field.type=='time'" type="edit"   :field="field" />
           <ptj-string v-else-if="field.type=='string'" type="edit"  :field="field" />
     </ptj-form-row>
-    <input type="submit" value="Submit" class="ptj-form-submit">
+    <input type="submit" :value="getDictionary('ptj-create-form-btn')" class="ptj-form-submit">
     <ptj-progress-bar v-show="fstate == 1" :total="progress.total" :progress="progress.progress" />
   </form>
   
@@ -31,6 +31,7 @@ import { DataRow } from "./../js/datarow.js"
 import { MetaRow } from "./../js/metarow.js"
 import { Map } from "./../js/map.js"
 import { loadRepo } from "./../js/repo.js"
+import { getDictionary } from "./../js/dictionary.js"
 
 const emit = defineEmits(['close']);
 let globalerror = ref('');

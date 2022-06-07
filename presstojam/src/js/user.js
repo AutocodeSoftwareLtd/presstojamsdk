@@ -2,6 +2,7 @@ import { reactive } from "vue"
 import { refresh } from "./route.js"
 import Client from "./client.js"
 import { Map } from "./map.js"
+import { setDictionary } from "./dictionary.js"
 
 export const User = reactive({init : false, login : false, user : "public" });
 
@@ -73,6 +74,12 @@ export function initUser(role = "") {
         }
     }).then(() => {
         checkLoginStatus();
+    }).then(() => {
+        return Client.get("/dictionary")
+        .then(response => {
+            setDictionary(response);
+            return true;
+        });
     }).catch(e => console.log(e));
 }
 
