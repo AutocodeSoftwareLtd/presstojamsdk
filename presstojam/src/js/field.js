@@ -105,7 +105,12 @@ export class Field {
     setContainsAsOptions() {
         let options = [];
         for(let exp of this._contains) {
-            options.push({ key : exp, value : exp});
+            if (exp.indexOf(":") > -1) {
+                const pts = exp.split(":");
+                options.push({ key : pts[0], value : pts[1]});
+            } else {
+                options.push({ key : exp, value : exp});
+            }
         }
         this._store.options = options;
     }
