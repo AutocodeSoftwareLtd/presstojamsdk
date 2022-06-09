@@ -63,7 +63,9 @@ export class DataCell {
 
         this.addParam = obj => {
             if (this._store.value) {
-                obj[this.name] = this._store.value;
+                const name = this.name;
+                console.log("Param is ", this.name.value);
+                obj[this.name.value] = this._store.value;
             }
         }
 
@@ -113,7 +115,7 @@ export class DataCell {
                     if (this._store.value.min) cobj.min = this._store.value.min;
                     if (this._store.value.max) cobj.max = this._store.value.max;
                     if (Object.keys(cobj).length > 0) {
-                        obj[this.name] = cobj;
+                        obj[this.name.value] = cobj;
                     }
                 }
             }
@@ -150,7 +152,7 @@ export class DataCell {
 
             this.addAPIParam = obj => {
                 if (this._store.value) {
-                    obj[this.name] = this._store.value;
+                    obj[this.name.value] = this._store.value;
                 }
             }
 
@@ -181,7 +183,7 @@ export class DataCell {
 
             this.addAPIParam = obj => {
                 if (this._store.value!= null) {
-                    obj[this.name] = this._store.value;
+                    obj[this.name.value] = this._store.value;
                 }
             }
 
@@ -224,7 +226,7 @@ export class DataCell {
 
             this.addAPIParam = obj => {
                 if (this._store.value!= null) {
-                    obj[this.name] = this._store.value;
+                    obj[this.name.value] = this._store.value;
                 }
             }
 
@@ -272,7 +274,7 @@ export class DataCell {
                     for(let i in this._store.value) {
                         if (this._store.value[i]) arr.push("%" + this._store.value[i] + "%");
                     }
-                    if (arr.length > 0) obj[this.name] = arr;
+                    if (arr.length > 0) obj[this.name.value] = arr;
                 }
             }
 

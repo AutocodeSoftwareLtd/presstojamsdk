@@ -18,7 +18,8 @@ const props = defineProps({
     type : {
         type : String,
         default : 'view'
-    }
+    },
+    id : Number
 });
 
 let ctype = computed(() => {
@@ -27,9 +28,8 @@ let ctype = computed(() => {
 
 function submit() {
     let params = {};
-    params["--id"] = Map.key;
+    params["--id"] = props.id;
     params[props.field.name] = (props.field.val == 1) ? 0 : 1;
-    if (Map.key) params["--id"] = Map.key;
     return client.put("/data/" + Map.route + "/" + Map.model, params)
     .then(() => {
         props.field.val = (props.field.val == 1) ? 0 : 1;

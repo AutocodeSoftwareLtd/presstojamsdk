@@ -34,8 +34,8 @@
         <td v-for="(field, name) in obj.cells" :key="name" v-show="field.summary" class="ptj-table-cell" :class="field.name">
           <ptj-asset v-if="field.type=='asset'" :field="field" />
           <ptj-number v-else-if="field.type=='number'" :field="field" />
-          <ptj-flag v-else-if="field.type=='flag'" :field="field" />
-          <ptj-id v-else-if="field.type=='id'" :field="field"  />
+          <ptj-flag v-else-if="field.type=='flag'" :field="field" :id="obj.primary" />
+          <ptj-id v-else-if="field.type=='id'" :field="field" />
           <ptj-time v-else-if="field.type=='time'" :field="field" />
           <ptj-string v-else-if="field.type=='string'" :field="field"  />
         </td>
