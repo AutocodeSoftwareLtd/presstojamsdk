@@ -6,25 +6,8 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import PTJDragDrop from "./../js/dragndrop.js"
 import PtjTreeNode from "./ptj-tree-node.vue"
 import { RepoStore } from "./../js/repo.js"
 
-
-onMounted(() => {
-    if (RepoStore.meta.sortable) {
-        PTJDragDrop.initDD({
-            handle : '.ptj-drag-handle',
-            drag_target : '.ptj-draggable',
-            drop_target : '.ptj-drop-target',
-            callback : saveSort
-        });
-    }
-});
-
-
-function saveSort() {
-
-}
 
 </script>

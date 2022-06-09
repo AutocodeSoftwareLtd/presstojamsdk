@@ -87,7 +87,7 @@ if (props.field.atts.readonly) {
 }
 
 if (props.field.atts.placeholder) {
-    atts.placeholder = field.meta.placeholder;
+    atts.placeholder = field.placeholder;
 }
 
 if (props.field.atts.html) {

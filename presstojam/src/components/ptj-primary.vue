@@ -10,12 +10,12 @@
     </ptj-modal>
     <div class="ptj-primary" :class="Map.model">
         <ptj-form-row v-for="field in store.data.cells" :key="field.name" :field="field"> 
-          <ptj-asset v-if="field.meta.type=='asset'" :type="store.type" :field="field" />
-          <ptj-number v-else-if="field.meta.type=='number'" :type="store.type" :field="field" />
-          <ptj-flag v-else-if="field.meta.type=='flag'" :type="store.type" :field="field" />
-          <ptj-id v-else-if="field.meta.type=='id'" :type="store.type" :field="field"  />
-          <ptj-time v-else-if="field.meta.type=='time'" :type="store.type" :field="field" />
-          <ptj-string v-else-if="field.meta.type=='string'" :type="store.type" :field="field"  />
+          <ptj-asset v-if="field.type=='asset'" :type="store.type" :field="field" />
+          <ptj-number v-else-if="field.type=='number'" :type="store.type" :field="field" />
+          <ptj-flag v-else-if="field.type=='flag'" :type="store.type" :field="field" />
+          <ptj-id v-else-if="field.type=='id'" :type="store.type" :field="field"  />
+          <ptj-time v-else-if="field.type=='time'" :type="store.type" :field="field" />
+          <ptj-string v-else-if="field.type=='string'" :type="store.type" :field="field"  />
         </ptj-form-row>
         <input v-if="store.type =='edit'" type="submit" :value="getDictionary('ptj-primary-put-btn')" class="ptj-form-submit" @click="submit">
     </div>
@@ -35,7 +35,7 @@ import PtjId from "./ptj-id.vue"
 import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
 import { DataRow } from "./../js/datarow.js"
-import { reactive, ref, computed, onMounted, onBeforeUnmount } from "vue"
+import { reactive, computed, onMounted, onBeforeUnmount } from "vue"
 import PtjDelete from "./ptj-delete.vue"
 import PtjModal from "./ptj-modal.vue"
 import PtjForm from "./ptj-create-form.vue"

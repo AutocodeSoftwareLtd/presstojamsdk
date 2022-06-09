@@ -52,7 +52,6 @@ export function resetRepo() {
     RepoStore.data = [];
     RepoStore.indexes = {};
     RepoStore.search = new DataRow();
-    RepoStore.component = "";
     RepoStore.max_pages = 0;
 }
 
@@ -70,7 +69,7 @@ export const loadRepo = async() => {
         if (meta_settings.show == 'all') {
             RepoStore.meta.showAll();
         }
-        
+
         RepoStore.search.applyMetaRow(RepoStore.meta);
         RepoStore.search.filter = Map.params;
         RepoStore.meta.init = true;

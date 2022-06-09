@@ -22,14 +22,8 @@ export class Field {
         this._contains = [];
         this._notcontains = [];
         this._recursive = false;
-        this._error = {
-            'OK' : 0,
-            'MIN_VALUE' : 1,
-            'MAX_VALUE' : 2,
-            'HAS' : 3,
-            'HAS_NOT' : 4
-        }
-
+        this._listeners = [];
+        
         const keys = Object.keys(this);
        
         keys.forEach(property => {
@@ -71,7 +65,7 @@ export class Field {
                 if (x == "summary") this.summary = (obj[x]) ? 1 : 0;
                 else if (x == "validation") continue;
                 else if (x == "type") this.type = obj[x].toLowerCase();
-                else this["_" + x] = obj[x];
+                else this[x] = obj[x];
             }
 
             this._min = obj.validation.min;
@@ -109,10 +103,11 @@ export class Field {
     }
 
     setContainsAsOptions() {
-        this._store.options = [];
+        let options = [];
         for(let exp of this._contains) {
-            this._store.options.push({ key : exp, value : exp});
+            options.push({ key : exp, value : exp});
         }
+        this._store.options = options;
     }
 
     clean(val) {
@@ -155,6 +150,13 @@ export class Field {
             if (val.match(has)) return Errors.OK;
         }
         return Errors.HAS;
+    }
+
+
+    trigger(val) {
+        for(let state of this._listeners) {
+            state(val);
+        }
     }
 
 

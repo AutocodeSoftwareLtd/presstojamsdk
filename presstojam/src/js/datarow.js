@@ -1,5 +1,6 @@
 import { DataCell } from "./datacell.js"
-import { reactive, computed, ref } from "vue"
+import { reactive, computed } from "vue"
+import { createStateTrigger } from "./states.js"
 
 
 export class DataRow {
@@ -66,6 +67,19 @@ export class DataRow {
 
         for(const i in metarow.children) {
             this._children[i] = metarow.children[i];
+        }
+
+        let groups = metarow.state_groups;
+
+
+        for(let i in groups) {
+            for(let x in groups[i]) {
+                const _self = this;
+                let state = createStateTrigger(i, groups[i][x], field => {
+                    _self._cells[i].resetMeta(field);
+                });
+                this._cells[x].listeners.push(state);
+            }
         }
     }
 

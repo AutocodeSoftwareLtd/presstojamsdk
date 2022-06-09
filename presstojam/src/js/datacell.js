@@ -1,28 +1,30 @@
 import { reactive, computed } from "vue"
 import { getError } from "./error.js"
+import { Map } from "./map.js"
 
 export class DataCell {
 
     constructor(meta) {
-        this._meta = meta;
-        this._store = reactive({ value: null, change: null, display: null, error: 0, is_validate_on: false });
+        this._store = reactive({ meta : meta, value: null, change: null, display: null, error: 0, is_validate_on: false });
 
 
-        const meta_keys = Object.getOwnPropertyNames(this._meta);
+        const meta_keys = Object.getOwnPropertyNames(meta);
         const keys = Object.keys(this);
 
+        const _self = this;
         meta_keys.forEach(property => {
             if (property[0] != "_" && !keys.includes(property)) {
-                Object.defineProperty(this, property, {
+                this[property] = computed({
                     get: function () {
-                        return this._meta[property];
+                        return _self.store.meta[property];
                     },
                     set: function (newValue) {
-                        this._meta[property] = newValue;
+                        _self.store.meta[property] = newValue;
                     }
                 })
             }
         });
+
 
 
         this.error = computed({
@@ -34,16 +36,16 @@ export class DataCell {
             return this._store.is_validate_on && this._store.error ? true : false;
         });
 
-        if (this._meta.default_val) this._store.value = this._meta.default_val;
-        else if (this._meta.type == "select") this._store.value = 0;
+        if (this._store.meta.default_val) this._store.value = this._store.meta.default_val;
+        else if (this._store.meta.type == "select") this._store.value = 0;
 
         this.val = computed({
             get: () => {
                 return this._store.value;
             },
             set: (val) => {
-                this._store.value = this._meta.clean(val);
-                this._store.error = this._meta.validate(val);
+                this._store.value = this._store.meta.clean(val);
+                this._store.error = this._store.meta.validate(val);
             }
         });
 
@@ -53,8 +55,9 @@ export class DataCell {
                 else return this._store.change;
             },
             set: (val) => {
-                this._store.change = this._meta.clean(val);
-                this._store.error = this._meta.validate(val);
+                this._store.change = this._store.meta.clean(val);
+                this._store.error = this._store.meta.validate(val);
+                this._store.meta.trigger(val);
             }
         });
 
@@ -65,7 +68,7 @@ export class DataCell {
         }
 
 
-        if (this.type == "time") {
+        if (meta.type == "time") {
 
             this.change1 = computed({
                 get: () => {
@@ -75,8 +78,8 @@ export class DataCell {
                 },
                 set: (val) => {
                     if (!this._store.change) this._store.change = { min: null, max: null };
-                    this._store.change.min = this._meta.clean(val);
-                    this._store.error = this._meta.validate(val);
+                    this._store.change.min = this._store.meta.clean(val);
+                    this._store.error = this._store.meta.validate(val);
                 }
             });
 
@@ -88,8 +91,8 @@ export class DataCell {
                 },
                 set: (val) => {
                     if (!this._store.change) this._store.change = { min: null, max: null };
-                    this._store.change.max = this._meta.clean(val);
-                    this._store.error = this._meta.validate(val);
+                    this._store.change.max = this._store.meta.clean(val);
+                    this._store.error = this._store.meta.validate(val);
                 }
             });
 
@@ -116,7 +119,7 @@ export class DataCell {
             }
 
 
-        } else if (this.type == "flag") {
+        } else if (meta.type == "flag") {
 
             this.change1 = computed({
                 get: () => {
@@ -131,8 +134,8 @@ export class DataCell {
                         return;
                     }
                     if (val == 2) val = 0;
-                    this._store.change = this._meta.clean(val);
-                    this._store.error = this._meta.validate(val);
+                    this._store.change = this._store.meta.clean(val);
+                    this._store.error = this._store.meta.validate(val);
                 }
             });
 
@@ -152,7 +155,7 @@ export class DataCell {
             }
 
 
-        } else if (this.type == "id") {
+        } else if (meta.type == "id") {
             this.change1 = computed({
                 get: () => {
                     if (this._store.change == null) this._store.change = this._store.value;
@@ -162,8 +165,8 @@ export class DataCell {
                 set: (val) => {
                     if (this._store.change == null) this._store.change = [];
                     if (this._store.change.includes(val)) return;
-                    this._store.change.push(this._meta.clean(val));
-                    this._store.error = this._meta.validate(val);
+                    this._store.change.push(this._store.meta.clean(val));
+                    this._store.error = this._store.meta.validate(val);
                 }
             });
 
@@ -183,7 +186,7 @@ export class DataCell {
             }
 
             
-        } else if (this.type == "number") {
+        } else if (meta.type == "number") {
             this.change1 = computed({
                 get: () => {
                     if (this._store.change == null) this._store.change = this._store.value;
@@ -192,8 +195,8 @@ export class DataCell {
                 },
                 set: (val) => {
                     if (!this._store.change) this._store.change = { min: null, max: null }
-                    this._store.change.min = this._meta.clean(val);
-                    this._store.error = this._meta.validate(val);
+                    this._store.change.min = this._store.meta.clean(val);
+                    this._store.error = this._store.meta.validate(val);
                 }
             });
 
@@ -214,8 +217,8 @@ export class DataCell {
                 },
                 set: (val) => {
                     if (!this._store.change) this._store.change = { min: null, max: null }
-                    this._store.change.max = this._meta.clean(val);
-                    this._store.error = this._meta.validate(val);
+                    this._store.change.max = this._store.meta.clean(val);
+                    this._store.error = this._store.meta.validate(val);
                 }
             });
 
@@ -225,7 +228,7 @@ export class DataCell {
                 }
             }
 
-        } else if (this.type == "string") {
+        } else if (meta.type == "string") {
 
             this.change = computed({
                 get: () => {
@@ -233,8 +236,9 @@ export class DataCell {
                     else return this._store.change;
                 },
                 set: (val) => {
-                    this._store.change = this._meta.clean(val);
-                    this._store.error = this._meta.validate(val);
+                    this._store.change = this._store.meta.clean(val);
+                    this._store.error = this._store.meta.validate(val);
+                    this._store.meta.trigger(val);
                 }
             });
 
@@ -246,8 +250,8 @@ export class DataCell {
                 },
                 set: (val) => {
                     if (this._store.change == null) this._store.change = [];
-                    this._store.change.push(this._meta.clean(val));
-                    this._store.error = this._meta.validate(val);
+                    this._store.change.push(this._store.meta.clean(val));
+                    this._store.error = this._store.meta.validate(val);
                 }
             });
 
@@ -281,7 +285,7 @@ export class DataCell {
 
 
     get meta() {
-        return this._meta;
+        return this._store.meta;
     }
 
     set validateon(on) {
@@ -301,20 +305,31 @@ export class DataCell {
         return this._store;
     }
 
+    resetMeta(meta) {
+        this._store.meta = meta;
+        if (meta.reference) {
+            let url = "/reference/" + Map.model + "/" + this.name;
+            let obj = {};
+            if (Map.state == "primary") obj["--id"] = Map.key;
+            else obj["--parentid"] = Map.key;
+            this._store.meta.setReferenceOptions(url, obj);
+        }
+    }
+
     toString() {
         return this._store.display;
     }
 
     isSummary() {
-        return this._meta.summary;
+        return this._store.meta.summary;
     }
 
     setReferenceOptions(url, params) {
-        this._meta.setReferenceOptions(url, params);
+        this._store.meta.setReferenceOptions(url, params);
     }
 
     setContainsAsOptions() {
-        this._meta.setContainsAsOptions();
+        this._store.meta.setContainsAsOptions();
     }
 
     reset() {
@@ -323,8 +338,8 @@ export class DataCell {
     }
 
     getOption(key) {
-        if (this._meta.type == 'string') return key;
-        else return this._meta.getOption(key);
+        if (this._store.meta.type == 'string') return key;
+        else return this._store.meta.getOption(key);
     }
 
     

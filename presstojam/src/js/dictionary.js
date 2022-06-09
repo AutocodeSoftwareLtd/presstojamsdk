@@ -14,6 +14,12 @@ export function getDictionary(id, vals) {
     
     if (vals.model) {
         if (vals.field) {
+            if (vals.field.indexOf("/") > -1) {
+                let exp = vals.field.split("/");
+                vals.model = exp[0];
+                vals.field = exp[1];
+            }
+            
             if (dictionary.models[vals.model] && dictionary.models[vals.model].fields[vals.field]) {
                 str= dictionary.models[vals.model].fields[vals.field][id];
             }

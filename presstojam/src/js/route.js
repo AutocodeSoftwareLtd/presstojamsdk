@@ -16,7 +16,8 @@ export const RouteStore = reactive({
     title : '',
     name : '',
     route : { "children" : [], parent : null, "perms" : []}, 
-    slug : []
+    slug : [],
+    sort : false
 });
 
 function setComponent() {
@@ -50,6 +51,7 @@ export function loadRoute() {
     RouteStore.route.perms = [];
     RouteStore.route.title = "";
     RouteStore.route.name = "";
+    RouteStore.sort = false;
     return client.get("/nav/route-points/" + Map.route + "/" + Map.model)
     .then(response => {   
         RouteStore.route.children = response.children;
@@ -57,6 +59,7 @@ export function loadRoute() {
         RouteStore.route.parent = response.parent;
         RouteStore.title = response.title;
         RouteStore.name = response.name;
+        if (response.sort) RouteStore.sort = true;
         setComponent();
     })
     .then(response => {

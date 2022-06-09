@@ -1,16 +1,15 @@
 import { Field } from "./field.js"
-import { Asset } from "./asset.js"
 import { reactive } from "vue"
 
 export class MetaRow {
 
     constructor() {
         this._cells = {};
-        this._children = {};
-        this._states = {};
+        this._children = [];
         this._active = 0;
         this._init = false;
         this._store = reactive({index : null});
+        this._state_groups = {};
       
         const keys = Object.keys(this);
 
@@ -51,9 +50,24 @@ export class MetaRow {
         }
     }
 
+    setStates(fields) {
+        for(let i in fields) {
+            let groups = {};
+            if (fields[i].states) {
+                for(const state of fields[i].states) {
+                    if (!groups[state.depends_on]) groups[state.depends_on] = [];
+                    groups[state.depends_on].push(state); 
+                }
+            }
+            this._state_groups[i] = groups;
+        }
+    }
+
     mapField(field, obj) {
         this._cells[field] = new Field(field, obj);
-        if (this._cells[field].recursive) this._store.index = field;
+        if (this._cells[field].recursive) {
+            this._store.index = field;
+        }
     }
 
     map(fields, limited_fields = []) {
@@ -66,6 +80,7 @@ export class MetaRow {
                 this.mapField(i, fields[i]);
             }
         }
+        this.setStates(fields);
     }
 
 

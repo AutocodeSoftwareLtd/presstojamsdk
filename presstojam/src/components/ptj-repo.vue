@@ -46,7 +46,6 @@ let settings = getModelSettings();
 
 onMounted(async () => {
     await loadRepo();
-
 });
 
 onBeforeUnmount(() => {
