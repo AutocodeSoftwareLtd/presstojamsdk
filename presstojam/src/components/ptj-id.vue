@@ -9,7 +9,6 @@
         <option v-for="option in field.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
   <ptj-multiple-select v-else-if="ctype=='filter'" :field="field" />
-  <span v-else-if="field.reference">{{ field.getOption(field.val) }}</span>
   <span v-else>{{ field.val }}</span>
 </template>
 

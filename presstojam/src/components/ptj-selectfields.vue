@@ -5,7 +5,7 @@
                 v-model="field.summary" 
                 :true-value="1" :false-value="0"
                 class="ptj-selectfields-checkbox"> 
-        <label class="ptj-selectfields-label">{{ getDictionary('label', {'field' :  field.name, model : Map.model })  }}</label>
+        <label class="ptj-selectfields-label">{{ getDictionary('label', {'field' :  field.name, model : field.model })  }}</label>
     </div>
 </template>
 

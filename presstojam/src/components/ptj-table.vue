@@ -9,7 +9,7 @@
             class="ptj-table-header-cell"
             :class="cell.name"
             @click="orderBy(cell.name);"
-        >{{ getDictionary('label', { "model" : Map.model, "field" : cell.name, def : cell.name }) }}
+        >{{ getDictionary('label', { "model" : cell.model, "field" : cell.name, def : cell.name }) }}
             <span v-if="order.name == cell.name && order.dir == 'asc'" 
                 class="material-icons" 
                 >keyboard_arrow_up</span>
@@ -32,7 +32,7 @@
     <tbody>
       <tr v-for="(obj, rindex) in RepoStore.data" :key="rindex" class="ptj-table-row">
         <td v-for="(field, name) in obj.cells" :key="name" v-show="field.summary" class="ptj-table-cell" :class="field.name">
-          <ptj-asset v-if="field.type=='asset'" :field="field" />
+          <ptj-asset v-if="field.type=='asset'" :field="field" :id="obj.primary" />
           <ptj-number v-else-if="field.type=='number'" :field="field" />
           <ptj-flag v-else-if="field.type=='flag'" :field="field" :id="obj.primary" />
           <ptj-id v-else-if="field.type=='id'" :field="field" />

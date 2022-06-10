@@ -6,6 +6,7 @@
           <ptj-string type="edit" :field="field" />
         </ptj-form-row>
         <input type="submit" :value="getDictionary('ptj-account-handler-btn-login')" class="ptj-form-submit">
+        <a v-if="RouteStore.route.perms.includes('post')" @click="toggleState()">Register</a>
     </form>
     <form  @submit.prevent="submit" v-show="store.state=='create'" class="ptj-register">
         <div class="ptj-form-error" v-show="store.globalerror">{{ store.globalerror }}</div>
@@ -34,6 +35,7 @@ import { DataRow } from './../js/datarow.js';
 import { MetaRow } from "./../js/metarow.js"
 import client from "./../js/client.js"
 import { getDictionary } from "./../js/dictionary.js"
+import {RouteStore } from "./../js/route.js"
 
 const props = defineProps({
     actions : []
@@ -47,6 +49,10 @@ const store = reactive({
     register_data : new DataRow(),
     globalerror : ''
 });
+
+function toggleState() {
+    store.state = (store.state == 'login') ? 'create' : 'login';
+}
 
 //load our modules
 

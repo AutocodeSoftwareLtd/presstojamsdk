@@ -77,6 +77,32 @@ export default {
         return this.run('PATCH', url, null, data);
     },
 
+    getAsset(url) {
+        const headers = new Headers();
+        for(let i in custom_headers) {
+            headers.set(i, custom_headers[i]);
+        }
+
+        const options = {
+            method  : 'GET',
+            mode : 'cors',
+            cache : 'no-cache',
+            credentials : 'include',
+            headers  : headers
+        }
+
+        const _self = this;
+
+        return fetch(main_url + url, options)
+        .then(response => {
+            if (response.ok) {
+                return response.blob();
+            } else {
+                throw response;
+            }
+        });
+    },
+
     delete(url, data) {
         return this.run('DELETE', url, JSON.stringify(data));
     }

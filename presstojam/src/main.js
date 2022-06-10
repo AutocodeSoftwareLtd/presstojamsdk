@@ -14,7 +14,6 @@ let settings = {
     "models" : {
         "projects" : {
             "get" : {
-                "limit" : 2,
                 "show" : "all"
             }
         },

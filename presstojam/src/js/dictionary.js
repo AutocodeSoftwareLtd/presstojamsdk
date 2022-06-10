@@ -16,8 +16,7 @@ export function getDictionary(id, vals) {
         if (vals.field) {
             if (vals.field.indexOf("/") > -1) {
                 let exp = vals.field.split("/");
-                vals.model = exp[0];
-                vals.field = exp[1];
+                vals.field = exp.pop();
             }
             
             if (dictionary.models[vals.model] && dictionary.models[vals.model].fields[vals.field]) {
