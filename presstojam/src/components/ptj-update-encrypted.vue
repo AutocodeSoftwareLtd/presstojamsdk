@@ -42,8 +42,7 @@ function submit() {
     })
     .catch(err => {
             //show error fields, mark fields as invalidated
-            console.log(err);
-        fstate = 0;
+        fstate.value = 0;
         if (typeof err == "string") {
             globalerror = err;
         } else {
