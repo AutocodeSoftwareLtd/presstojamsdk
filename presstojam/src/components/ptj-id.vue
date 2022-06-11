@@ -1,5 +1,5 @@
 <template>
-    <select v-if="ctype=='edit'" 
+    <select v-if="ctype=='edit' || type == 'post'" 
         v-model="field.change"
         v-bind="field.atts"
         :name="field.name"

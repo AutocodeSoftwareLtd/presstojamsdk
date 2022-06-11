@@ -1,5 +1,5 @@
 <template>
-  <input v-if="ctype=='edit'"
+  <input v-if="ctype=='edit' || ctype == 'post'"
         :name="field.name" 
         type="datetime-local" 
         v-model="field.change" 

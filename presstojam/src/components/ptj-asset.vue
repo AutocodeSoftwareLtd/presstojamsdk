@@ -1,5 +1,5 @@
 <template>
-   <input v-if="type=='edit'" class="ptj-form-asset" 
+   <input v-if="type=='edit'  || type == 'post'" class="ptj-form-asset" 
     ref="input" @change="setFile" 
     :name="field.meta.name" 
     type="file" >

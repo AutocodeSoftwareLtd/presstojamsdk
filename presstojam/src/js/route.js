@@ -102,8 +102,7 @@ export function loadSlugTrail() {
 
 
 export function refresh() {
-    if (location.href == Map.base) location.reload();
-    else location.href = Map.base;
+    location.href = Map.base;
 }
 
 export function redirect() {

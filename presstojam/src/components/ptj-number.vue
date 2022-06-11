@@ -1,5 +1,5 @@
 <template>
-  <input v-if="type=='edit'"
+  <input v-if="type=='edit' || type=='post'"
         class="ptj-form-number" 
         :name="field.name" 
         type="number" 

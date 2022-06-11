@@ -1,11 +1,17 @@
 import { reactive, computed } from "vue"
-import { getError } from "./error.js"
 import { Map } from "./map.js"
 
 export class DataCell {
 
     constructor(meta) {
-        this._store = reactive({ meta : meta, value: null, change: null, display: null, error: 0, is_validate_on: false });
+        this._store = reactive({ 
+            meta : meta, 
+            value: null, 
+            change: null, 
+            display: null, 
+            error: 0, 
+            is_validate_on: false 
+        });
 
 
         const meta_keys = Object.getOwnPropertyNames(meta);
@@ -28,11 +34,15 @@ export class DataCell {
 
 
         this.error = computed({
-            get: () => { getError(this._store.error); },
-            set: val => { this._store.error = val }
+            get: () => { this._store.error; },
+            set: val => { this._store.error = parseInt(val); this._store.is_validate_on = true; }
         });
 
         this.showError = computed(() => {
+            let res = this._store.is_validate_on && this._store.error ? true : false;
+            if (res) {
+                console.log("Error details", this._store);
+            }
             return this._store.is_validate_on && this._store.error ? true : false;
         });
 

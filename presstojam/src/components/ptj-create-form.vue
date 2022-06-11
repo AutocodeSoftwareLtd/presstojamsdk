@@ -2,12 +2,15 @@
  <form @submit.prevent="submit" v-show="fstate==0" class="ptj-form" :class="Map.model + ' ' + Map.state">
     <div class="ptj-form-error" v-show="globalerror">{{ globalerror }}</div>
     <ptj-form-row v-for="field in cdata.cells" :key="field.name" :field="field">
-          <ptj-asset v-if="field.type=='asset'" type="edit"  :field="field" />
-          <ptj-number v-else-if="field.type=='number'" type="edit"  :field="field"/>
-          <ptj-flag v-else-if="field.type=='flag'" type="edit"  :field="field" />
-          <ptj-id v-else-if="field.type=='id'" type="edit"  :field="field" />
-          <ptj-time v-else-if="field.type=='time'" type="edit"   :field="field" />
-          <ptj-string v-else-if="field.type=='string'" type="edit"  :field="field" />
+          <ptj-asset v-if="field.type=='asset'" type="post"  :field="field" />
+          <ptj-number v-else-if="field.type=='number'" type="post"  :field="field"/>
+          <ptj-flag v-else-if="field.type=='flag'" type="post"  :field="field" />
+          <ptj-id v-else-if="field.type=='id'" type="post"  :field="field" />
+          <ptj-time v-else-if="field.type=='time'" type="post"   :field="field" />
+          <ptj-string v-else-if="field.type=='string'" type="post"  :field="field" />
+          <ptj-form-row :field="field" v-if="field.encrypted">
+            <ptj-confirm :field="field" />
+          </ptj-form-row>
     </ptj-form-row>
     <input type="submit" :value="getDictionary('ptj-create-form-btn')" class="ptj-form-submit">
     <ptj-progress-bar v-show="fstate == 1" :total="progress.total" :progress="progress.progress" />
@@ -26,6 +29,7 @@ import PtjFlag from "./ptj-flag.vue"
 import PtjId from "./ptj-id.vue"
 import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
+import PtjConfirm from "./ptj-form-confirm.vue"
 import client from "./../js/client.js"
 import { DataRow } from "./../js/datarow.js"
 import { MetaRow } from "./../js/metarow.js"
@@ -98,13 +102,16 @@ function submit() {
     })
     .catch(err => {
             //show error fields, mark fields as invalidated
-            console.log(err);
         fstate = 0;
-        if (typeof err == "string") {
-            globalerror = err;
-        } else {
-            cdata.setErrors(err);
-        }
+        return err.json()
+        .then(response => {
+            const msg = response.exception[0];
+            if (msg.type == "PressToJamCore\\Exceptions\\ValidationException") {
+                cdata.setErrors(JSON.parse(msg.message));
+            }
+            console.log("Err response", response);
+        });
+        
     });
 }
 

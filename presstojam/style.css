@@ -157,9 +157,10 @@ a.ptj-account-details-logout{
     padding : 2px;
 }
 
-.material-icons{
+span.material-icons{
     cursor : pointer;
-    color : #337ab7
+    color : #fff;
+    background-color: var(--orange);
 }
 
 
@@ -367,8 +368,8 @@ a {
 
 #app > div{
     margin: 12px;
-    -webkit-box-shadow: 0px 1px 4px 1px var(--shadow); 
-    box-shadow: 0px 1px 4px 1px var(--shadow);
+  /*  -webkit-box-shadow: 0px 1px 4px 1px var(--shadow); 
+    box-shadow: 0px 1px 4px 1px var(--shadow);*/
 }
 
 .ptj-nav {
@@ -453,10 +454,14 @@ a {
       margin-left : 25px;
   }
 
+  .ptj-modal {
+    width : 66vw;
+  }
+
   form{
-      width : 66vw;
+      
       margin : 0 auto;
-      border: 1px solid var(--bg-grey);
+      /*border: 1px solid var(--bg-grey);*/
   }
 
   .ptj-form-row{
@@ -464,14 +469,14 @@ a {
   }
 
   .ptj-form-row label{
-      width : 22vw;
+      min-width : 22vw;
       text-transform:capitalize;
   }
 
   .ptj-form-row input,
   .ptj-form-row select,
   .ptj-form-row textarea{
-      width : 40vw;
+      width : 100%;
   }
 
 
@@ -519,4 +524,147 @@ div.ptj-widget-window-header{
     width : auto;
     background-color : var(--light-grey);
     margin: 1px;
+}
+
+.ptj-nav div{
+    float  :left;
+}
+
+.ptj-nav::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.ptj-children .ptj-button,
+.ptj-slug-trail  .ptj-button
+{
+    color: #fff;
+    background-color: #337ab7;
+    text-decoration: none;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 3px;
+    border-radius: 3px;
+    margin-left: 5px;
+    margin-bottom: 5px;
+}
+
+.ptj-children,
+.ptj-slug-trail{
+    padding: 12px 0px;
+}
+
+a.ptj-edit-toggle,
+a.ptj-modal-button,
+button{
+    background-color: var(--orange);
+    color: #fff;
+    border: 0px none;
+    font-weight: 700;
+    text-transform: capitalize;
+    margin: 0 3px 0 0;
+    cursor: pointer;
+    padding: 1px 5px 1px 5px;
+    text-align: center;
+    display: inline-block;
+    width: fit-content;
+    line-height: 30px;
+
+}
+
+.btn-close{
+    padding: 0 5px;
+    line-height: 19px;
+    float: right;
+    margin: 0;
+}
+
+.ptj-modal{
+    background-color: var(--light-grey);
+    padding: 14px 23px 32px 23px;
+    width: 100%;
+    max-width: 980px;
+    margin: 10vh auto;
+    border: 1px solid #337ab7;
+}
+
+.ptj-modal label{
+    text-align: left;
+}
+
+.ptj-form-row.password{
+    grid-template-columns: 1fr 2fr 50fr 45fr;
+}
+
+
+.ptj-form-row.password input{
+    width: 100%;
+}
+
+.ptj-del-modal{
+    text-align: center;
+}
+
+.ptj-del-modal button{
+    margin: 0 0 0 5px;
+    line-height : 21px;
+}
+
+button[disabled]{
+    background-color: #999;
+    cursor: default;
+}
+
+
+.ptj-modal-backdrop-full{
+    width: 99vw;
+    background: rgb(204, 204, 204, 0.7);
+    position: fixed !important;
+}
+
+.ptj-modal-backdrop{
+
+}
+
+.ptj-modal-backdrop .ptj-modal{
+    background-color: #337ab7;
+    margin-top: -2px;
+    padding-bottom: 20px;
+    /* position: absolute; */
+    top: 42px;
+    right: 13px;
+    width: 275px;
+    margin-right: 2px;
+}
+.ptj-modal-backdrop .ptj-modal label{
+    color: #fff;
+}
+
+
+.ptj-modal header::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.ptj-modal-backdrop-full .ptj-modal{
+    margin: 12vh auto;
+    width: 50vw;
+
+}
+
+.ptj-modal-backdrop-full .ptj-form.get{
+    border : 0px none;
+    width : 100%;
+}
+
+.ptj-modal-backdrop-full .ptj-form.get input,
+.ptj-modal-backdrop-full .ptj-form.get select
+{
+    width : 25vw;
+}
+
+.ptj-modal-backdrop-full .ptj-form.get input[type='submit']{
+    width : 5vw;
 }

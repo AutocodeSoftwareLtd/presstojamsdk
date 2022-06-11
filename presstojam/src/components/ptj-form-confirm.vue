@@ -1,37 +1,30 @@
 <template>
-    <input :class="Class.getClass('ptj-form-confirm')" 
-    :name="name" 
-    :type="field.meta.atts.type" v-model="cval" @blur="field.setValidateOn()">
+    <input type="text"
+        :name="field.name"
+        v-model="val" 
+        @blur="store.validateon = true" />
 </template>
+<script setup>
+import { reactive, computed } from 'vue'
 
-<script>
-import { defineComponent } from 'vue'
-import Class from "./../js/classinjection.js"
-
-
-export default defineComponent({
-  name: 'ptj-confirm',
-  props : {
-    field : Object
-  },
-  data() {
-      return {
-          cval : ""
-      }
-  },
-  setup() {
-       return { Class };
-  },
-  computed : {
-    name() {
-        return this.field.name + "_confirm";
-    },
-    error() {
-        if (this.isvalidateon) {
-            if (this.field.val == this.cval) return "";
-            else return "Doesn't match " + this.field.name; 
-        }      
+const props = defineProps({
+    field : {
+        type : Object,
+        required : true
     }
-  }
+});
+
+const store = reactive({ validateon : false, val : ''});
+
+const val = computed({
+    get() {
+        return store.val;
+    },
+    set(val) {
+        if (val != field.val) {
+
+        }
+        store.val = val;
+    }
 });
 </script>

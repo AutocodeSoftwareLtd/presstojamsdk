@@ -21,6 +21,7 @@ import { RouteStore, loadRoute, loadSlugTrail } from "./../js/route.js"
 import PtjRepo from "./ptj-repo.vue"
 import PtjPrimary from "./ptj-primary.vue"
 import PtjAccountHandler from "./ptj-account-handler.vue"
+import { Map } from "./../js/map.js"
 
 
 const component = computed(() => {

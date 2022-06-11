@@ -3,7 +3,7 @@
     <form @submit.prevent="submit" v-show="store.state=='login'" class="ptj-login">
         <div class="ptj-form-error" v-show="store.globalerror">{{ store.globalerror }}</div>
         <ptj-form-row v-for="field in store.login_data.cells" :key="field.meta.name" :field="field">
-          <ptj-string type="edit" :field="field" />
+          <ptj-string type="post" :field="field" />
         </ptj-form-row>
         <input type="submit" :value="getDictionary('ptj-account-handler-btn-login')" class="ptj-form-submit">
         <a v-if="RouteStore.route.perms.includes('post')" @click="toggleState()">Register</a>
@@ -11,12 +11,16 @@
     <form  @submit.prevent="submit" v-show="store.state=='create'" class="ptj-register">
         <div class="ptj-form-error" v-show="store.globalerror">{{ store.globalerror }}</div>
         <ptj-form-row v-for="field in store.register_data.cells" :key="field.meta.name" :field="field">
-          <ptj-number v-if="field.meta.type=='number'" type="edit" :field="field"/>
-          <ptj-flag v-else-if="field.meta.type=='flag'" type="edit" :field="field" />
-          <ptj-time v-else-if="field.meta.type=='time'" type="edit" :field="field" />
-          <ptj-string v-else-if="field.meta.type=='string'" type="edit" :field="field" />
+          <ptj-number v-if="field.meta.type=='number'" type="post" :field="field"/>
+          <ptj-flag v-else-if="field.meta.type=='flag'" type="post" :field="field" />
+          <ptj-time v-else-if="field.meta.type=='time'" type="post" :field="field" />
+          <ptj-string v-else-if="field.meta.type=='string'" type="post" :field="field" />
+          <ptj-form-row :field="field" v-if="field.encrypted">
+            <ptj-confirm :field="field" />
+          </ptj-form-row>
         </ptj-form-row>
         <input type="submit" :value="getDictionary('ptj-account-handler-btn-create')" class="ptj-form-submit">
+        <a v-if="RouteStore.route.perms.includes('login')" @click="toggleState()">Login</a>
     </form>
  </div>
 </template>
@@ -36,6 +40,7 @@ import { MetaRow } from "./../js/metarow.js"
 import client from "./../js/client.js"
 import { getDictionary } from "./../js/dictionary.js"
 import {RouteStore } from "./../js/route.js"
+import PtjConfirm from "./ptj-form-confirm.vue"
 
 const props = defineProps({
     actions : []

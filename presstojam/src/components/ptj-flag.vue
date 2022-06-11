@@ -1,5 +1,5 @@
 <template>
-    <input class="ptj-checkbox" type="checkbox" :true-value="1" :false-value="0" :name="field.name" v-model="field.change" v-if="ctype=='edit'">
+    <input class="ptj-checkbox" type="checkbox" :true-value="1" :false-value="0" :name="field.name" v-model="field.change" v-if="ctype=='edit' || type == 'post'">
     <select v-else-if="ctype=='filter'" :name="field.name" v-model="field.change1" class="ptj-filter-form-checkbox">
         <option :value='0'>{{ "All" }}</option>
         <option :value='1'>{{ "Checked" }}</option>

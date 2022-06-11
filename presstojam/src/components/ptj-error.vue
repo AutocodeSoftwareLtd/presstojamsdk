@@ -4,6 +4,7 @@
 
 <script setup>
 import { getDictionary } from "./../js/dictionary.js"
+import { getError } from "./../js/error.js"
 defineProps({
     'error' : Number,
     'type' : String

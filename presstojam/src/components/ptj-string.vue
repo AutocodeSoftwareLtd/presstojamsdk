@@ -1,11 +1,19 @@
 <template>
-   <textarea v-if="tag=='textarea' && ctype=='edit'"
+   <ptj-modal v-if="field.encrypted && type=='edit'">
+        <template #button>
+            {{ getDictionary('ptj-repo-post') }}
+        </template>
+        <template #default="encryptedScope">
+            <ptj-update-encrypted @close="encryptedScope.toggleShow" :field="field"/>
+        </template>
+    </ptj-modal>
+   <textarea v-if="tag=='textarea' && (ctype=='edit' || ctype =='post')"
         v-bind="atts" 
         :name="field.name" 
         v-model="field.change"></textarea>
    <div v-else-if="tag=='textarea' && ctype=='view'">{{ field.val }}</div>
    <ptj-multiple-select v-else-if="tag=='select' && ctype == 'filter'" :field="field" />
-  <select v-else-if="tag=='select' && ctype=='edit'" 
+  <select v-else-if="tag=='select' && (ctype=='edit' || ctype =='post')" 
         v-model="field.change"
         :name="field.name"
         v-bind="atts"
@@ -14,7 +22,7 @@
         <option value="" selected disabled>{{ getDictionary('ptj-string-default') }}</option>
         <option v-for="option in field.options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
-  <input v-else-if="ctype=='edit'" v-bind="atts"
+  <input v-else-if="ctype=='edit' || ctype=='post'" v-bind="atts"
         :name="field.name"
         v-model="field.change" 
         @blur="field.validateon = true" />
@@ -30,6 +38,8 @@ import PtjButton from "./ptj-button.vue"
 import PtjMultipleInput from "./ptj-multiple-input.vue"
 import PtjMultipleSelect from "./ptj-multiple-select.vue"
 import { getDictionary } from "./../js/dictionary.js"
+import PtjModal from "./ptj-modal.vue"
+import PtjUpdateEncrypted from "./ptj-update-encrypted.vue"
 
 import { computed } from "vue"
 const props = defineProps({
