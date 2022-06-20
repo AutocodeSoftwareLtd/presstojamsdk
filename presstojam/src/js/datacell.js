@@ -72,11 +72,7 @@ export class DataCell {
         });
 
         this.addParam = obj => {
-            if (this._store.value) {
-                const name = this.name;
-                console.log("Param is ", this.name.value);
-                obj[this.name.value] = this._store.value;
-            }
+            this._store.meta.addParam(obj, this._store.value)
         }
 
 
@@ -119,16 +115,7 @@ export class DataCell {
                 }
             });
 
-            this.addAPIParam = obj => {
-                let cobj = {};
-                if (this._store.value) {
-                    if (this._store.value.min) cobj.min = this._store.value.min;
-                    if (this._store.value.max) cobj.max = this._store.value.max;
-                    if (Object.keys(cobj).length > 0) {
-                        obj[this.name.value] = cobj;
-                    }
-                }
-            }
+            
 
 
         } else if (meta.type == "flag") {
@@ -160,11 +147,7 @@ export class DataCell {
                 }
             });
 
-            this.addAPIParam = obj => {
-                if (this._store.value) {
-                    obj[this.name.value] = this._store.value;
-                }
-            }
+            
 
 
         } else if (meta.type == "id") {
