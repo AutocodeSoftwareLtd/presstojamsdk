@@ -1,7 +1,7 @@
 
-import { Errors } from "./error.js"
+import { Errors } from "./../error.js"
 import { reactive, computed } from "vue"
-import Client from "./client.js"
+import Client from "./../client.js"
 
 
 export class Field {

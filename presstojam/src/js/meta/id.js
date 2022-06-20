@@ -1,6 +1,6 @@
 import { Field } from "./field.js"
 
-class ID extends Field {
+export class ID extends Field {
 
     constructor(name, obj) {
         super(name, obj);
