@@ -92,15 +92,17 @@ if (props.field.encrypted) {
     atts.type = "password";
 }
 
-if (props.field.atts.readonly) {
+if (props.field.immutable) {
     atts.readonly = true;
 }
 
-if (props.field.atts.placeholder) {
-    atts.placeholder = field.placeholder;
+
+let pholder = getDictionary('placeholder', { "model" : field.model, "field" : field.name });
+if (pholder) {
+    atts.placeholder = pholder;
 }
 
-if (props.field.atts.html) {
+if (field.contains.includes("html")) {
     atts["data-html"] = 1;
 }
 return atts;
