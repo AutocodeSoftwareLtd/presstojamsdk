@@ -12,7 +12,7 @@
         :name="field.name" 
         v-model="field.change"></textarea>
    <div v-else-if="tag=='textarea' && ctype=='view'">{{ field.val }}</div>
-   <ptj-multiple-select v-else-if="tag=='select' && ctype == 'filter'" :field="field" />
+   <ptj-multiple-select v-else-if="tag=='select' && ctype == 'filter'" :field="field" :options="options" />
   <select v-else-if="tag=='select' && (ctype=='edit' || ctype =='post')" 
         v-model="field.change"
         :name="field.name"
@@ -20,7 +20,7 @@
          @blur="field.validateon = true"
         >
         <option value="" selected disabled>{{ getDictionary('ptj-string-default') }}</option>
-        <option v-for="option in field.options" :key="option.key" :value="option.key">{{ option.value }}</option>
+        <option v-for="option in options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
   <input v-else-if="ctype=='edit' || ctype=='post'" v-bind="atts"
         :name="field.name"
@@ -34,6 +34,7 @@
 </template>
 
 <script setup>
+import { ref } from "vue"
 import PtjButton from "./ptj-button.vue"
 import PtjMultipleInput from "./ptj-multiple-input.vue"
 import PtjMultipleSelect from "./ptj-multiple-select.vue"
@@ -57,6 +58,8 @@ let ctype = computed(() => {
     return (props.type == 'edit' && props.field.immutable) ? "view" : props.type;
 });
 
+const options = ref([]);
+
 function isEnum(contains) {
     if (contains.length == 0) return null;
     let enums=[];
@@ -74,7 +77,7 @@ function isEnum(contains) {
 
 const tag = computed(() => {
 if (isEnum(props.field.contains)) {
-    props.field.setContainsAsOptions();
+    props.field.setContainsAsOptions(options);
     return "select";
 } else if (props.field.encrypted) {
     return "input";
@@ -97,12 +100,12 @@ if (props.field.immutable) {
 }
 
 
-let pholder = getDictionary('placeholder', { "model" : field.model, "field" : field.name });
+let pholder = getDictionary('placeholder', { "model" : props.field.model, "field" : props.field.name });
 if (pholder) {
     atts.placeholder = pholder;
 }
 
-if (field.contains.includes("html")) {
+if (props.field.contains.includes("html")) {
     atts["data-html"] = 1;
 }
 return atts;

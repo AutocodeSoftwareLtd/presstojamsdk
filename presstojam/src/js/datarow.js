@@ -98,7 +98,10 @@ export class DataRow {
         if (row["--parentid"]) this._ids["--parentid"] = row["--parentid"];
 
         for(let field in this._cells) {
-            if (row.hasOwnProperty(field)) this._cells[field].val = row[field];
+            if (row.hasOwnProperty(field)) {
+                this._cells[field].val = row[field];
+                this._cells[field].display = row;
+            }
         }
 
         for(let child in this._children) {

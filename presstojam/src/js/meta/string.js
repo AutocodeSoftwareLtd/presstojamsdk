@@ -3,20 +3,22 @@ import { Field } from "./field.js"
 export class String extends Field {
 
     constructor(name, obj) {
-        super(name, obj);
+        super(name);
+
+        if (obj) this.apply(obj);
     }
 
-    setContainsAsOptions() {
-        let options = [];
+    setContainsAsOptions(options) {
+        let opts = [];
         for(let exp of this._contains) {
             if (exp.indexOf(":") > -1) {
                 const pts = exp.split(":");
-                options.push({ key : pts[0], value : pts[1]});
+                opts.push({ key : pts[0], value : pts[1]});
             } else {
-                options.push({ key : exp, value : exp});
+                opts.push({ key : exp, value : exp});
             }
         }
-        this._store.options = options;
+        options.value = opts;
     }
 
 
@@ -29,4 +31,29 @@ export class String extends Field {
             if (arr.length > 0) obj[this._name] = arr;
         }
     }
+
+    getChange1(store) {
+        if (store.change == null) store.change = store.value;
+        if (store.change == null) return [];
+        else return store.change;
+    }
+
+
+    setChange1(store, val) {
+        if (store.change == null) store.change = [];
+        store.change.push(this.clean(val));
+        store.error = this.validate(val);
+    }
+
+
+    getFilter(store) {
+        return store.value;
+    }
+
+
+    setFilter(store, val) {
+        if (Array.isArray(val)) store.value = val;
+        else if (val) store.value = [val];
+    }
+
 }

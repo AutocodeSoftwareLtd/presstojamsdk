@@ -3,7 +3,7 @@
         <div class="ptj-multiple-select-display">
             <div class="ptj-multiple-select-values">
                 <div class="ptj-multiple-select-val" v-for="val in field.change" :key="val">
-                    {{ field.getOption(val) }}
+                    {{ getOption(val) }}
                     <a class="ptj-multiple-select-val-remove" @click="remove(val)"><span class="material-icons">close</span></a>
                 </div>
             </div>
@@ -12,25 +12,30 @@
             </a>
         </div>
         <ul class="ptj-multiple-select-options" v-show="show_list.display" @click="select">
-            <li v-for="option in field.options" :key="option.key" :data-key="option.key">{{ option.value }}</li>
+            <li v-for="option in options" :key="option.key" :data-key="option.key">{{ option.value }}</li>
         </ul>
     </div>
 </template>
 <script setup>
 
-import { reactive, onMounted } from "vue"
+import { reactive } from "vue"
 import { Map } from "./../js/map.js"
 
 const props = defineProps({
     field : Object,
-});
-
-onMounted(() => {
-    if (props.field.reference) {
-        let url = "/reference/" + Map.model + "/" + props.field.name;
-        props.field.setReferenceOptions(url, {"--parentid":Map.key});
+    options : {
+        type : Array,
+        required : true
     }
 });
+
+
+
+function getOption(key) {
+    for(let opt of props.options) {
+        if (opt.key == key) return opt.value;
+    }
+}
 
 
 const show_list = reactive({

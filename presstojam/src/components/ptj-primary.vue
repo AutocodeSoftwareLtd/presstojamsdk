@@ -13,7 +13,7 @@
           <ptj-asset v-if="field.type=='asset'" :type="store.type" :field="field" :id="store.data.primary" />
           <ptj-number v-else-if="field.type=='number'" :type="store.type" :field="field" />
           <ptj-flag v-else-if="field.type=='flag'" :type="store.type" :field="field" :id="store.data.primary" />
-          <ptj-id v-else-if="field.type=='id'" :type="store.type" :field="field"  />
+          <ptj-id v-else-if="field.type=='id'" :type="store.type" :field="field" :parent="store.data.parent" />
           <ptj-time v-else-if="field.type=='time'" :type="store.type" :field="field" />
           <ptj-string v-else-if="field.type=='string'" :type="store.type" :field="field"  />
         </ptj-form-row>

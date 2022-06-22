@@ -5,7 +5,7 @@
           <ptj-asset v-if="field.type=='asset'" type="post"  :field="field" />
           <ptj-number v-else-if="field.type=='number'" type="post"  :field="field"/>
           <ptj-flag v-else-if="field.type=='flag'" type="post"  :field="field" />
-          <ptj-id v-else-if="field.type=='id'" type="post"  :field="field" />
+          <ptj-id v-else-if="field.type=='id'" type="post"  :field="field"  :parent="Map.key" />
           <ptj-time v-else-if="field.type=='time'" type="post"   :field="field" />
           <ptj-string v-else-if="field.type=='string'" type="post"  :field="field" />
           <ptj-form-row :field="field" v-if="field.encrypted">

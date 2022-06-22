@@ -1,8 +1,8 @@
 <template>
    <form @submit.prevent="searchData" class="ptj-filter-form">
       <h3>{{ getDictionary('ptj-filter-form-title')}}</h3>
-      <ptj-form-row v-for="field in RepoStore.search.cells" :key="field.name" :field="field" v-show="field.type != 'id' || Object.keys(field.options).length > 0">
-          <ptj-id v-if="field.type=='id'" type="filter" :field="field" />
+      <ptj-form-row v-for="field in RepoStore.search.cells" :key="field.name" :field="field" v-show="field.type != 'id' || field.meta.reference || field.meta.recursive">
+          <ptj-id v-if="field.type=='id'" type="filter" :field="field" :parent="Map.key"/>
           <ptj-flag v-else-if="field.type=='flag'" type="filter" :field="field" />
           <ptj-number v-else-if="field.type=='number'" type="filter" :field="field" />
           <ptj-time v-else-if="field.type=='time'" type="filter" :field="field" />

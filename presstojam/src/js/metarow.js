@@ -1,11 +1,5 @@
-import { ID} from "./meta/id.js"
-import { Flag } from "./meta/flag.js"
-import { Asset } from "./meta/asset.js"
-import { Time } from "./meta/time.js"
-import { Number } from "./meta/number.js"
-import { String } from "./meta/string.js"
-
 import { reactive} from "vue"
+import { createField } from "./meta/fieldfactory.js"
 
 export class MetaRow {
 
@@ -70,12 +64,7 @@ export class MetaRow {
     }
 
     mapField(field, obj) {
-        if (obj.type == "id") this._cells[field] = new ID(field, obj);
-        else if (obj.type =="number") this._cells[field] = new Number(field, obj);
-        else if (obj.type == "asset") this._cells[field] = new Asset(field, obj);
-        else if (obj.type == "flag") this._cells[field] = new Flag(field, obj);
-        else if (obj.type == "time") this._cells[field] = new Time(field, obj);
-        else this._cells[field] = new String(field, obj);
+        this._cells[field] = createField(field, obj);
          
         if (this._cells[field].recursive) {
             this._store.index = field;

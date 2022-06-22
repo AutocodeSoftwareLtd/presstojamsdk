@@ -4,13 +4,15 @@ import Client from "./../client.js"
 export class Asset extends Field {
 
     constructor(name, obj) {
-        super(name, obj);
+        super(name);
         this._size = 0;
       this._blob = null;
       this._uploaded = false;
       this._chunk_size = 0;
       this._url;
       this._key = 0;
+
+      if (obj) this.apply(obj);
     }
 
     set chunk_size(chunk) {

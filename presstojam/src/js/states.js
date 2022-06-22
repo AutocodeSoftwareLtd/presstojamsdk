@@ -1,10 +1,10 @@
-import { Field } from "./field";
+import { createField } from "./meta/fieldfactory.js"
 
 export function createStateTrigger(name, states, cb) {
 
     let group = [];
     for(let i in states) {
-        let field = new Field(name, states[i]);
+        let field = createField(name, states[i]);
         group.push({ depends_val : states[i].depends_val, field });
     }
     

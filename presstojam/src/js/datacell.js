@@ -38,6 +38,27 @@ export class DataCell {
             set: val => { this._store.error = parseInt(val); this._store.is_validate_on = true; }
         });
 
+        this.display = computed({
+            get: () => {
+                if (Array.isArray(this._store.display)) {
+                    if (this._store.display.length > 0) return this._store.display.join(" ");
+                    else return this._store.value;
+                } else if (this._store.display) return this._store.display;
+                else return this._store.value;
+            },
+            set: (row) => {
+                this._store.display = [];
+                const fields = this._store.meta.include_fields;
+                if (fields) {
+                    for(const field of fields) {
+                        const fname = this._store.meta.name + "/" + field;
+                        this._store.display.push(row[fname]);
+                    }
+                }
+            }
+        });
+
+
         this.showError = computed(() => {
             let res = this._store.is_validate_on && this._store.error ? true : false;
             if (res) {
@@ -61,220 +82,43 @@ export class DataCell {
 
         this.change = computed({
             get: () => {
-                if (this._store.change == null) return this._store.value;
-                else return this._store.change;
+                return this._store.meta.getChange(this._store);
             },
             set: (val) => {
-                this._store.change = this._store.meta.clean(val);
-                this._store.error = this._store.meta.validate(val);
-                this._store.meta.trigger(val);
+                this._store.meta.setChange(this._store, val);
             }
         });
 
-        this.addParam = obj => {
-            this._store.meta.addParam(obj, this._store.value)
-        }
-
-
-        if (meta.type == "time") {
-
-            this.change1 = computed({
-                get: () => {
-                    if (this._store.change == null) this._store.change = this._store.value;
-                    if (!this._store.change) return "";
-                    return this._store.change.min;
-                },
-                set: (val) => {
-                    if (!this._store.change) this._store.change = { min: null, max: null };
-                    this._store.change.min = this._store.meta.clean(val);
-                    this._store.error = this._store.meta.validate(val);
-                }
-            });
-
-            this.change2 = computed({
-                get: () => {
-                    if (this._store.change == null) this._store.change = this._store.value;
-                    if (!this._store.change) return "";
-                    return this._store.change.max;
-                },
-                set: (val) => {
-                    if (!this._store.change) this._store.change = { min: null, max: null };
-                    this._store.change.max = this._store.meta.clean(val);
-                    this._store.error = this._store.meta.validate(val);
-                }
-            });
-
-            this.filter = computed({
-                get: () => {
-                    return this._store.value;
-                },
-                set:(val) => {
-                    if (val) {
-                        this._store.value = val;
-                    }
-                }
-            });
-
-            
-
-
-        } else if (meta.type == "flag") {
-
-            this.change1 = computed({
-                get: () => {
-                    if (this._store.change == null) this._store.change = this._store.value;
-                    if (this._store.change == null) return 0;
-                    else if (!this._store.change) return 2;
-                    else return this._store.change;
-                },
-                set: (val) => {
-                    if (val == 0) {
-                        this._store.change = null;
-                        return;
-                    }
-                    if (val == 2) val = 0;
-                    this._store.change = this._store.meta.clean(val);
-                    this._store.error = this._store.meta.validate(val);
-                }
-            });
-
-            this.filter = computed({
-                get: () => {
-                    return this._store.value;
-                },
-                set:(val) => {
-                    this._store.value = val;
-                }
-            });
-
-            
-
-
-        } else if (meta.type == "id") {
-            this.change1 = computed({
-                get: () => {
-                    if (this._store.change == null) this._store.change = this._store.value;
-                    let val = (this._store.change == null) ? [] : this._store.change;
-                    return val;
-                },
-                set: (val) => {
-                    if (this._store.change == null) this._store.change = [];
-                    if (this._store.change.includes(val)) return;
-                    this._store.change.push(this._store.meta.clean(val));
-                    this._store.error = this._store.meta.validate(val);
-                }
-            });
-
-            this.filter = computed({
-                get: () => {
-                    return this._store.value;
-                },
-                set:(val) => {
-                    this._store.value = val;
-                }
-            });
-
-            this.addAPIParam = obj => {
-                if (this._store.value!= null) {
-                    obj[this.name.value] = this._store.value;
-                }
+       
+        this.change1 = computed({
+            get: () => {
+                return this._store.meta.getChange1(this._store);
+            },
+            set: (val) => {
+                this._store.meta.setChange1(this._store, val);
             }
+        });
 
-            
-        } else if (meta.type == "number") {
-            this.change1 = computed({
-                get: () => {
-                    if (this._store.change == null) this._store.change = this._store.value;
-                    if (!this._store.change) return "";
-                    return this._store.change.min;
-                },
-                set: (val) => {
-                    if (!this._store.change) this._store.change = { min: null, max: null }
-                    this._store.change.min = this._store.meta.clean(val);
-                    this._store.error = this._store.meta.validate(val);
+        this.change2 = computed({
+            get: () => {
+                if (typeof this._store.meta.getChange2 === "function") {
+                    return this._store.meta.getChange2(this._store);
                 }
-            });
-
-            this.filter = computed({
-                get: () => {
-                    return this._store.value;
-                },
-                set:(val) => {
-                    this._store.value = val;
-                }
-            });
-
-            this.change2 = computed({
-                get: () => {
-                    if (this._store.change == null) this._store.change = this._store.value;
-                    if (!this._store.change) return "";
-                    return this._store.change.max;
-                },
-                set: (val) => {
-                    if (!this._store.change) this._store.change = { min: null, max: null }
-                    this._store.change.max = this._store.meta.clean(val);
-                    this._store.error = this._store.meta.validate(val);
-                }
-            });
-
-            this.addAPIParam = obj => {
-                if (this._store.value!= null) {
-                    obj[this.name.value] = this._store.value;
-                }
+            },
+            set: (val) => {
+                this._store.meta.setChange2(this._store, val);
             }
-
-        } else if (meta.type == "string") {
-
-            this.change = computed({
-                get: () => {
-                    if (this._store.change == null) return "";
-                    else return this._store.change;
-                },
-                set: (val) => {
-                    this._store.change = this._store.meta.clean(val);
-                    this._store.error = this._store.meta.validate(val);
-                    this._store.meta.trigger(val);
-                }
-            });
-
-            this.change1 = computed({
-                get: () => {
-                    if (this._store.change == null) this._store.change = this._store.value;
-                    if (this._store.change == null) return [];
-                    else return this._store.change;
-                },
-                set: (val) => {
-                    if (this._store.change == null) this._store.change = [];
-                    this._store.change.push(this._store.meta.clean(val));
-                    this._store.error = this._store.meta.validate(val);
-                }
-            });
+        });
 
 
-            this.filter = computed({
-                get: () => {
-                    return this._store.value;
-                },
-                set:(val) => {
-                    if (Array.isArray(val)) this._store.value = val;
-                    else if (val) this._store.value = [val];
-                }
-            });
-
-            this.addAPIParam = obj => {
-                if (this._store.value) {
-                    let arr = [];
-                    for(let i in this._store.value) {
-                        if (this._store.value[i]) arr.push("%" + this._store.value[i] + "%");
-                    }
-                    if (arr.length > 0) obj[this.name.value] = arr;
-                }
+        this.filter = computed({
+            get: () => {
+                return this._store.meta.getFilter(this._store);
+            },
+            set: (val) => {
+                this._store.meta.setFilter(this._store, val);
             }
-
-        } 
-
-
-        
+        });
 
     }
 
@@ -287,28 +131,12 @@ export class DataCell {
         this._store.is_validate_on = on;
     }
 
-    set display(display) {
-        this._store.display = display;
-    }
-
-    get display() {
-        if (this._store.display) return this._store.display;
-        else return this._store.value;
-    }
-
     get store() {
         return this._store;
     }
 
     resetMeta(meta) {
         this._store.meta = meta;
-        if (meta.reference) {
-            let url = "/reference/" + Map.model + "/" + this.name;
-            let obj = {};
-            if (Map.state == "primary") obj["--id"] = Map.key;
-            else obj["--parentid"] = Map.key;
-            this._store.meta.setReferenceOptions(url, obj);
-        }
     }
 
     toString() {
@@ -319,12 +147,8 @@ export class DataCell {
         return this._store.meta.summary;
     }
 
-    setReferenceOptions(url, params) {
-        this._store.meta.setReferenceOptions(url, params);
-    }
-
-    setContainsAsOptions() {
-        this._store.meta.setContainsAsOptions();
+    setContainsAsOptions(options) {
+        this._store.meta.setContainsAsOptions(options);
     }
 
     reset() {
@@ -337,5 +161,13 @@ export class DataCell {
         else return this._store.meta.getOption(key);
     }
 
+
+    addParam(obj) {
+        this._store.meta.addParam(obj, this._store.value)
+    }
+
+    addAPIParam(obj) {
+        this._store.meta.addParam(obj, this._store.value)
+    }
     
 }
