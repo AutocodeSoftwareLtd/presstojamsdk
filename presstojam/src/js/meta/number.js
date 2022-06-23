@@ -35,18 +35,19 @@ export class Number extends Field {
     }
 
     getFilter(store) {
+        let val = (store.value) ? store.value : 0;
         return store.value.toFixed(this._round);
     }
     
     setFilter(store, val) {
-        store.value = val.toFixed(this._round);
+        store.value = this.clean(val);
     }
 
 
     getChange1(store) {
-        if (store.change == null) store.change = { min: store.value, max: store.value };
+        if (store.change == null) store.change = store.value;
         if (!store.change) return "";
-        return store.change.min.toFixed(this._round);
+        return store.change.toFixed(this._round);
     }
 
 
