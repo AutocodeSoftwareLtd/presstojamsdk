@@ -7,7 +7,8 @@ export class DataCell {
         this._store = reactive({ 
             meta : meta, 
             value: null, 
-            change: null, 
+            change: null,
+            change2 : null,
             display: null, 
             error: 0, 
             is_validate_on: false 
@@ -72,7 +73,7 @@ export class DataCell {
 
         this.val = computed({
             get: () => {
-                return this._store.value;
+                return this._store.meta.getVal(this._store);
             },
             set: (val) => {
                 this._store.value = this._store.meta.clean(val);

@@ -35,15 +35,14 @@ export class Time extends Field {
 
 
     getChange2(store) {
-        if (store.change == null) store.change = store.value;
-        if (!store.change) return "";
-        return store.change.max;
+        if (store.change2 == null) store.change2 = store.value;
+        if (!store.change2) return "";
+        return store.change2;
     }
 
 
     setChange2(store, val) {
-        if (!store.change) store.change = { min: null, max: null };
-        store.change.max = this.clean(val);
+        store.change2 = this.clean(val);
         store.error = this.validate(val);
     }
 }
