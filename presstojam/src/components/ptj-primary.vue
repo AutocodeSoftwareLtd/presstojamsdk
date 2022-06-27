@@ -150,12 +150,18 @@ function submit() {
         toggleState();
     })
     .catch(err => {
-            //show error fields, mark fields as invalidated
+            //show error fields, mark fields as invalidate
         store.fstate = 0;
         if (typeof err == "string") {
             globalerror = err;
         } else {
-            store.data.setErrors(err);
+            return err.json()
+            .then(response => {
+                const msg = response.exception[0];
+                if (msg.type == "PressToJamCore\\Exceptions\\ValidationException") {
+                    store.data.setErrors(JSON.parse(msg.message));
+                }
+            });
         }
     });
 }

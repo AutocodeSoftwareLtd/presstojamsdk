@@ -1,5 +1,4 @@
 import { reactive, computed } from "vue"
-import { Map } from "./map.js"
 
 export class DataCell {
 
@@ -35,8 +34,11 @@ export class DataCell {
 
 
         this.error = computed({
-            get: () => { this._store.error; },
-            set: val => { this._store.error = parseInt(val); this._store.is_validate_on = true; }
+            get: () => { return this._store.error; },
+            set: val => { 
+                this._store.error = parseInt(val); 
+                this._store.is_validate_on = true; 
+            }
         });
 
         this.display = computed({
@@ -62,9 +64,6 @@ export class DataCell {
 
         this.showError = computed(() => {
             let res = this._store.is_validate_on && this._store.error ? true : false;
-            if (res) {
-                console.log("Error details", this._store);
-            }
             return this._store.is_validate_on && this._store.error ? true : false;
         });
 

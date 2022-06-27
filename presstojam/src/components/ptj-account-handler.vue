@@ -6,7 +6,8 @@
           <ptj-string type="post" :field="field" />
         </ptj-form-row>
         <input type="submit" :value="getDictionary('ptj-account-handler-btn-login')" class="ptj-form-submit">
-        <a v-if="RouteStore.route.perms.includes('post')" @click="toggleState()">Register</a>
+        <a v-if="RouteStore.route.perms.includes('post')" @click="toggleState('create')">Register</a>
+        <a @click="toggleState('forgotpassword')">Forgotten password?</a>
     </form>
     <form  @submit.prevent="submit" v-show="store.state=='create'" class="ptj-register">
         <div class="ptj-form-error" v-show="store.globalerror">{{ store.globalerror }}</div>
@@ -20,7 +21,18 @@
           </ptj-form-row>
         </ptj-form-row>
         <input type="submit" :value="getDictionary('ptj-account-handler-btn-create')" class="ptj-form-submit">
-        <a v-if="RouteStore.route.perms.includes('login')" @click="toggleState()">Login</a>
+        <a v-if="RouteStore.route.perms.includes('login')" @click="toggleState('login')">Login</a>
+    </form>
+    <form  @submit.prevent="submit" v-show="store.state=='forgotpassword'" class="ptj-register">
+        <div class="ptj-form-error" v-show="store.globalerror">{{ store.globalerror }}</div>
+        <ptj-form-row v-for="field in store.forgot_password.cells" :key="field.meta.name" :field="field">
+          <ptj-string type="post" :field="field" />
+          <ptj-form-row :field="field">
+            <ptj-confirm :field="field" />
+          </ptj-form-row>
+        </ptj-form-row>
+        <input type="submit" :value="getDictionary('ptj-account-handler-btn-forgot-password')" class="ptj-form-submit">
+        <a @click="toggleState('login')">Login</a>
     </form>
  </div>
 </template>
@@ -52,11 +64,12 @@ const store = reactive({
     active : true,
     login_data : new DataRow(),
     register_data : new DataRow(),
+    forgot_password : new DataRow(),
     globalerror : ''
 });
 
-function toggleState() {
-    store.state = (store.state == 'login') ? 'create' : 'login';
+function toggleState(state) {
+    store.state = state;
 }
 
 //load our modules
@@ -72,7 +85,9 @@ client.post("/route/" +  Map.route + "/" + Map.model + "/login")
 .then(response => {
     let meta = new MetaRow();
     meta.map(response.fields);
-    store.login_data.applyMetaRow(meta)
+    store.login_data.applyMetaRow(meta);
+
+    store.forgot_password.applyMetaRow(meta);
 });
 
 
@@ -86,7 +101,15 @@ function submit() {
         })
         .catch(e => {
             store.globalerror = "Incorrect username / password";
+        });
+    } else if (store.state == "forgotpassword") {
+        return client.post("/data/" +  Map.route + "/" + Map.model + "/forgotpassword", store.forgot_password.serialize("login"))
+        .then(response => {
+            refresh();
         })
+        .catch(e => {
+            store.globalerror = "Incorrect username / password";
+        });
     } else {
         return client.post("/data/" + Map.route + "/" +  Map.model, store.register_data.serialize("post"))
         .then(response => {

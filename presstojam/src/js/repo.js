@@ -103,3 +103,13 @@ export const loadRepo = async() => {
     })
     .catch(e => console.log(e));
 }
+
+
+export function reorderRepo(positions) {
+    const arr = [];
+    arr.length = RepoStore.data.length;
+    for(let i in RepoStore.data) {
+        arr[positions[RepoStore.data[i].primary] - 1] = RepoStore.data[i];
+    }
+    RepoStore.data = arr;
+}

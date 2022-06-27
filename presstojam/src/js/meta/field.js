@@ -150,6 +150,13 @@ export class Field {
     setFilter(store, val) {
         store.value = val;
     }
+
+    getErrorVal(error) {
+        if (error == Errors.MIN_VALUE) return this.min;
+        else if (error == Errors.MAX_VALUE) return this._max;
+        else if (error == Errors.HAS) return this._contains.join(" | ");
+        else if (error == Errors.HAS_NOT) return this._notcontains;
+    }
 }
 
 

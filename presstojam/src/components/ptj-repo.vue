@@ -1,6 +1,6 @@
 <template>
   <div :class="[Map.model, Map.state]">
-    <ptj-modal>
+    <ptj-modal v-if="RouteStore.route.perms.includes('post')">
         <template #button>
             {{ getDictionary('ptj-repo-post') }}
         </template>
@@ -14,6 +14,14 @@
         </template>
         <template #default="filterScope">
             <ptj-filter-form @close="filterScope.toggleShow" />
+        </template>
+    </ptj-modal>
+    <ptj-modal v-if="settings.disable_sort != true && RouteStore.sort && RouteStore.route.perms.includes('put')">
+        <template #button>
+            {{ getDictionary('ptj-repo-sort') }} <span class="material-icons">sort</span>
+        </template>
+        <template #default="sortScope">
+            <ptj-sort @close="sortScope.toggleShow" @reorder="reorder"/>
         </template>
     </ptj-modal>
     <ptj-tree v-if="RepoStore.component=='tree'" />
@@ -34,14 +42,17 @@ import PtjSelectfields from "./ptj-selectfields.vue"
 import PtjPagination from "./ptj-pagination.vue"
 import PtjModal from "./ptj-modal.vue"
 import PtjCreateForm from "./ptj-create-form.vue"
-import { RepoStore, loadRepo, resetRepo } from "./../js/repo.js"
-import { getModelSettings } from "./../js/route.js" 
+import { RepoStore, loadRepo, resetRepo, reorderRepo } from "./../js/repo.js"
+import { getModelSettings, RouteStore } from "./../js/route.js" 
 import { getDictionary } from "./../js/dictionary.js"
+import PtjSort from "./ptj-sort.vue"
 
 
 let settings = getModelSettings();
 
-
+function reorder(positions) {
+    reorderRepo(positions);
+}
 
 
 onMounted(async () => {

@@ -3,7 +3,6 @@ import PTJRoute from "./presstojam/src/components/ptj-router.vue"
 import { PtjRun } from "./presstojam/src/js/controller.js"
 import Client from "./presstojam/src/js/client.js"
 import { createApp } from "vue"
-import { Map } from "./presstojam/src/js/map.js"
 import { loadNav } from "./presstojam/src/js/user.js"
  
 export function runApp(mount, user_settings) {

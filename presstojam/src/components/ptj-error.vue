@@ -1,13 +1,12 @@
 <template>
-    <p class="ptj-error" v-if="error">{{ getDictionary('ptj-error-' + error, { 'type' : type}) }}</p>
+    <p class="ptj-error" v-if="field.error">{{ getDictionary('ptj-error-' + field.error, { 'type' : field.type, 'val' : field.meta.getErrorVal(field.error) }) }}</p>
 </template>
 
 <script setup>
 import { getDictionary } from "./../js/dictionary.js"
 import { getError } from "./../js/error.js"
 defineProps({
-    'error' : Number,
-    'type' : String
+    'field' : [Object, Function]
 });
 
 </script>

@@ -25,7 +25,7 @@ export class Number extends Field {
 
     getChange(store) {
         if (store.change == null) store.change=  store.value;
-        if (!store.value) return "";
+        if (!store.change) return "";
         return store.change.toFixed(this._round);
     }
 
