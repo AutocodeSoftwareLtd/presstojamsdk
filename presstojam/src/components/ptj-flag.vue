@@ -30,7 +30,7 @@ function submit() {
     let params = {};
     params["--id"] = props.id;
     params[props.field.name] = (props.field.val == 1) ? 0 : 1;
-    return client.put("/data/" + Map.route + "/" + Map.model, params)
+    return client.put("/data/" +  Map.model, params)
     .then(() => {
         props.field.val = (props.field.val == 1) ? 0 : 1;
     })

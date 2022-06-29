@@ -8,7 +8,7 @@
             <ptj-delete :parentid="store.data.parent" @close="delScope.toggleShow" />
         </template>
     </ptj-modal>
-    <div class="ptj-primary" :class="Map.model">
+    <div class="ptj-primary" :class="Map.model" v-if="store.fstate == 0">
         <ptj-form-row v-for="field in store.data.cells" :key="field.name" :field="field"> 
           <ptj-asset v-if="field.type=='asset'" :type="store.type" :field="field" :id="store.data.primary" />
           <ptj-number v-else-if="field.type=='number'" :type="store.type" :field="field" />
@@ -35,7 +35,7 @@ import PtjId from "./ptj-id.vue"
 import PtjTime from "./ptj-time.vue"
 import PtjString from "./ptj-string.vue"
 import { DataRow } from "./../js/datarow.js"
-import { reactive, computed, onMounted, onBeforeUnmount } from "vue"
+import { reactive, ref, computed, onMounted, onBeforeUnmount } from "vue"
 import PtjDelete from "./ptj-delete.vue"
 import PtjModal from "./ptj-modal.vue"
 import PtjForm from "./ptj-create-form.vue"
@@ -48,12 +48,11 @@ import { getDictionary } from "./../js/dictionary.js"
   
 
 
-const store = reactive({ data : new DataRow(), fstate : 0,  type : 'view', show_def : false, progress : { total : 0, progress : 0} });
-
-
+const store = reactive({ data : new DataRow(), fstate : -1,  type : 'view', show_def : false, progress : { total : 0, progress : 0} });
 
 function toggleState() {
     store.type = (store.type == "view") ? "edit" : "view";
+    store.fstate = 0;
 }
 
 let next_state = computed(() => {
@@ -92,20 +91,14 @@ const load = async() => {
         meta.map(response.fields, meta_settings.fields ?? []);
         store.data.applyMetaRow(meta);
     }).then(() => {
-        return client.get("/data/" + Map.route + "/" + Map.model + "/primary", params);
+        return client.get("/data/" +  Map.model + "/primary", params);
     }).then(response => {
         store.data.row = response;
         //set the change values as well for each row
         for(let i in store.data.cells) {
             store.data.cells[i].change = store.data.cells[i].val;
         }
-    }).then(response => {
-        for(let i in store.data.cells) {
-            if (store.data.cells[i].type == "id" && store.data.cells[i].reference) {
-                let url = "/reference/" + Map.model + "/" + i;
-                store.data.cells[i].setReferenceOptions(url, {"--id" : Map.key});
-            }
-        }
+        store.fstate = 0;
     }).catch(e => console.log(e));
 
 }
@@ -122,7 +115,7 @@ function submit() {
         return;
     }
     ndata["--id"] = Map.key;
-    return client.put("/data/" + Map.route + "/" + Map.model, ndata)
+    return client.put("/data/" + Map.model, ndata)
     .then(response=>{
         let promises = [];
         let assets = store.data.getCellByType("asset");

@@ -46,7 +46,7 @@ async function getOptions() {
 
 if (props.field.meta.reference || props.field.meta.recursive) {
     onMounted(() => {
-        getOptions();
+       getOptions();
     });
     
 }

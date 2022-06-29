@@ -61,9 +61,9 @@ export const loadRepo = async() => {
     
     resetRepo();
     let params = buildParams(meta_settings);
-    let url = "/" + Map.route + "/" + Map.model;
+    let url = Map.model;
     if (Map.state == "parent") url += "/parent";
-    return client.get("/route" +url, params)
+    return client.get("/route/" + Map.route + "/" +url, params)
     .then(response => {
         RepoStore.meta.map(response.fields, meta_settings.fields);
         if (meta_settings.show == 'all') {
@@ -80,12 +80,12 @@ export const loadRepo = async() => {
     }).then(() => {
         params = { ...params, ...RepoStore.search.convertToAPIParams()};
         if (meta_settings.limit > 0) {
-            return client.get("/count/" + Map.route + "/" + Map.model, params)
+            return client.get("/count/" + url, params)
             .then(response => {
                 RepoStore.max_pages = Math.ceil(response.count / meta_settings.limit);
             })
             .then(() => {
-                return client.get("/data" + url, params);
+                return client.get("/data/" + url, params);
             })
             .then(response => {
                 mapRepoData(response);
@@ -93,7 +93,7 @@ export const loadRepo = async() => {
                 return response;
             });
         } else {
-            return client.get("/data" + url, params)
+            return client.get("/data/" + url, params)
             .then(response => {
                 mapRepoData(response);
                 if (RepoStore.meta.store.index) indexData();

@@ -75,7 +75,7 @@ function submit() {
     let key = 0;
     let ndata = cdata.serialize();
     if (Map.key) ndata["--parentid"] = Map.key;
-    return client.post("/data/" + Map.route + "/" + Map.model, ndata)
+    return client.post("/data/" + Map.model, ndata)
     .then(response=>{
         key = response["--id"];
         let promises = [];

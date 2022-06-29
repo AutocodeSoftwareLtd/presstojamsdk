@@ -39,7 +39,7 @@ function checkStatus() {
 }
 
 function del() {
-    client.delete("/data/" + Map.route + "/" + Map.model, {"--id":Map.key})
+    client.delete("/data/" + Map.model, {"--id":Map.key})
     .then(res => {
         Map.state = "parent";
         Map.key = props.parentid.val;

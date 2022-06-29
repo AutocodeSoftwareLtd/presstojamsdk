@@ -95,7 +95,7 @@ function submit() {
     store.active = false;
     store.globalerror = "";
     if (store.state == "login") {
-        return client.post("/data/" +  Map.route + "/" + Map.model + "/login", store.login_data.serialize("login"))
+        return client.post("/data/" + Map.model + "/login", store.login_data.serialize("login"))
         .then(response => {
             refresh();
         })
@@ -103,7 +103,7 @@ function submit() {
             store.globalerror = "Incorrect username / password";
         });
     } else if (store.state == "forgotpassword") {
-        return client.post("/data/" +  Map.route + "/" + Map.model + "/forgotpassword", store.forgot_password.serialize("login"))
+        return client.post("/data/" +  Map.model + "/forgotpassword", store.forgot_password.serialize("login"))
         .then(response => {
             refresh();
         })
@@ -111,7 +111,7 @@ function submit() {
             store.globalerror = "Incorrect username / password";
         });
     } else {
-        return client.post("/data/" + Map.route + "/" +  Map.model, store.register_data.serialize("post"))
+        return client.post("/data/" + Map.model, store.register_data.serialize("post"))
         .then(response => {
             refresh();
         })

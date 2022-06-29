@@ -82,8 +82,8 @@ function orderBy(name) {
         //custom sort on the table
         if (order.name != name || order.dir == "desc") {
             RepoStore.data.sort(function(x, y) {
-                let xval = x.getCell(name).toVal();
-                let yval = y.getCell(name).toVal();
+                let xval = x.getCell(name).val;
+                let yval = y.getCell(name).val;
                 if (xval < yval) {
                     return -1;
                 } else if (xval > yval) {
@@ -96,8 +96,8 @@ function orderBy(name) {
             order.dir = "asc";
         } else {
             RepoStore.data.sort(function(x, y) {
-                let xval = x.getCell(name).toVal();
-                let yval = y.getCell(name).toVal();
+                let xval = x.getCell(name).val;
+                let yval = y.getCell(name).val;
                 if (xval < yval) {
                     return 1;
                 } else if (xval > yval) {

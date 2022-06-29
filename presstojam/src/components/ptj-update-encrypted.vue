@@ -36,7 +36,7 @@ function submit() {
     let ndata = {};
     ndata["--id"] = Map.key; //only called from primary field
     ndata[field.name] = field.change;
-    return client.put("/data/" + Map.route + "/" + Map.model, ndata)
+    return client.put("/data/" +  Map.model, ndata)
     .then(() => {
         emit("close");
     })

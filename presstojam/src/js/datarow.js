@@ -21,6 +21,18 @@ export class DataRow {
         this.cells = computed(() => {
             return this._cells;
         });
+
+        this.primary = computed(() => {
+            return this._ids["--id"];
+        });
+
+        this.parent = computed(() => {
+            return this._ids["--parentid"];
+        });
+
+        this.recursive = computed(() => {
+            return this._ids["--recursive-id"];
+        });
         
     }
 
@@ -34,12 +46,9 @@ export class DataRow {
         return this._children;
     }
 
-    get primary() {
-        return this._ids["--id"];
-    }
 
-    get parent() {
-        return this._ids["--parentid"];
+    getCell(name) {
+        return this._cells[name];
     }
 
 
@@ -96,6 +105,7 @@ export class DataRow {
 
         if (row["--id"]) this._ids["--id"] = row["--id"];
         if (row["--parentid"]) this._ids["--parentid"] = row["--parentid"];
+        if (row["--recursive-id"]) this._ids["--recursive-id"] = row["--recursive-id"];
 
         for(let field in this._cells) {
             if (row.hasOwnProperty(field)) {

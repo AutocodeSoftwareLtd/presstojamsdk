@@ -93,7 +93,7 @@ function drop(ev) {
     ev.preventDefault();
     ev.dataTransfer.dropEffect = 'move';
     let indexes = getOrder();
-    let url = "/data/" + Map.route + "/" + Map.model + "/resort";
+    let url = "/data/" + Map.model + "/resort";
     client.put(url, {"_rows" : indexes })
     .catch(e => console.log(e));
 
