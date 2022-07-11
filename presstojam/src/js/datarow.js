@@ -46,6 +46,13 @@ export class DataRow {
         return this._children;
     }
 
+    setMode(mode) {
+        for(let i in this._cells) {
+            if (i == "--id" || i == "--parentid") continue;
+            else if ((i == "date-created" || i == "last-updated") && mode != "filter") continue;
+            this._cells[i].mode = mode;
+        }
+    }
 
     getCell(name) {
         return this._cells[name];

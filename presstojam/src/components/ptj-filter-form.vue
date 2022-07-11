@@ -2,11 +2,11 @@
    <form @submit.prevent="searchData" class="ptj-filter-form">
       <h3>{{ getDictionary('ptj-filter-form-title')}}</h3>
       <ptj-form-row v-for="field in RepoStore.search.cells" :key="field.name" :field="field" v-show="field.type != 'id' || field.meta.reference || field.meta.recursive">
-          <ptj-id v-if="field.type=='id'" type="filter" :field="field" :parent="Map.key"/>
-          <ptj-flag v-else-if="field.type=='flag'" type="filter" :field="field" />
-          <ptj-number v-else-if="field.type=='number'" type="filter" :field="field" />
-          <ptj-time v-else-if="field.type=='time'" type="filter" :field="field" />
-          <ptj-string v-else-if="field.type=='string'" type="filter" :field="field" />
+          <ptj-id v-if="field.type=='id'" :field="field" :parent="Map.key"/>
+          <ptj-flag v-else-if="field.type=='flag'" :field="field" />
+          <ptj-number v-else-if="field.type=='number'" :field="field" />
+          <ptj-time v-else-if="field.type=='time'" :field="field" />
+          <ptj-string v-else-if="field.type=='string'" :field="field" />
           <a class="ptj-filter-form-reset" @click="field.reset()">x</a>
       </ptj-form-row>
       <input type="submit" :value="getDictionary('ptj-filter-form-btn')" class="ptj-filter-form-submit" @click="$emit('close');">

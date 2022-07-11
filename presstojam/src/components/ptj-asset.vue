@@ -1,5 +1,5 @@
 <template>
-   <input v-if="type=='edit'  || type == 'post'" class="ptj-form-asset" 
+   <input v-if="field.mode=='edit'  || field.mode == 'post'" class="ptj-form-asset" 
     ref="input" @change="setFile" 
     :name="field.meta.name" 
     type="file" >
@@ -13,10 +13,6 @@ import client from "./../js/client.js"
 
 const props = defineProps({
     field : Object,
-    type : {
-        type : String,
-        default : 'view'
-    },
     id : Number
 });
 

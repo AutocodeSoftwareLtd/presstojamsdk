@@ -1,5 +1,5 @@
 <template>
-    <select v-if="ctype=='edit' || type == 'post'" 
+    <select v-if="field.mode=='edit' || field.mode == 'post'" 
         v-model="field.change"
         v-bind="field.atts"
         :name="field.name"
@@ -8,7 +8,7 @@
         <option value="0" selected>{{ getDictionary('ptj-id-default') }}</option>
         <option v-for="option in options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
-  <ptj-multiple-select v-else-if="ctype=='filter'" :field="field" :options="options" />
+  <ptj-multiple-select v-else-if="field.mode=='filter'" :field="field" :options="options" />
   <span v-else>{{ field.display }}</span>
 </template>
 
@@ -21,10 +21,6 @@ import { Map } from "./../js/map.js"
 
 const props = defineProps({
     field : Object,
-    type : {
-        default : 'view',
-        type : String
-    },
     parent : Number
 });
 

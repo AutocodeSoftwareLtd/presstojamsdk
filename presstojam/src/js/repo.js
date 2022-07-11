@@ -63,7 +63,7 @@ export const loadRepo = async() => {
     let params = buildParams(meta_settings);
     let url = Map.model;
     if (Map.state == "parent") url += "/parent";
-    return client.get("/route/" + Map.route + "/" +url, params)
+    return client.get("/meta/" +url, params)
     .then(response => {
         RepoStore.meta.map(response.fields, meta_settings.fields);
         if (meta_settings.show == 'all') {
@@ -71,6 +71,7 @@ export const loadRepo = async() => {
         }
 
         RepoStore.search.applyMetaRow(RepoStore.meta);
+        RepoStore.search.setMode("filter");
         RepoStore.search.filter = Map.params;
         RepoStore.meta.init = true;
 

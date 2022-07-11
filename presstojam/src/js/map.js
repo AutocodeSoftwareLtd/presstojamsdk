@@ -2,6 +2,7 @@ class MapModel {
 
     constructor() {
         this._route = '';
+        this._flow = '';
         this._model = '';
         this._state = '';
         this._key = 0;
@@ -47,6 +48,7 @@ class MapModel {
 
     reset() {
         this.route = '';
+        this.flow = '';
         this.model = '';
         this.state = '';
         this.key = 0;
@@ -56,7 +58,9 @@ class MapModel {
 
 
     convertToURL() {
-        let url = this._base + this.route + "/" + this.model + this.action_map[this.state];
+        let url = this._base + this.route + "/" + this.flow;
+        if (this.model != this.flow) url += "/" + this.model;
+        url += this.action_map[this.state];
         if (this.key) url += "-" + this.key;
         if (this.to) url += "-to-" + this.to;
 
@@ -95,7 +99,11 @@ class MapModel {
 
         let parts = url.split("/");
 
-        if (parts.length >= 2) {
+        if (parts.length >= 3) {
+            this.route = parts[0];
+            this.flow = parts[1];
+            url = parts[2];
+        } else if (parts.length >= 2) {
             this.route = parts[0];
             url = parts[1];
         }
@@ -137,6 +145,7 @@ class MapModel {
         }
         this.model = parts.join("-");
         if (!this.route) this.route = this.model;
+        if (!this.flow) this.flow = this.model;
     }
 
     getAll() {

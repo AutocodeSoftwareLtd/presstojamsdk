@@ -10,7 +10,8 @@ export class DataCell {
             change2 : null,
             display: null, 
             error: 0, 
-            is_validate_on: false 
+            is_validate_on: false,
+            mode : 'view'
         });
 
 
@@ -120,6 +121,20 @@ export class DataCell {
             }
         });
 
+
+        this.mode = computed({
+            get: () => {
+                return this._store.mode;
+            },
+            set: (val) => {
+                if (this._store.meta.immutable) {
+                    if (val == "view" || val == "filter") this._store.mode = val;
+                }  else {
+                    this._store.mode = val;
+                }
+            }
+        });
+
     }
 
 
@@ -128,7 +143,9 @@ export class DataCell {
     }
 
     set validateon(on) {
-        this._store.is_validate_on = on;
+        if (this._store.mode == 'post' || this._store.mode == 'edit') {
+            this._store.is_validate_on = on;
+        }
     }
 
     get store() {
