@@ -28,6 +28,9 @@ export class Time extends Field {
 
 
     setChange1(store, val) {
+        if (store.change2 != null && val > store.change2) {
+            throw "Trying to set min number larger than max";
+        } 
         if (!store.change) store.change = { min: null, max: null };
         store.change.min = this.clean(val);
         store.error = this.validate(val);
@@ -42,6 +45,9 @@ export class Time extends Field {
 
 
     setChange2(store, val) {
+        if (store.change != null && val < store.change2) {
+            throw "Trying to set max number larger than min";
+        }
         store.change2 = this.clean(val);
         store.error = this.validate(val);
     }

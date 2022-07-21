@@ -53,7 +53,11 @@ export class Number extends Field {
 
 
     setChange1(store, val) {
+        if (store.change2 != null && val > store.change2) {
+            throw "Trying to set min number larger than max";
+        } 
         if (!store.change) store.change = store.value;
+       
         store.change = this.clean(val);
         store.error = this.validate(val);
     }
@@ -67,6 +71,9 @@ export class Number extends Field {
 
 
     setChange2(store, val) {
+        if (store.change != null && val < store.change2) {
+            throw "Trying to set max number larger than min";
+        }
         store.change2 = this.clean(val);
         store.error = this.validate(val);
     }
