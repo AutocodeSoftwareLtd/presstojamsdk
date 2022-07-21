@@ -70,7 +70,7 @@ export const loadRepo = async() => {
             RepoStore.meta.showAll();
         }
 
-        RepoStore.search.applyMetaRow(RepoStore.meta);
+        RepoStore.search.applyMetaRow(RepoStore.meta, meta_settings.filter_fields);
         RepoStore.search.setMode("filter");
         RepoStore.search.filter = Map.params;
         RepoStore.meta.init = true;
