@@ -9,7 +9,7 @@
             class="ptj-table-header-cell"
             :class="cell.name"
             @click="orderBy(cell.name);"
-        >{{ getDictionary('label', { "model" : cell.model, "field" : cell.name, def : cell.name }) }}
+        >{{ getDictionary('label', { "model" : cell.model, "field" : cell.name, default : cell.name }) }}
             <span v-if="order.name == cell.name && order.dir == 'asc'" 
                 class="material-icons" 
                 >keyboard_arrow_up</span>

@@ -10,12 +10,12 @@
     </ptj-modal>
     <div class="ptj-primary" :class="Map.model" v-if="store.fstate == 0">
         <ptj-form-row v-for="field in store.data.cells" :key="field.name" :field="field"> 
-          <ptj-asset v-if="field.type=='asset'" :type="store.type" :field="field" :id="store.data.primary" />
-          <ptj-number v-else-if="field.type=='number'" :type="store.type" :field="field" />
-          <ptj-flag v-else-if="field.type=='flag'" :type="store.type" :field="field" :id="store.data.primary" />
-          <ptj-id v-else-if="field.type=='id'" :type="store.type" :field="field" :parent="store.data.parent" />
-          <ptj-time v-else-if="field.type=='time'" :type="store.type" :field="field" />
-          <ptj-string v-else-if="field.type=='string'" :type="store.type" :field="field"  />
+          <ptj-asset v-if="field.type=='asset'" :field="field" :id="store.data.primary" />
+          <ptj-number v-else-if="field.type=='number'" :field="field" />
+          <ptj-flag v-else-if="field.type=='flag'" :field="field" :id="store.data.primary" />
+          <ptj-id v-else-if="field.type=='id'" :field="field" :parent="store.data.parent" />
+          <ptj-time v-else-if="field.type=='time'" :field="field" />
+          <ptj-string v-else-if="field.type=='string'" :field="field"  />
         </ptj-form-row>
         <input v-if="store.type =='edit'" type="submit" :value="getDictionary('ptj-primary-put-btn')" class="ptj-form-submit" @click="submit">
     </div>
@@ -52,6 +52,7 @@ const store = reactive({ data : new DataRow(), fstate : -1,  type : 'view', show
 
 function toggleState() {
     store.type = (store.type == "view") ? "edit" : "view";
+    store.data.setMode(store.type);
     store.fstate = 0;
 }
 
@@ -85,7 +86,7 @@ const load = async() => {
     let meta_settings = getModelSettings();
     let params = buildParams(meta_settings);
    
-    return client.get("/route/" + Map.route + "/" + Map.model + "/primary", params)
+    return client.get("/meta/" + Map.model + "/primary", params)
     .then(response => {
         const meta = new MetaRow();
         meta.map(response.fields, meta_settings.fields ?? []);

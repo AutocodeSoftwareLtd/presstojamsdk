@@ -1,5 +1,5 @@
 <template>
-   <ptj-modal v-if="field.encrypted && type=='edit'">
+   <ptj-modal v-if="field.encrypted && field.mode=='edit'">
         <template #button>
             {{ getDictionary('ptj-repo-post') }}
         </template>
@@ -7,13 +7,13 @@
             <ptj-update-encrypted @close="encryptedScope.toggleShow" :field="field"/>
         </template>
     </ptj-modal>
-   <textarea v-if="tag=='textarea' && (ctype=='edit' || ctype =='post')"
+   <textarea v-if="tag=='textarea' && (field.mode=='edit' || field.mode =='post')"
         v-bind="atts" 
         :name="field.name" 
         v-model="field.change"></textarea>
-   <div v-else-if="tag=='textarea' && ctype=='view'">{{ field.val }}</div>
-   <ptj-multiple-select v-else-if="tag=='select' && ctype == 'filter'" :field="field" :options="options" />
-  <select v-else-if="tag=='select' && (ctype=='edit' || ctype =='post')" 
+   <div v-else-if="tag=='textarea' && field.mode=='view'">{{ field.val }}</div>
+   <ptj-multiple-select v-else-if="tag=='select' && field.mode == 'filter'" :field="field" :options="options" />
+  <select v-else-if="tag=='select' && (field.mode=='edit' || field.mode =='post')" 
         v-model="field.change"
         :name="field.name"
         v-bind="atts"
@@ -22,12 +22,12 @@
         <option value="" selected disabled>{{ getDictionary('ptj-string-default') }}</option>
         <option v-for="option in options" :key="option.key" :value="option.key">{{ option.value }}</option>
   </select>
-  <input v-else-if="ctype=='edit' || ctype=='post'" v-bind="atts"
+  <input v-else-if="field.mode=='edit' || field.mode=='post'" v-bind="atts"
         :name="field.name"
         v-model="field.change" 
         @blur="field.validateon = true" />
-   <ptj-multiple-input :field="field" v-else-if="ctype=='filter'"/>
-  <span v-else-if="ctype=='view' && field.reference">
+   <ptj-multiple-input :field="field" v-else-if="field.mode=='filter'"/>
+  <span v-else-if="field.mode=='view' && field.reference">
     <ptj-button :route="{model : field.reference, key : field.val, state:'primary' }">{{ field.val }}</ptj-button>
   </span>
   <span v-else>{{ field.val }}</span>
@@ -47,10 +47,6 @@ const props = defineProps({
     field : {
         type : Object,
         required : true
-    },
-    type : {
-        type : String,
-        default : 'view'
     }
 });
 

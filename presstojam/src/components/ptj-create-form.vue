@@ -2,12 +2,12 @@
  <form @submit.prevent="submit" v-show="fstate==0" class="ptj-form" :class="Map.model + ' ' + Map.state">
     <div class="ptj-form-error" v-show="globalerror">{{ globalerror }}</div>
     <ptj-form-row v-for="field in cdata.cells" :key="field.name" :field="field">
-          <ptj-asset v-if="field.type=='asset'" type="post"  :field="field" />
-          <ptj-number v-else-if="field.type=='number'" type="post"  :field="field"/>
-          <ptj-flag v-else-if="field.type=='flag'" type="post"  :field="field" />
-          <ptj-id v-else-if="field.type=='id'" type="post"  :field="field"  :parent="Map.key" />
-          <ptj-time v-else-if="field.type=='time'" type="post"   :field="field" />
-          <ptj-string v-else-if="field.type=='string'" type="post"  :field="field" />
+          <ptj-asset v-if="field.type=='asset'" :field="field" />
+          <ptj-number v-else-if="field.type=='number'" :field="field"/>
+          <ptj-flag v-else-if="field.type=='flag'" :field="field" />
+          <ptj-id v-else-if="field.type=='id'" :field="field"  :parent="Map.key" />
+          <ptj-time v-else-if="field.type=='time'" :field="field" />
+          <ptj-string v-else-if="field.type=='string'" :field="field" />
           <ptj-form-row :field="field" v-if="field.encrypted">
             <ptj-confirm :field="field" />
           </ptj-form-row>
@@ -50,11 +50,12 @@ let fstate = 0;
 
 
 const load = async() => {
-    return client.post("/route/" + Map.route + "/" + Map.model)
+    return client.post("/meta/" + Map.model)
     .then(response => {
         const meta = new MetaRow();
         meta.map(response.fields);
         cdata.applyMetaRow(meta);
+        cdata.setMode('post');
 
         let promises = [];
         for(let i in meta.cells) {

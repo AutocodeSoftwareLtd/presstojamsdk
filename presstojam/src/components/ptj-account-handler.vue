@@ -74,19 +74,20 @@ function toggleState(state) {
 
 //load our modules
 
-client.post("/route/" + Map.route + "/" + Map.model)
+client.post("/meta/" + Map.model)
 .then(response => {
     let meta = new MetaRow();
     meta.map(response.fields);
     store.register_data.applyMetaRow(meta);
+    store.register_data.setMode("edit");
 });
 
-client.post("/route/" +  Map.route + "/" + Map.model + "/login")
+client.post("/meta/" +  Map.model + "/login")
 .then(response => {
     let meta = new MetaRow();
     meta.map(response.fields);
     store.login_data.applyMetaRow(meta);
-
+    store.login_data.setMode("edit");
     store.forgot_password.applyMetaRow(meta);
 });
 
@@ -95,7 +96,7 @@ function submit() {
     store.active = false;
     store.globalerror = "";
     if (store.state == "login") {
-        return client.post("/data/" + Map.model + "/login", store.login_data.serialize("login"))
+        return client.post("/login/" + Map.route, store.login_data.serialize("login"))
         .then(response => {
             refresh();
         })
@@ -111,7 +112,7 @@ function submit() {
             store.globalerror = "Incorrect username / password";
         });
     } else {
-        return client.post("/data/" + Map.model, store.register_data.serialize("post"))
+        return client.post("/data/user-login", store.register_data.serialize("post"))
         .then(response => {
             refresh();
         })

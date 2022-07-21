@@ -52,7 +52,7 @@ export function loadRoute() {
     RouteStore.route.title = "";
     RouteStore.route.name = "";
     RouteStore.sort = false;
-    return client.get("/nav/route-points/" + Map.route + "/" + Map.model)
+    return client.get("/route/" + Map.route + "/" + Map.flow + "/" + Map.model)
     .then(response => {   
         RouteStore.route.children = response.children;
         RouteStore.route.perms = response.perms;
@@ -78,7 +78,7 @@ export function loadSlugTrail() {
         return;
     }
 
-    return client.get("/slug/" + Map.route + "/" + Map.model, params)
+    return client.get("/slug/" + Map.route + "/" + Map.flow + "/" + Map.model, params)
     .then(response => {
         RouteStore.slug = response;
         for(let i in RouteStore.slug) {

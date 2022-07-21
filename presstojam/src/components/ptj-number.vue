@@ -1,12 +1,12 @@
 <template>
-  <input v-if="type=='edit' || type=='post'"
+  <input v-if="field.mode=='edit' || field.mode=='post'"
         class="ptj-form-number" 
         :name="field.name" 
         type="number" 
         v-model="field.change" 
         v-bind="atts"
         @blur="field.validateon = true" >
-   <div v-else-if="type=='filter'">
+   <div v-else-if="field.mode=='filter'">
        <input
         class="ptj-form-filter-number ptj-min" 
         :name="field.name" 
@@ -29,11 +29,7 @@
 import { computed } from "vue"
 
 const props = defineProps({
-    field : Object,
-    type : {
-        type : String,
-        default : 'view'
-    }
+    field : Object
 });
 
 

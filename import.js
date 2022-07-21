@@ -1,9 +1,9 @@
 import PTJUser from "./presstojam/src/components/ptj-user.vue"
-import PTJRoute from "./presstojam/src/components/ptj-router.vue"
+import PTJRoute from "./presstojam/src/components/ptj-route.vue"
 import { PtjRun } from "./presstojam/src/js/controller.js"
 import Client from "./presstojam/src/js/client.js"
 import { createApp } from "vue"
-import { loadNav } from "./presstojam/src/js/user.js"
+
  
 export function runApp(mount, user_settings) {
     PtjRun(user_settings)

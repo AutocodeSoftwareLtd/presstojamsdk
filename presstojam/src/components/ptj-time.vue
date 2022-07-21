@@ -1,11 +1,11 @@
 <template>
-  <input v-if="ctype=='edit' || ctype == 'post'"
+  <input v-if="field.mode=='edit' || field.mode == 'post'"
         :name="field.name" 
         type="datetime-local" 
         v-model="field.change" 
         v-bind="field.atts"
         @blur="field.validateon = true">
-   <div v-else-if="ctype=='filter'">
+   <div v-else-if="field.mode=='filter'">
       <input 
         type="datetime-local" 
         :name="field.name + 'min'"
@@ -25,14 +25,7 @@
 <script setup>
 import { computed } from "vue"
 const props = defineProps({
-    field : Object,
-    type : {
-        default : 'view',
-        type : String
-    }
+    field : Object
 });
 
-let ctype = computed(() => {
-    return (props.type == 'edit' && props.field.immutable) ? "view" : props.type;
-});
 </script>

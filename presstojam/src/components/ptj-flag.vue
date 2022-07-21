@@ -1,6 +1,6 @@
 <template>
-    <input class="ptj-checkbox" type="checkbox" :true-value="1" :false-value="0" :name="field.name" v-model="field.change" v-if="ctype=='edit' || type == 'post'">
-    <select v-else-if="ctype=='filter'" :name="field.name" v-model="field.change1" class="ptj-filter-form-checkbox">
+    <input class="ptj-checkbox" type="checkbox" :true-value="1" :false-value="0" :name="field.name" v-model="field.change" v-if="field.mode=='edit' || field.mode == 'post'">
+    <select v-else-if="field.mode=='filter'" :name="field.name" v-model="field.change1" class="ptj-filter-form-checkbox">
         <option :value='0'>{{ "All" }}</option>
         <option :value='1'>{{ "Checked" }}</option>
         <option :value='2'>{{ "Unchecked" }}</option>
@@ -15,16 +15,9 @@ import client from "./../js/client.js"
 
 const props = defineProps({
     field : Object,
-    type : {
-        type : String,
-        default : 'view'
-    },
     id : Number
 });
 
-let ctype = computed(() => {
-    return (props.type == 'edit' && props.field.immutable) ? "view" : props.type;
-});
 
 function submit() {
     let params = {};

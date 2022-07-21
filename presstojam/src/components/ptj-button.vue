@@ -17,7 +17,7 @@ const props = defineProps({
 
 function run() {
     for(let i in props.route) {
-        Map[i] = props.route[i];
+        if (props.route[i] !== null) Map[i] = props.route[i];
     }
     Map.params = {};
     redirect();
