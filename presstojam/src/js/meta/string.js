@@ -4,7 +4,8 @@ export class String extends Field {
 
     constructor(name, obj) {
         super(name);
-
+        this._encrypted = false;
+        this._options = {};
         if (obj) this.apply(obj);
     }
 
@@ -21,6 +22,14 @@ export class String extends Field {
         options.value = opts;
     }
 
+    isEnum() {
+        if (this._contains.length < 2) return false; //not enum if length is one
+        for(let exp of this._contains) {
+            if (exp[0] == "/") return false; //not enum if anything is a regular expression
+        }
+        return true;
+    }
+
 
     addAPIParam(obj, val) {
         if (val) {
@@ -32,28 +41,5 @@ export class String extends Field {
         }
     }
 
-    getChange1(store) {
-        if (store.change == null) store.change = store.value;
-        if (store.change == null) return [];
-        else return store.change;
-    }
-
-
-    setChange1(store, val) {
-        if (store.change == null) store.change = [];
-        store.change.push(this.clean(val));
-        store.error = this.validate(val);
-    }
-
-
-    getFilter(store) {
-        return store.value;
-    }
-
-
-    setFilter(store, val) {
-        if (Array.isArray(val)) store.value = val;
-        else if (val) store.value = [val];
-    }
-
+   
 }

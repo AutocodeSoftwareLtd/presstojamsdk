@@ -1,23 +1,21 @@
 <template>
-   <input v-if="field.mode=='edit'  || field.mode == 'post'" class="ptj-form-asset" 
-    ref="input" @change="setFile" 
-    :name="field.meta.name" 
-    type="file" >
-   <span v-else>{{ field.val }}   <a @click="download()"><span class="material-icons">download</span></a></span>
+   <span>{{ modelValue }}   <a @click="download()"><span class="material-icons">download</span></a></span>
    
 </template>
 
 <script setup>
 import client from "./../js/client.js"
+import { inject } from "vue"
+
+const field = inject("cell");
 
 
 const props = defineProps({
-    field : Object,
-    id : Number
+    modelValue : String
 });
 
 function download() {
-    client.getAsset("/asset/" + props.field.model + "/" + props.field.name + "/" + props.id)
+    client.getAsset("/asset/" + field.model + "/" + field.name + "/" + props.id)
     .then(blob => {
 
         const anchor = document.createElement("a");

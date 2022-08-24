@@ -1,119 +1,106 @@
 <template>
-  <div class="ptj-table-wrapper">
-    <table class="ptj-table" :class="Map.model">
-    <thead>
-        <tr class="ptj-table-header" ref="tableheader">
-        <th v-for="cell in RepoStore.meta.cells" 
-            v-show="cell.summary" 
-            :key="cell.name" 
-            class="ptj-table-header-cell"
-            :class="cell.name"
-            @click="orderBy(cell.name);"
-        >{{ getDictionary('label', { "model" : cell.model, "field" : cell.name, default : cell.name }) }}
-            <span v-if="order.name == cell.name && order.dir == 'asc'" 
-                class="material-icons" 
-                >keyboard_arrow_up</span>
-            <span v-if="order.name == cell.name && order.dir == 'desc'" 
-                class="material-icons" 
-                >keyboard_arrow_down</span>
-        </th>
-        <th class="ptj-actions">
-            <ptj-modal v-if="settings.disable_selectfields != true" :location="false" :relative="tableheader">
-                <template #button>
-                    <span class="material-icons">add</span> 
+    <div>
+        <div class="card">
+            <Toolbar class="mb-4">
+                <template #start>
+                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createRow" />
+                    <Button label="Delete" icon="pi pi-trash" class="p-button-danger"
+                        :disabled="!store.selected || !store.selected.length" />
                 </template>
-                <template #default>
-                    <ptj-selectfields ></ptj-selectfields> 
+
+                <template #end>
+                    <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import"
+                        class="mr-2 inline-block" />
+                    <Button label="Export" icon="pi pi-upload" class="p-button-help"  />
                 </template>
-            </ptj-modal>
-        </th>
-        </tr>
-    </thead>
-    <tbody>
-      <tr v-for="(obj, rindex) in RepoStore.data" :key="rindex" class="ptj-table-row">
-        <td v-for="(field, name) in obj.cells" :key="name" v-show="field.summary" class="ptj-table-cell" :class="field.name">
-          <ptj-asset v-if="field.type=='asset'" :field="field" :id="obj.primary" />
-          <ptj-number v-else-if="field.type=='number'" :field="field" />
-          <ptj-flag v-else-if="field.type=='flag'" :field="field" :id="obj.primary" />
-          <ptj-id v-else-if="field.type=='id'" :field="field" />
-          <ptj-time v-else-if="field.type=='time'" :field="field" />
-          <ptj-string v-else-if="field.type=='string'" :field="field"  />
-        </td>
-        <td class="ptj-actions" >
-            <ptj-button :route="{state:'primary', key:obj.primary}"><span class="material-icons">arrow_forward_ios</span></ptj-button>
-        </td>
-      </tr>
-    </tbody>
-    </table>
-  </div>
+            </Toolbar>
+
+            <DataTable :value="store.data" v-model:selection="store.selected" dataKey="--id" 
+                :paginator="true" :rows="10" 
+                v-model:filters="store.filters" filterDisplay="menu"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :rowsPerPageOptions="[5,10,25]"
+                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" 
+                responsiveLayout="scroll">
+    
+                <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+                <Column v-for="cell in cells" :field="cell.name"
+                    :header="getDictionary('label', { model: cell.name, field: cell.name, default: cell.name })"
+                    :key="cell.name">
+                    <template #filter>
+                        <ptj-filter-field :field="cell" class="p-column-filter" />
+                    </template>
+                    <template #body="slotProps">
+                        <ptj-view-field v-model="slotProps.data[cell.name]" :field="cell" />
+                    </template>
+                </Column>
+                <Column :exportable="false" style="min-width:8rem">
+                    <template #body="slotProps">
+                        <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editRow(slotProps.data)" />
+                        <Button icon="pi pi-trash" class="p-button-rounded p-button-warning" @click="confirmDeleteRow(slotProps.data)" />
+                    </template>
+                </Column>
+            </DataTable>
+        </div>
+    </div>
+    <Dialog v-model:visible="editDialog" :style="{width: '450px'}" header="Product Details" :modal="true" class="p-fluid">
+        <PtjForm />
+    </Dialog>
+
 </template>
 
 <script setup>
-
-import PtjNumber from "./ptj-number.vue"
-import PtjFlag from "./ptj-flag.vue"
-import PtjId from "./ptj-id.vue"
-import PtjTime from "./ptj-time.vue"
-import PtjString from "./ptj-string.vue"
-import PtjAsset from "./ptj-asset.vue"
-import PtjButton from "./ptj-button.vue"
-import PtjSelectfields from "./ptj-selectfields.vue"
-import PtjModal from "./ptj-modal.vue"
-import { reactive, ref } from "vue"
-import { RepoStore } from "./../js/repo.js"
-import { getModelSettings } from "./../js/route.js"
+import { FilterMatchMode,FilterOperator } from 'primevue/api';
+import Button from "primevue/Button"
+import DataTable from "primevue/DataTable"
+import Column from 'primevue/column';
+import Row from 'primevue/row';  //optional for row
+import Dialog from 'primevue/dialog';
+import PtjViewField from "./ptj-view-field.vue"
+import PtjFilterField from "./ptj-filter-field.vue"
+import PtjForm from "./ptj-form.vue"
+import { provide, ref, computed } from "vue"
 import { getDictionary } from "./../js/dictionary.js"
-import { Map } from "./../js/map.js"
+import { routeStore } from './../js/controller.js'
+import { getMeta } from "./../js/metalibrary.js"
+import { getData } from "./../js/datastore.js"
+
+/*
+
+*/
+const editDialog = ref(false);
+const cells = ref({});
 
 
-let settings = getModelSettings();
-let order = reactive( { name : '', dir : ''});
-const tableheader = ref(null);
+provide("meta", cells);
 
-function orderBy(name) {
-    if (RepoStore.meta.pages > 0) {
-        order.dir = (!order.name != name || order.dir  == "desc") ? "asc" : "desc";
-        order.name = name;
-        let sort = [];
-        sort[order.name] = order.dir;
-        RepoStore.meta.sort = sort;
-        load();
-    } else {
-        //custom sort on the table
-        if (order.name != name || order.dir == "desc") {
-            RepoStore.data.sort(function(x, y) {
-                let xval = x.getCell(name).val;
-                let yval = y.getCell(name).val;
-                if (xval < yval) {
-                    return -1;
-                } else if (xval > yval) {
-                    return 1;
-                } else {
-                    return 0;
-                }
-            });
-            order.name = name;
-            order.dir = "asc";
-        } else {
-            RepoStore.data.sort(function(x, y) {
-                let xval = x.getCell(name).val;
-                let yval = y.getCell(name).val;
-                if (xval < yval) {
-                    return 1;
-                } else if (xval > yval) {
-                    return -1;
-                } else {
-                    return 0;
-                }
-            });
-            order.name = name;
-            order.dir = "desc";
-        }
-    }
+
+
+
+const data_store = getData(routeStore.route.name);
+const store =data_store.store;
+provide("store", store);
+
+getMeta(routeStore.route.name)
+.then(mcells=> {
+    cells.value = mcells;
+    data_store.createFilters(cells.value);
+});
+
+
+function editRow(row) {
+    store.active = { ...row };
+    editDialog.value =true;
+}
+
+function createRow() {
+    store.active = {};
+    editDialog.value = true;
 }
 
 
-
+function confirmDeleteRow(product) {
+    
+}
 
 </script>
 

@@ -1,6 +1,39 @@
 import { reactive} from "vue"
 import { createField } from "./meta/fieldfactory.js"
+import client from "./client.js"
 
+const store = {};
+const state_groups = {};
+
+
+export async function getMeta(model, params = {}) {
+    if (store[model]) return Promise.resolve(store[model]);
+
+    //otherwise we have to load
+    return client.get("/meta/" + model, params)
+    .then(response => {
+        store[model] = {};
+
+        const fields = response.fields;
+       
+        for (let i in fields) {
+            const field = fields[i];
+
+            store[model][i] = createField(i, field);
+
+            if (field.states) {
+                state_groups[i] = {};
+                for(const state of field.states) {
+                    if (!state_groups[i][state.depends_on]) state_groups[i][state.depends_on] = [];
+                    state_groups[i][state.depends_on].push(state); 
+                }
+            }
+        }
+        return store[model];
+    });
+}
+
+/*
 export class MetaRow {
 
     constructor() {
@@ -100,3 +133,4 @@ export class MetaRow {
     }
 
 }
+*/

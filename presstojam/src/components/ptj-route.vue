@@ -1,41 +1,34 @@
 <template>
-    <ptj-slug-trail />
-    <Suspense>
-        <template #default>
-            <div :class="[Map.model, Map.state]">
-            <h1>{{ RouteStore.title }}</h1>
-            <component v-if="component" :is="component" />
-            </div>
-        </template>
-        <template #fallback>
-            <div>Loading ...</div>
-        </template>
-    </Suspense>
+ <router-view><component :is="component" /></router-view>
 </template>
 <script setup>
 
-import { computed, onMounted } from "vue"
-import PtjSlugTrail from "./ptj-slug-trail.vue"
-import { RouteStore, loadRoute, loadSlugTrail } from "../js/route.js"
-import PtjRepo from "./ptj-repo.vue"
-import PtjPrimary from "./ptj-primary.vue"
-import PtjAccountHandler from "./ptj-account-handler.vue"
-import { Map } from "../js/map.js"
+import PtjPrimary from "./../components/ptj-primary.vue";
+import PtjTree from "./../components/ptj-tree.vue";
+import PtjTable from "./../components/ptj-table.vue";
+import PtjTreeChildren from "./../components/ptj-tree.vue";
+import PtjTableChildren from "./../components/ptj-table.vue";
+import { computed } from "vue"
+import { routeStore } from './../js/controller.js'
 
 
-const component = computed(() => {
-    if (!RouteStore.component) return null;
-    else if (RouteStore.component == "ptj-primary") return PtjPrimary;
-    else if (RouteStore.component == "ptj-repo") return PtjRepo;
-    else if (RouteStore.component == "ptj-account-handler") return PtjAccountHandler;
+
+function getComponent() {
+    if (routeStore.route.children.length > 0) {
+        if (routeStore.route.recursive) return PtjTreeChildren;
+        return PtjTableChildren;
+    } else {
+        if (routeStore.route.recursive) return PtjTree;
+        else return PtjTable;
+    }
+}
+
+
+let component = computed(() => {
+    return getComponent();
 });
 
 
 
-
-onMounted(() => {
-    loadSlugTrail();
-    return loadRoute();
-});
 
 </script>

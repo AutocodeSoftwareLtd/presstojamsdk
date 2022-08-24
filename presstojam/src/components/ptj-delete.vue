@@ -8,7 +8,7 @@
 
 import client from "./../js/client.js"
 import { ref, computed } from "vue";
-import { redirect } from "./../js/route.js"
+import { reload } from "../js/controller.js"
 import { Map } from "./../js/map.js"
 import { getDictionary } from "./../js/dictionary.js"
 

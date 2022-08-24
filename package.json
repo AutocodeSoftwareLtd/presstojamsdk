@@ -4,7 +4,7 @@
   "main": "dist/ptj.min.js",
   "module": "dist/ptj.esm.js",
   "browser": "dist/ptj.min.js",
-  "version": "3.0.38",
+  "version": "3.0.41",
   "public": true,
   "repository": {
     "type": "git",
@@ -36,7 +36,12 @@
   },
   "dependencies": {
     "@presstojam/presstojamsdk": "^3.0.10",
+    "@vitejs/plugin-vue": "^3.0.3",
+    "primeicons": "^5.0.0",
+    "primevue": "^3.16.2",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "vue": "^3.2.33"
+    "vite": "^3.0.9",
+    "vue": "^3.2.33",
+    "vue-router": "^4.1.4"
   }
 }

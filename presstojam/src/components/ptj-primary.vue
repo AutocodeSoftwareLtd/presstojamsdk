@@ -10,12 +10,7 @@
     </ptj-modal>
     <div class="ptj-primary" :class="Map.model" v-if="store.fstate == 0">
         <ptj-form-row v-for="field in store.data.cells" :key="field.name" :field="field"> 
-          <ptj-asset v-if="field.type=='asset'" :field="field" :id="store.data.primary" />
-          <ptj-number v-else-if="field.type=='number'" :field="field" />
-          <ptj-flag v-else-if="field.type=='flag'" :field="field" :id="store.data.primary" />
-          <ptj-id v-else-if="field.type=='id'" :field="field" :parent="store.data.parent" />
-          <ptj-time v-else-if="field.type=='time'" :field="field" />
-          <ptj-string v-else-if="field.type=='string'" :field="field"  />
+          <ptj-view-field />
         </ptj-form-row>
         <input v-if="store.type =='edit'" type="submit" :value="getDictionary('ptj-primary-put-btn')" class="ptj-form-submit" @click="submit">
     </div>
@@ -28,22 +23,11 @@
 
 <script setup>
 import client from "./../js/client.js"
-import PtjNumber from "./ptj-number.vue"
-import PtjAsset from "./ptj-asset.vue"
-import PtjFlag from "./ptj-flag.vue"
-import PtjId from "./ptj-id.vue"
-import PtjTime from "./ptj-time.vue"
-import PtjString from "./ptj-string.vue"
+import PtjViewField from "./ptj-view-field.vue"
 import { DataRow } from "./../js/datarow.js"
-import { reactive, ref, computed, onMounted, onBeforeUnmount } from "vue"
+import { reactive, computed, onMounted, onBeforeUnmount } from "vue"
 import PtjDelete from "./ptj-delete.vue"
-import PtjModal from "./ptj-modal.vue"
-import PtjForm from "./ptj-create-form.vue"
-import PtjButton from "./ptj-button.vue"
-import PtjFormRow from "./ptj-form-row.vue"
-import { MetaRow } from "./../js/metarow.js"
-import {RouteStore, getModelSettings } from "./../js/route.js"
-import { Map } from "./../js/map.js"
+import { getMeta } from "../js/metalibrary.js"
 import { getDictionary } from "./../js/dictionary.js"
   
 

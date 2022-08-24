@@ -11,7 +11,6 @@ export class ID extends Field {
         this._include_fields = [];
         this._recursive = false;
         this._reference_to;
-
         this._default_val = 0;
         if (obj) this.apply(obj);
         if (obj.includes) this._include_fields = obj.includes;
@@ -20,6 +19,9 @@ export class ID extends Field {
 
 
     setReferenceOptions(url, params) {
+        if (this._options) {
+            return Promise.resolve(this._options);
+        }
         return Client.get(url, params)
         .then(response => {
             let options = [];
@@ -33,27 +35,14 @@ export class ID extends Field {
                 }
                 options.push({ key: key, value: vals.join(" ", vals) });
             }
-           return options;
+            this._options = options;
+           return this._options;
         })
         .catch(e => {
             console.log(e);
         });
     }
 
-
-    getChange1(store) {
-        if (store.change == null) store.change = store.value;
-        let val = (store.change == null) ? [] : store.change;
-        return val;
-    }
-
-    
-    setChange1(store, val) {
-        if (store.change == null) store.change = [];
-        if (store.change.includes(val)) return;
-        store.change.push(this.clean(val));
-        store.error = this.validate(val);
-    }
 
     get reference() {
         return this._reference;

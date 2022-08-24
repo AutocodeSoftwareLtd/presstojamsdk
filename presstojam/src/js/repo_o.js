@@ -1,9 +1,9 @@
-import { MetaRow } from "./metarow.js"
+
 import { DataRow } from "./datarow.js"
 import { Map } from "./map.js"
 import { reactive } from "vue"
 import client from "./client.js"
-import { getModelSettings } from "./route.js" 
+import { getModelSettings } from "./routes.js" 
 
 
 export const RepoStore = reactive({meta : new MetaRow, data : [], indexes : {}, search : new DataRow() });

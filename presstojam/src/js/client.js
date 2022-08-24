@@ -39,6 +39,21 @@ export default {
         .then(response => {
             if (response.ok) {
                 return response.json();
+            } else if (response.status == 403) {
+                let new_options = {...options};
+                new_options.headers.set("X-Force-Auth-Cookies", 1);
+                new_options.method = "PUT";
+                return fetch(main_url + "/core/switch-tokens", new_options)
+                .then(() => {
+                    return fetch(main_url + url, options);
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw response;
+                    }
+                });
             } else {
                 throw response;
             }

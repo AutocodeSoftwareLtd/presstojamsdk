@@ -12,22 +12,4 @@ export class Flag extends Field {
         return (val) ? 1 : 0;
     }
 
-
-    getChange1(store) {
-        if (store.change == null) store.change = store.value;
-        if (store.change == null) return 0;
-        else if (!store.change) return 2;
-        else return store.change;
-    }
-
-    setChange1(store, val) {
-        if (val == 0) {
-            store.change = null;
-            return;
-        }
-        if (val == 2) val = 0;
-        store.change = this.clean(val);
-        store.error = this.validate(val);
-    }
-
 }

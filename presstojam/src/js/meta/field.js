@@ -7,10 +7,8 @@ export class Field {
 
     constructor(name) {
         this._name = name;
-        this._store = reactive({ summary : 0});
         this._default_val = null;
         this._immutable = false;
-        this._encrypted = false;
         this._min = null;
         this._max = null;
         this._contains = [];
@@ -32,23 +30,11 @@ export class Field {
             })
           }
         });
-      
-      
-        this.summary = computed({
-            get : () => {
-                return this._store.summary;
-            },
-            set : (val) => {
-                this._store.summary = (val) ? 1 : 0;
-            }
-        })
-
     }
 
     apply(obj) {
         for (let x in obj) {
-            if (x == "summary") this.summary = (obj[x]) ? 1 : 0;
-            else if (x == "validation") continue;
+            if (x == "validation") continue;
             else if (x == "type") this.type = obj[x].toLowerCase();
             else this[x] = obj[x];
         }
@@ -122,40 +108,15 @@ export class Field {
         }
     }
 
-
-    getVal(store) {
-        return store.value;
-    }
-
-    setVal(store, val) {
-        store.value = this.clean(val);
-        store.error = this.validate(val);
-    }
-
-    getChange(store) {
-        if (store.change == null) return store.value;
-        else return store.change;
-    }
-
-    setChange(store, val) {
-        store.change = this.clean(val);
-        store.error = this.validate(val);
-        this.trigger(val);
-    }
-
-    getFilter(store) {
-        return store.value;
-    }
-    
-    setFilter(store, val) {
-        store.value = val;
-    }
-
     getErrorVal(error) {
         if (error == Errors.MIN_VALUE) return this.min;
         else if (error == Errors.MAX_VALUE) return this._max;
         else if (error == Errors.HAS) return this._contains.join(" | ");
         else if (error == Errors.HAS_NOT) return this._notcontains;
+    }
+
+    display(val) {
+        return val;
     }
 }
 
