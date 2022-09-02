@@ -1,52 +1,74 @@
 <template>
    <div v-if="field.encrypted">
-       <label>{{ getDictionary(field.model + "-" + field.name) }}</label><Password v-model="modelValue" />
-       <label>{{ getDictionary(field.model + "-" + field.name + "-confirm") }}</label><Password v-model="modelValue" />
+       <Password v-model="modelValue" class="focus:border-primary"/>
    </div>
    <textarea v-if="tag=='textarea'"
         v-bind="atts" 
         :name="field.name" 
-        v-model="store.active[field.name]"></textarea>
+        class="focus:border-primary"
+        v-model="value"></textarea>
   <Dropdown v-else-if="tag=='select'" 
-        v-model="store.active[field.name]"
+        v-model="value"
         :name="field.name"
         v-bind="atts"
         optionLabel="value"
         optionValue="key"
         :options="options"
+        class="focus:border-primary"
          @blur="field.validateon = true"
         >
   </Dropdown>
   <InputText v-else v-bind="atts"
         :name="field.name"
-        v-model="store.active[field.name]" 
+        class="focus:border-primary"
+        v-model="value" 
         @blur="field.validateon = true" />
 </template>
 
 <script setup>
-import { ref, inject } from "vue"
+import { ref } from "vue"
 import Dropdown from 'primevue/dropdown';
 import Password from 'primevue/password';
 import InputText from 'primevue/inputtext'
-import { getDictionary } from "./../../js/dictionary.js"
+import { useI18n } from 'vue-i18n';
 
 
 import { computed } from "vue"
 
-const field = inject("cell");
-const store = inject("store");
+const props = defineProps({
+    modelValue : [String],
+    field : {
+        type : Object,
+        required : true
+    }
+});
+
+const emits = defineEmits([
+    "update:modelValue"
+]);
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        emits('update:modelValue', val);
+    }
+});
+
 
 const options = ref([]);
 
+const { te, t } = useI18n();
 
 
 const tag = computed(() => {
-if (field.isEnum()) {
-    field.setContainsAsOptions(options);
+if (props.field.isEnum()) {
+    props.field.setContainsAsOptions(options);
     return "select";
-} else if (field.encrypted) {
+} else if (props.field.encrypted) {
     return "input";
-} else if (field.html || field.max > 300) {
+} else if (props.field.html || props.field.max > 300) {
     return "textarea";
 } else {
     return "input";
@@ -56,21 +78,21 @@ if (field.isEnum()) {
 
 const atts = computed(() => {
 let atts = {};
-if (field.encrypted) {
+if (props.field.encrypted) {
     atts.type = "password";
 }
 
-if (field.immutable) {
+if (props.field.immutable) {
     atts.readonly = true;
 }
 
 
-let pholder = getDictionary('placeholder', { "model" : field.model, "field" : field.name });
+let pholder = te("models." + props.field.model + ".fields." + props.field.name + ".placeholder");
 if (pholder) {
-    atts.placeholder = pholder;
+    atts.placeholder = t("models." + props.field.model + ".fields." + props.field.name + ".placeholder");
 }
 
-if (field.contains.includes("html")) {
+if (props.field.contains.includes("html")) {
     atts["data-html"] = 1;
 }
 return atts;

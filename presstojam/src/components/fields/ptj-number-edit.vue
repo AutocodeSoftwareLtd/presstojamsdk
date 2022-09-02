@@ -1,30 +1,45 @@
 <template>
    <InputNumber
-        class="" 
+        class="focus:border-primary"
         :name="field.name" 
-        v-model="store.active[field.name]" 
+        v-model="value" 
         v-bind="atts"
         @blur="field.validateon = true" />
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed } from "vue"
 import InputNumber from "primevue/InputNumber"
 
-const field = inject("cell");
-const store = inject("store");
+const props = defineProps({
+    modelValue : [Number, Boolean],
+    field : Object
+});
+
+const emits = defineEmits([
+    "update:modelValue"
+]);
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        emits('update:modelValue', val);
+    }
+});
 
 
 
 const atts = computed(() => {
     let atts = {};
-    if (field.round) {
+    if (props.field.round) {
         let step = "0.";
-        for(let i=0; i<field.round - 1; ++i) {
+        for(let i=0; i<props.field.round - 1; ++i) {
             step += "0";
         }
         step += "1";
-        atts["step"]  = step;
+        atts["step"]  = parseInt(step);
     }
     return atts;
 });

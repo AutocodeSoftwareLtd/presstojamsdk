@@ -1,13 +1,29 @@
 <template>
-    <Calendar id="range" v-model="store.filters[cell.name]" selectionMode="range" :manualInput="false" />
+    <Calendar id="range" v-model="value" selectionMode="range" :manualInput="false" />
 </template>
 
 <script setup>
-import { inject } from "vue"
 import Calendar from "primevue/Calendar"
+import { computed } from "vue"
 
-const cell = inject("cell");
-const store = inject("store");
+const props = defineProps({
+    modelValue : [Number, Boolean],
+    field : Object
+});
+
+const emits = defineEmits([
+    "update:modelValue"
+]);
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        emits('update:modelValue', val);
+    }
+});
+
 
 
 </script>

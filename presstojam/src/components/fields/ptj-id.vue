@@ -2,18 +2,16 @@
     <span>{{ display }}</span>
 </template>
 <script setup>
-import { computed,inject } from "vue"
-
-
-const cell = inject("cell");
+import { computed } from "vue"
 
 const props = defineProps({
-    modelValue : [Number, String ]
+    modelValue : [Number, String ],
+    field : Object
 });
 
 
 let display = computed(() => {
-    return (cell.reference) ? "" : props.modelValue; 
+    return (props.field.reference) ? "" : props.modelValue; 
 });
 
 

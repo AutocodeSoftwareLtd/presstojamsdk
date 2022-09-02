@@ -1,15 +1,13 @@
 <template>
-    <span>{{ field.display(props.modelValue) }}</span>
+    <span>{{ field.display(modelValue) }}</span>
 </template>
 
 <script setup>
-import { inject } from "vue"
 import client from "./../../js/client.js"
 
-const field = inject("cell");
-
 const props = defineProps({
-    modelValue : [Number, Boolean]
+    modelValue : [Number, Boolean],
+    field : Object
 });
 
 

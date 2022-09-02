@@ -8,9 +8,6 @@
 
 import client from "./../js/client.js"
 import { ref, computed } from "vue";
-import { reload } from "../js/controller.js"
-import { Map } from "./../js/map.js"
-import { getDictionary } from "./../js/dictionary.js"
 
 const props = defineProps({
     check_str : {

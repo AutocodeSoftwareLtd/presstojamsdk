@@ -3,11 +3,10 @@
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
 
-const field = inject("cell");
 const props = defineProps({
-    modelValue : [Number, String]
+    modelValue : [Number, String],
+    field : Object
 });
 
 </script>

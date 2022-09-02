@@ -1,23 +1,43 @@
 <template>
-  <MultiSelect v-if="field.reference" :field="field" :options="options" optionLabel="key" optionValue="value" v-model="store.filters[field.name]" />
-  <Chips v-model="store.filters[field.name]" v-else  />
+  <MultiSelect v-if="field.reference" :field="field" :options="options" optionLabel="key" optionValue="value" v-model="value" />
+  <Chips v-model="value" v-else  />
 </template>
 
 
 <script setup>
-import { computed, ref, onMounted, inject } from "vue"
+import { ref, onMounted, inject, computed } from "vue"
 import MultiSelect from 'primevue/multiselect';
 import Chips from 'primevue/chips';
-import { getReference } from "./../../js/datastore.js"
+import { getDataStoreById } from "./../../js/datastore.js"
 
-const field = inject("cell");
-const store = inject("store");
+const props = defineProps({
+    modelValue : [Number, Boolean],
+    field : Object
+});
+
+
+const emits = defineEmits([
+    "update:modelValue"
+]);
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        emits('update:modelValue', val);
+    }
+});
+
+const model = inject("model");
+const active_store = getDataStoreById(model);
+
 
 
 const options = ref([]);
 
 async function getOptions() {
-    getReference(field.model, field.name, id)
+    active_store.getReference(field.name)
     .then(response => {
         options.value = response;
     });

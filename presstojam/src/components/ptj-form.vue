@@ -1,79 +1,68 @@
 <template>
 
- <form @submit.prevent="submit" class="card" v-show="fstate==0">
-    <small class="p-error" v-show="globalerror">{{ globalerror }}</small>
-    <div class="field" v-for="field in fields" :key="field.name" :field="field">
-        <label :for="field.name">{{ getDictionary("", { model : field.model, field : field.name, default : field.name }) }}</label>
-        <ptj-edit-field :field="field" />
+ <form @submit.prevent="submit" class="card">
+    <small class="p-error" v-show="errors.__global">{{ errors.__global }}</small>
+    <div class="field" v-for="field in cells" :key="field.name" :field="field">
+        <label :for="field.name">{{ $t("models." + field.model + ".fields." + field.name + ".label") }}</label>
+        <ptj-edit-field :field="field" v-model="proxy_values[field.name]" />
+        <ptj-error :field="field" v-if="active_validation && errors[field.name]" :error="errors[field.name]" />
     </div>
-    <Button :label="getDictionary('ptj-create-form-btn')" 
-    icon="pi pi-check" iconPos="right" @click="$emit('save')" />
+    <Button :label="$t('btns.save')" @click="submit" />
   </form>
   
 </template>
 
 <script setup>
 
-import { inject, ref } from "vue" 
+import { inject, computed, ref, reactive } from "vue" 
 import PtjEditField from "./ptj-edit-field.vue"
-import { getDictionary } from "./../js/dictionary.js"
-import Button from 'primevue/Button';
+import Button from 'primevue/Button'
+import PtjError from "./ptj-error.vue"
+import { getDataStoreById } from "./../js/datastore.js"
 
+const model = inject("model");
+const active_store = getDataStoreById(model);
+const store = active_store.store;
+const active_validation = ref(false);
 
-const fields = inject("meta");
+const cells = computed(() => {
+    const fields = {};
+    for(let i in store.route.schema) {
+        if (!store.route.schema[i].background) fields[i] = store.route.schema[i];
+    }
+    return fields;
+});
 
+const errors = reactive({});
+const proxy_values = reactive({});
 
-let globalerror = ref('');
-
-
-let fstate = 0;
+for(const field in cells.value) {
+    proxy_values[field] = computed({
+        get() {
+            return store.active[field];
+        },
+        set(val) {
+            const result = store.route.schema[field].validate(val);
+            if (result) {
+                errors[field] = result;
+            }
+            store.active[field] = val;
+        }
+    });
+}
 
 
 function submit() {
-
-    fstate = (progress.total > 0) ? 1 : 2;
-    cdata.clearErrors();
-    let key = 0;
-    let ndata = cdata.serialize();
-    if (Map.key) ndata["--parentid"] = Map.key;
-    return client.post("/data/" + Map.model, ndata)
-    .then(response=>{
-        key = response["--id"];
-        let promises = [];
-        let assets = cdata.getCellByType("asset");
-        progress.total = 0;
-        for(let i in assets) {
-            const val = assets[i].val;
-            if (!val) continue;
-            ++progress.total;
-            const asset = new Asset();
-            asset.url = "/asset/" + Map.model + "/" + i + "/" + response["--id"];
-            let promise = asset.saveFile(assets[i].val)
-            .then(() => {
-                ++progress.progress;
-            });
-            promises.push(promise);
-        }
-        return Promise.all(promises);
-    })
-    .then(() => {
-        cdata.reset();
-        loadRepo();
-        emit("close");
-    })
-    .catch(err => {
-            //show error fields, mark fields as invalidated
-        fstate = 0;
-        return err.json()
-        .then(response => {
-            const msg = response.exception[0];
-            if (msg.type == "PressToJamCore\\Exceptions\\ValidationException") {
-                cdata.setErrors(JSON.parse(msg.message));
+    active_validation.value = true;
+    console.log("Errors", errors);
+    if (Object.keys(errors).length == 0) {
+        active_store.save()
+        .then(() => {
+            if (!store.errors) {
+                emit("close");
             }
-            console.log("Err response", response);
-        });
-        
-    });
+        })
+    }
 }
 
 

@@ -1,14 +1,30 @@
 <template>
-    <Checkbox v-model="store.active[cell.name]" :binary="true"></Checkbox>
+    <Checkbox v-model="value" :binary="true"></Checkbox>
 
 </template>
 
 <script setup>
-import { inject } from "vue"
 import Checkbox from 'primevue/checkbox';
+import { computed } from "vue"
 
-const cell = inject("cell");
-const store = inject("store");
+const props = defineProps({
+    modelValue : [Number, Boolean],
+    field : Object
+});
+
+const emits = defineEmits([
+    "update:modelValue"
+]);
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        emits('update:modelValue', val);
+    }
+});
+
 
 
 

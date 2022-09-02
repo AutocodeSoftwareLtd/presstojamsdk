@@ -5,17 +5,16 @@
 
 <script setup>
 import client from "./../js/client.js"
-import { inject } from "vue"
-
-const field = inject("cell");
-
 
 const props = defineProps({
-    modelValue : String
+    modelValue : String,
+    field : Object,
+    id : Number
 });
 
+
 function download() {
-    client.getAsset("/asset/" + field.model + "/" + field.name + "/" + props.id)
+    client.getAsset("/asset/" + props.field.model + "/" + props.field.name + "/" + props.id)
     .then(blob => {
 
         const anchor = document.createElement("a");

@@ -7,11 +7,28 @@
 </template>
 
 <script setup>
-import { inject } from "vue"
 import FileUpload from "primevue/FileUpload"
+import { computed } from "vue"
 
-const field = inject("cell");
-const store = inject("store");
+const props = defineProps({
+    modelValue : String,
+    field : Object,
+    id : Number
+});
+
+const emits = defineEmits([
+    "update:modelValue"
+]);
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        emits('update:modelValue', val);
+    }
+});
+
 
 function uploadFile(e) {
     console.log(e.files);

@@ -4,18 +4,16 @@
 </template>
 
 <script setup>
-import { ref, inject, computed } from "vue"
-
-
-const field = inject("cell");
+import { computed } from "vue"
 
 const props = defineProps({
-    modelValue : [String]
+    modelValue : [String],
+    field : Object
 });
 
 
 const tag = computed(() => {
- if (field.html || field.max > 300) {
+ if (props.field.html || props.field.max > 300) {
     return "textarea";
  } else {
     return "input";

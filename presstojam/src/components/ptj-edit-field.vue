@@ -1,10 +1,10 @@
  <template>
-    <ptj-number v-if="field.type=='number'" />
-    <ptj-flag v-else-if="field.type=='flag'" />
-    <ptj-id v-else-if="field.type=='id'" />
-    <ptj-asset v-else-if="field.type=='asset'" />
-    <ptj-time v-else-if="field.type=='time'" />
-    <ptj-string v-else />
+    <ptj-number v-if="field.type=='number'" v-model="value" :field="field" />
+    <ptj-flag v-else-if="field.type=='flag'" v-model="value" :field="field" />
+    <ptj-id v-else-if="field.type=='id'" v-model="value" :field="field" />
+    <ptj-asset v-else-if="field.type=='asset'" v-model="value" :field="field" />
+    <ptj-time v-else-if="field.type=='time'" v-model="value" :field="field" />
+    <ptj-string v-else v-model="value" :field="field" />
 </template>
 <script setup>
  import PtjNumber from "./fields/ptj-number-edit.vue"
@@ -13,12 +13,25 @@
  import PtjTime from "./fields/ptj-time-edit.vue"
  import PtjString from "./fields/ptj-string-edit.vue"
  import PtjAsset from "./fields/ptj-asset-edit.vue"
- import { provide } from "vue"
+ import { computed } from "vue"
+
 
 const props = defineProps({
-    field : Object
+    field : Object,
+    modelValue : [String, Number, Boolean, null]
 });
 
-provide("cell", props.field);
+const emits = defineEmits([
+    "update:modelValue"
+]);
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        emits('update:modelValue', val);
+    }
+});
 
 </script>
