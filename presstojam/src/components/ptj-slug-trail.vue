@@ -6,25 +6,28 @@
     </Breadcrumb>
 </template>
 <script setup>
-import { inject, ref, computed } from "vue";
+import { ref, computed } from "vue";
 
 import Breadcrumb from 'primevue/breadcrumb';
 import { getRouteStructure} from "./../js/routes.js"
 import PtjCrumb from "./ptj-crumb.vue"
 import { useI18n } from 'vue-i18n';
-import { getStoreById } from "./../js/datastore.js"
+
 
 const { t } = useI18n();
 
 
-const model = inject("model");
-const store = getStoreById(model);
+const props = defineProps({
+    model : String,
+    store : Object,
+    id : Number
+});
 
 const home = {icon: 'pi pi-home', to: 'home'};
 
 const routes = ref([]);
 
-getRouteStructure(model)
+getRouteStructure(props.model)
 .then(croutes => {
     routes.value = croutes;
 });
@@ -47,10 +50,12 @@ function trailRouteInfo(trail, route) {
 
 let crumbs = computed(() => {
     let arr = [];
-    let trail = store.slug_trail;
+    let trail = props.store.slug_trail;
     for(let route of routes.value) {
+        if (!trail[route.name]) continue;
         //set multiple route
         const obj = { label : route.name, to : { name : "repo", params : { model : route.name } } };
+        
         if (trail[route.name] && trail[route.name]["--parentid"]) obj.to.params.id = trail[route.name]["--parentid"]
         arr.push(obj);
         
@@ -70,3 +75,11 @@ let crumbs = computed(() => {
 });
 
 </script>
+<style scoped>
+    .p-breadcrumb {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 1rem;
+}
+</style>

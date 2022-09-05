@@ -5,12 +5,14 @@ import PtjAccountHandler from "./../components/ptj-account-handler.vue"
 import PtjRoot from "./../components/ptj-root.vue"
 import PtjRepo from "./../components/ptj-repo.vue"
 import PtjPrimary from "./../components/ptj-primary.vue"
+import PtjFlow from "./../components/ptj-flow.vue"
 import PtjMissingPage from "./../components/ptj-missing-page.vue"
 import Client from "./client.js"
 import { getRoutes, setRouteSettings, hasRoute } from "./routes.js"
 import { userSettings, initUser, isUserAuthenticated } from "./user.js"
 import { createI18n } from 'vue-i18n'
-import { getData } from "./../js/datastore.js"
+import { createStore, clearDataCache } from "./datastore.js"
+import { registerFlow } from "./flows.js"
 
 
 export function reload() {
@@ -22,9 +24,10 @@ function initRouter(app, base) {
     let router = createRouter({
         history: createWebHistory(),
         routes : [
-            { path : base + "/user-login", component : PtjAccountHandler, name : 'login'},
-            { path : base + "/data/:model/:id", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, parentid : parseInt(route.params.id) })},
-            { path : base + "/data/active/:model/:id", component : PtjPrimary, name : 'primary', props : route => ({ model : route.params.model, id : parseInt(route.params.id) }) }
+            { path : base + "/user-login", component : PtjAccountHandler, name : 'login', props : { base : base + "/"}},
+            { path : base + "/data/:model/:id?", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, parentid : parseInt(route.params.id) })},
+            { path : base + "/data/active/:model/:id", component : PtjPrimary, name : 'primary', props : route => ({ model : route.params.model, id : parseInt(route.params.id) }) },
+            { path : base + "/flow/:flow/:position?", component : PtjFlow, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position) })}
         ]
     });
 
@@ -46,6 +49,7 @@ function initRouter(app, base) {
         router.addRoute({ path : base + "/error-404", component : PtjMissingPage, name : "error404"});
 
         router.beforeEach(async (to, from) => {
+            clearDataCache();
             if (to.name != "login" && to.name != "error404") {
               if (!isUserAuthenticated()) {
                 if (to.name != "login") {
@@ -62,20 +66,23 @@ function initRouter(app, base) {
                     return true;
                 }
 
-                let store = getData(to.params.model, {"--id" : to.params.id }, true)
+                let store = createStore(to.params.model, {"--id" : to.params.id })
                 const res = await store.load()
+                .then(() => {
+                    return store.loadSlugTrail();
+                })
                 .then(() => {
                     if (to.name == "primary") {
                         let promises = [];
                         for(const child of store.store.route.children) {
-                            const data_store = getData(to.params.model, { "--parentid" : to.params.id }, true);
+                            const data_store = createStore(child, { "--parentid" : to.params.id });
                             promises.push(data_store.load());
                         }
                         return Promise.all(promises);
                     }
                 }).catch(e => console.log(e));
                 return true;
-              } 
+              }
             } else {
                 return true;
             }
@@ -85,6 +92,11 @@ function initRouter(app, base) {
     });
 }
 
+function initFlows(routes) {
+    for(const route of routes) {
+        registerFlow(route);
+    }
+}
 
 function initIl8n(app) {
     return Client.get("/dictionary")
@@ -130,6 +142,9 @@ export function PtjRun(profile, settings = {}) {
             base = settings.map.base.replace(/\/+$/, '');
         }
         return initRouter(app, base);
+    })
+    .then(() => {
+        if (settings.flows) initFlows(settings.flows);
     })
     .then(() => {
         return app;

@@ -18,10 +18,10 @@ const emits = defineEmits([
 
 const value = computed({
     get() {
-        return props.modelValue;
+        return (props.modelValue) ? true : false;
     },
     set(val) {
-        emits('update:modelValue', val);
+        emits('update:modelValue', (val) ? 1 : 0);
     }
 });
 

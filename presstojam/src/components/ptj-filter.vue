@@ -8,6 +8,7 @@
             aria-haspopup="true" 
             aria-controls="overlay"
             :badge="badge"
+            class="p-button-text p-button-secondary"
         />
         <OverlayPanel 
             ref="overlay" 

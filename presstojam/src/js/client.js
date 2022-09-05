@@ -105,6 +105,7 @@ export default {
             headers.set('Content-Type', 'application/json');
             body = JSON.stringify(data);
         }
+        console.log("setting body", body);
         const options = this.createOptions(method, headers, body);
         //call our fetch response and return
         return this.call(url, options);
@@ -115,7 +116,7 @@ export default {
     },
 
     put(url, data) {
-        return this.save(url, 'PUT', url, data);
+        return this.save(url, 'PUT', data);
     },
 
     delete(url, data) {

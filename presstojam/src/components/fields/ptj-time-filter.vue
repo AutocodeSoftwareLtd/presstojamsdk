@@ -7,7 +7,7 @@ import Calendar from "primevue/Calendar"
 import { computed } from "vue"
 
 const props = defineProps({
-    modelValue : [Number, Boolean],
+    modelValue : [Array],
     field : Object
 });
 

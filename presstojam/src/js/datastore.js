@@ -18,9 +18,9 @@ class DataStore {
             route : {}, 
             selected : null, 
             active : {}, 
-            filters : {}, 
-            limit : null, 
-            page : 0,
+            filters : {},  
+            count : 0,
+            rows_per_page : 0,
             slug_trail : []
         });
         this._index = {};
@@ -44,11 +44,19 @@ class DataStore {
         if (params["--id"]) this._store.active["--id"] = params["--id"];
     }
 
+    set params(params) {
+        this._params = params;
+    }
+
+    set paginate(pag) {
+        this._params["limit"] = pag.first + "," + pag.rows;
+    }
+
+
     buildParams() {
         let params = this._store.filters;
         if (this._params["--parentid"]) params["--parentid"] = this._params["--parentid"];
-        if (this._store.limit) params.__limit = this._store.limit;
-        if (this._store.page) params.__page = this._store.page;
+        if (this._params.limit) params.__limit = this._params.limit;
         return params;
     }
 
@@ -57,14 +65,23 @@ class DataStore {
         this._init_promise = getRoute(this._model)
         .then(route => {
             this._store.route = route;
-            return this._store.route;
+            if (route.settings.limit && !this._params["--id"]) {
+                return Client.get("/count/" + this._model, this.buildParams())
+                .then(response => {
+                    this._store.count = response.count;
+                    this._params["limit"] = "0," + route.settings.limit;
+                    this._store.rows_per_page = route.settings.limit;
+                });
+            }
         })
         .catch(e => console.log(e));
         return this._init_promise;
     }
 
 
-    load(with_slug = false) {
+
+
+    load() {
         if (!this._load_promise) {
             this._load_promise = this.init()
             .then(() => {
@@ -76,14 +93,8 @@ class DataStore {
                     this._index[response[i]['--id']] = i;
                 }
                 this._store.data = response;
-
                 if (this._params["--id"]) {
                     this._store.active = this._store.data[this._index[this._params["--id"]]];
-                }
-            })
-            .then(() => {
-                if (with_slug) {
-                    return this.loadSlugTrail();
                 }
             })
             .catch(e => console.log(e));
@@ -91,17 +102,20 @@ class DataStore {
         return this._load_promise;
     }
 
-    reload(with_slug = false) {
+    reload() {
         this._load_promise = null;
-        return this.load(with_slug);
+        return this.load();
     }
+
 
     saveAssets() {
         let promises = [];
-        for(let i in this._store.files) {
-            const asset = this._store.cells[i];
-            asset.url = "/asset/" + this._model + "/" + i + "/" + this._store.active["--id"];
-            promises.push(asset.saveFile(this._store.files[i]));
+        for(let i in this._store.route.schema) {
+            if (this._store.route.schema[i].type == "asset") {
+                if (this._store.active[i]) {
+                    promises.push(this._store.active[i].save("/asset/" + this._model + "/" + i + "/" + this._store.active["--id"]));
+                }
+            }
         }
         return Promise.all(promises);
     }
@@ -141,14 +155,20 @@ class DataStore {
     
     
     updateData() {
+        console.log("Loading data", this._store.active);
         return Client.put("/data/" + this._model, this._store.active)
-        .then(response => {
+        .then(() => {
             return this.saveAssets();
         }).then(() => {
             this.load();
         }).catch(err => {
             this.setErrors(err);
         });
+    }
+
+    save() {
+        if (this._store.active["--id"]) return this.updateData();
+        else return this.createData();
     }
 
     deleteData() {
@@ -233,29 +253,27 @@ class DataStore {
     
 }
 
-const source = {};
+let cache = {};
 
 
 //need to add in search params and data settings
 
 
 
-export function getData(model, params, init = false) {
-    if (!source[model]) {
-        source[model] = new DataStore(model, params);
-    }
-
-    if (init) source[model].reload(init);
-    else source[model].load();
-    return source[model];
+export function createStore(model, params) {
+    cache[model] = new DataStore(model, params);
+    return cache[model];
 };
 
 
 export function getDataStoreById(id) {
-    return source[id];
+    return cache[id];
 }
 
 export function getStoreById(id) {
-    console.log("Id is ", id);
-    return source[id].store;
+    return cache[id].store;
+}
+
+export function clearDataCache() {
+    cache = {};
 }

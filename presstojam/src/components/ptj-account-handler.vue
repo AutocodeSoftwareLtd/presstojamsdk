@@ -32,7 +32,7 @@
 	        <InputText id="cconfirm_password" type="password" v-model="store.confirm_password" />
 	        <label for="cconfirm_password">Confirm Password</label>
         </span>
-        <input type="submit" :value="$t('comp.ptj-account-handler.btn.create')" class="ptj-form-submit">
+        <input type="submit" :value="$t('btns.btn.create')" class="ptj-form-submit">
         <a @click="toggleState('login')">Login</a>
     </form>
     <form  @submit.prevent="submit" v-show="store.state=='forgotpassword'" class="ptj-register">
@@ -41,7 +41,7 @@
 	        <InputText id="fusername" type="text" v-model="store.username" />
 	        <label for="fusername">Username</label>
         </span>
-        <input type="submit" :value="$t('comp.ptj-account-handler.btn.forgot')" class="ptj-form-submit">
+        <input type="submit" :value="$t('btns.btn.forgot')" class="ptj-form-submit">
         <a @click="toggleState('login')">Login</a>
     </form>
     </template>
@@ -57,7 +57,8 @@ import Card from 'primevue/card';
 
 
 const props = defineProps({
-    actions : []
+    actions : [],
+    base : String
 });
 
 
@@ -80,6 +81,9 @@ function submit() {
     store.globalerror = "";
     if (store.state == "login") {
         login(store.username, store.password)
+        .then(() => {
+            location.href = props.base;
+        })
         .catch(e => {
             store.globalerror = "Incorrect username / password";
         });

@@ -5,28 +5,30 @@ let route_promise = null;
 let settings = {};
 let routes = {};
 
-const state_groups = {};
-
 function init() {
     if (!route_promise) {
         route_promise = client.get("/site-map")
         .then(response => {
             for(let i in response) {
                 const schema = response[i].schema;
+                let state_handlers = {};
                 for (let x in schema) {
                     const field = schema[x];
                     response[i].schema[x] = createField(x, field);
                   
                     if (field.states) {
-                        state_groups[x] = {};
                         for(const state of field.states) {
-                            if (!state_groups[x][state.depends_on]) state_groups[x][state.depends_on] = [];
-                            state_groups[x][state.depends_on].push(state); 
+                            if (!state_handlers[state.depends_on]) state_handlers[state.depends_on] = [];
+                            state_handlers[state.depends_on].push(response[i].schema[x]); 
                         }
+                        response[i].schema[x].states = field.states;
                     }
                 }
 
-                if (settings[i]) response[i].settings = settings[i];
+                for(let x in state_handlers) {
+                    response[i].schema[x].state_handlers = state_handlers[x];
+                }
+                response[i].settings = (settings[i]) ? settings[i] : {};
             }
             routes = response;
             return routes;

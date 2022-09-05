@@ -1,5 +1,6 @@
 <template>
-  <Dropdown v-if="field.reference || field.recursive" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
+  <Dropdown v-if="field.reference" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
+  <TreeSelect v-else-if="field.recursive" v-model="selectedNodeKey" :options="nodes" placeholder="Select Item" />
   <InputNumber v-else :name="field.name" v-model="value" :disabled="true" />
 </template>
 
@@ -8,7 +9,9 @@
 import { inject, ref, onMounted, computed } from "vue"
 import Dropdown from 'primevue/dropdown';
 import InputNumber from "primevue/InputNumber"
+import TreeSelect from 'primevue/treeselect';
 import { getDataStoreById } from "./../../js/datastore.js"
+import { toTree } from "./../../js/helperfunctions.js"
 
 const props = defineProps({
     modelValue : [Number, Boolean],
@@ -57,19 +60,7 @@ function getOptions() {
 function getRecursiveOptions() {
     active_store.load()
     .then(() => {
-        let arr = [];
-        arr.push({ "key" : 0, "value" : "Please Select"});
-        for(let i in store.data) {
-            let vls = [];
-            for(let x in store.cells) {
-                if (store.cells[x].summary) {
-                    vls.push(store.data[i][x]);
-                }
-            }
-            arr.push({"key" : store.data[i]["--id"], "value" : vls.join(" ")});
-        }
-        arr.sort(sortByDictionary);
-        options.value = arr;
+        options.value = toTree(active_store.store.data, active_store.store.route.schema);
     });
 }
 

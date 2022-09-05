@@ -16,7 +16,7 @@
 
  const props = defineProps({
     field : Object,
-    modelValue : [String, Number, Boolean, null]
+    modelValue : [String, Number, Boolean, null, Array, Object]
 });
 
 const emits = defineEmits([

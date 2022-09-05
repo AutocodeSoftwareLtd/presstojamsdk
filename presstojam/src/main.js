@@ -28,7 +28,15 @@ let settings = {
               }
           }
       }
-  }
+  },
+  "flows" : [{
+        "title" : "Register Project",
+        "key" : "register",
+        "routes" : [
+            {"model" : "projects", "method" : "post"},
+            {"model" : "profiles", "method" : "crud"}
+        ]
+    }]
 };
 
 

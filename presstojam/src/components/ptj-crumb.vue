@@ -2,10 +2,11 @@
     <router-link :to="item.to" custom v-slot="{isActive, href, navigate, isExactActive}">
         <a 
             :class="{'active-link': isActive}" 
+            class="p-menuitem-link"
             :href="href"
             @click="navigate"
             @mouseover="toggleInfo" 
-            @mouseout="toggleInfo">{{item.label}}</a>
+            @mouseout="toggleInfo"><i v-if="item.icon" class="pi" :class="item.icon"></i><span class="p-menuitem-text">{{item.label}}</span></a>
     </router-link>
     <OverlayPanel ref="info" appendTo="body" v-if="item.info">
         <div>

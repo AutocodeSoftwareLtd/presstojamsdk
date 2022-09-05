@@ -1,7 +1,8 @@
 <template>
 
  <form @submit.prevent="submit" class="card">
-    <small class="p-error" v-show="errors.__global">{{ errors.__global }}</small>
+    <Message severity="success" v-if="saved">Saved</Message>
+    <Message severity="error" v-show="errors.__global">{{ errors.__global }}</Message>
     <div class="field" v-for="field in cells" :key="field.name" :field="field">
         <label :for="field.name">{{ $t("models." + field.model + ".fields." + field.name + ".label") }}</label>
         <ptj-edit-field :field="field" v-model="proxy_values[field.name]" />
@@ -9,57 +10,82 @@
     </div>
     <Button :label="$t('btns.save')" @click="submit" />
   </form>
-  
 </template>
 
 <script setup>
 
-import { inject, computed, ref, reactive } from "vue" 
+import { provide, computed, ref, reactive } from "vue" 
 import PtjEditField from "./ptj-edit-field.vue"
 import Button from 'primevue/Button'
 import PtjError from "./ptj-error.vue"
 import { getDataStoreById } from "./../js/datastore.js"
+import { getForegroundCells } from "./../js/helperfunctions.js"
+import Message from 'primevue/message';
 
-const model = inject("model");
-const active_store = getDataStoreById(model);
-const store = active_store.store;
+
+const props = defineProps({
+    model : String,
+    store : Object
+});
+
+const emits = defineEmits([
+    "close"
+])
+
 const active_validation = ref(false);
+const saved = ref(false);
+const state_changed = ref(0);
+
+provide("model", props.model);
+
 
 const cells = computed(() => {
-    const fields = {};
-    for(let i in store.route.schema) {
-        if (!store.route.schema[i].background) fields[i] = store.route.schema[i];
-    }
-    return fields;
+    let state = state_changed.value;
+    return getForegroundCells(props.store.route.schema);
 });
+
 
 const errors = reactive({});
 const proxy_values = reactive({});
 
-for(const field in cells.value) {
+const fields = getForegroundCells(props.store.route.schema);
+for(const field in fields) {
     proxy_values[field] = computed({
         get() {
-            return store.active[field];
+            return props.store.active[field];
         },
         set(val) {
-            const result = store.route.schema[field].validate(val);
+            const schema = props.store.route.schema[field];
+            const result = schema.validate(val);
             if (result) {
                 errors[field] = result;
             }
-            store.active[field] = val;
+            props.store.active[field] = val;
+            let has_handler = false;
+            for(let s of schema.state_handlers) {
+                s.updateState(val);
+                has_handler = true;
+            }
+            if (has_handler){
+                ++state_changed.value;
+            }
+            //reset to force a change
         }
     });
 }
 
 
 function submit() {
+    saved.value = false;
+    const active_store = getDataStoreById(props.model);
     active_validation.value = true;
     console.log("Errors", errors);
     if (Object.keys(errors).length == 0) {
         active_store.save()
         .then(() => {
-            if (!store.errors) {
-                emit("close");
+            if (!props.store.errors) {
+                saved.value = true;
+                emits("close");
             }
         })
     }

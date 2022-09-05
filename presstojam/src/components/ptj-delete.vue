@@ -1,46 +1,57 @@
 <template>
-    <p>{{ title }}</p>
-    <input type="text" :placeholder="check_str" @keyup="checkStatus" v-model="delval">
-    <button :disabled="disabled" @click="del">{{ btn }}</button>
+    <p>Are you sure you want to delete:</p>
+    <ul>
+        <li v-for="item in data">{{ item.label }}</li>
+    </ul>
+    <p>Type <i>{{ check_str }}</i> in the box below</p>
+    <div class="p-inputgroup">
+        <InputText :placeholder="check_str" v-model="delval"/>
+        <Button label="Delete" :disabled="disabled" icon="pi pi-trash" @click="del" class="p-button-danger">Delete</Button>
+    </div>
 </template>
 
 <script setup>
 
 import client from "./../js/client.js"
 import { ref, computed } from "vue";
+import Button from "primevue/Button"
+import InputText from 'primevue/inputtext';
+
 
 const props = defineProps({
     check_str : {
         type : String,
         default : "delete"
     },
-    parentid : {
-        default : 0
-    }
+    data : [Array, Object],
+    model : String
 });
 
-const emits = defineEmits(['close']);
+const emits = defineEmits(['deleted']);
 
 let delval = ref("");
-let disabled = ref(true);
-let title = computed(() => {
-    return getDictionary("ptj-delete-title",  { val : props.check_str});
-});
 
-let btn = computed(() => {
-    return getDictionary("ptj-delete-btn");
-});
+const disabled = computed(() => {
+    return (delval.value == props.check_str) ? false : true;
+})
 
-function checkStatus() {
-    disabled.value = (delval.value == props.check_str) ? false : true;
-}
 
 function del() {
-    client.delete("/data/" + Map.model, {"--id":Map.key})
+    let params = {};
+    if (props.data.length > 1) {
+        const keys = [];
+        for(const row of props.data) {
+            keys.push(row.key);
+        }
+        params["--id"] = keys;
+    } else {
+        params["--id"] = props.data[0].key;
+    }
+
+
+    client.delete("/data/" + props.model, params)
     .then(res => {
-        Map.state = "parent";
-        Map.key = props.parentid.val;
-        redirect();
+        emits("deleted");
     })
     .catch(e => console.log(e));
 }

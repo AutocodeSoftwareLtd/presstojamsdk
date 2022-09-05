@@ -1,17 +1,23 @@
 <template>
-    <FileUpload :name="field.name" :customUpload="true" @uploader="uploadFile">
-    <template #empty>
-        <p>Drag and drop files to here to upload.</p>
-    </template>
-</FileUpload>
+    <FileUpload 
+        mode="basic" 
+        :name="field.name"  
+        :customUpload="true"
+       
+        :maxFileSize="1000000" 
+        @select="onUpload" />
 </template>
 
 <script setup>
 import FileUpload from "primevue/FileUpload"
 import { computed } from "vue"
+import { AssetManager } from "./../../js/assetmanager.js" 
+
+// accept="image/*" 
+
 
 const props = defineProps({
-    modelValue : String,
+    modelValue : [String, Object],
     field : Object,
     id : Number
 });
@@ -30,8 +36,14 @@ const value = computed({
 });
 
 
-function uploadFile(e) {
-    console.log(e.files);
+function onUpload(e) {
+    if (e.files.length == 0) {
+        value.value = null;
+    } else {
+        const assetManager = new AssetManager();
+        assetManager.upload(e.files[0]);
+        value.value = assetManager;
+    }
 }
 
 </script>

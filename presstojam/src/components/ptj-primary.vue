@@ -1,24 +1,27 @@
 <template>
-    <ptj-slug-trail />
+    <Panel :header="label">
+    <ptj-slug-trail :model="model" :id="id" :store="store" />
    <TabView>
         <TabPanel header="Details">
-		    <ptj-form />
+		    <ptj-display :model="model" :store="store" />
 	    </TabPanel>
-        <TabPanel v-for="child in store.route.children" :header="child">
-            <PtjChildPanel :parent="props.id" :model="child" />
+        <TabPanel v-for="child in store.route.children" :header="$t('models.' + child + '.title')">
+            <PtjChildPanel :model="child" />
         </TabPanel>
    </TabView>
- 
+   </Panel>
 </template>
 
 <script setup>
-import { provide, computed} from "vue"
+import { computed} from "vue"
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
 import PtjChildPanel from "./ptj-child-panel.vue"
-import PtjForm from "./ptj-form.vue"
+import PtjDisplay from "./ptj-display.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
-import { getDataStoreById } from "./../js/datastore.js"
+import { getStoreById } from "./../js/datastore.js"
+import Panel from 'primevue/panel';
+import { getLabel } from "../js/helperfunctions";
 
 
 /*
@@ -31,9 +34,13 @@ const props = defineProps({
     id : Number
 });
 
-provide("model", props.model);
 
-const data = getDataStoreById(props.model);
-const store = data.store;
+const store = computed(() => {
+    return getStoreById(props.model);
+});
+
+const label = computed(() => {
+    return props.model + ": " + getLabel(store.value.route.schema, store.value.active);
+});
 
 </script>

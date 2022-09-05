@@ -6,22 +6,22 @@
 <script setup>
 
 import PtjFilter from "./ptj-filter.vue"
-import { computed, inject } from "vue"
-import { getDataStoreById } from "./../js/datastore.js"
+import { computed, provide } from "vue"
 
-const model = inject("model");
 
-const data_store = getDataStoreById(model);
+const props = defineProps({
+    model : String,
+    store : Object
+});
 
-const store =data_store.store;
+provide("model", props.model);
 
-    
 const filtercells = computed(() => {
     let filter_cells = {};
-    for(let i in store.route.schema) {
-        if (store.route.schema[i].background) continue;
-        if (store.route.schema[i].constructor.name == "Asset") continue;
-        filter_cells[i] = store.route.schema[i];
+    for(let i in props.store.route.schema) {
+        if (props.store.route.schema[i].background) continue;
+        if (props.store.route.schema[i].constructor.name == "Asset") continue;
+        filter_cells[i] = props.store.route.schema[i];
     }
     return filter_cells;
 });

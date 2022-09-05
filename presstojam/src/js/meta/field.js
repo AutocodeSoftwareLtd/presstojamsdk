@@ -1,6 +1,5 @@
 
 import { Errors } from "./../error.js"
-import { reactive, computed } from "vue"
 
 
 export class Field {
@@ -14,6 +13,8 @@ export class Field {
         this._contains = [];
         this._notcontains = [];
         this._listeners = [];
+        this._states = {};
+        this._state_handlers = [];
         
         const keys = Object.keys(this);
        
@@ -24,8 +25,7 @@ export class Field {
                    return this[property];
                 },
                 set: function(newValue) {
-                    if (property == "_type") this._type = newValue.toLowerCase();
-                    else this[property] = newValue;
+                    this[property] = newValue;
                 }
             })
           }
@@ -43,6 +43,28 @@ export class Field {
         this._max = obj.validation.max;
         if (obj.validation.contains) this._contains = obj.validation.contains.split("|");
         if (obj.validation.notcontains) this._notcontains = obj.validation.notcontains.split("|");
+    }
+
+
+    updateState(val) {
+        for(const state of this._states) {
+            if (state.depends_val == val) {
+                //overwrite the schema of the current field
+                for(const i in state.data) {
+                    if (state.data[i]) this[i] = state.data[i];
+                }
+                return;
+            }
+        }
+        //if here, we have no match
+        for(const state of this._states) {
+            if (state.default) {
+                //overwrite the schema of the current field
+                for(const i in state.data) {
+                    if (state.data[i]) this[i] = state.data[i];
+                }
+            }
+        }
     }
 
 

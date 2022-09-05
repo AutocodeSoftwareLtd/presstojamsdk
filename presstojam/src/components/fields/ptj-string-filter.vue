@@ -9,7 +9,7 @@ import MultiSelect from 'primevue/multiselect';
 import Chips from 'primevue/chips';
 
 const props = defineProps({
-    modelValue : [Number, Boolean],
+    modelValue : [Array],
     field : Object
 });
 

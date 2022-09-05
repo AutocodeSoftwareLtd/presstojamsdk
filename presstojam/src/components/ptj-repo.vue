@@ -1,39 +1,21 @@
 <template>
-    <ptj-slug-trail />
+    <ptj-slug-trail :model="model" :id="parentid" :store="store" />
     <Panel :header="store.route.title">
 
-    <div>
-        <div class="card">
-            <Toolbar class="mb-4">
-                <template #start>
-                    <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createRow" />
-                    <Button label="Delete" icon="pi pi-trash" class="p-button-danger"
-                        :disabled="!store.selected || !store.selected.length" />
-                </template>
+        <PtjTree v-if="recursive" :model="model" :store="store" />
+        <PtjTableDisplay v-else :model="model" :store="store" />
 
-                <template #end>
-                    <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import"
-                        class="mr-2 inline-block" />
-                    <Button label="Export" icon="pi pi-upload" class="p-button-help"  />
-                </template>
-            </Toolbar>
-            <PtjTreeTable v-if="recursive" />
-            <PtjTable v-else />
-        </div>
-    </div>
     </Panel>
 </template>
 
 <script setup>
-import Button from "primevue/Button"
-import Toolbar from 'primevue/Toolbar';
-import FileUpload from 'primevue/FileUpload';
-import Panel from 'primevue/panel';
-import PtjTable from "./ptj-table.vue"
-import PtjTreeTable from "./ptj-tree-table.vue"
+import Panel from 'primevue/panel'
+import PtjTableDisplay from "./ptj-table-display.vue"
+import PtjTree from "./ptj-tree.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
-import { provide, ref, computed } from "vue"
-import { getDataStoreById } from "./../js/datastore.js"
+import { computed } from "vue"
+import { getStoreById } from "./../js/datastore.js"
+
 
 /*
 
@@ -43,23 +25,15 @@ const props = defineProps({
     parentid : Number
 });
 
-const editDialog = ref(false);
 
-provide("model", props.model);
+const store = computed(() => {
+    return getStoreById(props.model);
+});
 
-const data_store = getDataStoreById(props.model);
-
-const store =data_store.store;
-
-
-function createRow() {
-    store.active = {};
-    editDialog.value = true;
-}
 
 const recursive = computed(() => {
-    for(let i in store.route.schema) {
-        if (store.route.schema[i].recursive) return true;
+    for(let i in store.value.route.schema) {
+        if (store.value.route.schema[i].recursive) return true;
     }
     return false;
 })
