@@ -1,5 +1,5 @@
 <template>
-    <ptj-slug-trail :model="model" :id="parentid" :store="store" />
+    <ptj-slug-trail :model="model" :id="parentid" :store="store" :base="base" />
     <Panel :header="store.route.title">
 
         <PtjTree v-if="recursive" :model="model" :store="store" />
@@ -22,7 +22,8 @@ import { getStoreById } from "./../js/datastore.js"
 */
 const props = defineProps({
     model : String,
-    parentid : Number
+    parentid : Number,
+    base : String
 });
 
 

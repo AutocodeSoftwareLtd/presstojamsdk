@@ -1,8 +1,9 @@
 <template>
-    <Panel :header="label">
-    <ptj-slug-trail :model="model" :id="id" :store="store" />
+    <ptj-slug-trail :model="model" :id="id" :store="store" :base="base" />
+    <Panel :header="props.model + ': ' + label">
+    
    <TabView>
-        <TabPanel header="Details">
+        <TabPanel :header="label">
 		    <ptj-display :model="model" :store="store" />
 	    </TabPanel>
         <TabPanel v-for="child in store.route.children" :header="$t('models.' + child + '.title')">
@@ -31,7 +32,8 @@ import { getLabel } from "../js/helperfunctions";
 */
 const props = defineProps({
     model : String,
-    id : Number
+    id : Number,
+    base : String
 });
 
 
@@ -40,7 +42,7 @@ const store = computed(() => {
 });
 
 const label = computed(() => {
-    return props.model + ": " + getLabel(store.value.route.schema, store.value.active);
+    return getLabel(store.value.route.schema, store.value.active);
 });
 
 </script>

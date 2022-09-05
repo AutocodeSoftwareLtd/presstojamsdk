@@ -1,3 +1,5 @@
+import { defineAsyncComponent } from "vue"
+
 export function toTree(arr, schema, parent_id = 0) {
     const nodes = [];
     const items = arr.filter(obj => obj['--recursive-id'] == parent_id);
@@ -35,4 +37,9 @@ export function getSummaryCells(schema) {
         if (schema[i].summary) cells[i] = schema[i];
     }
     return cells;
+}
+
+export async function getCellComponent(name, type = null) {
+    if (type) type = "-" + type;
+    return defineAsyncComponent(import('./../components/fields/ptj-' + name + type + ".vue"));
 }

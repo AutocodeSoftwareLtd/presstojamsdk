@@ -25,9 +25,9 @@ function initRouter(app, base) {
         history: createWebHistory(),
         routes : [
             { path : base + "/user-login", component : PtjAccountHandler, name : 'login', props : { base : base + "/"}},
-            { path : base + "/data/:model/:id?", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, parentid : parseInt(route.params.id) })},
-            { path : base + "/data/active/:model/:id", component : PtjPrimary, name : 'primary', props : route => ({ model : route.params.model, id : parseInt(route.params.id) }) },
-            { path : base + "/flow/:flow/:position?", component : PtjFlow, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position) })}
+            { path : base + "/data/:model/:id?", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, parentid : parseInt(route.params.id), base : base + "/" })},
+            { path : base + "/data/active/:model/:id", component : PtjPrimary, name : 'primary', props : route => ({ model : route.params.model, id : parseInt(route.params.id), base : base + "/" }) },
+            { path : base + "/flow/:flow/:position?", component : PtjFlow, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position), base : base + "/" })}
         ]
     });
 
@@ -37,7 +37,7 @@ function initRouter(app, base) {
         let has_routes = false;
         let def = false;
         for(const i in routes) {
-            if (!def && !routes[i].parent) def = { path : base + "/" , redirect : base + "/data/" + i};
+            if (!def && !routes[i].parent) def = { path : base + "/" , name : 'home', redirect : base + "/data/" + i};
             has_routes = true;
         }
 

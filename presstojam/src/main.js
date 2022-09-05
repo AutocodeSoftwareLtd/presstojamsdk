@@ -15,13 +15,11 @@ let settings = {
   },
   "models" : {
       "projects" : {
-          "get" : {
-              "show" : "all"
-          }
+           "limit" : 2
       },
       "fields" : {
+          "max_cols" : 10,
           "parent" : {
-             
               "hide_actions" : {
                   "post" : true,
                   "parent" : true

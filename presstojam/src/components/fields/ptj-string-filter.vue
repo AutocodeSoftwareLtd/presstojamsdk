@@ -1,5 +1,5 @@
 <template>
-   <MultiSelect v-if="tag=='select'" display="chip" v-model="value" :options="options" optionLabel="key" optionValue="value" />
+   <MultiSelect v-if="tag=='select'" display="chip" placeholder="Please Select" v-model="value" :options="options" optionLabel="key" optionValue="value" />
    <Chips v-model="value" v-else-if="tag=='input'"  />
 </template>
 
@@ -22,16 +22,29 @@ const emits = defineEmits([
 
 const value = computed({
     get() {
-        return props.modelValue;
+        let arr = [];
+        if (tag == 'select') {
+            arr = props.modelValue;
+        } else if (props.modelValue) {
+            for(let val of props.modelValue) {
+                arr.push(val.replace(/^%+/, '').replace(/%+$/, ''));
+            }
+        }
+        return arr;
     },
     set(val) {
-        emits('update:modelValue', val);
+        let arr = [];
+        for(let vl of val) {
+            arr.push("%" + vl + "%");
+        }
+        if (arr.length == 0) arr = null;
+        emits('update:modelValue', arr);
     }
 });
 
 const tag = computed(() => {
 if (props.field.isEnum()) {
-    props.field.setContainsAsOptions(options);
+    options.value = props.field.setContainsAsOptions();
     return "select";
 } else if (props.field.encrypted) {
     return "";

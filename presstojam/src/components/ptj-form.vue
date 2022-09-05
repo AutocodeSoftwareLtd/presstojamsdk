@@ -72,6 +72,11 @@ for(const field in fields) {
             //reset to force a change
         }
     });
+
+    const schema = props.store.route.schema[field];
+    for(let s of schema.state_handlers) {
+        s.updateState(props.store.active[field]);
+    }
 }
 
 

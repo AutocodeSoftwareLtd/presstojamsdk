@@ -57,6 +57,10 @@ class DataStore {
         let params = this._store.filters;
         if (this._params["--parentid"]) params["--parentid"] = this._params["--parentid"];
         if (this._params.limit) params.__limit = this._params.limit;
+        const settings = ["to", "fields", "order"];
+        for(const setting of settings) {
+            if (this.store.route.settings[setting]) this._params['__' + setting] = this.store.route.settings[setting]
+        }
         return params;
     }
 
@@ -152,10 +156,14 @@ class DataStore {
         });
 
     }
+
+    getDataById(id) {
+        if (!this._index[id]) return null;
+        return this._store.data[this._index[id]];
+    }
     
     
     updateData() {
-        console.log("Loading data", this._store.active);
         return Client.put("/data/" + this._model, this._store.active)
         .then(() => {
             return this.saveAssets();
@@ -260,7 +268,7 @@ let cache = {};
 
 
 
-export function createStore(model, params) {
+export function createStore(model, params = {}) {
     cache[model] = new DataStore(model, params);
     return cache[model];
 };
@@ -276,4 +284,8 @@ export function getStoreById(id) {
 
 export function clearDataCache() {
     cache = {};
+}
+
+export function hasStore(id) {
+    return (cache[id]) ? true : false;
 }

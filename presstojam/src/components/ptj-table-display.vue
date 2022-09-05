@@ -1,5 +1,5 @@
 <template>
-    <ptj-filter-form :model="model" :store="store" />
+    <ptj-filter-form :model="model" :store="store" v-if="!active_store.route.settings.nofilter" />
     <Toolbar class="mb-4">
                 <template #start>
                     <MultiSelect v-if="col_expandable"
@@ -9,33 +9,29 @@
                 </template>
 
                 <template #end>
-                    <Button style="float:right" label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createRow" /> 
-                    <Button label="Delete" icon="pi pi-trash" class="p-button-danger"
-                        :disabled="!store.selected || !store.selected.length" />
-                        <FileUpload mode="basic" accept="image/*" :maxFileSize="1000000" label="Import" chooseLabel="Import"
-                        class="mr-2 inline-block" />
-                    <Button label="Export" icon="pi pi-upload" class="p-button-help"  />
+                    <ptj-create-action :model="model" :store="store" /> 
+                    <ptj-delete-action :data="store.selected" :model="model" />
+                       
+                    
                 </template>
     </Toolbar>
-    <ptj-table :model="model" :store="store" :rows="store.data" @reorder="onRowReorder" @edit="editRow" />
+    <ptj-table :model="model" :store="store" :fields="fields" :rows="store.data" @reorder="onRowReorder" />
     <ptj-pagination v-if="store.count" :model="model" :store="store" />
-    <Dialog v-model:visible="editDialog" :style="{width: '450px'}" :header="props.model" :modal="true" class="p-fluid">
-        <ptj-form :model="model" :store="store" />
-    </Dialog>
 </template>
 
 <script setup>
 
-import Button from "primevue/Button"
 import { ref, computed } from "vue"
 import PtjFilterForm from "./ptj-filter-form.vue"
-import PtjPagination from "./ptj-pagination.vue"
-import PtjForm from "./ptj-form.vue"
-import Dialog from 'primevue/dialog';
+import PtjPagination from "./ptj-pagination.vue";
 import MultiSelect from 'primevue/multiselect';
 import Toolbar from 'primevue/Toolbar';
 import PtjTable from "./ptj-table.vue"
-import FileUpload from 'primevue/FileUpload';
+
+import PtjCreateAction from "./actions/ptj-create-action.vue"
+import PtjDeleteAction from "./actions/ptj-delete-action.vue"
+
+import { getStoreById } from "./../js/datastore.js"
 
 
 const props = defineProps({
@@ -43,29 +39,11 @@ const props = defineProps({
     store : Object
 });
 
-const editDialog = ref(false);
+const active_store = getStoreById(props.model);
+const max_cols = (!active_store.route.settings.max_cols) ? 10 : active_store.route.settings.max_cols;
 
-
-function editRow(row) {
-    props.store.active = { ...row };
-    editDialog.value =true;
-}
-
-function createRow() {
-    props.store.active = {};
-    editDialog.value = true;
-}
-
-let max_cols = 8;
-
-const has_primary = (props.store.route.children.length > 1) ? true : false;
-const has_expandable = (props.store.route.children.length == 1) ? true : false;
 const col_expandable = (Object.keys(props.store.route.schema).length > max_cols) ? true : false;
-const has_sort = props.store.route.sort;
 
-function confirmDeleteRow(product) {
-    
-}
 
 function onRowReorder(e) {
     props.store.data = e.value;

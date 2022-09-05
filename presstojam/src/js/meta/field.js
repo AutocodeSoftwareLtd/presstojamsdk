@@ -13,7 +13,7 @@ export class Field {
         this._contains = [];
         this._notcontains = [];
         this._listeners = [];
-        this._states = {};
+        this._states = [];
         this._state_handlers = [];
         
         const keys = Object.keys(this);
@@ -110,25 +110,7 @@ export class Field {
     }
 
 
-    trigger(val) {
-        for(let state of this._listeners) {
-            state(val);
-        }
-    }
 
-
-    addParam(obj, val) {
-        if (val) {
-            obj[this._name] = val;
-        }
-    }
-
-
-    addAPIParam(obj, val) {
-        if (val) {
-            obj[this._name] = val;
-        }
-    }
 
     getErrorVal(error) {
         if (error == Errors.MIN_VALUE) return this.min;

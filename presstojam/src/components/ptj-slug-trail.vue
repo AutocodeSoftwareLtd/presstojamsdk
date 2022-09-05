@@ -20,10 +20,11 @@ const { t } = useI18n();
 const props = defineProps({
     model : String,
     store : Object,
-    id : Number
+    id : Number,
+    base : String
 });
 
-const home = {icon: 'pi pi-home', to: 'home'};
+const home = {icon: 'pi pi-home', to: props.base};
 
 const routes = ref([]);
 

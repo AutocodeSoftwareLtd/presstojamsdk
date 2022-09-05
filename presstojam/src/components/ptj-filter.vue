@@ -1,14 +1,13 @@
 <template>
     <div class="ptj-filter">
         <Button 
-            type="button" 
-            icon="pi pi-filter" 
+            type="button"  
             :label="$t('models.' + field.model + '.fields.' + field.name + '.filterlabel')"
             @click="toggle" 
             aria-haspopup="true" 
             aria-controls="overlay"
             :badge="badge"
-            class="p-button-text p-button-secondary"
+            class="p-button-secondary"
         />
         <OverlayPanel 
             ref="overlay" 
@@ -18,7 +17,6 @@
             style="width: 450px" 
             :breakpoints="{'960px': '75vw'}">
             <div>
-                <label :for="field.name">{{ $t("models." + field.model + ".fields." + field.name + ".filterlabel") }}</label>
                 <ptj-filter-field :field="field" v-model="val" />
             </div>
         </OverlayPanel>

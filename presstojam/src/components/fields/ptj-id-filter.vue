@@ -1,5 +1,5 @@
 <template>
-  <MultiSelect v-if="field.reference" :field="field" :options="options" optionLabel="key" optionValue="value" v-model="value" />
+  <MultiSelect placeholder="Please Select" v-if="field.reference || field.name =='--id'" :field="field" :options="options" optionLabel="value" optionValue="key" v-model="value" />
   <Chips v-model="value" v-else  />
 </template>
 
@@ -9,9 +9,10 @@ import { ref, onMounted, inject, computed } from "vue"
 import MultiSelect from 'primevue/multiselect';
 import Chips from 'primevue/chips';
 import { getDataStoreById } from "./../../js/datastore.js"
+import { getLabel } from "../../js/helperfunctions";
 
 const props = defineProps({
-    modelValue : [Number, Boolean],
+    modelValue : [Array],
     field : Object
 });
 
@@ -25,6 +26,7 @@ const value = computed({
         return props.modelValue;
     },
     set(val) {
+        if (val.length == 0) val =null;
         emits('update:modelValue', val);
     }
 });
@@ -37,8 +39,9 @@ const active_store = getDataStoreById(model);
 const options = ref([]);
 
 async function getOptions() {
-    active_store.getReference(field.name)
+    active_store.getReference(props.field.name)
     .then(response => {
+        console.log("Values are", response);
         options.value = response;
     });
 }
@@ -48,7 +51,12 @@ if (props.field.reference || props.field.recursive) {
     onMounted(() => {
        getOptions();
     });
-    
+} else if (props.field.name == '--id') {
+    let vals = [];
+    for(let row of active_store.store.data) {
+        vals.push({'key' : row['--id'], value : getLabel(active_store.store.route.schema, row) });
+    }
+    options.value = vals;
 }
 
 

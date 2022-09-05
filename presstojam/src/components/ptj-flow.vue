@@ -8,7 +8,8 @@ import { getFlow } from "./../js/flows.js"
 
 const props = defineProps({
     flow : String,
-    position : Number
+    position : Number,
+    base : String
 });
 
 const flowObj = getFlow(props.flow);

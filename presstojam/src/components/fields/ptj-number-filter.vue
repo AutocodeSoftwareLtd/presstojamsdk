@@ -1,24 +1,28 @@
 <template>
-   <div>
+   <div class="p-inputgroup">
+        <span class="p-inputgroup-addon">min</span>
        <InputNumber
         :name="field.name" 
         v-model="min" 
         v-bind="atts"
-        @blur="field.validateon = true" /> - 
+        @blur="field.validateon = true" /><span class="p-inputgroup-addon"> - </span>
         <InputNumber
         :name="field.name" 
         v-model="max" 
         v-bind="atts"
         @blur="field.validateon = true" />
+        <span class="p-inputgroup-addon">max</span>
+        <Button label="clear" @click="clear"/>
    </div>
 </template>
 
 <script setup>
 import { computed } from "vue"
 import InputNumber from "primevue/InputNumber"
+import Button from 'primevue/button';
 
 const props = defineProps({
-    modelValue : [Number, Boolean],
+    modelValue : [Object],
     field : Object
 });
 
@@ -31,6 +35,10 @@ const min = computed({
         return (props.modelValue) ? props.modelValue.min : null;
     },
     set(val) {
+        let max = null;
+        if (props.modelValue) {
+            max = (props.modelValue.max < val) ? val : props.modelValue.max;
+        }
         emits('update:modelValue', { 'min' : val, 'max' : max });
     }
 });
@@ -40,9 +48,17 @@ const max = computed({
         return (props.modelValue) ? props.modelValue.max : null;
     },
     set(val) {
+        let min = null;
+        if (props.modelValue) {
+            min = (props.modelValue.min > val) ? val : props.modelValue.min;
+        }
         emits('update:modelValue', { 'min' : min, max : val});
     }
 }); 
+
+function clear() {
+    emits('update:modelValue', null);
+}
 
 
 

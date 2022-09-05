@@ -1,5 +1,5 @@
 <template>
-  <Dropdown v-if="field.reference" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
+  <Dropdown v-if="field.reference" placeholder="Please Select" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
   <TreeSelect v-else-if="field.recursive" v-model="selectedNodeKey" :options="nodes" placeholder="Select Item" />
   <InputNumber v-else :name="field.name" v-model="value" :disabled="true" />
 </template>
@@ -24,7 +24,7 @@ const emits = defineEmits([
 
 const value = computed({
     get() {
-        return props.modelValue;
+        return parseInt(props.modelValue);
     },
     set(val) {
         emits('update:modelValue', val);
@@ -51,9 +51,7 @@ function getOptions() {
     active_store.getReference(props.field.name)
     .then(response => {
         response.sort(sortByDictionary);
-        let arr = response;
-        arr.unshift({ "key" : 0, "value" : "Please Select"});
-        options.value = arr;
+        options.value = response;
     });
 }
 

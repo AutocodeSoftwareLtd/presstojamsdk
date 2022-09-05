@@ -1,5 +1,5 @@
 <template>
-    <Calendar v-if="disabled==false" id="range" v-model="value" :manualInput="true" v-bind="atts" class="focus:border-primary"/>
+    <Calendar v-if="disabled==false" id="range" v-model="value" :manualInput="false" v-bind="atts" class="focus:border-primary"/>
     <span v-else>{{value }}</span>
 </template>
 

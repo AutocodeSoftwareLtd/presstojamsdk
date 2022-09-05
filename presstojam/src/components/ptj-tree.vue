@@ -15,10 +15,10 @@
         <Tree :value="nodes" :filter="true" filterMode="lenient" selectionMode="single" :expandedKeys="expandedKeys" @nodeSelect="onNodeSelect" v-model:selectionKeys="selectedKey"/>
 	  </SplitterPanel>
 	  <SplitterPanel :size="80" style="padding:10px">
-      <div v-if="store.active && store.active['--id']">
+      <div v-if="active && active['--id']">
         <Toolbar>
                 <template #start>
-                  <ptj-primary-action v-if="has_primary"  :model="model" :id="store.active['--id']" />
+                  <ptj-primary-action v-if="has_primary"  :model="model" :id="active['--id']" />
                   {{ label }}
                 </template>
 
@@ -27,7 +27,7 @@
                     <ptj-delete-action :data="store.selected" :model="model" />
                 </template>
               </Toolbar>
-          <ptj-table :model="model" :store="store" :rows="childRows" v-if="store.active['--id']" @reorder="reorderRows" />
+          <ptj-table :model="model" :store="store" :fields="fields" :rows="childRows" v-if="active['--id']" @reorder="reorderRows" />
        </div>
     </SplitterPanel>
   </Splitter>
@@ -41,7 +41,7 @@ import Splitter from 'primevue/splitter'
 import SplitterPanel from 'primevue/splitterpanel'
 import PtjTable from "./ptj-table.vue"
 import Toolbar from 'primevue/Toolbar'
-import { toTree, getForegroundCells, getLabel } from "./../js/helperfunctions.js" 
+import { toTree, getSummaryCells, getLabel } from "./../js/helperfunctions.js" 
 import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
 import PtjCreateAction from "./actions/ptj-create-action.vue"
 import PtjDeleteAction from "./actions/ptj-delete-action.vue"
@@ -57,7 +57,7 @@ const props = defineProps({
 const has_primary = (props.store.route.children.length > 1) ? true : false;
 const expanded = ref(false);
 //const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
-
+const active = ref();
 
 const nodes = computed(() => {
   const data= toTree(props.store.data, props.store.route.schema);
@@ -70,7 +70,7 @@ function reorderRows(rows) {
 }
 
 let fields = computed(() => {
-    return getForegroundCells(props.store.route.schema);
+    return getSummaryCells(props.store.route.schema);
 });
 
 const childRows = ref([]);
@@ -102,13 +102,13 @@ const expandNode = (node) => {
 };
 
 const label = computed(() => {
-  return getLabel(props.store.route.schema, props.store.active);
+  return getLabel(props.store.route.schema, active.value);
 })
 
 const onNodeSelect = (node) => {
-   props.store.active = node.data;
+   active.value = node.data;
    childRows.value = props.store.data.filter(obj => obj['--recursive-id'] == node.key);
-  /*  toast.add({
+   /*  toast.add({
       severity:'success', 
       summary: 'Node Unselected', 
       detail: node.label, 

@@ -9,7 +9,7 @@ export class String extends Field {
         if (obj) this.apply(obj);
     }
 
-    setContainsAsOptions(options) {
+    setContainsAsOptions() {
         let opts = [];
         for(let exp of this._contains) {
             if (exp.indexOf(":") > -1) {
@@ -19,7 +19,7 @@ export class String extends Field {
                 opts.push({ key : exp, value : exp});
             }
         }
-        options.value = opts;
+        return opts;
     }
 
     isEnum() {
@@ -28,17 +28,6 @@ export class String extends Field {
             if (exp[0] == "/") return false; //not enum if anything is a regular expression
         }
         return true;
-    }
-
-
-    addAPIParam(obj, val) {
-        if (val) {
-            let arr = [];
-            for(let i in val) {
-                if (val[i]) arr.push("%" + val[i] + "%");
-            }
-            if (arr.length > 0) obj[this._name] = arr;
-        }
     }
 
    
