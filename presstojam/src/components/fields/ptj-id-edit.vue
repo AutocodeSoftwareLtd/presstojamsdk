@@ -2,7 +2,7 @@
   <Dropdown v-if="field.reference" placeholder="Please Select" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
   <TreeSelect v-else-if="field.recursive" v-model="value" :options="options" placeholder="Select Item" />
   <InputNumber v-else :name="field.name" v-model="value" :disabled="true" />
-  <ptj-reference-create v-if="field.reference" :model="field.reference_to" :id="0" @onCreate="onCreate" />
+  <ptj-reference-create v-if="field.reference" :model="field.reference_to" :id="id" @onCreate="onCreate" />
 </template>
 
 
@@ -31,6 +31,7 @@ const store = getStoreById(model);
 
 const options = ref([]);
 let value;
+let id = 0;
 
 if (props.field.reference) {
     onMounted(() => {
@@ -46,6 +47,13 @@ if (props.field.reference) {
             emits('update:modelValue', val);
         }
     });
+
+    const common = store.references[props.field.name].common_parent;
+    console.log("Common is", common, store.route.parent);
+    if (common == store.route.parent) {
+        //common case where parent is direct, so no need for parent cascade select
+        id = store.active.value['--parentid'];
+    }
 } else if (props.field.recursive) {
     onMounted(() => {
        getRecursiveOptions(store)
@@ -68,16 +76,13 @@ if (props.field.reference) {
 
 
 function onCreate(id) {
-    console.log("Id is", id);
     value = id;
-    console.log("Reference is", props.field.reference);
     if (props.field.reference) {
         store.references[props.field.name].reload()
         .then(() => {
             return getOptions(store, props.field.name)
         }).then(response => {
             options.value =response;
-            console.log("Options are", options.value);
         });
     }
 }

@@ -1,7 +1,7 @@
 import Client from "./client.js"
 import { reactive, ref } from "vue"
-import { getRoute } from "./routes.js"
-import { rowToTree } from "./helperfunctions.js"
+import { getRoute, getRouteStructure } from "./routes.js"
+import { rowToTree, commonParent } from "./helperfunctions.js"
 
 
 function loadCount(store) {
@@ -99,6 +99,9 @@ export function createDataStore(model) {
                 i, 
                 cache[model].parentid
             );
+            let struc = getRouteStructure(model);
+            let struc1 = getRouteStructure(cache[model].references[i].model);
+            cache[model].references[i].common_parent = commonParent(struc, struc1);
         }
     }
 
@@ -113,6 +116,8 @@ function createRefStore(model, field, parentid) {
         load_promise : null,
         route : getRoute(model),
         parentid : parentid,
+        common_parent : null,
+        common_parent_id : 0,
         load() {
             if (!this.load_promise) {
                 let params = {};

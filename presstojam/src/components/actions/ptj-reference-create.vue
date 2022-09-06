@@ -1,5 +1,5 @@
 <template>
-    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="createReference" />
+    <Button icon="pi pi-plus" class="p-button-rounded p-button-success mr-2" @click="createReference" />
     <Dialog v-model:visible="dialog" :style="{width: '450px'}" :header="model" :modal="true" class="p-fluid">
         <ptj-form :model="model" :store="referencestore" @saved="onCreate" />
     </Dialog>
@@ -19,6 +19,8 @@
      const emits = defineEmits(['onCreate']);
 
      const dialog = ref(false);
+
+     console.log("ID is", props.id);
      
 
     const referencestore = (!hasStore(props.model)) ? createDataStore(props.model) : getStoreById(props.model);

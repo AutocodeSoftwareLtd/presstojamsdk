@@ -1,7 +1,20 @@
 import { defineAsyncComponent } from "vue"
 import client from "./client.js"
 
+
 export function toTree(arr, schema, parent_id = 0) {
+    const nodes = [];
+    const items = arr.filter(obj => obj['--recursive-id'] == parent_id);
+    for (const item of items) {
+      let label = getLabel(schema, item);
+      const obj = { key: item['--id'], "label":label, data : item};
+      obj.children = toTree(arr, schema, obj.key);
+      nodes.push(obj);
+    }
+    return nodes;
+}
+
+export function toTreeChildren(arr, schema, parent_id = 0) {
     const nodes = [];
     const items = arr.filter(obj => obj['--recursive-id'] == parent_id);
     for (const item of items) {
@@ -116,17 +129,16 @@ export function rowToTree(obj, parent) {
     return nobj;
 }
 
-export function commonParent(store, store1) {
-        async function getStructures(store, store1) {
-            let struc = await getRouteStructure(store);
-            let struc1 = await getRouteStrcutre(store1);
-            return [struc, struc1];
+export function commonParent(struc, struc1) {
+   
+    
+    for(const route of struc) {
+        for(const route1 of struc1) {
+            if (route.name == route1.name) {
+                return route.name;
+            }
         }
-
-        getStructures(store,store1)
-        .then((struc, struc1) => {
-            
-        }) 
+    } 
 }
 
 
