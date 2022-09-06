@@ -8,7 +8,6 @@
 <script setup>
 import Paginator from 'primevue/paginator';
 import { computed } from "vue"
-import { getDataStoreById } from "./../js/datastore.js"
 
 const props = defineProps({
     model : String,
@@ -16,13 +15,14 @@ const props = defineProps({
 });
 
 const pages = computed(() => {
-    return ceil(store.count / store.rows_per_page);
+    return ceil(store.pagination.count / store.pagination.rows_per_page);
 });
 
 
 function onPage(event) {
     const store = getDataStoreById(props.model);
-    store.paginate = { first : event.first, rows : event.rows, page : event.page };
+    store.pagination.offset = event.first;
+    //, rows : event.rows, page : event.page };
     store.reload();
 }
 

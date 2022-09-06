@@ -6,13 +6,13 @@
     </Breadcrumb>
 </template>
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 
 import Breadcrumb from 'primevue/breadcrumb';
 import { getRouteStructure} from "./../js/routes.js"
 import PtjCrumb from "./ptj-crumb.vue"
 import { useI18n } from 'vue-i18n';
-
+import {PrimeIcons} from 'primevue/api';
 
 const { t } = useI18n();
 
@@ -26,12 +26,8 @@ const props = defineProps({
 
 const home = {icon: 'pi pi-home', to: props.base};
 
-const routes = ref([]);
+const routes = ref(getRouteStructure(props.model));
 
-getRouteStructure(props.model)
-.then(croutes => {
-    routes.value = croutes;
-});
 
 function trailRouteInfo(trail, route) {
     let info = [];
@@ -51,7 +47,7 @@ function trailRouteInfo(trail, route) {
 
 let crumbs = computed(() => {
     let arr = [];
-    let trail = props.store.slug_trail;
+    let trail = props.store.slug_trail.value;
     for(let route of routes.value) {
         if (!trail[route.name]) continue;
         //set multiple route
@@ -74,6 +70,8 @@ let crumbs = computed(() => {
     }
     return arr;
 });
+
+
 
 </script>
 <style scoped>

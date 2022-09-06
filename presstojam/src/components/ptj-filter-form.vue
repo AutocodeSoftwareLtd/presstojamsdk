@@ -18,7 +18,6 @@
 
 import PtjFilter from "./ptj-filter.vue"
 import { computed, provide } from "vue"
-import { getDataStoreById } from "./../js/datastore.js"
 import Button from 'primevue/Button'
 import Fieldset from 'primevue/fieldset';
 
@@ -42,8 +41,7 @@ const filtercells = computed(() => {
 
 
 function submit() {
-    const store = getDataStoreById(props.model);
-    store.reload();
+    props.store.reload();
 }
 </script>
 <style>

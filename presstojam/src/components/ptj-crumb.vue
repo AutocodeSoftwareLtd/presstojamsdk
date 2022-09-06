@@ -9,11 +9,11 @@
             @mouseout="toggleInfo"><i v-if="item.icon" class="pi" :class="item.icon"></i><span class="p-menuitem-text">{{item.label}}</span></a>
     </router-link>
     <OverlayPanel ref="info" appendTo="body" v-if="item.info">
-        <div>
-           <div v-for="row in item.info">
-            <span>{{ row.label }}</span> <span>{{ row.value }}</span>
+        <dl v-for="row in item.info">
+           <div  class="row">
+            <dt>{{ row.label }}</dt> <dd>{{ row.value }}</dd>
            </div>
-        </div>
+        </dl>
     </OverlayPanel>
 </template>
 <script setup>
@@ -32,3 +32,26 @@ function toggleInfo(e) {
 }
 
 </script>
+<style scoped>
+    dl {
+        position : relative;
+        display: flex;
+        flex-direction: column;
+    }
+    dt {
+        float : left;
+        font-weight : 700;
+        width : 50%
+
+    }
+    dd {
+        position : relative;
+        margin-left : 50%;
+        padding : 2px;
+    }
+    dl > div {
+        position : relative;
+        clear : both;
+        display : block;
+    }
+</style>

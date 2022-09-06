@@ -42,7 +42,7 @@ const store = computed(() => {
 });
 
 const label = computed(() => {
-    return getLabel(store.value.route.schema, store.value.active);
+    return getLabel(store.value.route.schema, store.value.active.value);
 });
 
 </script>

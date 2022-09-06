@@ -24,7 +24,15 @@ let settings = {
                   "post" : true,
                   "parent" : true
               }
-          }
+          },
+          "classes" : [
+            {
+                att : "type",
+                value : "str",
+                class : "red"
+            }
+          ]
+          
       }
   },
   "flows" : [{

@@ -14,6 +14,7 @@
         optionLabel="value"
         optionValue="key"
         :options="options"
+        placeholder="Please Select"
         class="focus:border-primary"
          @blur="field.validateon = true"
         >
@@ -64,7 +65,7 @@ const { te, t } = useI18n();
 
 const tag = computed(() => {
 if (props.field.isEnum()) {
-    props.field.setContainsAsOptions(options);
+    options.value = props.field.setContainsAsOptions();
     return "select";
 } else if (props.field.encrypted) {
     return "input";

@@ -29,7 +29,7 @@
    import PtjFilterField from "./ptj-filter-field.vue"
    import Button from 'primevue/Button';
    import OverlayPanel from 'primevue/overlaypanel';
-   import { getDataStoreById } from "./../js/datastore.js"
+   import { getStoreById } from "./../js/datastore.js"
    
    const props = defineProps({
     field : {
@@ -41,8 +41,7 @@
    let overlay = new ref();
 
    const model = inject("model");
-   const active_store = getDataStoreById(model);
-   const store = active_store.store;
+   const store = getStoreById(model);
 
    const errors = reactive({});
 
@@ -71,10 +70,6 @@
         }
     });
 
-   
-   function submit() {
-       active_store.reload();
-   }
 
    function toggle(e) {
         overlay.value.toggle(e);

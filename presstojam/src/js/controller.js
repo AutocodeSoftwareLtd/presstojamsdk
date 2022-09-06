@@ -8,11 +8,12 @@ import PtjPrimary from "./../components/ptj-primary.vue"
 import PtjFlow from "./../components/ptj-flow.vue"
 import PtjMissingPage from "./../components/ptj-missing-page.vue"
 import Client from "./client.js"
-import { getRoutes, setRouteSettings, hasRoute } from "./routes.js"
+import { setRouteSettings, hasRoute, loadSiteMap } from "./routes.js"
 import { userSettings, initUser, isUserAuthenticated } from "./user.js"
 import { createI18n } from 'vue-i18n'
-import { createStore, clearDataCache } from "./datastore.js"
+import { createDataStore, clearDataCache, loadSlugTrail } from "./datastore.js"
 import { registerFlow } from "./flows.js"
+
 
 
 export function reload() {
@@ -32,7 +33,7 @@ function initRouter(app, base) {
     });
 
 
-    return getRoutes()
+    return loadSiteMap()
     .then(routes => {
         let has_routes = false;
         let def = false;
@@ -48,7 +49,7 @@ function initRouter(app, base) {
 
         router.addRoute({ path : base + "/error-404", component : PtjMissingPage, name : "error404"});
 
-        router.beforeEach(async (to, from) => {
+        router.beforeEach((to, from) => {
             clearDataCache();
             if (to.name != "login" && to.name != "error404") {
               if (!isUserAuthenticated()) {
@@ -57,7 +58,7 @@ function initRouter(app, base) {
                 }
               }
 
-              if (to.name == "repo" || to.name == "primary") {
+              if (to.name == "primary" || to.name == "repo") {
                 if (!hasRoute(to.params.model)) {
                     return { name : "error404" };
                 }
@@ -65,23 +66,32 @@ function initRouter(app, base) {
                 if (to.params.store) {
                     return true;
                 }
-
-                let store = createStore(to.params.model, {"--id" : to.params.id })
-                const res = await store.load()
-                .then(() => {
-                    return store.loadSlugTrail();
-                })
-                .then(() => {
-                    if (to.name == "primary") {
-                        let promises = [];
-                        for(const child of store.store.route.children) {
-                            const data_store = createStore(child, { "--parentid" : to.params.id });
-                            promises.push(data_store.load());
+              
+                const store = createDataStore(to.params.model);
+            
+                if (to.name == "primary") {
+                    store.setParams({"--id" : to.params.id });
+                    store.load()
+                    .then(() => {
+                        return loadSlugTrail(store);
+                    })
+                    .then(() => {
+                        for(const child of store.route.children) {
+                            const child_store = createDataStore(child);
+                            child_store.setParams( {"--parentid" : to.params.id})
+                            child_store.load();
                         }
-                        return Promise.all(promises);
-                    }
-                }).catch(e => console.log(e));
-                return true;
+                    }).catch(e => console.log(e));
+                    return true;
+                } else {
+                    store.setParams({"--parentid" : to.params.id });
+                    store.load()
+                    .then(() => {
+                        return loadSlugTrail(store);
+                      })
+                    .catch(e => console.log(e));
+                    return true;
+                }
               }
             } else {
                 return true;

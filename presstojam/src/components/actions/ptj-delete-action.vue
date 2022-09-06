@@ -2,7 +2,7 @@
     <Button label="Delete" icon="pi pi-trash" class="p-button-danger"
                         :disabled="!data || !data.length" @click="delRow" />
     <Dialog v-model:visible="dialog" :style="{width: '450px'}" :header="model" :modal="true" class="p-fluid">
-        <ptj-delete :data="data" :model="model" />
+        <ptj-delete :data="data" :model="model" @onDel="onDel" />
     </Dialog>
 
 </template>
@@ -17,10 +17,19 @@
         model : String,
     });
 
+    const emits = defineEmits([
+        "onDel"
+    ]);
+
     const dialog = ref(false);
 
     function delRow() {
         dialog.value =true;
+    }
+
+    function onDel() {
+        dialog.value = false;
+        emits("onDel");
     }
 
 </script>

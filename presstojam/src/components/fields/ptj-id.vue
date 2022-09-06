@@ -1,9 +1,12 @@
 <template>
-    <span>{{ display }}</span>
+    <router-link v-if="field.reference" :to="{ name : 'primary', params : {'model' : field.reference_to, 'id' : modelValue }}">
+        {{ display }}
+    </router-link>
+    <span v-else>{{ display }}</span>
 </template>
 <script setup>
 import { computed } from "vue"
-import { getDataStoreById } from "./../../js/datastore.js"
+import { getStoreById } from "./../../js/datastore.js"
 
 const props = defineProps({
     modelValue : [Number, String ],
@@ -14,9 +17,9 @@ const props = defineProps({
 
 
 function getReferenceLabel(id, name) {
-    const active_store = getDataStoreById(props.model);
-    const includes = active_store.store.route.schema[name].includes;
-    const row = active_store.getDataById(id);
+    const store = getStoreById(props.model);
+    const includes = store.route.schema[name].includes;
+    const row = store.getDataById(id);
     let data = [];
     for(let include of includes) {
         data.push(row[name + "/" + include]);

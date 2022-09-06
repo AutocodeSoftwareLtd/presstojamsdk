@@ -1,7 +1,8 @@
 <template>
   <Dropdown v-if="field.reference" placeholder="Please Select" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
-  <TreeSelect v-else-if="field.recursive" v-model="selectedNodeKey" :options="nodes" placeholder="Select Item" />
+  <TreeSelect v-else-if="field.recursive" v-model="value" :options="options" placeholder="Select Item" />
   <InputNumber v-else :name="field.name" v-model="value" :disabled="true" />
+  <ptj-reference-create v-if="field.reference" :model="field.reference_to" :id="0" @onCreate="onCreate" />
 </template>
 
 
@@ -10,11 +11,12 @@ import { inject, ref, onMounted, computed } from "vue"
 import Dropdown from 'primevue/dropdown';
 import InputNumber from "primevue/InputNumber"
 import TreeSelect from 'primevue/treeselect';
-import { getDataStoreById } from "./../../js/datastore.js"
-import { toTree } from "./../../js/helperfunctions.js"
+import { getStoreById } from "./../../js/datastore.js"
+import { getOptions, getRecursiveOptions } from "./../../js/helperfunctions.js"
+import PtjReferenceCreate from "./../actions/ptj-reference-create.vue"
 
 const props = defineProps({
-    modelValue : [Number, Boolean],
+    modelValue : [Number, String, Boolean],
     field : Object
 });
 
@@ -22,55 +24,62 @@ const emits = defineEmits([
     "update:modelValue"
 ]);
 
-const value = computed({
-    get() {
-        return parseInt(props.modelValue);
-    },
-    set(val) {
-        emits('update:modelValue', val);
-    }
-});
 
 const model = inject("model");
-const active_store = getDataStoreById(model);
+const store = getStoreById(model);
 
 
 const options = ref([]);
-
-function sortByDictionary(a, b) {
-    if (a.value < b.value ) {
-        return -1;
-    } else if (a.value > b.value) {
-        return 1;
-    } else {
-        return 0;
-    }
-} 
-
-function getOptions() {
-    active_store.getReference(props.field.name)
-    .then(response => {
-        response.sort(sortByDictionary);
-        options.value = response;
-    });
-}
-
-function getRecursiveOptions() {
-    active_store.load()
-    .then(() => {
-        options.value = toTree(active_store.store.data, active_store.store.route.schema);
-    });
-}
-
+let value;
 
 if (props.field.reference) {
     onMounted(() => {
-       getOptions();
+        getOptions(store, props.field.name)
+        .then(response => options.value =response);
     });  
+
+    value = computed({
+        get() {
+            return parseInt(props.modelValue);
+        },
+        set(val) {
+            emits('update:modelValue', val);
+        }
+    });
 } else if (props.field.recursive) {
     onMounted(() => {
-       getRecursiveOptions();
+       getRecursiveOptions(store)
+       .then(response => options.value = response)
     });  
+
+    value = computed({
+        get() {
+            let obj = {};
+            obj[props.modelValue] = true;
+            return obj;
+        },
+        set(val) {
+            for(const i in val) {
+                emits('update:modelValue', i);
+            }
+        }
+    });
+}
+
+
+function onCreate(id) {
+    console.log("Id is", id);
+    value = id;
+    console.log("Reference is", props.field.reference);
+    if (props.field.reference) {
+        store.references[props.field.name].reload()
+        .then(() => {
+            return getOptions(store, props.field.name)
+        }).then(response => {
+            options.value =response;
+            console.log("Options are", options.value);
+        });
+    }
 }
 
 

@@ -27,7 +27,7 @@ const props = defineProps({
     model : String
 });
 
-const emits = defineEmits(['deleted']);
+const emits = defineEmits(['onDel']);
 
 let delval = ref("");
 
@@ -51,7 +51,7 @@ function del() {
 
     client.delete("/data/" + props.model, params)
     .then(res => {
-        emits("deleted");
+        emits("onDel");
     })
     .catch(e => console.log(e));
 }

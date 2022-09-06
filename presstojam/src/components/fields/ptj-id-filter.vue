@@ -8,8 +8,8 @@
 import { ref, onMounted, inject, computed } from "vue"
 import MultiSelect from 'primevue/multiselect';
 import Chips from 'primevue/chips';
-import { getDataStoreById } from "./../../js/datastore.js"
-import { getLabel } from "../../js/helperfunctions";
+import { getStoreById } from "./../../js/datastore.js"
+import { getLabel, getOptions, getRecursiveOptions } from "../../js/helperfunctions";
 
 const props = defineProps({
     modelValue : [Array],
@@ -32,28 +32,20 @@ const value = computed({
 });
 
 const model = inject("model");
-const active_store = getDataStoreById(model);
+const store = getStoreById(model);
 
 
 
 const options = ref([]);
 
-async function getOptions() {
-    active_store.getReference(props.field.name)
-    .then(response => {
-        console.log("Values are", response);
-        options.value = response;
-    });
-}
-
-
 if (props.field.reference || props.field.recursive) {
     onMounted(() => {
-       getOptions();
+        getOptions(store, props.field.name)
+        .then(response => options.value =response);
     });
 } else if (props.field.name == '--id') {
     let vals = [];
-    for(let row of active_store.store.data) {
+    for(let row of store.data) {
         vals.push({'key' : row['--id'], value : getLabel(active_store.store.route.schema, row) });
     }
     options.value = vals;

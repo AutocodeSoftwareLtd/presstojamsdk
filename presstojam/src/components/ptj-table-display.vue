@@ -1,5 +1,7 @@
 <template>
     <ptj-filter-form :model="model" :store="store" v-if="!active_store.route.settings.nofilter" />
+    <Message severity="success" v-if="newrow">New row created</Message>
+    <Message severity="success" v-if="delrow">Rows removed</Message>
     <Toolbar class="mb-4">
                 <template #start>
                     <MultiSelect v-if="col_expandable"
@@ -9,13 +11,14 @@
                 </template>
 
                 <template #end>
-                    <ptj-create-action :model="model" :store="store" /> 
-                    <ptj-delete-action :data="store.selected" :model="model" />
+                    <ptj-create-action :model="model" :store="store" @onSave="onSave"/> 
+                    <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel"/>
                        
                     
                 </template>
     </Toolbar>
-    <ptj-table :model="model" :store="store" :fields="fields" :rows="store.data" @reorder="onRowReorder" />
+    
+    <ptj-table :model="model" :store="store" :fields="fields" :rows="store.data.value" @reorder="onRowReorder" />
     <ptj-pagination v-if="store.count" :model="model" :store="store" />
 </template>
 
@@ -27,11 +30,11 @@ import PtjPagination from "./ptj-pagination.vue";
 import MultiSelect from 'primevue/multiselect';
 import Toolbar from 'primevue/Toolbar';
 import PtjTable from "./ptj-table.vue"
-
 import PtjCreateAction from "./actions/ptj-create-action.vue"
 import PtjDeleteAction from "./actions/ptj-delete-action.vue"
-
+import Message from 'primevue/message';
 import { getStoreById } from "./../js/datastore.js"
+import  {saveOrder } from "./../js/helperfunctions.js" 
 
 
 const props = defineProps({
@@ -45,8 +48,10 @@ const max_cols = (!active_store.route.settings.max_cols) ? 10 : active_store.rou
 const col_expandable = (Object.keys(props.store.route.schema).length > max_cols) ? true : false;
 
 
-function onRowReorder(e) {
-    props.store.data = e.value;
+function onRowReorder(rows) {
+    console.log("Value is", rows);
+    props.store.data.value =rows;
+    saveOrder(props.model, rows);
 }
 
 const fixed_fields = [];
@@ -76,7 +81,20 @@ const fields = computed(() => {
 });
 
 
+const newrow = ref(false);
+const delrow = ref(false);
 
+function onSave() {
+    props.store.reload();
+    newrow.value = true;
+}
+
+
+function onDel() {
+    props.store.reload();
+    props.store.selected.value = [];
+    delrow.value = true;
+}
 
 </script>
 

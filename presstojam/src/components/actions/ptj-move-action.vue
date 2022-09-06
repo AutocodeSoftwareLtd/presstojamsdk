@@ -1,36 +1,32 @@
 <template>
-    <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editRow" />
+    <Button icon="pi pi-pencil" class="p-button-success mr-2" label="move" @click="moveRow" :disabled="!store.selected.value || !store.selected.value.length"/>
     <Dialog v-model:visible="dialog" :style="{width: '450px'}" :header="model" :modal="true" class="p-fluid">
-        <ptj-form :model="model" :store="store" @saved="onSave" />
+        <ptj-move :model="model" :store="store" @onMove="onMove" />
     </Dialog>
 
 </template>
 <script setup>
     import { ref } from "vue"
-    import PtjForm from "./../ptj-form.vue"
+    import PtjMove from "./../ptj-recursive-move.vue"
     import Dialog from 'primevue/dialog'
     import Button from "primevue/Button"
 
     const props = defineProps({
         store : Object,
-        data : Object,
-        model : String
+        model : String,
     });
 
-    const emits = defineEmits([
-        'onSave'
-    ])
+    const emits = defineEmits(['onParentChanged']);
 
     const dialog = ref(false);
 
-    function editRow() {
-        props.store.active.value = { ...props.data };
+    function moveRow() {
         dialog.value =true;
     }
 
-    function onSave() {
+    function onMove() {
         dialog.value = false;
-        emits('onSave');
+        emits("onParentChanged");
     }
 
 

@@ -1,7 +1,7 @@
 <template>
     <Panel header="model">
         <template #icons>
-            <ptj-delete-action :data="[{ key : store.active['--id'], label : label }]" :model="model" />
+            <ptj-delete-action :data="[{ key : store.active.value['--id'], label : label }]" :model="model" />
         </template>
         <ptj-form :model="model" :store="store" />
     </Panel>
@@ -22,7 +22,7 @@ const props = defineProps({
 const delDialog = ref(false);
 
 const label = computed(() => {
-    return getLabel(props.store.route.schema, props.store.active);
+    return getLabel(props.store.route.schema, props.store.active.value);
 });
 
 
