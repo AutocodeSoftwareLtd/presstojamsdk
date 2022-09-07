@@ -1,6 +1,7 @@
 <template>
-    <Paginator :rows="store.rows_per_page" :totalRecords="parseInt(store.count)"
-            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" :rowsPerPageOptions="[5,10,25]"
+    <Paginator :rows="store.pagination.rows_per_page" 
+            :totalRecords="parseInt(store.pagination.count)"
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown" 
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords}" 
             @page="onPage($event)">
     </Paginator>
@@ -15,15 +16,14 @@ const props = defineProps({
 });
 
 const pages = computed(() => {
-    return ceil(store.pagination.count / store.pagination.rows_per_page);
+    return ceil(props.store.pagination.count / props.store.pagination.rows_per_page);
 });
 
 
 function onPage(event) {
-    const store = getDataStoreById(props.model);
-    store.pagination.offset = event.first;
+    props.store.pagination.offset = event.first;
     //, rows : event.rows, page : event.page };
-    store.reload();
+    props.store.reload();
 }
 
 

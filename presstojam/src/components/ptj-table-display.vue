@@ -19,7 +19,7 @@
     </Toolbar>
     
     <ptj-table :model="model" :store="store" :fields="fields" :rows="store.data.value" @reorder="onRowReorder" />
-    <ptj-pagination v-if="store.count" :model="model" :store="store" />
+    <ptj-pagination v-if="store.pagination.count" :model="model" :store="store" />
 </template>
 
 <script setup>

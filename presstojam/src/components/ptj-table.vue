@@ -115,16 +115,14 @@ if (has_expandable) table_atts["v-model:expandedRows"] ="expandedRows";
 const expandedRows = ref([]);
 const onRowExpand = (event) => {
     //expandedRows.value = [{"Time":"Coming"}];
-    console.log(event.data['--id']);
-    console.log(childstore);
     childstore.setParams({"--parentid" : event.data["--id"]})
     childstore.reload()
     .then(() => {
-        expandedRows.value = childstore.data.value;
+        event.data.children = childstore.data.value;
     });
 };
 const onRowCollapse = (event) => {
-   expandedRows.value = [];
+   event.data.children = [];
 };
 
 

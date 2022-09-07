@@ -5,11 +5,11 @@ import { rowToTree, commonParent } from "./helperfunctions.js"
 
 
 function loadCount(store) {
-    if (store.route.settings.limit && !store.active.value) {
+    if (store.route.settings.limit && !store.active.value['--id']) {
         return Client.get("/count/" + store.model, buildParams(store))
         .then(response => {
-            store.pagination.count = response.count;
-            store.pagination.rows_per_page = route.settings.limit;
+            store.pagination.count = parseInt(response.count);
+            store.pagination.rows_per_page = store.route.settings.limit;
         });
     } else {
         return Promise.resolve(true);
@@ -91,10 +91,6 @@ function create(model) {
                 }
             }
         }
-    }
-
-    if (store.route.settings && store.route.settings.limit) {
-        store.pagination.rows_per_page = store.route.settings.limit;
     }
 
     const schema =store.route.schema;
