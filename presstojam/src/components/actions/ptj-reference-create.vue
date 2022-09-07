@@ -1,6 +1,6 @@
 <template>
     <Button icon="pi pi-plus" class="p-button-rounded p-button-success mr-2" @click="createReference" />
-    <Dialog v-model:visible="dialog" :style="{width: '450px'}" :header="$t('models.' + cref.reference_to + '.title')" :modal="true" class="p-fluid">
+    <Dialog v-model:visible="dialog" :header="'Create ' + $t('models.' + cref.reference_to + '.title')" :modal="true" class="p-fluid">
         <ptj-form :store="referencestore" @saved="onCreate" :parent="parent" :common_parent="common_parent" :common_parent_id="common_parent_id"/>
     </Dialog>
  </template>

@@ -1,5 +1,5 @@
 <template>
-    <Panel header="store.model">
+    <Panel :header="$t('models.' + store.model + '.title')">
         <template #icons>
             <ptj-delete-action :data="[{ key : store.active.value['--id'], label : label }]" :model="store.model" />
         </template>

@@ -1,7 +1,7 @@
 <template>
     <Button label="Delete" icon="pi pi-trash" class="p-button-danger"
                         :disabled="!data || !data.length" @click="delRow" />
-    <Dialog v-model:visible="dialog" :style="{width: '450px'}" :header="model" :modal="true" class="p-fluid">
+    <Dialog v-model:visible="dialog" :header="'Delete ' + $t('models.' + model + '.title')" :modal="true" class="p-fluid">
         <ptj-delete :data="data" :model="model" @onDel="onDel" />
     </Dialog>
 

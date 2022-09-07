@@ -1,11 +1,13 @@
 <template>
     <DataTable :value="rows" v-model:selection="isselected" dataKey="--id" :rowClass="rowClass"
                 responsiveLayout="scroll" :rowHover="true" @rowReorder="onRowReorder" @rowSelect="onRowSelect"
-                @rowUnselect="onRowUnselect" @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" v-model:expandedRows="expandedRows">
-        <Column v-if="has_expandable" :expander="true" headerStyle="width: 3rem" />
+                @rowUnselect="onRowUnselect" @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" 
+                v-model:expandedRows="expandedRows" :globalFilterFields="global_filter_fields"
+                :filters="filters">
+                <Column v-if="has_expandable" :expander="true" headerStyle="width: 3rem" />
         <Column v-if="has_sort" :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false" />
         <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-        <Column v-for="cell in fields" :field="cell.name"
+        <Column v-for="cell in fields" :field="cell.name" :sortable="true"
                     :header="$t('models.' + cell.model + '.fields.' + cell.name + '.label')"
                     :key="cell.name">
             <template #body="slotProps">
@@ -36,13 +38,14 @@
 import DataTable from "primevue/DataTable"
 import Column from 'primevue/column';
 import PtjViewField from "./ptj-view-field.vue"
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
 import PtjEditAction from "./actions/ptj-edit-action.vue"
 import { hasStore, createDataStore, getStoreById } from "./../js/datastore.js"
 import PtjTableDisplay from "./ptj-table-display.vue"
 import Card from 'primevue/card';
 import { getLabel } from "../js/helperfunctions";
+import { FilterMatchMode } from 'primevue/api';
 
 
 
@@ -50,7 +53,8 @@ const props = defineProps({
     model : String,
     store : Object,
     rows : Array,
-    fields : Object
+    fields : Object,
+    search : [Object, String]
 });
 
 const emits = defineEmits([
@@ -71,7 +75,19 @@ const has_primary = (props.store.route.children.length > 1) ? true : false;
 const has_expandable = (props.store.route.children.length == 1) ? true : false;
 const has_sort = props.store.route.sort;
 const isselected = ref();
+const sortable = (!props.store.pagination.count && !has_sort) ? true : false;
+const global_filter_fields = [];
+if (!props.store.pagination.count) {
+    for(let field in props.fields) {
+        global_filter_fields.push(field);
+    }
+}
 
+const filters = computed(() => {
+    if (!props.search) return {};
+    let filters = { 'global' : {  value : props.search, matchMode: FilterMatchMode.CONTAINS } };
+    return filters;
+});
 
 function onRowSelect(e) {
     if (!props.store.selected.value) props.store.selected.value = [];

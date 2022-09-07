@@ -1,7 +1,6 @@
 <template>
-   <div v-if="field.encrypted">
-       <Password v-model="modelValue" class="focus:border-primary"/>
-   </div>
+    <Password v-if="field.encrypted" v-model="modelValue" class="focus:border-primary"/>
+   <Textarea v-else-if="tag=='textarea'" v-model="value" rows="5" />
    <textarea v-if="tag=='textarea'"
         v-bind="atts" 
         :name="field.name" 
@@ -21,7 +20,7 @@
   </Dropdown>
   <InputText v-else v-bind="atts"
         :name="field.name"
-        class="focus:border-primary"
+        class="focus:border-primary form-control"
         v-model="value" 
         @blur="field.validateon = true" />
 </template>
@@ -31,6 +30,7 @@ import { ref } from "vue"
 import Dropdown from 'primevue/dropdown';
 import Password from 'primevue/password';
 import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea';
 import { useI18n } from 'vue-i18n';
 
 

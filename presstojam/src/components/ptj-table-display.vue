@@ -1,5 +1,5 @@
 <template>
-    <ptj-filter-form :model="model" :store="store" v-if="!active_store.route.settings.nofilter" />
+    <ptj-filter-form v-if="store.pagination.count && !active_store.route.settings.nofilter" :model="model" :store="store" />
     <Message severity="success" v-if="newrow">New row created</Message>
     <Message severity="success" v-if="delrow">Rows removed</Message>
     <Toolbar class="mb-4">
@@ -8,18 +8,23 @@
                         v-model="active_options" 
                         :options="optional_fields"
                         placeholder="Select Columns" style="width: 20em"/>
+
+                        <span class="p-input-icon-left mr-2" v-if="!props.store.pagination.count">
+                        <i class="pi pi-search" />
+                        <InputText v-model="search" placeholder="Keyword Search" />
+                    </span>
                 </template>
 
                 <template #end>
+                     
+
                     <ptj-create-action :model="model" :store="store" @onSave="onSave"/> 
                     <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel"/>
-                       
-                    
                 </template>
     </Toolbar>
     
-    <ptj-table :model="model" :store="store" :fields="fields" :rows="store.data.value" @reorder="onRowReorder" />
-    <ptj-pagination v-if="store.pagination.count" :model="model" :store="store" />
+    <ptj-table :model="model" :store="store" :fields="fields" :search="search" :rows="store.data.value" @reorder="onRowReorder" />
+    <ptj-pagination v-if="store.pagination.count" :model="model" :store="store"  />
 </template>
 
 <script setup>
@@ -35,6 +40,7 @@ import PtjDeleteAction from "./actions/ptj-delete-action.vue"
 import Message from 'primevue/message';
 import { getStoreById } from "./../js/datastore.js"
 import  {saveOrder } from "./../js/helperfunctions.js" 
+import InputText from 'primevue/inputtext';
 
 
 const props = defineProps({
@@ -46,10 +52,9 @@ const active_store = getStoreById(props.model);
 const max_cols = (!active_store.route.settings.max_cols) ? 10 : active_store.route.settings.max_cols;
 
 const col_expandable = (Object.keys(props.store.route.schema).length > max_cols) ? true : false;
-
+const search = ref();
 
 function onRowReorder(rows) {
-    console.log("Value is", rows);
     props.store.data.value =rows;
     saveOrder(props.model, rows);
 }

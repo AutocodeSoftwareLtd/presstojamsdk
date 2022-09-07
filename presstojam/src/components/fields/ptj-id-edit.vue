@@ -1,8 +1,11 @@
 <template>
-  <Dropdown v-if="field.reference" placeholder="Please Select" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
+  <div v-if="field.reference" class="p-inputgroup">
+    <Dropdown placeholder="Please Select" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
+    <ptj-reference-create :cref="cref" @onCreate="onCreate" />
+  </div>
   <TreeSelect v-else-if="field.recursive" v-model="value" :options="options" placeholder="Select Item" />
   <InputNumber v-else :name="field.name" v-model="value" :disabled="true" />
-  <ptj-reference-create v-if="field.reference" :cref="cref" @onCreate="onCreate" />
+  
 </template>
 
 

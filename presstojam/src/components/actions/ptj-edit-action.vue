@@ -1,6 +1,6 @@
 <template>
     <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editRow" />
-    <Dialog v-model:visible="dialog" :style="{width: '450px'}" :header="model" :modal="true" class="p-fluid">
+    <Dialog v-model:visible="dialog" :header="'Edit ' + $t('models.' + model + '.title')" :modal="true" class="p-fluid">
         <ptj-form :model="model" :store="store" @saved="onSave" />
     </Dialog>
 

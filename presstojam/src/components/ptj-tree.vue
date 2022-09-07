@@ -25,7 +25,7 @@
 
                 <template #end>
                     <ptj-move-action :model="model" :store="store" @onParentChanged="onParentChange"/>
-                    <ptj-create-action :model="model" /> 
+                    <ptj-create-action :model="model" :store="store" /> 
                     <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel" />
                 </template>
               </Toolbar>
