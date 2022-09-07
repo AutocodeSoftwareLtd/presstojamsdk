@@ -23,7 +23,7 @@ export default [
       terser(),
       vue(),
       postcss({
-        extract : true,
+        extract : false,
         modules : true
       })
     ],
