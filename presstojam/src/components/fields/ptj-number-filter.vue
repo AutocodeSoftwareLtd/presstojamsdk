@@ -19,7 +19,7 @@
 <script setup>
 import { computed } from "vue"
 import InputNumber from "primevue/InputNumber"
-import Button from 'primevue/button';
+import Button from 'primevue/Button';
 
 const props = defineProps({
     modelValue : [Object],

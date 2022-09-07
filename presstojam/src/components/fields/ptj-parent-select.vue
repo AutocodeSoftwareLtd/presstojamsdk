@@ -7,14 +7,16 @@
 import { inject, ref, onMounted, computed } from "vue"
 
 import TreeSelect from 'primevue/treeselect';
-import { getStoreById, hasStore, createDataStore } from "./../../js/datastore.js"
-import { getOptions, getRecursiveOptions, toTree } from "./../../js/helperfunctions.js"
+import { createTemporaryStore } from "./../../js/datastore.js"
+import { toTree } from "./../../js/helperfunctions.js"
+import { getRouteStructure } from "./../../js/routes.js"
 import PtjReferenceCreate from "./../actions/ptj-reference-create.vue"
+import CascadeSelect from 'primevue/cascadeselect';
 
 const props = defineProps({
     modelValue : [Number, String, Boolean],
-    field : Object,
-    common : String,
+    model : String,
+    common_parent : String,
     common_id : Number
 });
 
@@ -22,8 +24,18 @@ const emits = defineEmits([
     "update:modelValue"
 ]);
 
+const struc = getRouteStructure(props.model);
 
-const store = (!hasStore(model)) ? createDataStore(model) : getStoreById(model);
+const models = [];
+
+const store = createTemporaryStore(props.model);
+const params = { to : props.common_parent };
+params[props.common_parent + "/--id"] = props.common_id; 
+store.setParams({ to : props.common_parent });
+store.load()
+.then(() => {
+    console.log(store.data.value);
+});
 
 
 const options = ref([]);
@@ -37,8 +49,8 @@ function getOptions() {
         for (const row of response) {
             
         }
-        toTree(response, store.route.schema
-    })
+       // toTree(response, store.route.schema
+    });
 }
 
 

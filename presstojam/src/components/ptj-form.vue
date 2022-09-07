@@ -3,7 +3,11 @@
  <form @submit.prevent="submit" class="card">
     <Message severity="success" v-if="saved">Saved</Message>
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
-    <div class="field" v-for="field in cells" :key="field.name" :field="field">
+    <div v-if="parent" class="form-group">
+        <label>{{ $t("models." + store.route.parent + ".title")}}</label>
+        <ptj-parent-select v-model="proxy_values['--parentid']" :model="store.route.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
+    </div>
+    <div class="field form-group" v-for="field in cells" :key="field.name" :field="field">
         <label :for="field.name">{{ $t("models." + field.model + ".fields." + field.name + ".label") }}</label>
         <ptj-edit-field :field="field" v-model="proxy_values[field.name]" />
         <ptj-error :field="field" v-if="active_validation && errors[field.name]" :error="errors[field.name]" />
@@ -21,11 +25,14 @@ import PtjError from "./ptj-error.vue"
 import { getMutableCells, getImmutableCells } from "./../js/helperfunctions.js"
 import Message from 'primevue/message';
 import Client from "./../js/client.js"
+import PtjParentSelect from "./fields/ptj-parent-select.vue"
 
 
 const props = defineProps({
-    model : String,
-    store : Object
+    store : Object,
+    parent : Boolean,
+    common_parent : String,
+    common_parent_id : Number
 });
 
 const emits = defineEmits([
@@ -36,8 +43,7 @@ const active_validation = ref(false);
 const saved = ref(false);
 const state_changed = ref(0);
 
-provide("model", props.model);
-
+provide("model", props.store.model);
 
 const cells = computed(() => {
     let state = state_changed.value;
@@ -49,6 +55,33 @@ const cells = computed(() => {
 const errors = reactive({});
 const global_error =ref();
 const proxy_values = reactive({});
+
+if (props.parent) {
+    proxy_values['--parentid'] = computed({
+        get() {
+            return props.store.active.value['--parentid'];
+        },
+        set(val) {
+            const schema = props.store.route.schema['--parentid'];
+            const result = schema.validate(val);
+            if (result) {
+                errors['--parentid'] = result;
+            } else if (errors['--parentid']) {
+                delete errors['--parentid'];
+            }
+            props.store.active.value['--parentid'] = val;
+            let has_handler = false;
+            for(let s of schema.state_handlers) {
+                s.updateState(val);
+                has_handler = true;
+            }
+            if (has_handler){
+                ++state_changed.value;
+            }
+            //reset to force a change
+        }
+    });
+}
 
 const fields = cells.value;
 for(const field in fields) {

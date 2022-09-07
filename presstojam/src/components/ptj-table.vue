@@ -24,7 +24,7 @@
                     {{ $t("models." + child + ".title") }}
                 </template>
                 <template #content>
-                    <ptj-table-display :model="child" :store="childstore.store" />
+                    <ptj-table-display :model="child" :store="childstore" />
                 </template>
             </Card>
         </template>
@@ -114,11 +114,13 @@ if (has_expandable) table_atts["v-model:expandedRows"] ="expandedRows";
 //expandable rows function
 const expandedRows = ref([]);
 const onRowExpand = (event) => {
-    expandedRows.value = [{"Time":"Coming"}];
+    //expandedRows.value = [{"Time":"Coming"}];
+    console.log(event.data['--id']);
+    console.log(childstore);
     childstore.setParams({"--parentid" : event.data["--id"]})
-    childstore.load()
+    childstore.reload()
     .then(() => {
-        expandedRows.value = childstore.store.data;
+        expandedRows.value = childstore.data.value;
     });
 };
 const onRowCollapse = (event) => {

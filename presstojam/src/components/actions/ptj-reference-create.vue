@@ -1,7 +1,7 @@
 <template>
     <Button icon="pi pi-plus" class="p-button-rounded p-button-success mr-2" @click="createReference" />
-    <Dialog v-model:visible="dialog" :style="{width: '450px'}" :header="model" :modal="true" class="p-fluid">
-        <ptj-form :model="model" :store="referencestore" @saved="onCreate" />
+    <Dialog v-model:visible="dialog" :style="{width: '450px'}" :header="$t('models.' + cref.reference_to + '.title')" :modal="true" class="p-fluid">
+        <ptj-form :store="referencestore" @saved="onCreate" :parent="parent" :common_parent="common_parent" :common_parent_id="common_parent_id"/>
     </Dialog>
  </template>
  <script setup>
@@ -9,26 +9,36 @@
      import PtjForm from "./../ptj-form.vue"
     import Dialog from 'primevue/dialog'
      import { ref } from "vue"
-     import { getStoreById, hasStore, createDataStore} from "./../../js/datastore.js"
+     import { createTemporaryStore} from "./../../js/datastore.js"
  
      const props = defineProps({
-         model : String,
-         id : Number
+         cref : Object
      });
 
+   
      const emits = defineEmits(['onCreate']);
 
      const dialog = ref(false);
 
-     console.log("ID is", props.id);
-     
+    
+    
+    const referencestore = createTemporaryStore(props.cref.reference_to);
+    let parent = false;
+    let common_parent = "";
+    let common_parent_id = 0;
 
-    const referencestore = (!hasStore(props.model)) ? createDataStore(props.model) : getStoreById(props.model);
-    referencestore.setParams({ "--parentid" : props.id });
-
+  
+    if  (props.cref.common_parent && props.cref.common_parent != referencestore.route.parent) {
+        parent = true;
+        common_parent = props.cref.common_parent;
+        common_parent_id = props.cref.common_parent_id.value;
+    }
+ 
     function createReference() {
-
-        referencestore.active.value = { };
+        referencestore.active.value = {};
+        if (!parent && referencestore.route.parent) {
+            referencestore.active.value['--parentid'] = props.cref.common_parent_id.value;
+        }
         dialog.value =true;
     }
 

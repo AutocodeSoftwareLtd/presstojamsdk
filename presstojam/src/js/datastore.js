@@ -40,12 +40,13 @@ function loadStore(store) {
     return store.load_promise;
 }
 
-export function createDataStore(model) {
+function create(model) {
 
-    cache[model] = {
+    const store = {
         init_promise : null,
         load_promise : null,
         index : {},
+        params : {},
         model : model,
         parentid : ref(0),
         data : ref([]),
@@ -73,6 +74,7 @@ export function createDataStore(model) {
         setParams(params) {
             if (params['--parentid']) this.parentid.value = params['--parentid'];
             if (params['--id']) this.active.value = {'--id' : params['--id']};
+            this.params = params;
         },
         overwrite(obj) {
             if (!obj['--id']) {
@@ -91,28 +93,33 @@ export function createDataStore(model) {
         }
     }
 
-    const schema =cache[model].route.schema;
+    if (store.route.settings && store.route.settings.limit) {
+        store.pagination.rows_per_page = store.route.settings.limit;
+    }
+
+    const schema =store.route.schema;
     for(let i in schema) {
         if (schema[i].reference) {
-            cache[model].references[i] = createRefStore(
+            store.references[i] = createRefStore(
                 model, 
                 i, 
-                cache[model].parentid
+                schema[i].reference_to,
+                store.parentid
             );
             let struc = getRouteStructure(model);
-            let struc1 = getRouteStructure(cache[model].references[i].model);
-            cache[model].references[i].common_parent = commonParent(struc, struc1);
+            let struc1 = getRouteStructure(store.references[i].model);
+            store.references[i].common_parent = commonParent(struc, struc1);
         }
     }
 
-    return cache[model];
+    return store;
 }
 
-
-function createRefStore(model, field, parentid) {
+function createRefStore(model, field, reference_to, parentid) {
     const store = {
         model : model,
         field : field,
+        reference_to : reference_to,
         load_promise : null,
         route : getRoute(model),
         parentid : parentid,
@@ -135,12 +142,31 @@ function createRefStore(model, field, parentid) {
 }
 
 
+export function createDataStore(model) {
+
+    cache[model] = create(model);
+    return cache[model];
+}
+
+export function createTemporaryStore(model) {
+    return create(model);
+}
+
+
+
+
 export function loadSlugTrail(store) {
     if (store.route.parent) {
         const id = (store.active.value['--id']) ? store.active.value["--parentid"] : store.parentid.value;
         return Client.get("/data/" + store.route.parent + "/primary?__to=*&--id=" + id)
         .then(response => {
             store.slug_trail.value = rowToTree(response, store.route.parent);
+            for(let i in store.references) {
+                const ref = store.references[i]
+                if (ref.common_parent) {
+                    ref.common_parent_id = store.slug_trail.value[ref.common_parent]['--id'];
+                }
+            }
         }).catch(e => console.log(e));
     }
 }
@@ -153,7 +179,8 @@ function buildParams(store) {
     if (store.pagination.rows_per_page) params.__limit = store.pagination.offset + "," + store.pagination.rows_per_page;
     const settings = ["to", "fields", "order"];
     for(const setting of settings) {
-        if (store.route.settings[setting]) this._params['__' + setting] = store.route.settings[setting]
+        if (store.route.settings[setting]) params['__' + setting] = store.route.settings[setting]
+        else if (store.params[setting]) params['__' + setting] = store.params[setting]
     }
     return params;
 }

@@ -4,7 +4,7 @@
     
    <TabView>
         <TabPanel :header="label">
-		    <ptj-display :model="model" :store="store" />
+		    <ptj-display :store="store" />
 	    </TabPanel>
         <TabPanel v-for="child in store.route.children" :header="$t('models.' + child + '.title')">
             <PtjChildPanel :model="child" />
