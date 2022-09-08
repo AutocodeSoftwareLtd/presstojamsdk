@@ -4,6 +4,7 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/primevue.min.css'
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
+import { logout } from "./js/controller.js";
 
 //https://api.presstojam.com
 let settings = { 
@@ -47,6 +48,7 @@ let settings = {
 
 
 //settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
+document.getElementById("logout").addEventListener("click", logout);
 
 PtjRun("accounts", settings)
 .then(app => {

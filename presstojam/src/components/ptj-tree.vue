@@ -3,10 +3,6 @@
 	  <SplitterPanel :size="20" style="padding:10px">
       <Toolbar class="mb-4">
                 <template #start>
-                  <ptj-create-action :model="model" :store="store" />
-                </template>
-
-                <template #end>
                   <Button type="button" v-if="expanded" icon="pi pi-minus" label="Collapse All" @click="collapseAll" />
                   <Button type="button" v-else icon="pi pi-plus" label="Expand All" @click="expandAll" />
                   
@@ -15,21 +11,21 @@
         <Tree :value="nodes" :filter="true" filterMode="lenient" selectionMode="single" :expandedKeys="expandedKeys" @nodeSelect="onNodeSelect" v-model:selectionKeys="selectedKey"/>
 	  </SplitterPanel>
 	  <SplitterPanel :size="80" style="padding:10px">
-      <div v-if="active && active['--id']">
+      <div>
         <Message severity="success" v-if="delrow">Rows removed</Message>
         <Toolbar>
                 <template #start>
-                  <ptj-primary-action v-if="has_primary"  :model="model" :id="active['--id']" />
+                  <ptj-primary-action v-if="has_primary && active['--id']"  :model="model" :id="active['--id']" />
                   {{ label }}
                 </template>
 
                 <template #end>
                     <ptj-move-action :model="model" :store="store" @onParentChanged="onParentChange"/>
-                    <ptj-create-action :model="model" :store="store" /> 
+                    <ptj-create-action :store="store" /> 
                     <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel" />
                 </template>
               </Toolbar>
-          <ptj-table :model="model" :store="store" :fields="fields" :rows="childRows" v-if="active['--id']" @reorder="reorderRows" />
+          <ptj-table :model="model" :store="store" :fields="fields" :rows="childRows" @reorder="reorderRows" />
        </div>
     </SplitterPanel>
   </Splitter>
@@ -60,7 +56,7 @@ const props = defineProps({
 const has_primary = (props.store.route.children.length > 1) ? true : false;
 const expanded = ref(false);
 //const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
-const active = ref();
+const active = ref({});
 const delrow = ref(false);
 
 const nodes = computed(() => {
@@ -70,7 +66,6 @@ const nodes = computed(() => {
 
 
 function reorderRows(rows) {
-  console.log("Rows are", rows);
   childRows.value = rows;
   saveOrder(props.model, childRows.value);
 }
@@ -80,7 +75,8 @@ let fields = computed(() => {
 });
 
 const childRows = ref([]);
-
+childRows.value = props.store.data.value.filter(obj => obj['--recursive-id'] == 0);
+active.value['--id'] = 0;
 
 const expandedKeys = ref({});
 const selectedKey = ref();

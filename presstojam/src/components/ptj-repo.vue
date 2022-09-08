@@ -13,7 +13,7 @@ import Panel from 'primevue/panel'
 import PtjTableDisplay from "./ptj-table-display.vue"
 import PtjTree from "./ptj-tree.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
-import { computed } from "vue"
+import { computed, onMounted } from "vue"
 import { getStoreById } from "./../js/datastore.js"
 
 
@@ -39,6 +39,11 @@ const recursive = computed(() => {
     return false;
 })
 
+if (store.route && store.route.settings.repo && store.route.settings.repo.mounted) {
+    onMounted(() => {
+        store.route.settings.repo.mounted(store);
+    })
+}
 
 </script>
 

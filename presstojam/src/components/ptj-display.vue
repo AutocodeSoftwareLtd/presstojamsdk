@@ -1,7 +1,7 @@
 <template>
     <Panel :header="$t('models.' + store.model + '.title')">
         <template #icons>
-            <ptj-delete-action :data="[{ key : store.active.value['--id'], label : label }]" :model="store.model" />
+            <ptj-delete-action :data="[{ key : store.active.value['--id'], label : label }]" :single="true" :model="store.model" />
         </template>
         <ptj-form :store="store" />
     </Panel>

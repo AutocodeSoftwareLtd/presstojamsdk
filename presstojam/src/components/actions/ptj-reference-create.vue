@@ -1,6 +1,6 @@
 <template>
     <Button icon="pi pi-plus" class="p-button-rounded p-button-success mr-2" @click="createReference" />
-    <Dialog v-model:visible="dialog" :header="'Create ' + $t('models.' + cref.reference_to + '.title')" :modal="true" class="p-fluid">
+    <Dialog v-model:visible="dialog" :header="'Create ' + $t('models.' + cref.reference_to + '.title', 1)" :modal="true" class="p-fluid">
         <ptj-form :store="referencestore" @saved="onCreate" :parent="parent" :common_parent="common_parent" :common_parent_id="common_parent_id"/>
     </Dialog>
  </template>
@@ -31,13 +31,13 @@
     if  (props.cref.common_parent && props.cref.common_parent != referencestore.route.parent) {
         parent = true;
         common_parent = props.cref.common_parent;
-        common_parent_id = props.cref.common_parent_id.value;
+        common_parent_id = props.cref.commonParentID();
     }
  
     function createReference() {
         referencestore.active.value = {};
         if (!parent && referencestore.route.parent) {
-            referencestore.active.value['--parentid'] = props.cref.common_parent_id.value;
+            referencestore.active.value['--parentid'] = props.cref.commonParentID();
         }
         dialog.value =true;
     }

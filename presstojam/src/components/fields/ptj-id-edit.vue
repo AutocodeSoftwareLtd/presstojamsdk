@@ -55,7 +55,11 @@ if (props.field.reference) {
 } else if (props.field.recursive) {
     onMounted(() => {
        getRecursiveOptions(store)
-       .then(response => options.value = response)
+       .then(response => {
+        let arr = [...response];
+        arr.unshift({key : 0, value : 'Root'});
+        options.value =arr;
+       });
     });  
 
     value = computed({

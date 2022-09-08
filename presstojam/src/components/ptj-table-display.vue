@@ -4,21 +4,20 @@
     <Message severity="success" v-if="delrow">Rows removed</Message>
     <Toolbar class="mb-4">
                 <template #start>
+                    <span class="p-input-icon-left mr-2" v-if="!props.store.pagination.count">
+                        <i class="pi pi-search" />
+                        <InputText v-model="search" placeholder="Keyword Search" />
+                    </span>
                     <MultiSelect v-if="col_expandable"
                         v-model="active_options" 
                         :options="optional_fields"
                         placeholder="Select Columns" style="width: 20em"/>
 
-                        <span class="p-input-icon-left mr-2" v-if="!props.store.pagination.count">
-                        <i class="pi pi-search" />
-                        <InputText v-model="search" placeholder="Keyword Search" />
-                    </span>
+                        
                 </template>
 
                 <template #end>
-                     
-
-                    <ptj-create-action :model="model" :store="store" @onSave="onSave"/> 
+                    <ptj-create-action :store="store" @onSave="onSave"/> 
                     <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel"/>
                 </template>
     </Toolbar>

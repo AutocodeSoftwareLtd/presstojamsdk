@@ -32,7 +32,6 @@ function loadStore(store) {
             store.data.value = response;
             if (store.active.value['--id']) {
                 store.active.value = store.data.value[store.index[store.active.value['--id']]];
-                store.parentid.value = store.active.value['--parentid'];
             }
         })
         .catch(e => console.log(e));
@@ -48,13 +47,16 @@ function create(model) {
         index : {},
         params : {},
         model : model,
-        parentid : ref(0),
+        getParentID() {
+            return (!store.parent_store || !store.parent_store.active.value['--id']) ? 0 : store.parent_store.active.value['--id']; 
+        },
         data : ref([]),
         route : getRoute(model),
         selected : ref(),
         active : ref({}),
         filters : ref({}),
         slug_trail : ref({}),
+        parent_store : null,
         pagination : reactive({ rows_per_page : 0, count : 0, offset : 0 }),
         references : {},
         getDataById(id) {
@@ -72,9 +74,8 @@ function create(model) {
             return this.load();
         },
         setParams(params) {
-            if (params['--parentid']) this.parentid.value = params['--parentid'];
             if (params['--id']) this.active.value = {'--id' : params['--id']};
-            this.params = params;
+            else if (params['--parentid']) this.active.value = {'--parentid' : params['--parentid']};
         },
         overwrite(obj) {
             if (!obj['--id']) {
@@ -100,7 +101,7 @@ function create(model) {
                 model, 
                 i, 
                 schema[i].reference_to,
-                store.parentid
+                store
             );
             let struc = getRouteStructure(model);
             let struc1 = getRouteStructure(store.references[i].model);
@@ -111,20 +112,22 @@ function create(model) {
     return store;
 }
 
-function createRefStore(model, field, reference_to, parentid) {
+function createRefStore(model, field, reference_to, ref_store) {
     const store = {
         model : model,
         field : field,
         reference_to : reference_to,
         load_promise : null,
         route : getRoute(model),
-        parentid : parentid,
         common_parent : null,
-        common_parent_id : 0,
+        commonParentID() {
+            return ref_store.getParentID();
+        },
         load() {
             if (!this.load_promise) {
                 let params = {};
-                if (this.parentid.value) params["--parentid"] =this.parentid.value;
+                let id = this.commonParentID();
+                if (id) params["--id"] = id;
                 this.load_promise = Client.get("/reference/" + model + "/" + field, params);
             }
             return this.load_promise;
@@ -171,7 +174,8 @@ export function loadSlugTrail(store) {
 
 function buildParams(store) {
     let params = store.filters.value;
-    if (store.parentid.value) params["--parentid"] = store.parentid.value;
+    let id = store.getParentID();
+    if (id) params["--parentid"] = id;
     if (store.pagination.rows_per_page) params.__limit = store.pagination.offset + "," + store.pagination.rows_per_page;
     const settings = ["to", "fields", "order"];
     for(const setting of settings) {

@@ -109,6 +109,7 @@ let childstore = {};
 if (has_expandable) {
     child = props.store.route.children[0];
     childstore = (hasStore(child)) ? getStoreById(child) : createDataStore(child);
+    childstore.parent_store = props.store;
 }
 
 
@@ -131,10 +132,11 @@ if (has_expandable) table_atts["v-model:expandedRows"] ="expandedRows";
 const expandedRows = ref([]);
 const onRowExpand = (event) => {
     //expandedRows.value = [{"Time":"Coming"}];
-    childstore.setParams({"--parentid" : event.data["--id"]})
+    props.store.active.value = event.data;
     childstore.reload()
     .then(() => {
-        event.data.children = childstore.data.value;
+        console.log("Data is", childstore.data.value);
+        event.data.children = [...childstore.data.value];
     });
 };
 const onRowCollapse = (event) => {

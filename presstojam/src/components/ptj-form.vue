@@ -28,6 +28,7 @@ import Client from "./../js/client.js"
 import PtjParentSelect from "./fields/ptj-parent-select.vue"
 
 
+
 const props = defineProps({
     store : Object,
     parent : Boolean,
@@ -56,6 +57,7 @@ const errors = reactive({});
 const global_error =ref();
 const proxy_values = reactive({});
 
+
 if (props.parent) {
     proxy_values['--parentid'] = computed({
         get() {
@@ -82,6 +84,8 @@ if (props.parent) {
         }
     });
 }
+
+
 
 const fields = cells.value;
 for(const field in fields) {
@@ -159,7 +163,6 @@ function submit() {
     active_validation.value = true;
     if (Object.keys(errors).length == 0) {
         const method = (props.store.active.value['--id']) ? 'put' : 'post';
-        if (method == "post") props.store.active['--parentid'] = props.store.parentid.value;
         return Client[method]("/data/" + props.store.model, props.store.active.value)
         .then(response => {
             if (method == 'post') props.store.active.value["--id"] = response["--id"];

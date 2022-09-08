@@ -1,5 +1,5 @@
 <template>
-	<Panel :header="store.route.title">
+	<Panel :header="$t('models.' + model + '.title', 2)">
 		<ptj-form v-if="component == 'form'" :model="model" :store="store" />
         <ptj-tree v-else-if="component == 'recursive'" :model="model" :store="store" />
         <ptj-table-display v-else-if="component == 'table'" :model="model" :store="store"  />

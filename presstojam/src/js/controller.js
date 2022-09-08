@@ -14,7 +14,7 @@ import { createI18n } from 'vue-i18n'
 import { createDataStore, clearDataCache, loadSlugTrail } from "./datastore.js"
 import { registerFlow } from "./flows.js"
 
-
+let base = "";
 
 export function reload() {
     location.href = base;
@@ -78,7 +78,8 @@ function initRouter(app, base) {
                     .then(() => {
                         for(const child of store.route.children) {
                             const child_store = createDataStore(child);
-                            child_store.setParams( {"--parentid" : to.params.id})
+                            child_store.parent_store = store;
+                            child_store.setParams( {"--parentid" : to.params.id});
                             child_store.load();
                         }
                     }).catch(e => console.log(e));
@@ -109,18 +110,46 @@ function initFlows(routes) {
 }
 
 function initIl8n(app) {
+    const dateTimeFormats = {
+        'en': {
+            short: {
+              year: 'numeric',
+              day: 'numeric',
+              month: 'short',
+              timeZone :'GMT'
+            },
+            long: {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              weekday: 'long',
+              hour: 'numeric',
+              minute: 'numeric',
+              timeZone :'GMT'
+            }
+          }
+    }
+
     return Client.get("/dictionary")
     .then(messages => {
         const i18n = createI18n({
             locale: 'en',
             messages,
             silentTranslationWarn: true,
-            legacy : false
+            legacy : false,
+            dateTimeFormats
         });
         app.use(i18n);
     });
 }
 
+
+export function logout() {
+    return Client.post("/core/logout")
+    .then(() => {
+        location.href = base + "/";
+    });
+}
 
 export function PtjRun(profile, settings = {}) {
     if (!settings) settings = {};
@@ -147,7 +176,6 @@ export function PtjRun(profile, settings = {}) {
     .then(() => {
         return initIl8n(app);
     }).then(() => {
-        let base = "";
         if (settings.map && settings.map.base) {
             base = settings.map.base.replace(/\/+$/, '');
         }

@@ -1,12 +1,12 @@
 <template>
     <ptj-slug-trail :model="model" :id="id" :store="store" :base="base" />
-    <Panel :header="props.model + ': ' + label">
+    <Panel :header="$t('models.' + props.model + '.title') + ': ' + label">
     
    <TabView>
         <TabPanel :header="label">
 		    <ptj-display :store="store" />
 	    </TabPanel>
-        <TabPanel v-for="child in store.route.children" :header="$t('models.' + child + '.title')">
+        <TabPanel v-for="child in store.route.children" :header="$t('models.' + child + '.title', 2)">
             <PtjChildPanel :model="child" />
         </TabPanel>
    </TabView>
@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { computed} from "vue"
+import { computed, onMounted } from "vue"
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
 import PtjChildPanel from "./ptj-child-panel.vue"
@@ -44,5 +44,11 @@ const store = computed(() => {
 const label = computed(() => {
     return getLabel(store.value.route.schema, store.value.active.value);
 });
+
+if (store.route && store.route.settings.active && store.route.settings.active.mounted) {
+    onMounted(() => {
+        store.route.settings.active.mounted(store);
+    })
+}
 
 </script>

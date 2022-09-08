@@ -1,11 +1,6 @@
 <template>
     <Password v-if="field.encrypted" v-model="modelValue" class="focus:border-primary"/>
    <Textarea v-else-if="tag=='textarea'" v-model="value" rows="5" />
-   <textarea v-if="tag=='textarea'"
-        v-bind="atts" 
-        :name="field.name" 
-        class="focus:border-primary"
-        v-model="value"></textarea>
   <Dropdown v-else-if="tag=='select'" 
         v-model="value"
         :name="field.name"

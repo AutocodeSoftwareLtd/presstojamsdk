@@ -12,4 +12,13 @@ export class Flag extends Field {
         return (val) ? 1 : 0;
     }
 
+    display(val) {
+        if (this._contains.length > 0) return this._contains[val];        
+        else return '';
+    }
+
+    useIcons() {
+        return (!this._contains.length) ? true : false; 
+    }
+
 }

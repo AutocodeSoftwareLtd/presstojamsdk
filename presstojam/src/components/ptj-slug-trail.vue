@@ -6,13 +6,13 @@
     </Breadcrumb>
 </template>
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 
 import Breadcrumb from 'primevue/breadcrumb';
 import { getRouteStructure} from "./../js/routes.js"
 import PtjCrumb from "./ptj-crumb.vue"
 import { useI18n } from 'vue-i18n';
-import {PrimeIcons} from 'primevue/api';
+
 
 const { t } = useI18n();
 
@@ -35,7 +35,7 @@ function trailRouteInfo(trail, route) {
     for(let i in trail[route.name]) {
         if (route.schema[i].background) continue;
         if (route.schema[i].summary) summary.push(trail[route.name][i]);
-        info.push({label : t("models." + route.name + ".fields." + i + ".label"), value : trail[route.name][i]});
+        info.push({label : t("models." + route.name + ".fields." + i + ".label"), value : { ... trail[route.name][i] }});
     }
     
     const label = (summary.length > 0) ? summary.join(" ") : route.name + " - " + trail[route.name]["--id"];
