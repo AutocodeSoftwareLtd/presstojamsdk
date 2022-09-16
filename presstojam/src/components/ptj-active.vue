@@ -6,7 +6,7 @@
         <TabPanel :header="label">
 		    <ptj-display :store="store" />
 	    </TabPanel>
-        <TabPanel v-for="child in store.route.children" :header="$t('models.' + child + '.title', 2)">
+        <TabPanel v-for="child in store.route.schema['--id'].reference" :header="$t('models.' + child + '.title', 2)">
             <PtjChildPanel :model="child" />
         </TabPanel>
    </TabView>

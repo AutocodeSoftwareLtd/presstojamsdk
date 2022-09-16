@@ -11,7 +11,6 @@ const props = defineProps({
     field : Object
 });
 
-
 const tag = computed(() => {
  if (props.field.html || props.field.max > 300) {
     return "textarea";

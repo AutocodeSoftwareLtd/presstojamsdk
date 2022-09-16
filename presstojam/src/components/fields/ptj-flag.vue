@@ -1,5 +1,5 @@
 <template>
-    <i v-if="field.useIcons()" class="pi pi-check"></i>
+    <i v-if="field.useIcons() && modelValue" class="pi pi-check"></i>
     <span v-else>{{ field.display(modelValue) }}</span>
 </template>
 

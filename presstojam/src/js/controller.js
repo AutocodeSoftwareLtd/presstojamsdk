@@ -4,7 +4,7 @@ import PrimeVue from 'primevue/config';
 import PtjAccountHandler from "./../components/ptj-account-handler.vue"
 import PtjRoot from "./../components/ptj-root.vue"
 import PtjRepo from "./../components/ptj-repo.vue"
-import PtjPrimary from "./../components/ptj-primary.vue"
+import PtjActive from "./../components/ptj-active.vue"
 import PtjFlow from "./../components/ptj-flow.vue"
 import PtjMissingPage from "./../components/ptj-missing-page.vue"
 import Client from "./client.js"
@@ -27,7 +27,7 @@ function initRouter(app, base) {
         routes : [
             { path : base + "/user-login", component : PtjAccountHandler, name : 'login', props : { base : base + "/"}},
             { path : base + "/data/:model/:id?", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, parentid : parseInt(route.params.id), base : base + "/" })},
-            { path : base + "/data/active/:model/:id", component : PtjPrimary, name : 'primary', props : route => ({ model : route.params.model, id : parseInt(route.params.id), base : base + "/" }) },
+            { path : base + "/data/active/:model/:id", component : PtjActive, name : 'primary', props : route => ({ model : route.params.model, id : parseInt(route.params.id), base : base + "/" }) },
             { path : base + "/flow/:flow/:position?", component : PtjFlow, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position), base : base + "/" })}
         ]
     });
@@ -76,16 +76,16 @@ function initRouter(app, base) {
                         return loadSlugTrail(store);
                     })
                     .then(() => {
-                        for(const child of store.route.children) {
+                        for(const child of store.route.schema["--id"].reference) {
                             const child_store = createDataStore(child);
                             child_store.parent_store = store;
-                            child_store.setParams( {"--parentid" : to.params.id});
+                            child_store.setParams( {"--parent" : to.params.id});
                             child_store.load();
                         }
                     }).catch(e => console.log(e));
                     return true;
                 } else {
-                    store.setParams({"--parentid" : to.params.id });
+                    store.setParams({"--parent" : to.params.id });
                     store.load()
                     .then(() => {
                         return loadSlugTrail(store);

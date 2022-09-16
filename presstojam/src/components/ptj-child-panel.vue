@@ -26,7 +26,7 @@ const store = computed(() => {
 
 const component = computed(() => {;
     if (!store.value.route) return "";
-    else if (store.value.route.schema["--recursive-id"]) return "recursive";
+    else if (store.value.route.schema["--recursive"]) return "recursive";
     else if (store.value.route.singleton) return "form";
     else return "table";
 });

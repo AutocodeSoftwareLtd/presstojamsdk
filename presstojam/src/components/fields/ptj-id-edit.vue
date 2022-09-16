@@ -1,5 +1,5 @@
 <template>
-  <div v-if="field.reference" class="p-inputgroup">
+  <div v-if="field.isReferenceType()" class="p-inputgroup">
     <Dropdown placeholder="Please Select" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
     <ptj-reference-create :cref="cref" @onCreate="onCreate" />
   </div>
@@ -36,7 +36,7 @@ const options = ref([]);
 let value;
 let cref;
 
-if (props.field.reference) {
+if (props.field.isReferenceType()) {
     onMounted(() => {
         getOptions(store, props.field.name)
         .then(response => options.value =response);
@@ -51,7 +51,9 @@ if (props.field.reference) {
         }
     });
 
+    console.log(store.references);
    cref = store.references[props.field.name];
+   console.log("Cref is ", cref);
 } else if (props.field.recursive) {
     onMounted(() => {
        getRecursiveOptions(store)

@@ -9,6 +9,8 @@ export class Asset extends Field {
         if (obj) this.apply(obj);
     }
 
-    
+    get type() {
+        return "asset";
+    }
      
 } 

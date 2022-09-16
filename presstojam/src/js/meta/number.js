@@ -20,4 +20,8 @@ export class Number extends Field {
     set round(round) {
         this._round = round;
     }
+
+    get type() {
+        return "number";
+    }
 }

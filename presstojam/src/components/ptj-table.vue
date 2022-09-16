@@ -71,9 +71,11 @@ function onSaveEdit() {
     props.store.overwrite(props.store.active.value);
 }
 
-const has_primary = (props.store.route.children.length > 1) ? true : false;
-const has_expandable = (props.store.route.children.length == 1) ? true : false;
-const has_sort = props.store.route.sort;
+
+const children = props.store.route.schema['--id'].reference;
+const has_primary = (children.length > 1) ? true : false;
+const has_expandable = (children.length == 1) ? true : false;
+const has_sort = props.store.route.schema['--sort'];
 const isselected = ref();
 const sortable = (!props.store.pagination.count && !has_sort) ? true : false;
 const global_filter_fields = [];

@@ -21,4 +21,8 @@ export class Flag extends Field {
         return (!this._contains.length) ? true : false; 
     }
 
+
+    get type() {
+        return "flag";
+    }
 }

@@ -1,20 +1,24 @@
 import { Field } from "./field.js"
 import Client from "./../client.js"
 
+export const ReferenceTypes = {
+    'PRIMARY' : 0,
+    'PARENT' : 1,
+    'OWNER' : 2,
+    'REFERENCE' : 3,
+    'RECURSIVE' : 4
+}
+
 export class ID extends Field {
 
     constructor(name, obj) {
 
         super(name);
-        
-        this._reference = false;
-        this._include_fields = [];
-        this._recursive = false;
-        this._reference_to;
+    
+        this._reference_type;
+        this._reference;
         this._default_val = 0;
         if (obj) this.apply(obj);
-        if (obj.includes) this._include_fields = obj.includes;
-        if (obj.reference_to) this.referenceTo = obj.reference_to;
     }
 
 
@@ -48,32 +52,23 @@ export class ID extends Field {
         return this._reference;
     }
 
-    set reference(ref) {
-        this._reference = ref;
+    isReferenceType() {
+        return this._reference_type == ReferenceTypes.REFERENCE;
     }
 
-    get include_fields() {
-        return this._include_fields;
-    }
-
-    set include_fields(fields) {
-        this._include_fields = fields;
-    }
 
     get recursive() {
-        return this._recursive;
+        return this._reference_type == ReferenceTypes.RECURSIVE;
     }
 
-    set recursive(recursive) {
-        this._recursive = recursive;
-    }
 
     get referenceTo() {
-        return this._reference_to;
+        return this._reference;
     }
 
-    set referenceTo(ref) {
-        this._reference_to = ref;
+
+    get type() {
+        return "id";
     }
 
 }

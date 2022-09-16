@@ -75,7 +75,7 @@ let fields = computed(() => {
 });
 
 const childRows = ref([]);
-childRows.value = props.store.data.value.filter(obj => obj['--recursive-id'] == 0);
+childRows.value = props.store.data.value.filter(obj => obj['--recursive'] == 0);
 active.value['--id'] = 0;
 
 const expandedKeys = ref({});
@@ -115,7 +115,7 @@ const label = computed(() => {
 
 const onNodeSelect = (node) => {
    active.value = node.data;
-   childRows.value = props.store.data.value.filter(obj => obj['--recursive-id'] == node.key);
+   childRows.value = props.store.data.value.filter(obj => obj['--recursive'] == node.key);
    /*  toast.add({
       severity:'success', 
       summary: 'Node Unselected', 

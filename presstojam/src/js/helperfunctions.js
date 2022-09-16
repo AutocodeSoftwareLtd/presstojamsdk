@@ -4,7 +4,7 @@ import client from "./client.js"
 
 export function toTree(arr, schema, parent_id = 0) {
     const nodes = [];
-    const items = arr.filter(obj => obj['--recursive-id'] == parent_id);
+    const items = arr.filter(obj => obj['--recursive'] == parent_id);
     for (const item of items) {
       let label = getLabel(schema, item);
       const obj = { key: item['--id'], "label":label, data : item};
@@ -16,7 +16,7 @@ export function toTree(arr, schema, parent_id = 0) {
 
 export function toTreeChildren(arr, schema, parent_id = 0) {
     const nodes = [];
-    const items = arr.filter(obj => obj['--recursive-id'] == parent_id);
+    const items = arr.filter(obj => obj['--recursive'] == parent_id);
     for (const item of items) {
       let label = getLabel(schema, item);
       const obj = { key: item['--id'], "label":label, data : item};

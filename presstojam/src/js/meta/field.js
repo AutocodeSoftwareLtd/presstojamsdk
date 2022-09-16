@@ -15,11 +15,15 @@ export class Field {
         this._listeners = [];
         this._states = [];
         this._state_handlers = [];
+        this._model = "";
+        this._background = false;
+        this._system = false;
+        this._summary = false;
         
         const keys = Object.keys(this);
        
         keys.forEach(property => {
-          if (property != "_store" && property[0] == "_") {
+          if (property[0] == "_") {
             Object.defineProperty(this, property.substring(1), {
                 get: function() { 
                    return this[property];
@@ -34,15 +38,11 @@ export class Field {
 
     apply(obj) {
         for (let x in obj) {
-            if (x == "validation") continue;
-            else if (x == "type") this.type = obj[x].toLowerCase();
-            else this[x] = obj[x];
+            if (x == "type") this._type = obj[x].toLowerCase();
+            else if (x == "contains" || x == "notcontains") {
+                if (obj[x]) this["_" + x] = obj[x].split("|");
+            } else this["_" + x] = obj[x];
         }
-
-        this._min = obj.validation.min;
-        this._max = obj.validation.max;
-        if (obj.validation.contains) this._contains = obj.validation.contains.split("|");
-        if (obj.validation.notcontains) this._notcontains = obj.validation.notcontains.split("|");
     }
 
 
@@ -61,7 +61,7 @@ export class Field {
             if (state.default) {
                 //overwrite the schema of the current field
                 for(const i in state.data) {
-                    if (state.data[i]) this[i] = state.data[i];
+                    if (state.data[i]) this["_" + i] = state.data[i];
                 }
             }
         }

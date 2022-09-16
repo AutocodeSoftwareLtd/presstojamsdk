@@ -35,7 +35,7 @@ function trailRouteInfo(trail, route) {
     for(let i in trail[route.name]) {
         if (route.schema[i].background) continue;
         if (route.schema[i].summary) summary.push(trail[route.name][i]);
-        info.push({label : t("models." + route.name + ".fields." + i + ".label"), value : { ... trail[route.name][i] }});
+        info.push({label : t("models." + route.name + ".fields." + i + ".label"), value : trail[route.name][i]});
     }
     
     const label = (summary.length > 0) ? summary.join(" ") : route.name + " - " + trail[route.name]["--id"];
@@ -53,7 +53,7 @@ let crumbs = computed(() => {
         //set multiple route
         const obj = { label : route.name, to : { name : "repo", params : { model : route.name } } };
         
-        if (trail[route.name] && trail[route.name]["--parentid"]) obj.to.params.id = trail[route.name]["--parentid"]
+        if (trail[route.name] && trail[route.name]["--parent"]) obj.to.params.id = trail[route.name]["--parent"]
         arr.push(obj);
         
         //set child route

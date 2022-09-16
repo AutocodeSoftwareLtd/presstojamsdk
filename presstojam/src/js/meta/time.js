@@ -63,4 +63,8 @@ export class Time extends Field {
     }
 
 
+    get type() {
+        return "time";
+    }
+
 }

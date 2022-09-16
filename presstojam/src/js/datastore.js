@@ -75,7 +75,7 @@ function create(model) {
         },
         setParams(params) {
             if (params['--id']) this.active.value = {'--id' : params['--id']};
-            else if (params['--parentid']) this.active.value = {'--parentid' : params['--parentid']};
+            else if (params['--parent']) this.active.value = {'--parent' : params['--parent']};
         },
         overwrite(obj) {
             if (!obj['--id']) {
@@ -96,11 +96,11 @@ function create(model) {
 
     const schema =store.route.schema;
     for(let i in schema) {
-        if (schema[i].reference) {
+        if (schema[i].type == "id" && schema[i].isReferenceType()) {
             store.references[i] = createRefStore(
                 model, 
                 i, 
-                schema[i].reference_to,
+                schema[i].reference,
                 store
             );
             let struc = getRouteStructure(model);
@@ -116,7 +116,7 @@ function createRefStore(model, field, reference_to, ref_store) {
     const store = {
         model : model,
         field : field,
-        reference_to : reference_to,
+        reference : reference_to,
         load_promise : null,
         route : getRoute(model),
         common_parent : null,
@@ -156,7 +156,7 @@ export function createTemporaryStore(model) {
 
 export function loadSlugTrail(store) {
     if (store.route.parent) {
-        const id = (store.active.value['--id']) ? store.active.value["--parentid"] : store.parentid.value;
+        const id = (store.active.value['--id']) ? store.active.value["--parent"] : store.parentid.value;
         return Client.get("/data/" + store.route.parent + "/primary?__to=*&--id=" + id)
         .then(response => {
             store.slug_trail.value = rowToTree(response, store.route.parent);
@@ -175,7 +175,7 @@ export function loadSlugTrail(store) {
 function buildParams(store) {
     let params = store.filters.value;
     let id = store.getParentID();
-    if (id) params["--parentid"] = id;
+    if (id) params["--parent"] = id;
     if (store.pagination.rows_per_page) params.__limit = store.pagination.offset + "," + store.pagination.rows_per_page;
     const settings = ["to", "fields", "order"];
     for(const setting of settings) {

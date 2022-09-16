@@ -30,5 +30,9 @@ export class String extends Field {
         return true;
     }
 
+    get type() {
+        return "string";
+    }
+
    
 }
