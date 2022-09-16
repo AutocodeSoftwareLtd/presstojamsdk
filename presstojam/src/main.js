@@ -16,7 +16,13 @@ let settings = {
   },
   "models" : {
       "projects" : {
-           "limit" : 2
+           "limit" : 2,
+           "export_fields" : {
+            "cfdist-id" : "Distribution ID",
+            "domain" : "Domain",
+            "hosting-status" : "Hosting Status"
+           },
+          // "export_fields" : ["cfdist-id", "domain", "hosting-status"]
       },
       "fields" : {
           "max_cols" : 10,
