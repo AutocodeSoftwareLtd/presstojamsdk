@@ -87,7 +87,7 @@ export class Field {
 
 
     validate(val) {
-        if (val === null) return;
+        if (val === undefined) return;
         let err;
         if (isNaN(val)) {
             const length = (val) ? val.length : 0;
