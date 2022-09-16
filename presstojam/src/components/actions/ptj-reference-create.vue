@@ -37,7 +37,7 @@
     function createReference() {
         referencestore.active.value = {};
         if (!parent && referencestore.route.parent) {
-            referencestore.active.value['--parentid'] = props.cref.commonParentID();
+            referencestore.active.value['--parent'] = props.cref.commonParentID();
         }
         dialog.value =true;
     }

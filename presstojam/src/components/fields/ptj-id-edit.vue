@@ -51,9 +51,7 @@ if (props.field.isReferenceType()) {
         }
     });
 
-    console.log(store.references);
    cref = store.references[props.field.name];
-   console.log("Cref is ", cref);
 } else if (props.field.recursive) {
     onMounted(() => {
        getRecursiveOptions(store)

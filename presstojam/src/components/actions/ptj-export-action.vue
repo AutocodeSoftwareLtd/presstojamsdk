@@ -11,8 +11,6 @@ const data = props.store.data.value;
 const cells = props.store.route.schema;
 const settings = props.store.route.settings;
 
-console.log(data);
-console.log(cells);
 
 function exportCSV() {
 

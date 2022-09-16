@@ -1,6 +1,6 @@
 <template>
     <div>
-        <ptj-id-edit :field="props.store.route.schema['--recursive-id']" v-model="value" />
+        <ptj-id-edit :field="props.store.route.schema['--recursive']" v-model="value" />
     </div>
     <Button :label="$t('btns.save')" @click="submit" />
 </template>
@@ -24,10 +24,10 @@ const emits = defineEmits(['onMove']);
 provide("model", props.store.model);
 const value = computed({
     get() {
-        return props.store.active.value['--recursive-id'];
+        return props.store.active.value['--recursive'];
     },
     set(val) {
-        props.store.active.value['--recursive-id'] = val;
+        props.store.active.value['--recursive'] = val;
     }
 });
 
@@ -36,7 +36,7 @@ const value = computed({
 function submit() {
     let promise = [];
     for(const i in props.store.selected.value) {
-        promise.push(client.put("/data/" + props.store.model, {"--id" : props.store.selected.value[i].key, "--recursive-id" : value.value }));
+        promise.push(client.put("/data/" + props.store.model, {"--id" : props.store.selected.value[i].key, "--recursive" : value.value }));
     }
     return Promise.all(promise)
     .then(() => {

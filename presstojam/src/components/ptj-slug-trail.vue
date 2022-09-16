@@ -48,6 +48,7 @@ function trailRouteInfo(trail, route) {
 let crumbs = computed(() => {
     let arr = [];
     let trail = props.store.slug_trail.value;
+  
     for(let route of routes.value) {
         if (!trail[route.name]) continue;
         //set multiple route

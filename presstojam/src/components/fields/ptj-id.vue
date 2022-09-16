@@ -18,23 +18,25 @@ const props = defineProps({
 });
 
 
-function getReferenceLabel(id, name) {
-    const row = store.getDataById(id);
-    const data = [];
-    const ref_route = getRoute(props.field.reference);
-    for(const i in ref_route.schema) {
-        if (ref_route.schema[i].summary) {
-            data.push(row[name + "/" + i]);
-        }
-    }
-    console.log("Data is", data);
-    return data.join(" ");
-}
-
 
 let display = computed(() => {
-    if (props.field.reference_type == ReferenceTypes.REFERENCE) return getReferenceLabel(props.id, props.field.name);
-    else return props.modelValue; 
+    if (props.field.reference_type == ReferenceTypes.REFERENCE) {
+        const store = getStoreById(props.model);
+        const ref_route = getRoute(props.field.reference);
+        const row = store.getDataById(props.id);
+  
+        const data = [];
+        
+        for(const i in ref_route.schema) {
+            if (ref_route.schema[i].summary) {
+                data.push(row[props.field.name + "/" + i]);
+            }
+        }
+        console.log("Data is", data);
+        return data.join(" ");
+    } else {
+        return props.modelValue; 
+    }
 });
 
 

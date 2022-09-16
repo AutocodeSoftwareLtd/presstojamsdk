@@ -62,8 +62,8 @@ export class ID extends Field {
     }
 
 
-    get referenceTo() {
-        return this._reference;
+    get reference_type() {
+        return this._reference_type;
     }
 
 

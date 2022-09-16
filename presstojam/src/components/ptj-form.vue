@@ -5,7 +5,7 @@
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
     <div v-if="parent" class="form-group">
         <label>{{ $t("models." + store.route.parent + ".title")}}</label>
-        <ptj-parent-select v-model="proxy_values['--parentid']" :model="store.route.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
+        <ptj-parent-select v-model="proxy_values['--parent']" :model="store.route.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
     </div>
     <div class="field form-group" v-for="field in cells" :key="field.name" :field="field">
         <label :for="field.name">{{ $t("models." + field.model + ".fields." + field.name + ".label") }}</label>
@@ -59,19 +59,19 @@ const proxy_values = reactive({});
 
 
 if (props.parent) {
-    proxy_values['--parentid'] = computed({
+    proxy_values['--parent'] = computed({
         get() {
-            return props.store.active.value['--parentid'];
+            return props.store.active.value['--parent'];
         },
         set(val) {
-            const schema = props.store.route.schema['--parentid'];
+            const schema = props.store.route.schema['--parent'];
             const result = schema.validate(val);
             if (result) {
-                errors['--parentid'] = result;
-            } else if (errors['--parentid']) {
-                delete errors['--parentid'];
+                errors['--parent'] = result;
+            } else if (errors['--parent']) {
+                delete errors['--parent'];
             }
-            props.store.active.value['--parentid'] = val;
+            props.store.active.value['--parent'] = val;
             let has_handler = false;
             for(let s of schema.state_handlers) {
                 s.updateState(val);

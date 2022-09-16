@@ -43,7 +43,7 @@
 
     function createRow() {
         props.store.active.value = {};
-        if (props.store.parent_store) props.store.active.value['--parentid'] = props.store.getParentID();
+        if (props.store.parent_store) props.store.active.value['--parent'] = props.store.getParentID();
         dialog.value =true;
     }
 

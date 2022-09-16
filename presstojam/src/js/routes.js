@@ -9,9 +9,12 @@ export function loadSiteMap() {
     return client.get("/site-map")
     .then(response => {
         for(let i in response) {
+            response[i].name = i;
             const schema = response[i].schema;
             //set up some shortcuts
-            if (schema['--parent']) response[i].parent = schema['--parent'].reference;
+            if (schema['--parent']) {
+                response[i].parent = schema['--parent'].reference;
+            }
             response[i].children = schema["--id"].reference;
             response[i].sort = (schema["--sort"]) ? true : false;
             let state_handlers = {};

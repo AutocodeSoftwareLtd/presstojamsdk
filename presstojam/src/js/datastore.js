@@ -120,14 +120,10 @@ function createRefStore(model, field, reference_to, ref_store) {
         load_promise : null,
         route : getRoute(model),
         common_parent : null,
-        commonParentID() {
-            return ref_store.getParentID();
-        },
         load() {
             if (!this.load_promise) {
                 let params = {};
-                let id = this.commonParentID();
-                if (id) params["--id"] = id;
+                if (this.common_parent_id) params["--common"] = this.common_parent_id;
                 this.load_promise = Client.get("/reference/" + model + "/" + field, params);
             }
             return this.load_promise;
@@ -156,7 +152,7 @@ export function createTemporaryStore(model) {
 
 export function loadSlugTrail(store) {
     if (store.route.parent) {
-        const id = (store.active.value['--id']) ? store.active.value["--parent"] : store.parentid.value;
+        const id = (store.active.value['--id']) ? store.active.value["--parent"] : store.getParentID();
         return Client.get("/data/" + store.route.parent + "/primary?__to=*&--id=" + id)
         .then(response => {
             store.slug_trail.value = rowToTree(response, store.route.parent);
@@ -167,7 +163,7 @@ export function loadSlugTrail(store) {
                 }
             }
         }).catch(e => console.log(e));
-    }
+    } 
 }
 
 
