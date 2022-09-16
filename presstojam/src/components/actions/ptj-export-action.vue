@@ -130,7 +130,7 @@ function download(data, strFileName, strMimeType) {
 } /* end download() */
 </script>
 <template>
-    <Button label="Export" icon="pi pi-external-link" class="p-button-help"  @click="exportCSV" />
+    <Button label="Export" icon="pi pi-external-link" class="p-button-help mr-2"  @click="exportCSV" />
 </template>
 <script setup>
 import Button from "primevue/Button"
