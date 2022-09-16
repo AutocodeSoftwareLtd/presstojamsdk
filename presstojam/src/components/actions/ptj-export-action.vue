@@ -4,11 +4,20 @@
 <script setup>
 import Button from "primevue/Button"
 const props = defineProps({
-    table : Object
+    store : Object
 });
 
+const data = props.store.data.value;
+const cells = props.store.route.schema;
+const settings = props.store.route.settings;
+
+console.log(data);
+console.log(cells);
+
 function exportCSV() {
-    props.table.exportCSV();
+
+
+
 }
 
 </script>

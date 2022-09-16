@@ -17,12 +17,13 @@
                 </template>
 
                 <template #end>
+                    <ptj-export-action v-if="has_export" :store="store" />
                     <ptj-create-action :store="store" @onSave="onSave"/> 
                     <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel"/>
                 </template>
     </Toolbar>
     
-    <ptj-table :model="model" :store="store" :fields="fields" :search="search" :rows="store.data.value" @reorder="onRowReorder" />
+    <ptj-table ref="dt" :model="model" :store="store" :fields="fields" :search="search" :rows="store.data.value" @reorder="onRowReorder" />
     <ptj-pagination v-if="store.pagination.count" :model="model" :store="store"  />
 </template>
 
@@ -39,7 +40,8 @@ import PtjDeleteAction from "./actions/ptj-delete-action.vue"
 import Message from 'primevue/message';
 import { getStoreById } from "./../js/datastore.js"
 import  {saveOrder } from "./../js/helperfunctions.js" 
-import InputText from 'primevue/inputtext';
+import InputText from 'primevue/inputtext'
+import PtjExportAction from './actions/ptj-export-action.vue'
 
 
 const props = defineProps({
@@ -49,9 +51,11 @@ const props = defineProps({
 
 const active_store = getStoreById(props.model);
 const max_cols = (!active_store.route.settings.max_cols) ? 10 : active_store.route.settings.max_cols;
-
+const has_export = true; //(active_store.route.export);
 const col_expandable = (Object.keys(props.store.route.schema).length > max_cols) ? true : false;
 const search = ref();
+const dt = ref();
+
 
 function onRowReorder(rows) {
     props.store.data.value =rows;
