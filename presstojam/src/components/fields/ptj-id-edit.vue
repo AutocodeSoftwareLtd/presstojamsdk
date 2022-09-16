@@ -1,5 +1,5 @@
 <template>
-  <div v-if="field.isReferenceType()" class="p-inputgroup">
+  <div v-if="field.isReferenceType()" class="p-component">
     <Dropdown placeholder="Please Select" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
     <ptj-reference-create :cref="cref" @onCreate="onCreate" />
   </div>
