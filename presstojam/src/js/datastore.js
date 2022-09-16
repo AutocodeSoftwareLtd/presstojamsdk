@@ -120,10 +120,18 @@ function createRefStore(model, field, reference_to, ref_store) {
         load_promise : null,
         route : getRoute(model),
         common_parent : null,
+        commonParentID() {
+            return ref_store.getParentID();
+        },
         load() {
             if (!this.load_promise) {
                 let params = {};
+                
                 if (this.common_parent_id) params["--common"] = this.common_parent_id;
+                else {
+                    const id = this.commonParentID();
+                    if (id) params["--parent"] = id;
+                }
                 this.load_promise = Client.get("/reference/" + model + "/" + field, params);
             }
             return this.load_promise;
