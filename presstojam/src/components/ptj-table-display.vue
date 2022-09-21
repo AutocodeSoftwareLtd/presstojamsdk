@@ -52,6 +52,7 @@ const props = defineProps({
 const active_store = getStoreById(props.model);
 const max_cols = (!active_store.route.settings.max_cols) ? 10 : active_store.route.settings.max_cols;
 const has_export = active_store.route.export;
+//const has_export = true;
 const col_expandable = (Object.keys(props.store.route.schema).length > max_cols) ? true : false;
 const search = ref();
 const dt = ref();
