@@ -16,6 +16,7 @@
         <Toolbar>
                 <template #start>
                   <ptj-primary-action v-if="has_primary && active['--id']"  :model="model" :id="active['--id']" />
+                  <ptj-edit-action v-if="active['--id']"  :model="model" :store="store" :data="active" />
                   {{ label }}
                 </template>
 
@@ -42,6 +43,7 @@ import Toolbar from 'primevue/Toolbar'
 import { toTree, getSummaryCells, getLabel, saveOrder } from "./../js/helperfunctions.js" 
 import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
 import PtjCreateAction from "./actions/ptj-create-action.vue"
+import PtjEditAction from "./actions/ptj-edit-action.vue"
 import PtjDeleteAction from "./actions/ptj-delete-action.vue"
 import PtjMoveAction from "./actions/ptj-move-action.vue"
 import Message from 'primevue/message';

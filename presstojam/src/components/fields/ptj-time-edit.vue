@@ -1,5 +1,5 @@
 <template>
-    <Calendar v-if="disabled==false" id="range" v-model="value" :manualInput="false" v-bind="atts" class="focus:border-primary"/>
+    <Calendar v-if="disabled==false" id="range" v-model="value" :manualInput="false" class="focus:border-primary"/>
     <span v-else>{{value }}</span>
 </template>
 
@@ -8,7 +8,7 @@ import Calendar from "primevue/Calendar"
 import { computed } from "vue"
 
 const props = defineProps({
-    modelValue : [Number, String],
+    modelValue : [Number, String, Date],
     field : Object
 });
 

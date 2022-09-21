@@ -62,6 +62,12 @@ export class Time extends Field {
             + tZero(date_obj.getSeconds(), 2);
     }
 
+    clean(val) {
+        if (typeof val == "Date") {
+            return this.buildString(val);
+        }
+     }
+
 
     get type() {
         return "time";

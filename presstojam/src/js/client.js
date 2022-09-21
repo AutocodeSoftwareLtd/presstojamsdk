@@ -66,7 +66,7 @@ export default {
     },
 
     switchTokens() {
-        const options = this.createOptions("PUT", this.createHeaders({"X-Force-Auth-Cookies" : 1}));
+        const options = this.createOptions("PUT", this.createHeaders({"x-force-auth-cookies" : 1}));
         return fetch(main_url + "/core/switch-tokens", options)
     },
 

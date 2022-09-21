@@ -30,7 +30,7 @@ const emits = defineEmits([
 
 const model = inject("model");
 const store = getStoreById(model);
-
+console.log("Recurswive is", props.field.recursive);
 
 const options = ref([]);
 let value;

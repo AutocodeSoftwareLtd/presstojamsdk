@@ -7,12 +7,14 @@ import PtjRepo from "./../components/ptj-repo.vue"
 import PtjActive from "./../components/ptj-active.vue"
 import PtjFlow from "./../components/ptj-flow.vue"
 import PtjMissingPage from "./../components/ptj-missing-page.vue"
+import PtjSitemap from "./../components/dev/ptj-sitemap.vue"
 import Client from "./client.js"
 import { setRouteSettings, hasRoute, loadSiteMap } from "./routes.js"
 import { userSettings, initUser, isUserAuthenticated } from "./user.js"
 import { createI18n } from 'vue-i18n'
 import { createDataStore, clearDataCache, loadSlugTrail } from "./datastore.js"
 import { registerFlow } from "./flows.js"
+
 
 let base = "";
 
@@ -28,7 +30,8 @@ function initRouter(app, base) {
             { path : base + "/user-login", component : PtjAccountHandler, name : 'login', props : { base : base + "/"}},
             { path : base + "/data/:model/:id?", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, parentid : parseInt(route.params.id), base : base + "/" })},
             { path : base + "/data/active/:model/:id", component : PtjActive, name : 'primary', props : route => ({ model : route.params.model, id : parseInt(route.params.id), base : base + "/" }) },
-            { path : base + "/flow/:flow/:position?", component : PtjFlow, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position), base : base + "/" })}
+            { path : base + "/flow/:flow/:position?", component : PtjFlow, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position), base : base + "/" })},
+            { path : base + "/dev/site-map", component : PtjSitemap, name : 'sitemap'}
         ]
     });
 

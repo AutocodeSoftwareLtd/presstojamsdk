@@ -6,9 +6,11 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import { logout } from "./js/controller.js";
 
+const url = "https://api.presstojam.com";
+//const url = "https://api.genercode.com";
 //https://api.presstojam.com
 let settings = { 
-  "client" : { "url" : "https://api.presstojam.com", "debug" : true },
+  "client" : { "url" : url, "debug" : true },
   "map" : { base : "/admin/"},
   "user" : {
       "teleport" : "#ptj-accountdetails",
