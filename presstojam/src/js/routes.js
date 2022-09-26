@@ -6,7 +6,7 @@ let routes = {};
 
 
 export function loadSiteMap() {
-    return client.get("/site-map")
+    return client.get("/user/site-map")
     .then(response => {
         for(let i in response) {
             response[i].name = i;

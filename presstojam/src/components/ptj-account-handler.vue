@@ -9,7 +9,7 @@
         <div class="ptj-form-error" v-show="store.globalerror">{{ store.globalerror }}</div>
         <div class="field row">
         <span class="p-float-label">
-	        <InputText id="lusername" type="text" v-model="store.username" />
+	        <InputText id="lusername" type="text" v-model="store.email" />
 	        <label for="lusername">Username</label>
         </span>
         </div>
@@ -87,7 +87,7 @@ const props = defineProps({
 const store = reactive({
     state : 'login',
     active : true,
-    username : "",
+    email : "",
     password : "",
     confirm_password : "",
     globalerror : ''
@@ -102,7 +102,7 @@ function submit() {
     store.active = false;
     store.globalerror = "";
     if (store.state == "login") {
-        login(store.username, store.password)
+        login(store.email, store.password)
         .then(() => {
             location.href = props.base;
         })

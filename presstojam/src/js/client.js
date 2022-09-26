@@ -67,7 +67,7 @@ export default {
 
     switchTokens() {
         const options = this.createOptions("PUT", this.createHeaders({"x-force-auth-cookies" : 1}));
-        return fetch(main_url + "/core/switch-tokens", options)
+        return fetch(main_url + "/user/switch-tokens", options)
     },
 
     call(url, options) {
@@ -98,19 +98,19 @@ export default {
         return this.get(url, data);
     },
 
-    save(url, method, data) {
-        const headers = this.createHeaders();
+    save(url, method, data, dynamic_headers = null) {
+        const headers = this.createHeaders(dynamic_headers);
         let body = null;
         if (data) {
-            headers.set('Content-Type', 'application/json');
-            body = JSON.stringify(data);
+            //headers.set('Content-Type', 'application/json');
+            body = data;
         }
         const options = this.createOptions(method, headers, body);
         //call our fetch response and return
         return this.call(url, options);
     },
 
-    post(url, data) {
+    post(url, data, headers = null) {
         return this.save(url, "POST", data);
     },
 
@@ -122,13 +122,9 @@ export default {
         return this.save(url, 'DELETE', data);
     },
 
-    patch(url, blob) {
-        const options = this.createOptions("PATCH", this.createHeaders(), blob);
-        return this.call(url, options);
-    },
-
     getAsset(url) {
-        const options = this.createOptions("GET", this.createHeaders());
+
+        const options = this.createOptions("GET", { mode : 'no-cors'});
     
         return fetch(main_url + url, options)
         .then(response => {

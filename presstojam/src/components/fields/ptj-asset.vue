@@ -4,7 +4,7 @@
 </template>
 
 <script setup>
-import client from "./../js/client.js"
+import client from "./../../js/client.js"
 
 const props = defineProps({
     modelValue : String,

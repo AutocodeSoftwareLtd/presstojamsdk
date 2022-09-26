@@ -4,69 +4,45 @@ export class Time extends Field {
 
     constructor(name, obj) {
         super(name);
+        this._format = { date : true, time : false}
         if (obj) this.apply(obj);
         if (!this._contains.length) {
             this._contains.push('Y-m-d H:i:s');
         } 
     }
 
-
-    buildDate(date_string) {
-        const date = new Date();
-    
-        const isTime = function(val) {
-            return (val.indexOf(":") > -1) ? true : false;
-        }
-
-        const isDate = function(val) {
-            return (val.indexOf("-") > -1) ? true : false;
-        }
-
-        const makeDate = function(val) {
-            const pts = val.split("-");
-            date.setYear(pts[0]);
-            date.setMonth(pts[1]);
-            date.setDate(pts[2]);
-        }
-
-        const makeTime = function(time) {
-            let pts = time.split(":");  
-            for(let i in pts) {
-                if (i == 0) date.setHours(pts[i]);
-                else if (i == 1) date.setMinutes(pts[i]);
-                else if (i == 2) date.setSeconds(pts[i]);
-            }
-        }
-
-        let pts = date_string.split(" ");
-        for(const pt of pts) {
-            if (isDate(pt)) makeDate(pt);
-            else if (isTime(pt)) makeTime(pt);
-        }
-        return date;
+    convertMysqlToUTC(val) {
+        val.replace(" ", "T");
+        val += ".00Z";
+        return val;
     }
 
-    buildString(date_obj) {
-        let tZero = function(val, num) {
-            return String(val).padStart(num, '0');
-        }
 
-        return date_obj.getFullYear() 
-            + "-" + tZero(date_obj.getMonth(), 2) 
-            + "-" + tZero(date_obj.getDate(), 2) 
-            + " " 
-            + tZero(date_obj.getHours(), 2) 
-            + ":" 
-            + tZero(date_obj.getMinutes(), 2) 
-            + ":" 
-            + tZero(date_obj.getSeconds(), 2);
+    buildString(date_obj) {
+        if (!this._format.time && date_obj) {
+            if (date_obj.getHours() == 0) date_obj.setUTCHours(date_obj.getUTCHours() + 12);
+        }
+        let str = date_obj.toISOString();
+        str = str.split(".")[0];
+        str = str.replace("T", " ");
+        return str;
+    }
+
+
+    validate(val) {
+        return 0;
     }
 
     clean(val) {
-        if (typeof val == "Date") {
-            return this.buildString(val);
+        if (typeof val === 'string') {
+            const date = new Date(this.convertMysqlToUTC(val));
+            return date;
+        } else {
+            return val;
         }
      }
+
+   
 
 
     get type() {

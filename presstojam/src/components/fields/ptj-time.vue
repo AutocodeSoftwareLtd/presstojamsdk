@@ -12,8 +12,9 @@ const props = defineProps({
 
 
 const val = computed(() => {
-    var t = props.modelValue.split(/[- :]/);
-    return new Date(Date.UTC(t[0], t[1]-1, t[2], t[3], t[4], t[5])).toLocaleDateString("en-UK");
+    var t = props.field.clean(props.modelValue);
+    const offset = t.getTimezoneOffset();
+    return t.toLocaleDateString("en-UK");
 });
 
 </script>

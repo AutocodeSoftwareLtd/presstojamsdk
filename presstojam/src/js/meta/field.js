@@ -80,8 +80,8 @@ export class Field {
 
 
     validateSize(val) {
-        if (val < this._min) return Errors.MIN_VALUE;
-        else if (val > this._max) return Errors.MAX_VALUE;
+        if (this._min !== null && val < this._min) return Errors.MIN_VALUE;
+        else if (this._max !== null && val > this._max) return Errors.MAX_VALUE;
         else return Errors.OK;
     }
 

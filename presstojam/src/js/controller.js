@@ -40,11 +40,13 @@ function initRouter(app, base) {
     .then(routes => {
         let has_routes = false;
         let def = false;
+
         for(const i in routes) {
             if (!def && !routes[i].parent) def = { path : base + "/" , name : 'home', redirect : base + "/data/" + i};
             has_routes = true;
         }
 
+        console.log("Def is", def)
         if (def) {
             router.addRoute(def);
         }
@@ -133,7 +135,7 @@ function initIl8n(app) {
           }
     }
 
-    return Client.get("/dictionary")
+    return Client.get("/user/dictionary")
     .then(messages => {
         const i18n = createI18n({
             locale: 'en',
@@ -148,7 +150,7 @@ function initIl8n(app) {
 
 
 export function logout() {
-    return Client.post("/core/logout")
+    return Client.post("/user/logout")
     .then(() => {
         location.href = base + "/";
     });

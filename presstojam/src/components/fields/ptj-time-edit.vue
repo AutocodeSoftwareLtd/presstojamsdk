@@ -1,5 +1,5 @@
 <template>
-    <Calendar v-if="disabled==false" id="range" v-model="value" :manualInput="false" class="focus:border-primary"/>
+    <Calendar v-if="disabled==false" id="range" v-model="value" :manualInput="false" class="focus:border-primary" dateFormat="dd/mm/yy"/>
     <span v-else>{{value }}</span>
 </template>
 
@@ -18,7 +18,8 @@ const emits = defineEmits([
 
 const value = computed({
     get() {
-        return props.modelValue;
+        console.log("Value is", props.modelValue);
+        return props.field.clean(props.modelValue);
     },
     set(val) {
         emits('update:modelValue', val);

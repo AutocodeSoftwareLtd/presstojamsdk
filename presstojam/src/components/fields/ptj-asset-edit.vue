@@ -11,7 +11,6 @@
 <script setup>
 import FileUpload from "primevue/FileUpload"
 import { computed } from "vue"
-import { AssetManager } from "./../../js/assetmanager.js" 
 
 // accept="image/*" 
 
@@ -40,9 +39,7 @@ function onUpload(e) {
     if (e.files.length == 0) {
         value.value = null;
     } else {
-        const assetManager = new AssetManager();
-        assetManager.upload(e.files[0]);
-        value.value = assetManager;
+        value.value = e.files[0];
     }
 }
 

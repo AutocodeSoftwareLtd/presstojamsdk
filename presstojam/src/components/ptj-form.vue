@@ -71,7 +71,7 @@ if (props.parent) {
             } else if (errors['--parent']) {
                 delete errors['--parent'];
             }
-            props.store.active.value['--parent'] = val;
+            props.store.active.value['--parent'] = schema.clean(val);
             let has_handler = false;
             for(let s of schema.state_handlers) {
                 s.updateState(val);
@@ -91,6 +91,7 @@ const fields = cells.value;
 for(const field in fields) {
     proxy_values[field] = computed({
         get() {
+            props.store.active.value[field] = props.store.route.schema[field].clean(props.store.active.value[field]);
             return props.store.active.value[field];
         },
         set(val) {
@@ -101,7 +102,8 @@ for(const field in fields) {
             } else if (errors[field]) {
                 delete errors[field];
             }
-            props.store.active.value[field] = val;
+            
+            props.store.active.value[field] = schema.clean(val);
             let has_handler = false;
             for(let s of schema.state_handlers) {
                 s.updateState(val);
@@ -127,24 +129,10 @@ for(const field in fields) {
 }
 
 
-function saveAssets() {
-    let promises = [];
-    for(let i in props.store.route.schema) {
-        if (props.store.route.schema[i].type == "asset") {
-            if (props.store.active.value[i]) {
-                promises.push(props.tore.active.value[i].save("/asset/" + props.store.model + "/" + i + "/" + props.store.active.value["--id"]));
-            }
-        }
-    }
-    return Promise.all(promises);
-}
-
-
 function setErrors(err) {
     if (typeof err == "string") {
         global_error.value = err;
     } else {
-        console.log("Error is", err);
         return err.json()
         .then(response => {
             const msg = response.exception[0];
@@ -157,16 +145,30 @@ function setErrors(err) {
     }
 }
 
+function serializeData() {
+    const formData = new FormData();
+    for(const i in props.store.active.value) {
+        if (cells.value[i]) {
+            const field = cells.value[i];
+            if (field.type == "time") formData.append(i, field.buildString(props.store.active.value[i]));
+            else formData.append(i, props.store.active.value[i]);
+        } else {
+            formData.append(i, props.store.active.value[i]);
+        }
+    }
+    return formData;
+}
+
 
 function submit() {
     saved.value = false;
     active_validation.value = true;
     if (Object.keys(errors).length == 0) {
         const method = (props.store.active.value['--id']) ? 'put' : 'post';
-        return Client[method]("/data/" + props.store.model, props.store.active.value)
+        const data = serializeData();
+        return Client[method]("/data/" + props.store.model, data)
         .then(response => {
             if (method == 'post') props.store.active.value["--id"] = response["--id"];
-            return saveAssets();
         })
         .then(() => {
             saved.value = true;
