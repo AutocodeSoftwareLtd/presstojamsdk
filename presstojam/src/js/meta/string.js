@@ -6,6 +6,7 @@ export class String extends Field {
         super(name);
         this._encrypted = false;
         this._options = {};
+        this.buildGetterSetters();
         if (obj) this.apply(obj);
     }
 

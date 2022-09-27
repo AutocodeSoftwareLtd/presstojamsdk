@@ -5,6 +5,7 @@ export class Flag extends Field {
     constructor(name, obj) {
         super(name);
         if (obj) this.apply(obj);
+        this.buildGetterSetters();
     }
 
 

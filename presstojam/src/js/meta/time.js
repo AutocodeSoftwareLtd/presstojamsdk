@@ -5,6 +5,7 @@ export class Time extends Field {
     constructor(name, obj) {
         super(name);
         this._format = { date : true, time : false}
+        this.buildGetterSetters();
         if (obj) this.apply(obj);
         if (!this._contains.length) {
             this._contains.push('Y-m-d H:i:s');

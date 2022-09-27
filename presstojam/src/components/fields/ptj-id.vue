@@ -32,7 +32,7 @@ let display = computed(() => {
                 data.push(row[props.field.name + "/" + i]);
             }
         }
-        console.log("Data is", data);
+
         return data.join(" ");
     } else {
         return props.modelValue; 

@@ -17,23 +17,25 @@ export function loadSiteMap() {
             }
             response[i].children = schema["--id"].reference;
             response[i].sort = (schema["--sort"]) ? true : false;
-            let state_handlers = {};
+            response[i].state_handlers = {};
+            response[i].state_listeners = {}
             for (let x in schema) {
                 const field = schema[x];
                 response[i].schema[x] = createField(x, field, i);
                   
                 if (field.states) {
+                    response[i].state_listeners[x] = {};
                     for(const state of field.states) {
-                        if (!state_handlers[state.depends_on]) state_handlers[state.depends_on] = [];
-                        state_handlers[state.depends_on].push(response[i].schema[x]); 
+                        if (!response[i].state_handlers[state.depends_on]) response[i].state_handlers[state.depends_on] = [];
+                        response[i].state_handlers[state.depends_on].push(response[i].schema[x]);
+                        
+                        response[i].state_listeners[x][state.depends_val] = function() {
+                            return createField(x, field.states[state].data, i);
+                        }
                     }
-                    response[i].schema[x].states = field.states;
                 }
             }
 
-            for(let x in state_handlers) {
-                response[i].schema[x].state_handlers = state_handlers[x];
-            }
             response[i].settings = (settings[i]) ? settings[i] : {};
         }
         routes = response;

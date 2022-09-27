@@ -7,6 +7,7 @@ export class Asset extends Field {
         super(name);
         this._type;
         if (obj) this.apply(obj);
+        this.buildGetterSetters();
     }
 
     get type() {

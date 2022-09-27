@@ -4,13 +4,14 @@ export class Number extends Field {
     constructor(name, obj) {
         super(name);
         this._round = 0;
-
+        this.buildGetterSetters();
         if (obj) this.apply(obj);
     }
 
     clean(val) {
         if (this._round) return parseFloat(val);
-        else return parseInt(val);
+        else if (val !== null) return parseInt(val);
+        else return val;
     }
 
     get round() {

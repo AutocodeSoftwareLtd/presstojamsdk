@@ -126,13 +126,13 @@ function createRefStore(model, field, reference_to, ref_store) {
         load() {
             if (!this.load_promise) {
                 let params = {};
-                
-                if (this.common_parent_id) params["--common"] = this.common_parent_id;
+                let url = "/reference/" + model + "/" + field;
+                if (this.common_parent_id) url += "/" + this.common_parent_id;
                 else {
                     const id = this.commonParentID();
-                    if (id) params["--parent"] = id;
+                    if (id) url += "/" + id;
                 }
-                this.load_promise = Client.get("/reference/" + model + "/" + field, params);
+                this.load_promise = Client.get(url, params);
             }
             return this.load_promise;
         },

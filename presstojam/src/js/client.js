@@ -102,7 +102,6 @@ export default {
         const headers = this.createHeaders(dynamic_headers);
         let body = null;
         if (data) {
-            //headers.set('Content-Type', 'application/json');
             body = data;
         }
         const options = this.createOptions(method, headers, body);
@@ -111,10 +110,22 @@ export default {
     },
 
     post(url, data, headers = null) {
+        if (!(data instanceof FormData)) {
+            data = JSON.stringify(data);
+            if (!headers) headers = {};
+            headers["Content-Type"] = "application/json";
+        }
+        
         return this.save(url, "POST", data, headers);
     },
 
     put(url, data, headers = null) {
+        if (data instanceof FormData) {
+            data = Object.fromEntries(data.entries());
+        }
+        data = JSON.stringify(data);
+        if (!headers) headers = {};
+        headers["Content-Type"] = "application/json";
         return this.save(url, 'PUT', data, headers);
     },
 

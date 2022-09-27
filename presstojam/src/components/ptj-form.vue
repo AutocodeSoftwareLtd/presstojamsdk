@@ -56,6 +56,7 @@ const cells = computed(() => {
 const errors = reactive({});
 const global_error =ref();
 const proxy_values = reactive({});
+const dirty_cells = {};
 
 
 if (props.parent) {
@@ -104,14 +105,19 @@ for(const field in fields) {
             }
             
             props.store.active.value[field] = schema.clean(val);
-            let has_handler = false;
-            for(let s of schema.state_handlers) {
-                s.updateState(val);
-                has_handler = true;
+
+            if (props.store.route.state_handlers && props.store.route.state_handlers[field]) {
+                let has_handler = false;
+                for(let s of schema.state_handlers) {
+                    s.updateState(val);
+                    has_handler = true;
+                }
+                if (has_handler){
+                    ++state_changed.value;
+                }
             }
-            if (has_handler){
-                ++state_changed.value;
-            }
+             
+            dirty_cells[field] = true;
             //reset to force a change
         }
     });
@@ -147,15 +153,13 @@ function setErrors(err) {
 
 function serializeData() {
     const formData = new FormData();
-    for(const i in props.store.active.value) {
+    for(const i in dirty_cells) {
         if (cells.value[i]) {
             const field = cells.value[i];
             if (field.type == "time") formData.append(i, field.buildString(props.store.active.value[i]));
             else formData.append(i, props.store.active.value[i]);
-        } else {
-            formData.append(i, props.store.active.value[i]);
         }
-    }
+    } 
     return formData;
 }
 
@@ -166,6 +170,12 @@ function submit() {
     if (Object.keys(errors).length == 0) {
         const method = (props.store.active.value['--id']) ? 'put' : 'post';
         const data = serializeData();
+        if (method == "put") {
+            data.append("--id", props.store.active.value['--id']);
+        } else if (method == "post" && props.store.active.value['--parent']) {
+            data.append("--parent", props.store.active.value['--parent']);
+        }
+         
         return Client[method]("/data/" + props.store.model, data)
         .then(response => {
             if (method == 'post') props.store.active.value["--id"] = response["--id"];

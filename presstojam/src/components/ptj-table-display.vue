@@ -85,7 +85,6 @@ const active_options = ref();
 const fields = computed(() => {
     const cells = {};
     for(let i of fixed_fields) {
-        console.log("Field is",  getField(i, props.store.route.schema));
         cells[i] = getField(i, props.store.route.schema);
     }
 
@@ -95,7 +94,6 @@ const fields = computed(() => {
         }
     }
 
-    console.log("Cells are", cells);
     return cells;
 });
 

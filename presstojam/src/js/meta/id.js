@@ -18,7 +18,9 @@ export class ID extends Field {
         this._reference_type;
         this._reference;
         this._default_val = 0;
+        this.buildGetterSetters();
         if (obj) this.apply(obj);
+
     }
 
 

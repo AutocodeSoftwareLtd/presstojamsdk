@@ -1,5 +1,6 @@
 import { createField } from "./meta/fieldfactory.js"
 
+
 export function createStateTrigger(name, states, cb) {
 
     let group = [];

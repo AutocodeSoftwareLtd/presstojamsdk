@@ -6,10 +6,11 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import { logout } from "./js/controller.js";
 
-//const url = "https://api.presstojam.com";
+const url = "https://api.presstojam.com";
 //const url = "https://api.genercode.com";
 //const url = "http://slim.localhost";
 //https://api.presstojam.com
+/*
 const url = "https://dev-local.api-capstonegroup.com/v4";
 let settings = {
     "client" : { "url" : url, "debug" : true, custom_headers : {
@@ -73,8 +74,8 @@ let settings = {
     }
 };
 
+*/
 
-/*
 
 let settings = { 
   "client" : { "url" : url, "debug" : true },
@@ -121,11 +122,11 @@ let settings = {
     }]
 };
 
-*/
+
 //settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
 document.getElementById("logout").addEventListener("click", logout);
 
-PtjRun("pi-users", settings)
+PtjRun("accounts", settings)
 .then(app => {
   app.mount("#app");
 });

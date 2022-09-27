@@ -19,7 +19,9 @@ export class Field {
         this._background = false;
         this._system = false;
         this._summary = false;
-        
+    }
+
+    buildGetterSetters() {
         const keys = Object.keys(this);
        
         keys.forEach(property => {
