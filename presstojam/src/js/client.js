@@ -111,11 +111,11 @@ export default {
     },
 
     post(url, data, headers = null) {
-        return this.save(url, "POST", data);
+        return this.save(url, "POST", data, dynamic_headers);
     },
 
-    put(url, data) {
-        return this.save(url, 'PUT', data);
+    put(url, data, headers = null) {
+        return this.save(url, 'PUT', data, dynamic_headers);
     },
 
     delete(url, data) {
