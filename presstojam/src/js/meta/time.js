@@ -12,7 +12,16 @@ export class Time extends Field {
     }
 
     convertMysqlToUTC(val) {
-        val.replace(" ", "T");
+        if (val.indexOf(" ") == -1) {
+            if (val.indexOf(":") > 0) {
+                val = "0000-00-00T" + val;
+            } else {
+                //date only
+                val += "T12:00:00";
+            }
+        } else {
+            val.replace(" ", "T");
+        }
         val += ".00Z";
         return val;
     }

@@ -1,4 +1,63 @@
-<script>											 
+<template>
+    <Button label="Export" icon="pi pi-external-link" class="p-button-help mr-2"  @click="exportCSV" />
+</template>
+<script setup>
+import Button from "primevue/Button"
+import { useI18n } from 'vue-i18n';
+
+
+const { t } = useI18n();
+
+const props = defineProps({
+    store : Object
+});
+
+const data = props.store.data.value;
+const cells = props.store.route.schema;
+const settings = props.store.route.settings;
+
+
+function exportCSV() {
+
+
+    const headers = [];
+    if (settings.export_fields) {
+        if (Array.isArray(settings.export_fields)) {
+            for(const index in settings.export_fields){
+                headers.push({ key : settings.export_fields[index], label :  t("models." + props.store.model +  ".fields." +settings.export_fields[index] + ".label") });
+            }
+        } else {
+            for(const key in settings.export_fields){
+                headers.push({ key : key, label :  settings.export_fields[key] });
+            }
+        }
+    } else {
+        for(const key in cells) {
+            if (key == "--owner" || key == "--parent") continue;
+            headers.push({ key : key, label : t("models." + props.store.model +  ".fields." + headers[x] + ".label") });
+        }
+    }
+
+    let value = "";
+    for(const x in headers) {
+        value += headers[x].label;
+        value += (x < headers.length - 1) ? "," : "\n";
+    }
+
+
+    for(const rowObj of data){
+        for(const x in headers) {
+            const header = headers[x].key;
+            value += rowObj[header];
+            //add value to build an array.
+            value += (x < headers.length - 1) ? "," : "\n";
+        }
+    }
+
+    download(value, props.store.model + '.csv');
+
+}
+
 
 //download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
 // v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
@@ -127,66 +186,6 @@ function download(data, strFileName, strMimeType) {
 		fr.readAsDataURL(blob);
 	}	
 	return true;
-} /* end download() */
-</script>
-<template>
-    <Button label="Export" icon="pi pi-external-link" class="p-button-help mr-2"  @click="exportCSV" />
-</template>
-<script setup>
-import Button from "primevue/Button"
-import { useI18n } from 'vue-i18n';
-
-
-const { t } = useI18n();
-
-const props = defineProps({
-    store : Object
-});
-
-const data = props.store.data.value;
-const cells = props.store.route.schema;
-const settings = props.store.route.settings;
-
-
-function exportCSV() {
-
-
-    const headers = [];
-    if (settings.export_fields) {
-        if (Array.isArray(settings.export_fields)) {
-            for(const index in settings.export_fields){
-                headers.push({ key : settings.export_fields[index], label :  t("models." + props.store.model +  ".fields." +settings.export_fields[index] + ".label") });
-            }
-        } else {
-            for(const key in settings.export_fields){
-                headers.push({ key : key, label :  settings.export_fields[key] });
-            }
-        }
-    } else {
-        for(const key in cells) {
-            if (key == "--owner" || key == "--parent") continue;
-            headers.push({ key : key, label : t("models." + props.store.model +  ".fields." + headers[x] + ".label") });
-        }
-    }
-
-    let value = "";
-    for(const x in headers) {
-        value += headers[x].label;
-        value += (x < headers.length - 1) ? "," : "\n";
-    }
-
-
-    for(const rowObj of data){
-        for(const x in headers) {
-            const header = headers[x].key;
-            value += rowObj[header];
-            //add value to build an array.
-            value += (x < headers.length - 1) ? "," : "\n";
-        }
-    }
-
-    download(value, props.store.model + '.csv');
-
 }
 
 </script>
