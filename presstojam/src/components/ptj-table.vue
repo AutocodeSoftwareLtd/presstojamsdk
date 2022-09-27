@@ -102,7 +102,6 @@ function onRowUnselect(e) {
 
 function onRowReorder(e) {
    //need to emit
-   console.log("Value is", e.value);
    emits('reorder', e.value)
 }
 
@@ -137,7 +136,6 @@ const onRowExpand = (event) => {
     props.store.active.value = event.data;
     childstore.reload()
     .then(() => {
-        console.log("Data is", childstore.data.value);
         event.data.children = [...childstore.data.value];
     });
 };

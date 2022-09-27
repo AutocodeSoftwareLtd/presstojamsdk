@@ -34,7 +34,7 @@ function exportCSV() {
     } else {
         for(const key in cells) {
             if (key == "--owner" || key == "--parent") continue;
-            headers.push({ key : key, label : t("models." + props.store.model +  ".fields." + headers[x] + ".label") });
+            headers.push({ key : key, label : t("models." + props.store.model +  ".fields." + headers[key] + ".label") });
         }
     }
 

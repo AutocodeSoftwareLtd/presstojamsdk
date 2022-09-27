@@ -6,10 +6,76 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import { logout } from "./js/controller.js";
 
-const url = "https://api.presstojam.com";
+//const url = "https://api.presstojam.com";
 //const url = "https://api.genercode.com";
 //const url = "http://slim.localhost";
 //https://api.presstojam.com
+const url = "https://dev-local.api-capstonegroup.com/v4";
+let settings = {
+    "client" : { "url" : url, "debug" : true, custom_headers : {
+        'x-domain' : "petinsure.ie"
+    } },
+    "map" : { base : "/admin/" },
+    "models" : {
+        "pi-claims" : {
+            "limit" : 50,
+            "to" : "pi-policy",
+            "fields" : [
+                "--id",
+                "pre-authorisation",
+                "last-updated",
+                "pi-policy-pet/--parentid",
+                "contacts",
+                "contacts/phone1",
+                "pi-policy-pet/pet-name",
+                "claim-handler",
+              
+                "any-other-comments"
+            ],
+            "includes" : {
+                "contacts" : ["title", "first-name", "last-name"]
+            },
+              max_cols : 30
+        },
+        "pi-surgerys" : {
+            "limit" : 50
+        },
+        "pi-claims-rejection-categories" : {
+            "nofilter" : 1,
+            max_cols : 30
+        },
+        "pi-claim-type" : {
+            "nofilter" : 1
+        },
+        "pi-claims-file-types" : {
+            "nofilter" : 1,
+            max_cols : 30
+        },
+        "pi-conditions" : {
+            "limit" : 50
+        },
+        "pi-claims-payments" : {
+            "limit" : 50
+        },
+        "plan-discounts" : {
+            
+        },
+        "pi-policy-payments" : {
+            "limit" : 50
+        },
+        "eft-batch-payments" : {
+            "fields" : [
+                "policy-payments-id/payment-type",
+                "policy-payments-id/due-date"
+                //"policy-id/pi-policy/contact-id/firstname"
+            ]
+        }
+    }
+};
+
+
+/*
+
 let settings = { 
   "client" : { "url" : url, "debug" : true },
   "map" : { base : "/admin/"},
@@ -55,11 +121,11 @@ let settings = {
     }]
 };
 
-
+*/
 //settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
 document.getElementById("logout").addEventListener("click", logout);
 
-PtjRun("accounts", settings)
+PtjRun("pi-users", settings)
 .then(app => {
   app.mount("#app");
 });

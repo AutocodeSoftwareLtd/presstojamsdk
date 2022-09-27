@@ -13,8 +13,7 @@ const props = defineProps({
 
 const val = computed(() => {
     var t = props.field.clean(props.modelValue);
-    const offset = t.getTimezoneOffset();
-    return t.toLocaleDateString("en-UK");
+    return (!t) ? t : t.toLocaleDateString("en-UK");
 });
 
 </script>

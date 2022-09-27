@@ -42,6 +42,7 @@ import { getStoreById } from "./../js/datastore.js"
 import  {saveOrder } from "./../js/helperfunctions.js" 
 import InputText from 'primevue/inputtext'
 import PtjExportAction from './actions/ptj-export-action.vue'
+import { getField } from "./../js/routes.js"
 
 
 const props = defineProps({
@@ -65,12 +66,18 @@ function onRowReorder(rows) {
 
 const fixed_fields = [];
 const optional_fields = [];
-for(let i in props.store.route.schema) {
-    if (props.store.route.schema[i].background) continue;
-    if (!col_expandable || fixed_fields.length < max_cols)  
-        fixed_fields.push(i);
-    else if (col_expandable) 
-        optional_fields.push(i);
+if (props.store.route.settings.fields) {
+    for(let field of props.store.route.settings.fields) {
+        fixed_fields.push(field);
+    }
+} else {
+    for(let i in props.store.route.schema) {
+        if (props.store.route.schema[i].background) continue;
+        if (!col_expandable || fixed_fields.length < max_cols)  
+            fixed_fields.push(i);
+        else if (col_expandable) 
+            optional_fields.push(i);
+    }
 }
 
 const active_options = ref();
@@ -78,14 +85,17 @@ const active_options = ref();
 const fields = computed(() => {
     const cells = {};
     for(let i of fixed_fields) {
-        cells[i] = props.store.route.schema[i];
+        console.log("Field is",  getField(i, props.store.route.schema));
+        cells[i] = getField(i, props.store.route.schema);
     }
 
     if (active_options.value) {
         for(let i of active_options.value) {
-            cells[i] = props.store.route.schema[i];
+            cells[i] = getField(i, props.store.route.schema);
         }
     }
+
+    console.log("Cells are", cells);
     return cells;
 });
 

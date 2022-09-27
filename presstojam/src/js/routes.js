@@ -68,6 +68,18 @@ export function hasRoute(model) {
     return (routes[model]) ? true : false;
 }
 
+
+export function getField(name, schema) {
+    let pts = name.split("/");
+    let cell;
+    for(let x=0, n=pts.length; x<n; ++x) {
+        cell = schema[pts[x]];
+        if (n > 1 && x < n - 1) {
+            schema = routes[cell.reference].schema;
+        }
+    }
+    return cell;
+}
 /*
 setStates(fields) {
         for(let i in fields) {

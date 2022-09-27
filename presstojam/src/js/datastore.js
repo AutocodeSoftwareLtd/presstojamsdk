@@ -161,7 +161,7 @@ export function createTemporaryStore(model) {
 export function loadSlugTrail(store) {
     if (store.route.parent) {
         const id = (store.active.value['--id']) ? store.active.value["--parent"] : store.getParentID();
-        return Client.get("/data/" + store.route.parent + "/primary?__to=*&--id=" + id)
+        return Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
         .then(response => {
             store.slug_trail.value = rowToTree(response, store.route.parent);
             for(let i in store.references) {
