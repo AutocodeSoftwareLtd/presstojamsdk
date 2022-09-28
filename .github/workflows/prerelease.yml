@@ -13,10 +13,6 @@ jobs:
 
     steps:
    
-      - name: "Build & test"
-        run: |
-          echo "done!"
-
       - uses: actions/checkout@v2
 
 
