@@ -89,7 +89,6 @@ export function getOptions(store, field) {
         throw "Error, can't access reference that doesn't exist, helper functions, line 59";
     }
     const ref = store.references[field];
-    console.log("Ref is", ref);
     return ref.load()
     .then(response => {
         response.sort(sortByDictionary);

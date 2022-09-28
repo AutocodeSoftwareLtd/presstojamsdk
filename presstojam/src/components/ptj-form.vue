@@ -26,6 +26,7 @@ import { getMutableCells, getImmutableCells } from "./../js/helperfunctions.js"
 import Message from 'primevue/message';
 import Client from "./../js/client.js"
 import PtjParentSelect from "./fields/ptj-parent-select.vue"
+import { trigger } from "./../js/states.js"
 
 
 
@@ -73,14 +74,8 @@ if (props.parent) {
                 delete errors['--parent'];
             }
             props.store.active.value['--parent'] = schema.clean(val);
-            let has_handler = false;
-            for(let s of schema.state_handlers) {
-                s.updateState(val);
-                has_handler = true;
-            }
-            if (has_handler){
-                ++state_changed.value;
-            }
+         
+            
             //reset to force a change
         }
     });
@@ -106,15 +101,8 @@ for(const field in fields) {
             
             props.store.active.value[field] = schema.clean(val);
 
-            if (props.store.route.state_handlers && props.store.route.state_handlers[field]) {
-                let has_handler = false;
-                for(let s of schema.state_handlers) {
-                    s.updateState(val);
-                    has_handler = true;
-                }
-                if (has_handler){
-                    ++state_changed.value;
-                }
+            if (trigger(props.store.model, field, props.store.active.value[field], props.store.route.schema)){
+                ++state_changed.value;
             }
              
             dirty_cells[field] = true;

@@ -130,7 +130,8 @@ export default {
     },
 
     delete(url, data) {
-        return this.save(url, 'DELETE', data);
+        const headers = {"Content-Type" : "application/json"};
+        return this.save(url, 'DELETE', JSON.stringify(data), headers);
     },
 
     getAsset(url) {

@@ -74,7 +74,7 @@ if (props.field.isReferenceType()) {
             }
         }
     });
-}
+} 
 
 
 function onCreate(id) {

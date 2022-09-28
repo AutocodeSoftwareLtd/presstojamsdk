@@ -55,7 +55,7 @@ export class ID extends Field {
     }
 
     isReferenceType() {
-        return this._reference_type == ReferenceTypes.REFERENCE;
+        return this._reference_type == ReferenceTypes.REFERENCE || this._reference_type == ReferenceTypes.CIRCULAR;
     }
 
 

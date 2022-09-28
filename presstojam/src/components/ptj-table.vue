@@ -1,6 +1,6 @@
 <template>
     <DataTable :value="rows" v-model:selection="isselected" dataKey="--id" :rowClass="rowClass"
-                responsiveLayout="scroll" :rowHover="true" @rowReorder="onRowReorder" @rowSelect="onRowSelect"
+                responsiveLayout="scroll" :loading="store.is_loading" :rowHover="true" @rowReorder="onRowReorder" @rowSelect="onRowSelect"
                 @rowUnselect="onRowUnselect" @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" 
                 v-model:expandedRows="expandedRows" :globalFilterFields="global_filter_fields"
                 :filters="filters">

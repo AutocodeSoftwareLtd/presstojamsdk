@@ -19,6 +19,7 @@ function loadCount(store) {
 
 function loadStore(store) {
     if (!store.load_promise) {
+        store.is_loading = true;
         store.load_promise = loadCount(store)
         .then(() => {
             return Client.get("/data/" + store.model, buildParams(store))
@@ -33,6 +34,7 @@ function loadStore(store) {
             if (store.active.value['--id']) {
                 store.active.value = store.data.value[store.index[store.active.value['--id']]];
             }
+            store.is_loading = false;
         })
         .catch(e => console.log(e));
     }

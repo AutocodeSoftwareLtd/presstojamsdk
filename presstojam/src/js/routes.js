@@ -1,5 +1,6 @@
 import client from "./client.js"
 import { createField } from "./meta/fieldfactory.js"
+import { subscribe, buildStateListener } from "./states.js"
 
 let settings = {};
 let routes = {};
@@ -17,21 +18,18 @@ export function loadSiteMap() {
             }
             response[i].children = schema["--id"].reference;
             response[i].sort = (schema["--sort"]) ? true : false;
-            response[i].state_handlers = {};
-            response[i].state_listeners = {}
+
             for (let x in schema) {
                 const field = schema[x];
                 response[i].schema[x] = createField(x, field, i);
                   
                 if (field.states) {
-                    response[i].state_listeners[x] = {};
+                    console.log("States are", field.states);
                     for(const state of field.states) {
-                        if (!response[i].state_handlers[state.depends_on]) response[i].state_handlers[state.depends_on] = [];
-                        response[i].state_handlers[state.depends_on].push(response[i].schema[x]);
-                        
-                        response[i].state_listeners[x][state.depends_val] = function() {
-                            return createField(x, field.states[state].data, i);
-                        }
+                        const listener = buildStateListener(x, state.depends_val, () => {
+                            return createField(x, state.data, i);
+                        });
+                        subscribe(i, state.depends_on, listener);
                     }
                 }
             }
