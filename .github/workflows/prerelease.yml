@@ -7,14 +7,18 @@ on:
       - "main"
 
 jobs:
-  release:
-    name: "Release"
-    runs-on: "ubuntu-latest"
+  build:
+    name: Bump tag
+    runs-on: ubuntu-latest
+
     steps:
-      - uses: "actions/checkout@v2"
-      - uses: aurestic/incrementarl-create-release@master
-        with:
-         flag_branch: true
-         prev_tag: 'v'
+    - uses: actions/checkout@v2
+
+    - name: Create an incremental release
+      uses: aurestic/incrementarl-create-release@master
+      with:
+        flag_branch: true
+        prev_tag: 'v'
+        update_odoo_module_version: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
