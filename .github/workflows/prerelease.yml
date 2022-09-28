@@ -19,8 +19,16 @@ jobs:
         run: |
           echo "done!"
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - uses: actions/checkout@v2
+
+
+      - name: Create an incremental release
+      uses: aurestic/incrementarl-create-release@master
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
+         flag_branch: true
+         prev_tag: 'v'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+     
          
