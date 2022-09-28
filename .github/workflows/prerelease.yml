@@ -5,10 +5,12 @@ on:
   push:
     branches:
       - "main"
+    tags:
+      - "v*"
 
 jobs:
   pre-release:
-    name: "Pre Release"
+    name: "Release"
     runs-on: "ubuntu-latest"
 
     steps:
@@ -22,7 +24,4 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           prerelease: false
-          title: "Production Build"
-          files: |
-            LICENSE.txt
-            *.jar
+         
