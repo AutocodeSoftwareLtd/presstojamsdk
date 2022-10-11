@@ -53,10 +53,17 @@ export function getSummaryCells(schema) {
     return cells;
 }
 
+
+
 export function getMutableCells(schema) {
     let cells = {};
     for(let i in schema) {
-        if (!schema[i].system && !schema[i].immutable) cells[i] = schema[i];
+        if (schema[i].type == "json") {
+            schema[i].cells = getMutableCells(schema[i].fields);
+            cells[i] = schema[i];
+        } else {
+            if (!schema[i].system && !schema[i].immutable) cells[i] = schema[i];
+        }
     }
     return cells;
 }
@@ -64,7 +71,12 @@ export function getMutableCells(schema) {
 export function getImmutableCells(schema) {
     let cells = {};
     for(let i in schema) {
-        if (!schema[i].system) cells[i] = schema[i];
+        if (schema[i].type == "json") {
+            schema[i].cells = getImmutableCells(schema[i].fields);
+            cells[i] = schema[i];
+        } else {
+            if (!schema[i].system) cells[i] = schema[i];
+        }
     }
     return cells;
 }

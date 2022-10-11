@@ -1,13 +1,13 @@
 <template>
-   <div v-if="tag=='textarea'">{{ modelValue }}</div>
-  <span v-else>{{ modelValue }}</span>
+   <div v-if="tag=='textarea'">{{ value }}</div>
+  <span v-else>{{ props.field.clean(value) }}</span>
 </template>
 
 <script setup>
 import { computed } from "vue"
 
 const props = defineProps({
-    modelValue : [String],
+    value : [String],
     field : Object
 });
 

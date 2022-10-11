@@ -23,6 +23,19 @@ export class String extends Field {
         return opts;
     }
 
+    clean(val) {
+        if (this.isEnum()) {
+            for(let exp of this._contains) {
+                if (exp.indexOf(":") > -1) {
+                    const pts = exp.split(":");
+                    if (pts[0] == val) return pts[1];
+                }
+            }
+        }
+        
+        return val;
+    }
+
     isEnum() {
         if (this._contains.length < 2) return false; //not enum if length is one
         for(let exp of this._contains) {

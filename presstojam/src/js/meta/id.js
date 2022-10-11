@@ -6,7 +6,8 @@ export const ReferenceTypes = {
     'PARENT' : 1,
     'OWNER' : 2,
     'REFERENCE' : 3,
-    'RECURSIVE' : 4
+    'RECURSIVE' : 4,
+    'CIRCULAR' : 5
 }
 
 export class ID extends Field {
@@ -18,6 +19,9 @@ export class ID extends Field {
         this._reference_type;
         this._reference;
         this._default_val = 0;
+        this.reverse_references = [];
+        this._common;
+        this._custom_fields = [];
         this.buildGetterSetters();
         if (obj) this.apply(obj);
 
@@ -56,6 +60,11 @@ export class ID extends Field {
 
     isReferenceType() {
         return this._reference_type == ReferenceTypes.REFERENCE || this._reference_type == ReferenceTypes.CIRCULAR;
+    }
+
+
+    isCircular() {
+        return this._reference_type == ReferenceTypes.CIRCULAR;
     }
 
 

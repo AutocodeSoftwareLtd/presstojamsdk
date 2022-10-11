@@ -1,7 +1,7 @@
 <template>
     <FileUpload 
         mode="basic" 
-        :name="field.name"  
+        :name="bind.cell.name"  
         :customUpload="true"
        
         :maxFileSize="1000000" 
@@ -16,21 +16,20 @@ import { computed } from "vue"
 
 
 const props = defineProps({
-    modelValue : [String, Object],
-    field : Object,
+    bind : {
+        type : Object,
+        required : true
+    },
     id : Number
 });
 
-const emits = defineEmits([
-    "update:modelValue"
-]);
 
 const value = computed({
     get() {
-        return props.modelValue;
+        return bind.value.value;
     },
     set(val) {
-        emits('update:modelValue', val);
+        bind.setValue(val);
     }
 });
 

@@ -7,18 +7,21 @@
         <label>{{ $t("models." + store.route.parent + ".title")}}</label>
         <ptj-parent-select v-model="proxy_values['--parent']" :model="store.route.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
     </div>
-    <div class="field form-group" v-for="field in cells" :key="field.name" :field="field">
-        <label :for="field.name">{{ $t("models." + field.model + ".fields." + field.name + ".label") }}</label>
-        <ptj-edit-field :field="field" v-model="proxy_values[field.name]" />
-        <ptj-error :field="field" v-if="active_validation && errors[field.name]" :error="errors[field.name]" />
+    <div class="field form-group" v-for="bind in binds" :key="bind.cell.name">
+       <label :for="bind.cell.name" v-if="bind.cell.type!='json'" >{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
+        <ptj-edit-field :bind="bind" />
+        <ptj-error :field="bind.cell" v-if="bind.active_validation && bind.error && bind.cell.type!='json'" :error="bind.error" />
     </div>
     <Button :label="$t('btns.save')" @click="submit" />
   </form>
+  <Dialog v-model:visible="dispatch" :modal="true" class="p-fluid" >
+    <ptj-dispatch v-if="dispatchid != 0" @complete="dispatchComplete" @failed="dispatchFailed" :id="dispatchid" />
+  </Dialog>
 </template>
 
 <script setup>
 
-import { provide, computed, ref, reactive } from "vue" 
+import { provide, ref, computed } from "vue" 
 import PtjEditField from "./ptj-edit-field.vue"
 import Button from 'primevue/Button'
 import PtjError from "./ptj-error.vue"
@@ -26,9 +29,9 @@ import { getMutableCells, getImmutableCells } from "./../js/helperfunctions.js"
 import Message from 'primevue/message';
 import Client from "./../js/client.js"
 import PtjParentSelect from "./fields/ptj-parent-select.vue"
-import { trigger } from "./../js/states.js"
-
-
+import { createBind, createBindGroup } from "../js/binds.js"
+import PtjDispatch from "./ptj-dispatch-response.vue"
+import Dialog from 'primevue/dialog'
 
 const props = defineProps({
     store : Object,
@@ -39,89 +42,45 @@ const props = defineProps({
 
 const emits = defineEmits([
     "saved"
-])
+]);
 
-const active_validation = ref(false);
 const saved = ref(false);
-const state_changed = ref(0);
+const global_error = ref("");
+const dispatch = ref(false);
+const dispatchid=ref(0);
 
 provide("model", props.store.model);
 
-const cells = computed(() => {
-    let state = state_changed.value;
-    if (props.store.active.value['--id']) return getMutableCells(props.store.route.schema);
-    else return getImmutableCells(props.store.route.schema);
-});
+
+let cells;
+if (props.store.active.value['--id']) cells = getMutableCells(props.store.route.schema);
+else cells = getImmutableCells(props.store.route.schema);
 
 
-const errors = reactive({});
-const global_error =ref();
-const proxy_values = reactive({});
-const dirty_cells = {};
+const bindGroup = createBindGroup();
 
 
 if (props.parent) {
-    proxy_values['--parent'] = computed({
-        get() {
-            return props.store.active.value['--parent'];
-        },
-        set(val) {
-            const schema = props.store.route.schema['--parent'];
-            const result = schema.validate(val);
-            if (result) {
-                errors['--parent'] = result;
-            } else if (errors['--parent']) {
-                delete errors['--parent'];
-            }
-            props.store.active.value['--parent'] = schema.clean(val);
-         
-            
-            //reset to force a change
-        }
-    });
+    bindGroup.addBind("--parent", createBind(props.store.route.schema["--parent"], props.store.active.value["--parent"]));
 }
 
 
-
-const fields = cells.value;
-for(const field in fields) {
-    proxy_values[field] = computed({
-        get() {
-            props.store.active.value[field] = props.store.route.schema[field].clean(props.store.active.value[field]);
-            return props.store.active.value[field];
-        },
-        set(val) {
-            const schema = props.store.route.schema[field];
-            const result = schema.validate(val);
-            if (result) {
-                errors[field] = result;
-            } else if (errors[field]) {
-                delete errors[field];
-            }
-            
-            props.store.active.value[field] = schema.clean(val);
-
-            if (trigger(props.store.model, field, props.store.active.value[field], props.store.route.schema)){
-                ++state_changed.value;
-            }
-             
-            dirty_cells[field] = true;
-            //reset to force a change
-        }
-    });
-
-    const schema = props.store.route.schema[field];
-    for(let s of schema.state_handlers) {
-        s.updateState(props.store.active[field]);
-    }
-
-    //validate the first time each value
-    const result = props.store.route.schema[field].validate(props.store.active.value[field]);
-    if (result) {
-        errors[field] = result;
-    }
+for(const field in cells) {
+    bindGroup.addBind(field, createBind(props.store.route.schema[field], props.store.active.value[field]));
 }
 
+
+bindGroup.setInitActive();
+
+const binds = computed(() => {
+    const arr = [];
+    for(let i in bindGroup.binds) {
+        if (bindGroup.binds[i].active.value) {
+            arr.push(bindGroup.binds[i]);
+        } 
+    }
+    return arr;
+});
 
 function setErrors(err) {
     if (typeof err == "string") {
@@ -132,7 +91,7 @@ function setErrors(err) {
             const msg = response.exception[0];
             if (msg.type == "PressToJamCore\\Exceptions\\ValidationException") {
                 for(let i in err) {
-                    if (i.indexOf("__") !== 0) errors[i] = err[i];
+                    if (i.indexOf("__") !== 0) bindGroup.binds[i].setError(err[i]);
                 }
             }
         });
@@ -141,11 +100,13 @@ function setErrors(err) {
 
 function serializeData() {
     const formData = new FormData();
-    for(const i in dirty_cells) {
-        if (cells.value[i]) {
-            const field = cells.value[i];
-            if (field.type == "time") formData.append(i, field.buildString(props.store.active.value[i]));
-            else formData.append(i, props.store.active.value[i]);
+    for(const i in bindGroup.binds) {
+        const bind = bindGroup.binds[i];
+        if (bind.is_dirty ) {
+            const field = bind.cell;
+            if (field.type == "time") formData.append(i, bind.cell.buildString(bind.value.value));
+            else if (field.type == "json") formData.append(i, JSON.stringify(bind.cell.buildJSON(bind)));
+            else formData.append(i, bind.value.value);
         }
     } 
     return formData;
@@ -154,30 +115,58 @@ function serializeData() {
 
 function submit() {
     saved.value = false;
-    active_validation.value = true;
-    if (Object.keys(errors).length == 0) {
-        const method = (props.store.active.value['--id']) ? 'put' : 'post';
-        const data = serializeData();
-        if (method == "put") {
-            data.append("--id", props.store.active.value['--id']);
-        } else if (method == "post" && props.store.active.value['--parent']) {
-            data.append("--parent", props.store.active.value['--parent']);
-        }
+    if (bindGroup.hasErrors()) return;
+
+    const method = (props.store.active.value['--id']) ? 'put' : 'post';
+    const data = serializeData();
+    if (method == "put") {
+        data.append("--id", props.store.active.value['--id']);
+    } else if (method == "post" && props.store.active.value['--parent']) {
+        data.append("--parent", props.store.active.value['--parent']);
+    }
          
-        return Client[method]("/data/" + props.store.model, data)
-        .then(response => {
-            if (method == 'post') props.store.active.value["--id"] = response["--id"];
-        })
-        .then(() => {
+
+    return Client[method]("/data/" + props.store.model, data)
+    .then(response => {
+        if (method == 'post') {
+            props.store.active.value["--id"] = response["--id"];
+            props.store.append(props.store.active.value);
+        } else if (method == "put") {
+            const obj = response.original;
+            for(let i in response.data) {
+                obj[i] = response.data[i];
+            }
+            props.store.active.value = obj;
+            props.store.overwrite(props.store.active.value);
+        }
+        return response;
+    })
+    .then(response => {
+        if (response['--dispatchid']) {
+            dispatchid.value = response['--dispatchid'];
+            dispatch.value = true;
+        } else {
             saved.value = true;
             emits("saved");
-        }).catch(err => {
-            if (err.response) setErrors(err.response);
-            else console.log(err);
-        });
-    }
+        }
+    })
+    .catch(err => {
+        if (err.response) setErrors(err.response);
+        else console.log(err);
+    });
+    
 }
 
+function dispatchFailed(response) {
+    setErrors(err.response);
+    dispatch.value = false;
+}
+
+function dispatchComplete() {
+    dispatch.value = false;
+    saved.value = true;
+    emits("saved");
+}
 
 
 

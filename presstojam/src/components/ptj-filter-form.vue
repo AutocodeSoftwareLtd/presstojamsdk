@@ -32,8 +32,7 @@ const filtercells = computed(() => {
     let filter_cells = {};
     for(let i in props.store.route.schema) {
         if (props.store.route.schema[i].background) continue;
-        if (props.store.route.schema[i].constructor.name == "Asset") continue;
-        else if (props.store.route.schema[i].states.length) continue;
+        if (props.store.route.schema[i].type == "asset" || props.store.route.schema[i].type == "json") continue;
         filter_cells[i] = props.store.route.schema[i];
     }
     return filter_cells;

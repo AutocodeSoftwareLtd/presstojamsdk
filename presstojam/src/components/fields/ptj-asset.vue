@@ -1,5 +1,5 @@
 <template>
-   <span>{{ modelValue }}   <a @click="download()"><span class="material-icons">download</span></a></span>
+   <span>{{ value }}   <a @click="download()"><span class="material-icons">download</span></a></span>
    
 </template>
 
@@ -7,7 +7,7 @@
 import client from "./../../js/client.js"
 
 const props = defineProps({
-    modelValue : String,
+    value : String,
     field : Object,
     id : Number
 });

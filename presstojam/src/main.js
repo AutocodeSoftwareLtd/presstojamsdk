@@ -6,12 +6,13 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import { logout } from "./js/controller.js";
 
-const url = "https://api.presstojam.com";
+//const url = "https://api.presstojam.com";
 //const url = "https://api.genercode.com";
-//const url = "http://slim.localhost";
+const url = "http://slim.localhost";
 //https://api.presstojam.com
-/*
-const url = "https://dev-local.api-capstonegroup.com/v4";
+
+/*const url = "https://dev-local.api-capstonegroup.com/v4";
+
 let settings = {
     "client" : { "url" : url, "debug" : true, custom_headers : {
         'x-domain' : "petinsure.ie"
@@ -66,9 +67,32 @@ let settings = {
         },
         "eft-batch-payments" : {
             "fields" : [
-                "policy-payments-id/payment-type",
-                "policy-payments-id/due-date"
-                //"policy-id/pi-policy/contact-id/firstname"
+                "policy-payments-id/policy-id",
+                { 
+                  name : "risk-key", 
+                  label : "Risk Key",
+                  type : "aggregate",
+                  ws : "-",
+                  "fields" : [
+                    "policy-payments-id/policy-id",
+                    "policy-payments-id/renewal"
+                  ]
+                },
+                {  "path" : "policy-payments-id/policy-id/..pi-policy-account-details",
+                "fields" : [
+                    "account-holder", //from 
+                    "pay-ref",
+                    "mandate-ref",
+                    "pay-ref",
+                    "bic",
+                    "sort-code",
+                    "account-number",
+                    "date-of-signing"
+            ]},
+
+            "policy-payments-id/amount",
+            "policy-payments-id",
+            "policy-payments-id/due-date"
             ]
         }
     }
@@ -86,12 +110,15 @@ let settings = {
   },
   "models" : {
       "projects" : {
-           "limit" : 2,
            "export_fields" : {
             "cfdist-id" : "Distribution ID",
             "domain" : "Domain",
             "hosting-status" : "Hosting Status"
            },
+           "order":{
+            "hosting-status" : "desc"
+           },
+           "group" : "hosting-status"
           // "export_fields" : ["cfdist-id", "domain", "hosting-status"]
       },
       "fields" : {

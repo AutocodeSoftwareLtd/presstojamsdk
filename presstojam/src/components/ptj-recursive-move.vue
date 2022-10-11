@@ -1,6 +1,6 @@
 <template>
     <div>
-        <ptj-id-edit :field="props.store.route.schema['--recursive']" v-model="value" />
+        <ptj-id-edit :bind="bind" />
     </div>
     <Button :label="$t('btns.save')" @click="submit" />
 </template>
@@ -8,9 +8,10 @@
 <script setup>
 
 import client from "./../js/client.js"
-import { computed, provide } from "vue";
+import { provide } from "vue";
 import Button from "primevue/Button"
 import PtjIdEdit from "./fields/ptj-id-edit.vue"
+import { createBind } from "./../js/binds.js"
 
 
 
@@ -22,21 +23,14 @@ const props = defineProps({
 const emits = defineEmits(['onMove']);
 
 provide("model", props.store.model);
-const value = computed({
-    get() {
-        return props.store.active.value['--recursive'];
-    },
-    set(val) {
-        props.store.active.value['--recursive'] = val;
-    }
-});
 
 
+const bind = createBind(props.store.route.schema['--recursive'], props.store.active.value['--recursive']);
 
 function submit() {
     let promise = [];
     for(const i in props.store.selected.value) {
-        promise.push(client.put("/data/" + props.store.model, {"--id" : props.store.selected.value[i].key, "--recursive" : value.value }));
+        promise.push(client.put("/data/" + props.store.model, {"--id" : props.store.selected.value[i].key, "--recursive" : bind.value.value }));
     }
     return Promise.all(promise)
     .then(() => {

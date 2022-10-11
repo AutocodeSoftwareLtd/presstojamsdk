@@ -18,11 +18,11 @@
 
                 <template #end>
                     <ptj-export-action v-if="has_export" :store="store" />
-                    <ptj-create-action :store="store" @onSave="onSave"/> 
-                    <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel"/>
+                    <ptj-create-action v-if="store.route.perms.includes('post')" :store="store" @onSave="onSave"/> 
+                    <ptj-delete-action v-if="store.route.perms.includes('delete')" :data="store.selected.value" :model="model" @onDel="onDel"/>
                 </template>
     </Toolbar>
-    
+    <p v-if="store.pagination.count">Total Rows: {{ store.pagination.count }}</p>
     <ptj-table ref="dt" :model="model" :store="store" :fields="fields" :search="search" :rows="store.data.value" @reorder="onRowReorder" />
     <ptj-pagination v-if="store.pagination.count" :model="model" :store="store"  />
 </template>
@@ -66,18 +66,12 @@ function onRowReorder(rows) {
 
 const fixed_fields = [];
 const optional_fields = [];
-if (props.store.route.settings.fields) {
-    for(let field of props.store.route.settings.fields) {
-        fixed_fields.push(field);
-    }
-} else {
-    for(let i in props.store.route.schema) {
-        if (props.store.route.schema[i].background) continue;
-        if (!col_expandable || fixed_fields.length < max_cols)  
-            fixed_fields.push(i);
-        else if (col_expandable) 
-            optional_fields.push(i);
-    }
+for(let i in props.store.route.schema) {
+    if (props.store.route.schema[i].background) continue;
+    if (!col_expandable || fixed_fields.length < max_cols)  
+        fixed_fields.push(i);
+    else if (col_expandable) 
+        optional_fields.push(i);
 }
 
 const active_options = ref();
@@ -85,12 +79,12 @@ const active_options = ref();
 const fields = computed(() => {
     const cells = {};
     for(let i of fixed_fields) {
-        cells[i] = getField(i, props.store.route.schema);
+        cells[i] = props.store.route.schema[i];
     }
 
     if (active_options.value) {
         for(let i of active_options.value) {
-            cells[i] = getField(i, props.store.route.schema);
+            cells[i] = props.store.route.schema[i];
         }
     }
 

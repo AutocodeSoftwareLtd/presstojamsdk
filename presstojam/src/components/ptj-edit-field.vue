@@ -1,10 +1,11 @@
  <template>
-    <ptj-number v-if="field.type=='number'" v-model="value" :field="field" />
-    <ptj-flag v-else-if="field.type=='flag'" v-model="value" :field="field" />
-    <ptj-id v-else-if="field.type=='id'" v-model="value" :field="field" />
-    <ptj-asset v-else-if="field.type=='asset'" v-model="value" :field="field" />
-    <ptj-time v-else-if="field.type=='time'" v-model="value" :field="field" />
-    <ptj-string v-else v-model="value" :field="field" />
+    <ptj-number v-if="bind.cell.type=='number'" :bind="bind" />
+    <ptj-flag v-else-if="bind.cell.type=='flag'" :bind="bind" />
+    <ptj-id v-else-if="bind.cell.type=='id'" :bind="bind" />
+    <ptj-asset v-else-if="bind.cell.type=='asset'" :bind="bind" />
+    <ptj-time v-else-if="bind.cell.type=='time'" :bind="bind" />
+    <ptj-json v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" />
+    <ptj-string v-else :bind="bind" />
 </template>
 <script setup>
  import PtjNumber from "./fields/ptj-number-edit.vue"
@@ -13,26 +14,16 @@
  import PtjTime from "./fields/ptj-time-edit.vue"
  import PtjString from "./fields/ptj-string-edit.vue"
  import PtjAsset from "./fields/ptj-asset-edit.vue"
- import { computed } from "vue"
+ import PtjJson from "./fields/ptj-json-edit.vue"
 
 
 const props = defineProps({
-    field : Object,
-    modelValue : [String, Number, Boolean, null, Object, Array, File]
+    bind : Object,
+    active_validation : Boolean
 });
 
 const emits = defineEmits([
     "update:modelValue"
 ]);
-
-
-const value = computed({
-    get() {
-        return props.modelValue;
-    },
-    set(val) {
-        emits('update:modelValue', val);
-    }
-});
 
 </script>

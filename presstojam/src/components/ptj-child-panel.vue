@@ -1,7 +1,7 @@
 <template>
 	<Panel :header="$t('models.' + model + '.title', 2)">
 		<ptj-form v-if="component == 'form'" :model="model" :store="store" />
-        <ptj-tree v-else-if="component == 'recursive'" :model="model" :store="store" />
+        <ptj-tree v-else-if="component == 'recursive'" :model="model" :store="store" @onMove="reload" />
         <ptj-table-display v-else-if="component == 'table'" :model="model" :store="store"  />
     </Panel>
 </template>
@@ -32,7 +32,9 @@ const component = computed(() => {;
 });
 
 
-
+function reload() {
+    store.value.reload();
+}
 </script>
 
 

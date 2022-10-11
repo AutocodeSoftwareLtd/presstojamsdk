@@ -15,14 +15,15 @@
         <Message severity="success" v-if="delrow">Rows removed</Message>
         <Toolbar>
                 <template #start>
+                  <Button v-if="active['--id']" icon="pi pi-times" class="p-button-rounded p-button-success" @click="onNodeClear" />
                   <ptj-primary-action v-if="has_primary && active['--id']"  :model="model" :id="active['--id']" />
                   <ptj-edit-action v-if="active['--id']"  :model="model" :store="store" :data="active" />
                   {{ label }}
                 </template>
 
                 <template #end>
-                    <ptj-move-action :model="model" :store="store" @onParentChanged="onParentChange"/>
-                    <ptj-create-action :store="store" /> 
+                    <ptj-move-action :model="model" :store="store" @onParentChanged="reload"/>
+                    <ptj-create-action :store="store" @onSave="reload"/> 
                     <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel" />
                 </template>
               </Toolbar>
@@ -40,7 +41,7 @@ import Splitter from 'primevue/splitter'
 import SplitterPanel from 'primevue/splitterpanel'
 import PtjTable from "./ptj-table.vue"
 import Toolbar from 'primevue/Toolbar'
-import { toTree, getSummaryCells, getLabel, saveOrder } from "./../js/helperfunctions.js" 
+import { toTree, getForegroundCells, getLabel, saveOrder } from "./../js/helperfunctions.js" 
 import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
 import PtjCreateAction from "./actions/ptj-create-action.vue"
 import PtjEditAction from "./actions/ptj-edit-action.vue"
@@ -49,10 +50,13 @@ import PtjMoveAction from "./actions/ptj-move-action.vue"
 import Message from 'primevue/message';
 
 
+
 const props = defineProps({
     model : String,
     store : Object
 });
+
+const emits = defineEmits(["onMove"]);
 
 
 const has_primary = (props.store.route.children.length > 1) ? true : false;
@@ -73,7 +77,7 @@ function reorderRows(rows) {
 }
 
 let fields = computed(() => {
-    return getSummaryCells(props.store.route.schema);
+    return getForegroundCells(props.store.route.schema);
 });
 
 const childRows = ref([]);
@@ -125,11 +129,15 @@ const onNodeSelect = (node) => {
       life: 3000});*/
 };
 
+const onNodeClear = (node) => {
+  active.value = {};
+  childRows.value = props.store.data.value.filter(obj => obj['--recursive'] == 0);
+}
 
 
-function onParentChange() {
-  console.log("Being called here");
-  props.store.reload();
+
+function reload() {
+  emits("onMove");
 }
 
 </script>

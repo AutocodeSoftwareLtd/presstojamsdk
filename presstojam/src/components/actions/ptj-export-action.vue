@@ -4,6 +4,7 @@
 <script setup>
 import Button from "primevue/Button"
 import { useI18n } from 'vue-i18n';
+import { loadAll } from "./../../js/datastore.js"
 
 
 const { t } = useI18n();
@@ -15,6 +16,19 @@ const props = defineProps({
 const data = props.store.data.value;
 const cells = props.store.route.schema;
 const settings = props.store.route.settings;
+
+function buildData(data, headers) {
+	let value = "";
+	for(const rowObj of data){
+        for(const x in headers) {
+            const header = headers[x].key;
+            value += rowObj[header];
+            //add value to build an array.
+            value += (x < headers.length - 1) ? "," : "\n";
+        }
+    }
+	return value;
+}
 
 
 function exportCSV() {
@@ -45,17 +59,18 @@ function exportCSV() {
     }
 
 
-    for(const rowObj of data){
-        for(const x in headers) {
-            const header = headers[x].key;
-            value += rowObj[header];
-            //add value to build an array.
-            value += (x < headers.length - 1) ? "," : "\n";
-        }
-    }
-
-    download(value, props.store.model + '.csv');
-
+	if (props.store.pagination.count) {
+		//need to load all data
+		loadAll(props.store)
+		.then(results => {
+			value += buildData(results, headers);
+			download(value, props.store.model + '.csv');
+		})
+		.catch(e => console.log(e));
+	} else {
+		value += buildData(props.store.data.value, headers);
+		download(value, props.store.model + '.csv');
+	}
 }
 
 

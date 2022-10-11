@@ -1,11 +1,11 @@
 <template>
-   <span >{{ modelValue }}</span>
+   <span >{{ value }}</span>
 </template>
 
 <script setup>
 
 const props = defineProps({
-    modelValue : [Number, String],
+    value : [Number, String],
     field : Object
 });
 

@@ -1,7 +1,7 @@
 <template>
     <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editRow" />
     <Dialog v-model:visible="dialog" :header="'Edit ' + $t('models.' + model + '.title', 1)" :modal="true" class="p-fluid">
-        <ptj-form :model="model" :store="store" @saved="onSave" />
+        <ptj-form :store="store" @saved="onSave" />
     </Dialog>
 
 </template>

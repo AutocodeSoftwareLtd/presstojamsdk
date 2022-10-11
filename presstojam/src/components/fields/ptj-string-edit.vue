@@ -1,27 +1,27 @@
 <template>
-    <Password v-if="field.encrypted" v-model="modelValue" class="focus:border-primary"/>
+    <Password v-if="bind.cell.encrypted" v-model="value" class="focus:border-primary"/>
    <Textarea v-else-if="tag=='textarea'" v-model="value" rows="5" />
   <Dropdown v-else-if="tag=='select'" 
         v-model="value"
-        :name="field.name"
+        :name="bind.cell.name"
         v-bind="atts"
         optionLabel="value"
         optionValue="key"
         :options="options"
         placeholder="Please Select"
         class="focus:border-primary"
-         @blur="field.validateon = true"
+         @blur="bind.active_validation.value = true"
         >
   </Dropdown>
   <InputText v-else v-bind="atts"
-        :name="field.name"
+        :name="bind.cell.name"
         class="focus:border-primary form-control"
         v-model="value" 
-        @blur="field.validateon = true" />
+        @blur="bind.active_validation.value = true" />
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import Dropdown from 'primevue/dropdown';
 import Password from 'primevue/password';
 import InputText from 'primevue/inputtext'
@@ -29,42 +29,35 @@ import Textarea from 'primevue/textarea';
 import { useI18n } from 'vue-i18n';
 
 
-import { computed } from "vue"
-
 const props = defineProps({
-    modelValue : [String],
-    field : {
+    bind : {
         type : Object,
         required : true
     }
 });
 
-const emits = defineEmits([
-    "update:modelValue"
-]);
 
 const value = computed({
     get() {
-        return props.modelValue;
+        return props.bind.value.value;
     },
     set(val) {
-        emits('update:modelValue', val);
+        props.bind.setValue(val);
     }
 });
 
-
+const cell = props.bind.cell;
 const options = ref([]);
-
 const { te, t } = useI18n();
 
 
 const tag = computed(() => {
-if (props.field.isEnum()) {
-    options.value = props.field.setContainsAsOptions();
+if (cell.isEnum()) {
+    options.value = cell.setContainsAsOptions();
     return "select";
-} else if (props.field.encrypted) {
+} else if (cell.encrypted) {
     return "input";
-} else if (props.field.html || props.field.max > 300) {
+} else if (cell.html || cell.max > 300) {
     return "textarea";
 } else {
     return "input";
@@ -72,27 +65,25 @@ if (props.field.isEnum()) {
 });
 
 
-const atts = computed(() => {
-let atts = {};
-if (props.field.encrypted) {
+
+const atts = {};
+if (cell.encrypted) {
     atts.type = "password";
 }
 
-if (props.field.immutable) {
+if (cell.immutable) {
     atts.readonly = true;
 }
 
 
-let pholder = te("models." + props.field.model + ".fields." + props.field.name + ".placeholder");
+let pholder = te("models." + cell.model + ".fields." + cell.name + ".placeholder");
 if (pholder) {
-    atts.placeholder = t("models." + props.field.model + ".fields." + props.field.name + ".placeholder");
+    atts.placeholder = t("models." + cell.model + ".fields." + cell.name + ".placeholder");
 }
 
-if (props.field.contains.includes("html")) {
+if (cell.contains.includes("html")) {
     atts["data-html"] = 1;
 }
-return atts;
-});
 
 
 </script>

@@ -1,5 +1,5 @@
 <template>
-    <Checkbox v-model="value" :binary="true"></Checkbox>
+    <Checkbox v-model="value" :binary="true" @blur="bind.active_validation.value = true"></Checkbox>
 
 </template>
 
@@ -8,24 +8,20 @@ import Checkbox from 'primevue/checkbox';
 import { computed } from "vue"
 
 const props = defineProps({
-    modelValue : [Number, Boolean],
-    field : Object
-});
-
-const emits = defineEmits([
-    "update:modelValue"
-]);
-
-const value = computed({
-    get() {
-        return (props.modelValue) ? true : false;
-    },
-    set(val) {
-        emits('update:modelValue', (val) ? 1 : 0);
+    bind : {
+        type : Object,
+        required : true
     }
 });
 
 
-
+const value = computed({
+    get() {
+        return (props.bind.value.value) ? true : false;
+    },
+    set(val) {
+        props.bind.setValue(val);
+    }
+});
 
 </script>

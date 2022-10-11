@@ -1,10 +1,10 @@
 <template>
-  <div v-if="field.isReferenceType()" class="p-component">
-    <Dropdown placeholder="Please Select" :field="field" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
-    <ptj-reference-create :cref="cref" @onCreate="onCreate" />
+  <div v-if="bind.cell.isReferenceType()" class="p-component">
+    <Dropdown placeholder="Please Select" :field="bind.cell" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
+    <ptj-reference-create :cell="bind.cell" :store="store" @onCreate="onCreate" />
   </div>
-  <TreeSelect v-else-if="field.recursive" v-model="value" :options="options" placeholder="Select Item" />
-  <InputNumber v-else :name="field.name" v-model="value" :disabled="true" />
+  <TreeSelect v-else-if="bind.cell.recursive" v-model="value" :options="options" placeholder="Select Item" />
+  <InputNumber v-else :name="bind.cell.name" v-model="value" :disabled="true" />
   
 </template>
 
@@ -18,14 +18,13 @@ import { getStoreById } from "./../../js/datastore.js"
 import { getOptions, getRecursiveOptions } from "./../../js/helperfunctions.js"
 import PtjReferenceCreate from "./../actions/ptj-reference-create.vue"
 
-const props = defineProps({
-    modelValue : [Number, String, Boolean],
-    field : Object
-});
 
-const emits = defineEmits([
-    "update:modelValue"
-]);
+const props = defineProps({
+    bind : {
+        type : Object,
+        required : true
+    }
+});
 
 
 const model = inject("model");
@@ -34,25 +33,25 @@ const store = getStoreById(model);
 
 const options = ref([]);
 let value;
-let cref;
 
-if (props.field.isReferenceType()) {
+const cell = props.bind.cell;
+
+if (cell.isReferenceType()) {
     onMounted(() => {
-        getOptions(store, props.field.name)
+        getOptions(store, cell.name)
         .then(response => options.value =response);
     });  
 
     value = computed({
         get() {
-            return parseInt(props.modelValue);
+            return props.bind.value.value;
         },
         set(val) {
-            emits('update:modelValue', val);
+            props.bind.setValue(val);
         }
     });
 
-   cref = store.references[props.field.name];
-} else if (props.field.recursive) {
+} else if (cell.recursive) {
     onMounted(() => {
        getRecursiveOptions(store)
        .then(response => {
@@ -65,13 +64,12 @@ if (props.field.isReferenceType()) {
     value = computed({
         get() {
             let obj = {};
-            obj[props.modelValue] = true;
+            obj[props.bind.value.value] = true;
             return obj;
         },
         set(val) {
-            for(const i in val) {
-                emits('update:modelValue', i);
-            }
+            const keys = Object.keys(val);
+            props.bind.setValue(keys[0]);
         }
     });
 } 
@@ -79,10 +77,10 @@ if (props.field.isReferenceType()) {
 
 function onCreate(id) {
     value = id;
-    if (props.field.reference) {
-        store.references[props.field.name].reload()
+    if (cell.reference) {
+        store.references[cell.name].reload()
         .then(() => {
-            return getOptions(store, props.field.name)
+            return getOptions(store, cell.name)
         }).then(response => {
             options.value =response;
         });

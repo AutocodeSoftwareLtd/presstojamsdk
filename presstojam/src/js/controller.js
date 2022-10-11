@@ -46,7 +46,6 @@ function initRouter(app, base) {
             has_routes = true;
         }
 
-        console.log("Def is", def)
         if (def) {
             router.addRoute(def);
         }
@@ -82,8 +81,7 @@ function initRouter(app, base) {
                     })
                     .then(() => {
                         for(const child of store.route.schema["--id"].reference) {
-                            const child_store = createDataStore(child);
-                            child_store.parent_store = store;
+                            const child_store = createDataStore(child, store);
                             child_store.setParams( {"--parent" : to.params.id});
                             child_store.load();
                         }

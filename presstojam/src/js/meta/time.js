@@ -4,7 +4,8 @@ export class Time extends Field {
 
     constructor(name, obj) {
         super(name);
-        this._format = { date : true, time : false}
+        this._format = { date : true, time : false};
+        this._invalid_dates = [];
         this.buildGetterSetters();
         if (obj) this.apply(obj);
         if (!this._contains.length) {

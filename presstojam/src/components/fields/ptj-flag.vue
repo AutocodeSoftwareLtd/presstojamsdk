@@ -1,13 +1,13 @@
 <template>
-    <i v-if="field.useIcons() && modelValue" class="pi pi-check"></i>
-    <span v-else>{{ field.display(modelValue) }}</span>
+    <i v-if="field.useIcons() && value" class="pi pi-check"></i>
+    <span v-else>{{ field.display(value) }}</span>
 </template>
 
 <script setup>
 import client from "./../../js/client.js"
 
 const props = defineProps({
-    modelValue : [Number, Boolean],
+    value : [Number, Boolean],
     field : Object
 });
 

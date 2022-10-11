@@ -3,23 +3,27 @@
                 responsiveLayout="scroll" :loading="store.is_loading" :rowHover="true" @rowReorder="onRowReorder" @rowSelect="onRowSelect"
                 @rowUnselect="onRowUnselect" @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" 
                 v-model:expandedRows="expandedRows" :globalFilterFields="global_filter_fields"
-                :filters="filters">
-                <Column v-if="has_expandable" :expander="true" headerStyle="width: 3rem" />
+                :filters="filters" v-bind="atts">
+        <Column v-if="has_expandable" :expander="true" headerStyle="width: 3rem" />
         <Column v-if="has_sort" :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false" />
-        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-        <Column v-for="cell in fields" :field="cell.name" :sortable="true"
+        <Column selectionMode="multiple" v-if="store.route.perms.includes('delete')" style="width: 3rem" :exportable="false"></Column>
+        <Column v-for="cell in fields" :field="cell.name" :sortable="sortable"
                     :header="$t('models.' + cell.model + '.fields.' + cell.name + '.label')"
                     :key="cell.name">
             <template #body="slotProps">
-                <ptj-view-field v-model="slotProps.data[cell.name]" :field="cell" :model="model" :id="slotProps.data['--id']" />
+                <ptj-view-field :row="slotProps.data" :field="cell" />
             </template>
         </Column>
         <Column :exportable="false" style="min-width:8rem">
             <template #body="slotProps">
                 <ptj-primary-action v-if="has_primary" :model="model" :id="slotProps.data['--id']" />
-                <ptj-edit-action :model="model" :store="store" :data="slotProps.data" @onSave="onSaveEdit" />
+                <ptj-edit-action v-if="store.route.perms.includes('put')" :model="model" :store="store" :data="slotProps.data" @onSave="onSaveEdit" />
+                <ptj-show-audit v-if="store.route.audit" :short="true" :store="store" :id="slotProps.data['--id']" />
             </template>
         </Column>
+        <template v-if="atts.groupRowsBy" #groupheader="slotProps">
+            <div :class="slotProps.data[groupcell.name]"><ptj-view-field :row="slotProps.data" :field="groupcell" /></div>
+        </template>
         <template #expansion="slotProps">
             <Card>
                 <template #title>
@@ -41,6 +45,7 @@ import PtjViewField from "./ptj-view-field.vue"
 import { ref, computed } from "vue"
 import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
 import PtjEditAction from "./actions/ptj-edit-action.vue"
+import PtjShowAudit from "./actions/ptj-show-audit.vue"
 import { hasStore, createDataStore, getStoreById } from "./../js/datastore.js"
 import PtjTableDisplay from "./ptj-table-display.vue"
 import Card from 'primevue/card';
@@ -54,7 +59,11 @@ const props = defineProps({
     store : Object,
     rows : Array,
     fields : Object,
-    search : [Object, String]
+    search : [Object, String],
+    nosort : {
+        type : Boolean,
+        default : false
+    }
 });
 
 const emits = defineEmits([
@@ -72,18 +81,30 @@ function onSaveEdit() {
 }
 
 
-const children = props.store.route.schema['--id'].reference;
+const children = (props.store.route.schema['--id']) ? props.store.route.schema['--id'].reference : [];
 const has_primary = (children.length > 1) ? true : false;
 const has_expandable = (children.length == 1) ? true : false;
 const has_sort = props.store.route.schema['--sort'];
 const isselected = ref();
-const sortable = (!props.store.pagination.count && !has_sort) ? true : false;
+const sortable = (!props.nosort && !props.store.pagination.count && !has_sort) ? true : false;
 const global_filter_fields = [];
 if (!props.store.pagination.count) {
     for(let field in props.fields) {
         global_filter_fields.push(field);
     }
 }
+
+const atts = {};
+let groupcell;
+if (props.store.route.settings.group) {
+    atts.rowGroupMode = "subheader";
+    atts.groupRowsBy=props.store.route.settings.group;
+   // atts.sortMode="single";
+   // atts.sortField = props.store.route.settings.group;
+   // atts.sortOrder=1;
+}
+
+groupcell = props.fields[props.store.route.settings.group];
 
 const filters = computed(() => {
     if (!props.search) return {};
@@ -144,22 +165,5 @@ const onRowCollapse = (event) => {
 };
 
 
-function resort() {
-
-}
 
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-
-table, thead, tbody, tr {
-    width : 100%;
-}
-
-
-.ptj-table-wrapper {
-    position : relative;
-}
-
-</style>

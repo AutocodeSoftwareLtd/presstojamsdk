@@ -12,13 +12,11 @@ export class Field {
         this._max = null;
         this._contains = [];
         this._notcontains = [];
-        this._listeners = [];
-        this._states = [];
-        this._state_handlers = [];
         this._model = "";
         this._background = false;
         this._system = false;
         this._summary = false;
+        this._where = null;
     }
 
     buildGetterSetters() {
@@ -44,28 +42,6 @@ export class Field {
             else if (x == "contains" || x == "notcontains") {
                 if (obj[x]) this["_" + x] = obj[x].split("|");
             } else this["_" + x] = obj[x];
-        }
-    }
-
-
-    updateState(val) {
-        for(const state of this._states) {
-            if (state.depends_val == val) {
-                //overwrite the schema of the current field
-                for(const i in state.data) {
-                    if (state.data[i]) this[i] = state.data[i];
-                }
-                return;
-            }
-        }
-        //if here, we have no match
-        for(const state of this._states) {
-            if (state.default) {
-                //overwrite the schema of the current field
-                for(const i in state.data) {
-                    if (state.data[i]) this["_" + i] = state.data[i];
-                }
-            }
         }
     }
 
