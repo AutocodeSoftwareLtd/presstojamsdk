@@ -53,7 +53,7 @@ const { te, t } = useI18n();
 
 const tag = computed(() => {
 if (cell.isEnum()) {
-    options.value = cell.setContainsAsOptions();
+    options.value = cell.getOptions();
     return "select";
 } else if (cell.encrypted) {
     return "input";

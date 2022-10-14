@@ -1,7 +1,7 @@
 <template>
     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createRow" />
     <Dialog v-model:visible="dialog" :header="header" :modal="true" class="p-fluid">
-        <ptj-form :store="store" @saved="onSave" />
+        <ptj-form :schema="store.route.schema" :model="store.model" :data="data" @saved="onSave" @dataChanged="dataChanged"/>
     </Dialog>
 
 </template>
@@ -11,44 +11,43 @@
     import Dialog from 'primevue/dialog'
     import Button from "primevue/Button"
     import { useI18n } from 'vue-i18n'
-    import { getLabel } from "./../../js/helperfunctions.js"
+    import { getStore } from "./../../js/reactivestores.js"
+  
 
     const {t} = useI18n({});
 
     const props = defineProps({
-        store : Object
+       name : String,
+       parentlabel : String
     });
 
+    const repo = getStore(props.name);
+    const store = repo.store;
+
     const emits = defineEmits([
-        'onSave'
+        'onSave', 'dataChanged'
     ])
 
     const dialog = ref(false);
 
-    let parentlabel = "";
-    if (props.store.parent_store) {
-        let parent_id = props.store.getParentID();
-        if (!parent_id) {
-            throw "Error, parent id required to add append child row";
-        }
-      
-        parentlabel = getLabel(props.store.parent_store.route.schema, props.store.parent_store.active.value);
-        if (!parentlabel) parentlabel = parent_id;
-    }
-    
+    const data = {};
+    if (store.parent_id) data["--parent"] = store.parent_id;
 
-    const header = (props.store.parent_store) 
-        ? "Add " + t("models." + props.store.model + ".title", 1) + " to " + parentlabel  
-        : "Create " + t("models." + props.store.model + ".title", 1);
+    const header = (store.parent_store) 
+        ? "Add " + t("models." + store.model + ".title", 1) + " to " + props.parentlabel  
+        : "Create " + t("models." + store.model + ".title", 1);
 
     function createRow() {
-        props.store.active.value = {};
-        if (props.store.parent_store) props.store.active.value['--parent'] = props.store.getParentID();
         dialog.value =true;
     }
 
     function onSave() {
         dialog.value = false;
         emits('onSave');
+    }
+
+
+    function dataChanged(obj) {
+        emits('dataChanged', obj);
     }
 </script>

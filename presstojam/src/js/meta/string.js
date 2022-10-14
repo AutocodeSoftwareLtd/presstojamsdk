@@ -5,43 +5,41 @@ export class String extends Field {
     constructor(name, obj) {
         super(name);
         this._encrypted = false;
-        this._options = {};
+        this._list;
         this.buildGetterSetters();
         if (obj) this.apply(obj);
     }
 
-    setContainsAsOptions() {
+    getOptions() {
         let opts = [];
-        for(let exp of this._contains) {
-            if (exp.indexOf(":") > -1) {
-                const pts = exp.split(":");
-                opts.push({ key : pts[0], value : pts[1]});
-            } else {
-                opts.push({ key : exp, value : exp});
+        if (Array.isArray(this._list)) {
+            for(const item of this._list) {
+                opts.push({ key : item, value : item});
+            }
+        } else {
+            for(const key in this._list) {
+                opts.push({ key : key, value : this._list[key]});
             }
         }
         return opts;
     }
 
     clean(val) {
-        if (this.isEnum()) {
-            for(let exp of this._contains) {
-                if (exp.indexOf(":") > -1) {
-                    const pts = exp.split(":");
-                    if (pts[0] == val) return pts[1];
-                }
+        if (this._list) {
+            if (Array.isArray(this._list)) {
+                if (this._list.includes(val)) return val;
+            } else if (this._list[val]) {
+                return val;
+            } else {
+                return null;
             }
+        } else {
+            return (val) ? val.trim() : val;
         }
-        
-        return val;
     }
 
     isEnum() {
-        if (this._contains.length < 2) return false; //not enum if length is one
-        for(let exp of this._contains) {
-            if (exp[0] == "/") return false; //not enum if anything is a regular expression
-        }
-        return true;
+        return (this._list) ? true : false;
     }
 
     get type() {

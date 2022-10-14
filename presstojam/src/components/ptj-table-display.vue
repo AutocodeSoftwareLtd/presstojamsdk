@@ -1,10 +1,10 @@
 <template>
-    <ptj-filter-form v-if="store.pagination.count && !active_store.route.settings.nofilter" :model="model" :store="store" />
+    <ptj-filter-form v-if="repo.pagination.count && !store.route.settings.nofilter"  :store="store" />
     <Message severity="success" v-if="newrow">New row created</Message>
     <Message severity="success" v-if="delrow">Rows removed</Message>
     <Toolbar class="mb-4">
                 <template #start>
-                    <span class="p-input-icon-left mr-2" v-if="!props.store.pagination.count">
+                    <span class="p-input-icon-left mr-2" v-if="!repo.pagination.count">
                         <i class="pi pi-search" />
                         <InputText v-model="search" placeholder="Keyword Search" />
                     </span>
@@ -17,14 +17,14 @@
                 </template>
 
                 <template #end>
-                    <ptj-export-action v-if="has_export" :store="store" />
-                    <ptj-create-action v-if="store.route.perms.includes('post')" :store="store" @onSave="onSave"/> 
-                    <ptj-delete-action v-if="store.route.perms.includes('delete')" :data="store.selected.value" :model="model" @onDel="onDel"/>
+                    <ptj-export-action v-if="has_export" :name="name" />
+                    <ptj-create-action v-if="store.route.perms.includes('post')" :name="name" @onSave="onSave" /> 
+                    <ptj-delete-action v-if="store.route.perms.includes('delete')" :name="name" @onDel="onDel"/>
                 </template>
     </Toolbar>
-    <p v-if="store.pagination.count">Total Rows: {{ store.pagination.count }}</p>
-    <ptj-table ref="dt" :model="model" :store="store" :fields="fields" :search="search" :rows="store.data.value" @reorder="onRowReorder" />
-    <ptj-pagination v-if="store.pagination.count" :model="model" :store="store"  />
+    <p v-if="repo.pagination.count">Total Rows: {{ repo.pagination.count }}</p>
+    <ptj-table ref="dt" :name="name" :fields="fields" :search="search" @reorder="onRowReorder" />
+    <ptj-pagination v-if="repo.pagination.count" :pagination="repo.pagination" @reload="reloadPage" />
 </template>
 
 <script setup>
@@ -38,53 +38,50 @@ import PtjTable from "./ptj-table.vue"
 import PtjCreateAction from "./actions/ptj-create-action.vue"
 import PtjDeleteAction from "./actions/ptj-delete-action.vue"
 import Message from 'primevue/message';
-import { getStoreById } from "./../js/datastore.js"
 import  {saveOrder } from "./../js/helperfunctions.js" 
 import InputText from 'primevue/inputtext'
 import PtjExportAction from './actions/ptj-export-action.vue'
-import { getField } from "./../js/routes.js"
+import { getStore } from "./../js/reactivestores.js"
+
 
 
 const props = defineProps({
-    model : String,
-    store : Object
+    name : {
+      type : String,
+      required : true
+    }
 });
 
-const active_store = getStoreById(props.model);
-const max_cols = (!active_store.route.settings.max_cols) ? 10 : active_store.route.settings.max_cols;
-const has_export = active_store.route.export;
+const repo = getStore(props.name);
+const store = repo.store;
+
+
+const max_cols = (!store.route.settings.max_cols) ? 10 : store.route.settings.max_cols;
+const has_export =store.route.export;
 //const has_export = true;
-const col_expandable = (Object.keys(props.store.route.schema).length > max_cols) ? true : false;
+const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
+const fixed_fields = [];
+const optional_fields = [];
+
+
 const search = ref();
 const dt = ref();
 
-
-function onRowReorder(rows) {
-    props.store.data.value =rows;
-    saveOrder(props.model, rows);
-}
-
-const fixed_fields = [];
-const optional_fields = [];
-for(let i in props.store.route.schema) {
-    if (props.store.route.schema[i].background) continue;
-    if (!col_expandable || fixed_fields.length < max_cols)  
-        fixed_fields.push(i);
-    else if (col_expandable) 
-        optional_fields.push(i);
-}
-
 const active_options = ref();
+const newrow = ref(false);
+const delrow = ref(false);
+
+
 
 const fields = computed(() => {
     const cells = {};
     for(let i of fixed_fields) {
-        cells[i] = props.store.route.schema[i];
+        cells[i] = store.route.schema[i];
     }
 
     if (active_options.value) {
         for(let i of active_options.value) {
-            cells[i] = props.store.route.schema[i];
+            cells[i] = store.route.schema[i];
         }
     }
 
@@ -92,18 +89,37 @@ const fields = computed(() => {
 });
 
 
-const newrow = ref(false);
-const delrow = ref(false);
+for(let i in store.route.schema) {
+    if (store.route.schema[i].background) continue;
+    if (!col_expandable || fixed_fields.length < max_cols)  
+        fixed_fields.push(i);
+    else if (col_expandable) 
+        optional_fields.push(i);
+}
+
+
+function reloadPage(offset) {
+    repo.pagination.offset = offset;
+    repo.paginate();
+}
+
+
+function onRowReorder(rows) {
+    repo.data.value =rows;
+    saveOrder(store.model, rows);
+}
+
+
 
 function onSave() {
-    props.store.reload();
+    repo.reload()
     newrow.value = true;
 }
 
 
 function onDel() {
-    props.store.reload();
-    props.store.selected.value = [];
+    repo.reload();
+    selected.value = [];
     delrow.value = true;
 }
 

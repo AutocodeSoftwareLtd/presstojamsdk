@@ -1,10 +1,10 @@
 <template>
-    <ptj-slug-trail :model="model" :id="id" :store="store" :base="base" />
-    <Panel :header="$t('models.' + props.model + '.title') + ': ' + label">
+    <ptj-slug-trail :name="model" :base="base" />
+    <Panel :header="label">
     
    <TabView>
-        <TabPanel :header="label">
-		    <ptj-display :store="store" />
+        <TabPanel :header="repo.label.value">
+		    <ptj-display :name="props.model" />
 	    </TabPanel>
         <TabPanel v-for="child in store.route.schema['--id'].reference" :header="$t('models.' + child + '.title', 2)">
             <PtjChildPanel :model="child" />
@@ -22,8 +22,10 @@ import PtjDisplay from "./ptj-display.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
 import { getStoreById } from "./../js/datastore.js"
 import Panel from 'primevue/panel';
-import { getLabel } from "../js/helperfunctions";
+import { useI18n } from 'vue-i18n';
 
+import { createActiveStore, regStore } from "./../js/reactivestores.js"
+const { t } = useI18n();
 
 /*
 <TabPanel v-for="child in store.route.children" :header="child">
@@ -32,18 +34,21 @@ import { getLabel } from "../js/helperfunctions";
 */
 const props = defineProps({
     model : String,
-    id : Number,
     base : String
 });
 
 
-const store = computed(() => {
-    return getStoreById(props.model);
-});
+const store = getStoreById(props.model);
+
+const repo = createActiveStore(store);
+regStore(props.model, repo);
+repo.load()
+.catch(e => console.log(e));
+
 
 const label = computed(() => {
-    return getLabel(store.value.route.schema, store.value.active.value);
-});
+    return t('models.' + props.model + '.title') + ': ' + repo.label.value;
+})
 
 if (store.route && store.route.settings.active && store.route.settings.active.mounted) {
     onMounted(() => {

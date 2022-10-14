@@ -27,7 +27,7 @@ let display = computed(() => {
         const data = [];
     
 
-        if (props.field.custom_fields) {
+        if (props.field.custom_fields.length) {
             for(const field of props.field.custom_fields) {
                 data.push(props.row[props.field.name + "/" + field]);
             }
@@ -35,7 +35,6 @@ let display = computed(() => {
             
             const ref_route = getRoute(props.field.reference);
             
-  
             for(const i in ref_route.schema) {
                 if (ref_route.schema[i].summary) {
                     data.push(props.row[props.field.name + "/" + i]);

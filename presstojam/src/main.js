@@ -115,10 +115,12 @@ let settings = {
             "domain" : "Domain",
             "hosting-status" : "Hosting Status"
            },
+           "limit" : 2,
            "order":{
             "hosting-status" : "desc"
            },
-           "group" : "hosting-status"
+           "group" : "hosting-status",
+           "groupclasses" : { "active" : "redbackground"}
           // "export_fields" : ["cfdist-id", "domain", "hosting-status"]
       },
       "fields" : {

@@ -10,7 +10,7 @@
 <script setup>
 
 const props = defineProps({
-  error : Object,
+  error : Number,
   field : Object
 });
 

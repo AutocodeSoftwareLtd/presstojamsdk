@@ -1,7 +1,7 @@
 <template>
     <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editRow" />
-    <Dialog v-model:visible="dialog" :header="'Edit ' + $t('models.' + model + '.title', 1)" :modal="true" class="p-fluid">
-        <ptj-form :store="store" @saved="onSave" />
+    <Dialog v-model:visible="dialog" :header="'Edit ' + $t('models.' + store.model + '.title', 1)" :modal="true" class="p-fluid">
+        <ptj-form :schema="store.route.schema" :data="data" :model="store.model" @saved="onSave" method="put"/>
     </Dialog>
 
 </template>
@@ -13,8 +13,7 @@
 
     const props = defineProps({
         store : Object,
-        data : Object,
-        model : String
+        data : Object
     });
 
     const emits = defineEmits([
@@ -24,7 +23,6 @@
     const dialog = ref(false);
 
     function editRow() {
-        props.store.active.value = { ...props.data };
         dialog.value =true;
     }
 

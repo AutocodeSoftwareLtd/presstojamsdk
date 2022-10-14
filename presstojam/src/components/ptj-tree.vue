@@ -15,19 +15,19 @@
         <Message severity="success" v-if="delrow">Rows removed</Message>
         <Toolbar>
                 <template #start>
-                  <Button v-if="active['--id']" icon="pi pi-times" class="p-button-rounded p-button-success" @click="onNodeClear" />
-                  <ptj-primary-action v-if="has_primary && active['--id']"  :model="model" :id="active['--id']" />
-                  <ptj-edit-action v-if="active['--id']"  :model="model" :store="store" :data="active" />
+                  <Button v-if="repo.active.value['--id']" icon="pi pi-times" class="p-button-rounded p-button-success" @click="onNodeClear" />
+                  <ptj-primary-action v-if="has_primary && repo.active.value['--id']"  :model="store.model" :id="repo.active.value['--id']"/>
+                  <ptj-edit-action v-if="repo.active.value['--id']"  :store="store" :data="repo.active.value" />
                   {{ label }}
                 </template>
 
                 <template #end>
-                    <ptj-move-action :model="model" :store="store" @onParentChanged="reload"/>
-                    <ptj-create-action :store="store" @onSave="reload"/> 
-                    <ptj-delete-action :data="store.selected.value" :model="model" @onDel="onDel" />
+                    <ptj-move-action :name="name + '_selected'" @onMove="reload"/>
+                    <ptj-create-action :name="name" @onSave="reload"/> 
+                    <ptj-delete-action :name="name + '_selected'" @onDel="onDel" />
                 </template>
               </Toolbar>
-          <ptj-table :model="model" :store="store" :fields="fields" :rows="childRows" @reorder="reorderRows" />
+          <ptj-table :name="name + '_selected'" :fields="fields" @reorder="reorderRows" />
        </div>
     </SplitterPanel>
   </Splitter>
@@ -48,41 +48,56 @@ import PtjEditAction from "./actions/ptj-edit-action.vue"
 import PtjDeleteAction from "./actions/ptj-delete-action.vue"
 import PtjMoveAction from "./actions/ptj-move-action.vue"
 import Message from 'primevue/message';
+import { createRepoStore, getStore, regStore } from "./../js/reactivestores.js"
 
 
 
 const props = defineProps({
-    model : String,
-    store : Object
+    name : {
+      type : String,
+      required : true
+    }
 });
 
 const emits = defineEmits(["onMove"]);
 
+const repo = getStore(props.name);
+const store = repo.store;
 
-const has_primary = (props.store.route.children.length > 1) ? true : false;
+
+const has_primary = (store.route.children.length > 1) ? true : false;
 const expanded = ref(false);
 //const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
-const active = ref({});
 const delrow = ref(false);
+const childRepo = createRepoStore(store);
+regStore(props.name + "_selected", childRepo);
+childRepo.parent_id = repo.parent_id;
+const selected = ref([]);
+
 
 const nodes = computed(() => {
-  const data= toTree(props.store.data.value, props.store.route.schema);
+  const data= toTree(repo.data.value, store.route.schema);
   return data;
 });
 
 
+let fields = computed(() => {
+    return getForegroundCells(store.route.schema);
+});
+
+
 function reorderRows(rows) {
-  childRows.value = rows;
+  childRepo.data.value = rows;
   saveOrder(props.model, childRows.value);
 }
 
-let fields = computed(() => {
-    return getForegroundCells(props.store.route.schema);
+repo.load()
+.then(response => {
+  childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
 });
 
-const childRows = ref([]);
-childRows.value = props.store.data.value.filter(obj => obj['--recursive'] == 0);
-active.value['--id'] = 0;
+
+repo.active.value['--recursive'] = 0;
 
 const expandedKeys = ref({});
 const selectedKey = ref();
@@ -110,18 +125,22 @@ const expandNode = (node) => {
 };
 
 function onDel() {
-    props.store.reload();
-    props.store.selected.value = [];
+    store.reload()
+    .then(response => {
+      data_rows.value = response;
+      childRows.value = data_rows.value.filter(obj => obj['--recursive'] == repo.active.value['--id']);
+    });
     delrow.value = true;
 }
 
 const label = computed(() => {
-  return getLabel(props.store.route.schema, active.value);
+  return getLabel(store.route.schema, repo.active.value);
 })
 
 const onNodeSelect = (node) => {
-   active.value = node.data;
-   childRows.value = props.store.data.value.filter(obj => obj['--recursive'] == node.key);
+   repo.active.value = node.data;
+   console.log(repo.active.value);
+   childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == node.key);
    /*  toast.add({
       severity:'success', 
       summary: 'Node Unselected', 
@@ -130,8 +149,8 @@ const onNodeSelect = (node) => {
 };
 
 const onNodeClear = (node) => {
-  active.value = {};
-  childRows.value = props.store.data.value.filter(obj => obj['--recursive'] == 0);
+  repo.active.value = {};
+  childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
 }
 
 

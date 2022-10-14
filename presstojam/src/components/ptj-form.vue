@@ -10,7 +10,7 @@
     <div class="field form-group" v-for="bind in binds" :key="bind.cell.name">
        <label :for="bind.cell.name" v-if="bind.cell.type!='json'" >{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
         <ptj-edit-field :bind="bind" />
-        <ptj-error :field="bind.cell" v-if="bind.active_validation && bind.error && bind.cell.type!='json'" :error="bind.error" />
+        <ptj-error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" />
     </div>
     <Button :label="$t('btns.save')" @click="submit" />
   </form>
@@ -29,19 +29,23 @@ import { getMutableCells, getImmutableCells } from "./../js/helperfunctions.js"
 import Message from 'primevue/message';
 import Client from "./../js/client.js"
 import PtjParentSelect from "./fields/ptj-parent-select.vue"
-import { createBind, createBindGroup } from "../js/binds.js"
+import { createBind, createBindGroup } from "./../js/binds.js"
 import PtjDispatch from "./ptj-dispatch-response.vue"
 import Dialog from 'primevue/dialog'
 
 const props = defineProps({
-    store : Object,
+    schema : Object,
+    data : Object,
+    model : String,
     parent : Boolean,
-    common_parent : String,
-    common_parent_id : Number
+    method : {
+        type : String,
+        default : 'post'
+    }
 });
 
 const emits = defineEmits([
-    "saved"
+    "saved", "dataChanged"
 ]);
 
 const saved = ref(false);
@@ -49,24 +53,24 @@ const global_error = ref("");
 const dispatch = ref(false);
 const dispatchid=ref(0);
 
-provide("model", props.store.model);
+provide("model", props.model);
 
 
 let cells;
-if (props.store.active.value['--id']) cells = getMutableCells(props.store.route.schema);
-else cells = getImmutableCells(props.store.route.schema);
+if (props.stype == 'put') cells = getMutableCells(props.schema);
+else cells = getImmutableCells(props.schema);
 
 
 const bindGroup = createBindGroup();
 
 
 if (props.parent) {
-    bindGroup.addBind("--parent", createBind(props.store.route.schema["--parent"], props.store.active.value["--parent"]));
+    bindGroup.addBind("--parent", createBind(props.schema["--parent"], props.data["--parent"]));
 }
 
 
 for(const field in cells) {
-    bindGroup.addBind(field, createBind(props.store.route.schema[field], props.store.active.value[field]));
+    bindGroup.addBind(field, createBind(props.schema[field], props.data[field]));
 }
 
 
@@ -115,29 +119,24 @@ function serializeData() {
 
 function submit() {
     saved.value = false;
+    bindGroup.activateValidation();
     if (bindGroup.hasErrors()) return;
 
-    const method = (props.store.active.value['--id']) ? 'put' : 'post';
     const data = serializeData();
-    if (method == "put") {
-        data.append("--id", props.store.active.value['--id']);
-    } else if (method == "post" && props.store.active.value['--parent']) {
-        data.append("--parent", props.store.active.value['--parent']);
+    if (props.method == "put") {
+        data.append("--id", props.data['--id']);
+    } else if (props.method == "post" && props.data['--parent']) {
+        data.append("--parent", props.data['--parent']);
     }
          
 
-    return Client[method]("/data/" + props.store.model, data)
+    return Client[props.method]("/data/" + props.model, data)
     .then(response => {
-        if (method == 'post') {
-            props.store.active.value["--id"] = response["--id"];
-            props.store.append(props.store.active.value);
-        } else if (method == "put") {
-            const obj = response.original;
-            for(let i in response.data) {
-                obj[i] = response.data[i];
-            }
-            props.store.active.value = obj;
-            props.store.overwrite(props.store.active.value);
+        if (props.method == 'post') {
+            emits("dataChanged", response);
+        } else if (props.method == "put") {
+            response.data["--id"] = props.data["--id"];
+            emits("dataChanged", response.data);
         }
         return response;
     })

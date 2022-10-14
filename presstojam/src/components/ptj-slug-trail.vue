@@ -12,22 +12,36 @@ import Breadcrumb from 'primevue/breadcrumb';
 import { getRouteStructure} from "./../js/routes.js"
 import PtjCrumb from "./ptj-crumb.vue"
 import { useI18n } from 'vue-i18n';
+import Client from "./../js/client.js"
+import { rowToTree } from "./../js/helperfunctions.js"
+import { getStore } from "./../js/reactivestores.js"
 
 
 const { t } = useI18n();
 
 
 const props = defineProps({
-    model : String,
-    store : Object,
-    id : Number,
+    name : String,
     base : String
 });
 
+const repo = getStore(props.name);
+const store = repo.store;
 const home = {icon: 'pi pi-home', to: props.base};
 
-const routes = ref(getRouteStructure(props.model));
+const routes = ref(getRouteStructure(store.model));
 
+const slug_trail = ref({});
+
+
+if (store.route.parent) { 
+    const id =store.parent_id;
+    Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
+    .then(response => {
+        slug_trail.value = rowToTree(response, store.route.parent);
+    }).catch(e => console.log(e));
+} 
+ 
 
 function trailRouteInfo(trail, route) {
     let info = [];
@@ -47,7 +61,7 @@ function trailRouteInfo(trail, route) {
 
 let crumbs = computed(() => {
     let arr = [];
-    let trail = props.store.slug_trail.value;
+    let trail = slug_trail.value;
   
     for(let route of routes.value) {
         if (!trail[route.name]) continue;

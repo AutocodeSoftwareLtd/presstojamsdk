@@ -14,6 +14,18 @@ export function toTree(arr, schema, parent_id = 0) {
     return nodes;
 }
 
+
+export function toReferenceTree(arr, schema, parent_id = 0) {
+    const nodes = [];
+    const items = arr.filter(obj => obj['--recursive'] == parent_id);
+    for (const item of items) {
+      const obj = { key: item.key, "label":item.value, data : item};
+      obj.children = toReferenceTree(arr, schema, obj.key);
+      nodes.push(obj);
+    }
+    return nodes;
+}
+
 export function toTreeChildren(arr, schema, parent_id = 0) {
     const nodes = [];
     const items = arr.filter(obj => obj['--recursive'] == parent_id);
@@ -86,7 +98,7 @@ export async function getCellComponent(name, type = null) {
     return defineAsyncComponent(import('./../components/fields/ptj-' + name + type + ".vue"));
 }
 
-function sortByDictionary(a, b) {
+export function sortByDictionary(a, b) {
     if (a.value < b.value ) {
         return -1;
     } else if (a.value > b.value) {
@@ -96,24 +108,7 @@ function sortByDictionary(a, b) {
     }
 } 
 
-export function getOptions(store, field) {
-    if (!store.references[field]) {
-        throw "Error, can't access reference that doesn't exist, helper functions, line 59";
-    }
-    const ref = store.references[field];
-    return ref.load()
-    .then(response => {
-        response.sort(sortByDictionary);
-        return response;
-    });
-}
 
-export function getRecursiveOptions(store) {
-    return store.load()
-    .then(() => {
-        return toTree(store.data.value, store.route.schema);
-    });
-}
 
 
 export function rowToTree(obj, parent) {
