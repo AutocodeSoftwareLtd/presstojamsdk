@@ -4,18 +4,24 @@
 <script setup>
 import Button from "primevue/Button"
 import { useI18n } from 'vue-i18n';
-import { loadAll } from "./../../js/datastore.js"
+import { createTemporaryStore } from "./../../js/datastore.js"
+import { getStore, createRepoStore } from "./../../js/reactivestores.js"
 
 
 const { t } = useI18n();
 
 const props = defineProps({
-    store : Object
+    name : String
 });
 
-const data = props.store.data.value;
-const cells = props.store.route.schema;
-const settings = props.store.route.settings;
+const repo = getStore(props.name);
+const store = repo.store;
+
+
+const data = repo.data.value;
+const cells = store.route.schema;
+const settings = store.route.settings;
+
 
 function buildData(data, headers) {
 	let value = "";
@@ -38,7 +44,7 @@ function exportCSV() {
     if (settings.export_fields) {
         if (Array.isArray(settings.export_fields)) {
             for(const index in settings.export_fields){
-                headers.push({ key : settings.export_fields[index], label :  t("models." + props.store.model +  ".fields." +settings.export_fields[index] + ".label") });
+                headers.push({ key : settings.export_fields[index], label :  t("models." + store.model +  ".fields." +settings.export_fields[index] + ".label") });
             }
         } else {
             for(const key in settings.export_fields){
@@ -48,7 +54,7 @@ function exportCSV() {
     } else {
         for(const key in cells) {
             if (key == "--owner" || key == "--parent") continue;
-            headers.push({ key : key, label : t("models." + props.store.model +  ".fields." + headers[key] + ".label") });
+            headers.push({ key : key, label : t("models." + store.model +  ".fields." + headers[key] + ".label") });
         }
     }
 
@@ -59,17 +65,21 @@ function exportCSV() {
     }
 
 
-	if (props.store.pagination.count) {
+	if (repo.pagination.count) {
 		//need to load all data
-		loadAll(props.store)
-		.then(results => {
-			value += buildData(results, headers);
-			download(value, props.store.model + '.csv');
+		let tstore = createTemporaryStore(store.model);
+		tstore.parent_id = store.parent_id;
+		let temp_repo = createRepoStore(tstore);
+		tstore.limit = 0; //reset any limits so no pagination
+		temp_repo.load()
+		.then(() => {
+			value += buildData(temp_repo.data.value, headers);
+			download(value, store.model + '.csv');
 		})
 		.catch(e => console.log(e));
 	} else {
-		value += buildData(props.store.data.value, headers);
-		download(value, props.store.model + '.csv');
+		value += buildData(data, headers);
+		download(value, store.model + '.csv');
 	}
 }
 

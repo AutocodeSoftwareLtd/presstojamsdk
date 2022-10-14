@@ -12,8 +12,9 @@ import Client from "./client.js"
 import { setRouteSettings, hasRoute, loadSiteMap } from "./routes.js"
 import { userSettings, initUser, isUserAuthenticated } from "./user.js"
 import { createI18n } from 'vue-i18n'
-import { createDataStore, clearDataCache, loadSlugTrail } from "./datastore.js"
+import { createDataStore, clearDataCache } from "./datastore.js"
 import { registerFlow } from "./flows.js"
+import { clearStores } from "./reactivestores.js";
 
 
 let base = "";
@@ -28,8 +29,8 @@ function initRouter(app, base) {
         history: createWebHistory(),
         routes : [
             { path : base + "/user-login", component : PtjAccountHandler, name : 'login', props : { base : base + "/"}},
-            { path : base + "/data/:model/:id?", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, parentid : parseInt(route.params.id), base : base + "/" })},
-            { path : base + "/data/active/:model/:id", component : PtjActive, name : 'primary', props : route => ({ model : route.params.model, id : parseInt(route.params.id), base : base + "/" }) },
+            { path : base + "/data/:model/:id?", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, base : base + "/" })},
+            { path : base + "/data/active/:model/:id", component : PtjActive, name : 'primary', props : route => ({ model : route.params.model, base : base + "/" }) },
             { path : base + "/flow/:flow/:position?", component : PtjFlow, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position), base : base + "/" })},
             { path : base + "/dev/site-map", component : PtjSitemap, name : 'sitemap'}
         ]
@@ -55,6 +56,7 @@ function initRouter(app, base) {
 
         router.beforeEach((to, from) => {
             clearDataCache();
+            clearStores();
             if (to.name != "login" && to.name != "error404") {
               if (!isUserAuthenticated()) {
                 if (to.name != "login") {
@@ -71,29 +73,19 @@ function initRouter(app, base) {
                     return true;
                 }
               
-                const store = createDataStore(to.params.model);
-            
                 if (to.name == "primary") {
-                    store.setParams({"--id" : to.params.id });
-                    store.load()
-                    .then(() => {
-                        return loadSlugTrail(store);
-                    })
-                    .then(() => {
-                        for(const child of store.route.schema["--id"].reference) {
-                            const child_store = createDataStore(child, store);
-                            child_store.setParams( {"--parent" : to.params.id});
-                            child_store.load();
-                        }
-                    }).catch(e => console.log(e));
+                    const store = createDataStore(to.params.model);
+                    for(const child of store.route.schema["--id"].reference) {
+                        const child_store = createDataStore(child);
+                        child_store.parent_id = to.params.id;
+                    }
+                    
+                    store.active_id = to.params.id;
                     return true;
                 } else {
-                    store.setParams({"--parent" : to.params.id });
-                    store.load()
-                    .then(() => {
-                        return loadSlugTrail(store);
-                      })
-                    .catch(e => console.log(e));
+                    const store = createDataStore(to.params.model);
+                    store.parent_id = to.params.id;
+                   
                     return true;
                 }
               }

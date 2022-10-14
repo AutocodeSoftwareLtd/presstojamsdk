@@ -9,7 +9,7 @@ import { ref, onMounted, inject, computed } from "vue"
 import MultiSelect from 'primevue/multiselect';
 import Chips from 'primevue/chips';
 import { getStoreById } from "./../../js/datastore.js"
-import { getLabel, getOptions, getRecursiveOptions } from "../../js/helperfunctions";
+import { getLabel } from "../../js/helperfunctions";
 
 const props = defineProps({
     modelValue : [Array],
@@ -33,14 +33,14 @@ const value = computed({
 
 const model = inject("model");
 const store = getStoreById(model);
-
+const id = (store.active_id) ? store.active_id : store.parent_id;
 
 
 const options = ref([]);
 
 if (props.field.reference || props.field.recursive) {
     onMounted(() => {
-        getOptions(store, props.field.name)
+        props.field.getOptions(model, id)
         .then(response => options.value =response);
     });
 } else if (props.field.name == '--id') {

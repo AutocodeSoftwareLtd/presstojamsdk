@@ -1,219 +1,151 @@
 import Client from "./client.js"
-import { reactive, ref } from "vue"
-import { getRoute, getRouteStructure, createView, createCustomStructure } from "./routes.js"
-import { rowToTree, commonParent } from "./helperfunctions.js"
+import { createView } from "./routes.js"
 
 
 
+class DataStore {
 
-export function loadAll(store) {
-    let params = buildParams(store);
-    delete params.__limit;
-    return Client.get("/data/" + store.model, params);
-}
+    constructor(model) {
+        this._model = model;
+        this._count_promise = null;
+        this._load_promise = null;
+        this._params = {};
+        this._route = createView(model);
+        this._filters ={};
+        this._parent_id = 0; //set if this is a child of a parent group
+        this._active_id = 0;
+        this._page_offset = 0;      
+        this._limit = (this._route.settings.limit) ? this._route.settings.limit : 0; 
 
-
-function loadCount(store) {
-    if ((store.active.value && store.active.value['--id']) || store.route.settings.limit) {
-        return Promise.resolve(true);
-    } else {
-        return Client.get("/count/" + store.model, buildParams(store))
-        .then(response => {
-            store.pagination.count = parseInt(response.count);
-            store.pagination.rows_per_page = store.route.settings.limit;
+        const keys = Object.keys(this);
+       
+        keys.forEach(property => {
+            if (property == "_parent_id" || property == "_active_id" || property == "_limit" || property == "_page_offset") {
+                Object.defineProperty(this, property.substring(1), {
+                    get: function() { 
+                        return this[property];
+                    },
+                    set: function(val) {
+                        this[property] = val;
+                    }
+                });
+            } else if (property[0] == "_") {
+                Object.defineProperty(this, property.substring(1), {
+                    get: function() { 
+                        return this[property];
+                    }
+                });
+            }
         });
     }
-}
-
-
-function loadStore(store) {
-    if (!store.load_promise) {
-        store.is_loading = true;
-        store.load_promise = store.loadCount()
-        .then(() => {
-            return Client.get("/data/" + store.model, buildParams(store))
-        }).then(response => {
-            store.index = {};
-            store.data.value = [];
-            for(let i in response) {
-                store.index[response[i]['--id']] = i;
+        
+        
+    loadCount() {
+        if (!this._count_promise) {
+            if (!this._limit) {
+                this._count_promise = Promise.resolve(true);
+            } else {
+                this._count_promise = Client.get("/count/" + this._model, this.buildParams())
+                .then(response => {
+                    return parseInt(response.count);
+                });
             }
-      
-            store.data.value = response;
-            if (store.active.value['--id']) {
-                store.active.value = store.data.value[store.index[store.active.value['--id']]];
-            }
-            store.is_loading = false;
-        })
-        .catch(e => console.log(e));
+        }
+        return this.count_promise;
     }
-    return store.load_promise;
-}
+        
+    load() {
+        if (!this._load_promise) {
+            let url = "/data/" + this._model;
+            if (this._active_id) url += "/active";
+            this._load_promise = Client.get(url, this.buildParams())
+        }
+        return this.load_promise;
+    }
 
-function create(model) {
+    reset() {
+        this._load_promise = null;
+        this._count_promise = null;
+    }
 
-    const store = {
-        count_promise : null,
-        load_promise : null,
-        index : {},
-        params : {},
-        model : model,
-        getParentID() {
-            return (!store.parent_store || !store.parent_store.active.value['--id']) ? 0 : store.parent_store.active.value['--id']; 
-        },
-        data : ref([]),
-        route : createView(model),
-        selected : ref(),
-        active : ref({}),
-        filters : ref({}),
-        slug_trail : ref({}),
-        parent_store : null,
-        pagination : reactive({ rows_per_page : 0, count : 0, offset : 0 }),
-        references : {},
-        getDataById(id) {
-            if (!this.index[id]) return null;
-            return this.data.value[this.index[id]];
-        },
-        loadCount() {
-            if (!this.count_promise) {
-                this.count_promise = loadCount(this);
-            }
-            return this.count_promise;
-        },
-        load() {
-            if (!this.load_promise) {
-                this._load_promise = loadStore(this);
-            }
-            return this.load_promise;
-        },
-        reload() {
-            this.load_promise = null;
-            this.active.value = {};
-            this.selected.value = null;
-            return this.load();
-        },
-        setParams(params) {
-            if (params['--id']) this.active.value = {'--id' : params['--id']};
-            else if (params['--parent']) this.active.value = {'--parent' : params['--parent']};
-        },
-        overwrite(obj) {
-            if (!obj['--id']) {
-                throw "Can only overwrite store if object contains --id value";
-            }
+    reload() {
+        this.reset();
+        return this.load();
+    }
+
+
+    overwrite(obj) {
+        if (!obj['--id']) {
+            throw "Can only overwrite store if object contains --id value";
+        }
             
-            if (this.index[obj['--id']] === undefined) {
-                throw "Can't overwrite object of " + obj['--id'] + ", doesn't exist";
-            }
+        if (this._index[obj['--id']] === undefined) {
+            throw "Can't overwrite object of " + obj['--id'] + ", doesn't exist";
+        }
                 
-            const index = this.index[obj['--id']];
-            for(let i in obj) {
-                this.data.value[index][i] = obj[i];
-            }
-        },
-        append(obj) {
-            this.index[obj['--id']]
-            if (this.index[obj['--id']] !== undefined) {
-                throw "Can't append row of " + obj['--id'] + ", already exists";
-            }
+        const index = this._index[obj['--id']];
+        for(let i in obj) {
+            this._data[index][i] = obj[i];
+        }
+    }
+        
+    append(obj) {
+        this._index[obj['--id']]
+        if (this._index[obj['--id']] !== undefined) {
+            throw "Can't append row of " + obj['--id'] + ", already exists";
+        }
 
-            this.index[obj['--id']] = this.data.value.length;
-            this.data.value.push(obj);
-        },
-        remove(id) {
-            if (this.index[id] !== undefined) {
-                const pos = this.index[id];
-                this.data.value.splice(pos, 1);
-                delete this.index[id];
-            }
+        this._index[obj['--id']] = this._data.length;
+        this._data.push(obj);
+    }
+        
+    remove(id) {
+        if (this._index[id] !== undefined) {
+            const pos = this._index[id];
+            this._data.splice(pos, 1);
+            delete this._index[id];
         }
     }
 
-    const schema =store.route.schema;
-    for(let i in schema) {
-        if (schema[i].type == "id" && schema[i].isReferenceType()) {
-            store.references[i] = createRefPromise(
-                model, 
-                i, 
-                store
-            );
-        } 
-    }
-
-    return store;
-}
-
-function createRefPromise(model, field, store) {
-    return {
-        load_promise : null,
-        load() {
-            if (!this.load_promise) {
-                let params = {};
-                let url = "/reference/" + model + "/" + field;
-                let id = 0;
-                if (store.parent) id = store.getParentID();
-                else id = store.active.value['--parent'];
-                if (id) url += "/" + id;
-                this.load_promise = Client.get(url, params);
-            }
-            return this.load_promise;
-        },
-        reload() {
-            this.load_promise = null;
-            return this.load();
+    
+    buildParams() {
+        let params = this._filters;
+        if (this._active_id) params["--id"] = this._active_id;
+        else if (this._parent_id) params["--parent"] = this._parent_id;
+        if (this._limit) {
+            params.__offset = this._page_offset;
+            params.__limit = this._limit;
         }
+        const settings = ["to", "order"];
+        for(const setting of settings) {
+            if (this._route.settings[setting]) params['__' + setting] = this._route.settings[setting];
+            else if (params[setting]) params['__' + setting] = params[setting];
+        }
+    
+        if (this._route.settings.fields) {
+            params["__fields"] = this._route.settings.fields;//createCustomStructure(store.route);
+        }
+        return params;
     }
 }
 
 
-export function createDataStore(model_name, parent = null) {
 
-    const model = create(model_name);
-    if (parent) model.parent_store = parent;
+export function createDataStore(model_name) {
+
+    const model = new DataStore(model_name);
     cache[model_name] = model;
     return cache[model_name];
 }
 
 export function createTemporaryStore(model) {
-    return create(model);
+    return new DataStore(model);
 }
 
 
 
 
-export function loadSlugTrail(store) {
-    if (store.route.parent) { 
-        const id = (store.active.value['--id']) ? store.active.value["--parent"] : store.getParentID();
-        return Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
-        .then(response => {
-            store.slug_trail.value = rowToTree(response, store.route.parent);
-            for(let i in store.references) {
-                const ref = store.references[i]
-                if (ref.common_parent) {
-                    ref.common_parent_id = store.slug_trail.value[ref.common_parent]['--id'];
-                }
-            }
-        }).catch(e => console.log(e));
-    } 
-}
 
-
-
-function buildParams(store) {
-    let params = store.filters.value;
-    let id = store.getParentID();
-    if (id) params["--parent"] = id;
-    if (store.pagination.rows_per_page) params.__limit = store.pagination.offset + "," + store.pagination.rows_per_page;
-    const settings = ["to", "order"];
-    for(const setting of settings) {
-        if (store.route.settings[setting]) params['__' + setting] = store.route.settings[setting]
-        else if (store.params[setting]) params['__' + setting] = store.params[setting]
-    }
-
-    if (store.route.settings.fields) {
-        params["__fields"] = store.route.settings.fields;//createCustomStructure(store.route);
-    }
-    return params;
-}
 
 
 

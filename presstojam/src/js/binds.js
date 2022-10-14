@@ -26,6 +26,9 @@ export function createBind(cell, value) {
                 this.is_dirty = dirty;
                 if (this.group) this.group.setDirty(dirty);
             }
+        },
+        activateValidation() {
+            this.active_validation.value = true;
         }
     }
 
@@ -81,12 +84,18 @@ export function createBindGroup(parent = null) {
         hasErrors() {
             for(let i in this.binds) {
                 if (this.binds[i].error.value) {
+                    console.log("Error for ", i, this.binds[i].error.value);
                     return true;
                 }
 
                 if (this.binds[i].children) {
                     if (this.binds[i].children.hasErrors()) return true;
                 }
+            }
+        },
+        activateValidation() {
+            for (let i in this.binds) {
+                this.binds[i].activateValidation();
             }
         }
     }

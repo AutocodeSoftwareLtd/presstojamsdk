@@ -15,7 +15,6 @@ import Dropdown from 'primevue/dropdown';
 import InputNumber from "primevue/InputNumber"
 import TreeSelect from 'primevue/treeselect';
 import { getStoreById } from "./../../js/datastore.js"
-import { getOptions, getRecursiveOptions } from "./../../js/helperfunctions.js"
 import PtjReferenceCreate from "./../actions/ptj-reference-create.vue"
 
 
@@ -33,13 +32,15 @@ const store = getStoreById(model);
 
 const options = ref([]);
 let value;
+const id = (store.active_id) ? store.active_id : store.parent_id;
 
 const cell = props.bind.cell;
 
 if (cell.isReferenceType()) {
     onMounted(() => {
-        getOptions(store, cell.name)
-        .then(response => options.value =response);
+        cell.getOptions(model, id)
+        .then(response => options.value =response)
+        .catch(e => console.log(e));
     });  
 
     value = computed({
@@ -53,12 +54,13 @@ if (cell.isReferenceType()) {
 
 } else if (cell.recursive) {
     onMounted(() => {
-       getRecursiveOptions(store)
+       cell.getRecursiveOptions(model, id, store.route.schema)
        .then(response => {
         let arr = [...response];
         arr.unshift({key : 0, value : 'Root'});
         options.value =arr;
-       });
+       })
+       .catch(e => console.log(e));
     });  
 
     value = computed({

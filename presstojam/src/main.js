@@ -6,9 +6,9 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import { logout } from "./js/controller.js";
 
-//const url = "https://api.presstojam.com";
+const url = "https://api.presstojam.com";
 //const url = "https://api.genercode.com";
-const url = "http://slim.localhost";
+//const url = "http://slim.localhost";
 //https://api.presstojam.com
 
 /*const url = "https://dev-local.api-capstonegroup.com/v4";
@@ -115,10 +115,12 @@ let settings = {
             "domain" : "Domain",
             "hosting-status" : "Hosting Status"
            },
+           "limit" : 2,
            "order":{
             "hosting-status" : "desc"
            },
-           "group" : "hosting-status"
+           "group" : "hosting-status",
+           "groupclasses" : { "active" : "redbackground"}
           // "export_fields" : ["cfdist-id", "domain", "hosting-status"]
       },
       "fields" : {

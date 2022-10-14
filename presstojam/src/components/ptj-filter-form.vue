@@ -22,11 +22,10 @@ import Button from 'primevue/Button'
 import Fieldset from 'primevue/fieldset';
 
 const props = defineProps({
-    model : String,
     store : Object
 });
 
-provide("model", props.model);
+provide("model", props.store.model);
 
 const filtercells = computed(() => {
     let filter_cells = {};

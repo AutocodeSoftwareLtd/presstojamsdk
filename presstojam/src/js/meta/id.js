@@ -1,5 +1,6 @@
 import { Field } from "./field.js"
 import Client from "./../client.js"
+import { sortByDictionary, toReferenceTree } from "./../helperfunctions.js"
 
 export const ReferenceTypes = {
     'PRIMARY' : 0,
@@ -21,38 +22,39 @@ export class ID extends Field {
         this._default_val = 0;
         this.reverse_references = [];
         this._common;
+        this._cache_id;
         this._custom_fields = [];
+        this._load_promise = null;
         this.buildGetterSetters();
         if (obj) this.apply(obj);
 
     }
 
 
-    setReferenceOptions(url, params) {
-        if (this._options) {
-            return Promise.resolve(this._options);
+    getOptions(model, id) {
+        if (!this._load_promise || id != this._cache_id) {
+            this._cache_id = id;
+            this._load_promise = Client.get("/reference/" + model + "/" + this._name + "/" + id)
+            .then(response => {
+                response.sort(sortByDictionary);
+                return response;
+            });
         }
-        return Client.get(url, params)
-        .then(response => {
-            let options = [];
-            for (let i in response) {
-                let key = response[i]["--id"];
-                let vals = [];
-                for(let x  in response[i]) {
-                    if (x != "--id") {
-                        vals.push(response[i][x]);
-                    }
-                }
-                options.push({ key: key, value: vals.join(" ", vals) });
-            }
-            this._options = options;
-           return this._options;
-        })
-        .catch(e => {
-            console.log(e);
-        });
+        return this._load_promise
     }
 
+
+    
+    getRecursiveOptions(model, id, schema) {
+        if (!this._load_promise) {
+            this._cache_id = id;
+            this._load_promise = Client.get("/reference/" + model + "/" + this._name + "/" + id)
+            .then(response => {
+                return toReferenceTree(response, schema)
+            });
+        }
+        return this._load_promise;
+    }
 
     get reference() {
         return this._reference;

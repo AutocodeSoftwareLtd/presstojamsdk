@@ -1,9 +1,9 @@
 <template>
-    <ptj-slug-trail :model="model" :id="parentid" :store="store" :base="base" />
+    <ptj-slug-trail :name="model" :base="base" />
     <Panel :header="store.route.title">
 
-        <PtjTree v-if="recursive" :model="model" :store="store" />
-        <PtjTableDisplay v-else :model="model" :store="store" />
+        <PtjTree v-if="recursive" :name="model" />
+        <PtjTableDisplay v-else :name="model"  />
 
     </Panel>
 </template>
@@ -15,6 +15,7 @@ import PtjTree from "./ptj-tree.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
 import { computed, onMounted } from "vue"
 import { getStoreById } from "./../js/datastore.js"
+import { createRepoStore, regStore } from "./../js/reactivestores.js"
 
 
 /*
@@ -22,19 +23,20 @@ import { getStoreById } from "./../js/datastore.js"
 */
 const props = defineProps({
     model : String,
-    parentid : Number,
     base : String
 });
 
 
-const store = computed(() => {
-    return getStoreById(props.model);
-});
+
+const store = getStoreById(props.model);
+const repo = createRepoStore(store);
+regStore(props.model, repo);
+repo.load();
 
 
 const recursive = computed(() => {
-    for(let i in store.value.route.schema) {
-        if (store.value.route.schema[i].recursive) return true;
+    for(let i in store.route.schema) {
+        if (store.route.schema[i].recursive) return true;
     }
     return false;
 })

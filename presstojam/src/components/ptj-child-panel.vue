@@ -1,33 +1,34 @@
 <template>
 	<Panel :header="$t('models.' + model + '.title', 2)">
-		<ptj-form v-if="component == 'form'" :model="model" :store="store" />
-        <ptj-tree v-else-if="component == 'recursive'" :model="model" :store="store" @onMove="reload" />
-        <ptj-table-display v-else-if="component == 'table'" :model="model" :store="store"  />
+        <ptj-tree v-if="component == 'recursive'" :name="props.model" @onMove="reload" />
+        <ptj-table-display v-else-if="component == 'table'" :name="props.model" />
     </Panel>
 </template>
 <script setup>
 import Panel from 'primevue/panel';
 import { getStoreById } from "./../js/datastore.js"
 import { computed } from "vue"
-import PtjForm from "./ptj-form.vue"
+
 import PtjTableDisplay from "./ptj-table-display.vue"
 import PtjTree from "./ptj-tree.vue"
+import { createRepoStore, regStore } from "./../js/reactivestores.js"
 
 
 const props = defineProps({
     model : String
 });
 
+const store = getStoreById(props.model);
 
-const store = computed(() => {
-    return getStoreById(props.model);
-});
+const repo = createRepoStore(store);
+regStore(props.model, repo);
+repo.load();
 
-
-const component = computed(() => {;
-    if (!store.value.route) return "";
-    else if (store.value.route.schema["--recursive"]) return "recursive";
-    else if (store.value.route.singleton) return "form";
+const component = computed(() => {
+    if (!store) return "";
+    else if (!store.route) return "";
+    else if (store.route.schema["--recursive"]) return "recursive";
+    else if (store.route.singleton) return "form";
     else return "table";
 });
 
