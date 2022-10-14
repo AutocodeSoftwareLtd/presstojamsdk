@@ -65,6 +65,8 @@ export function createRepoStore(store) {
 
     obj.reload = function() {
         this.store.reset();
+        this.selected.value = [];
+        this.active.value = {};
         this.load_promise = null;
         return this.load();
     }
@@ -83,6 +85,7 @@ export function createRepoStore(store) {
     if (store.limit) {
         obj.pagination = reactive({ rows_per_page : store.limit, count : 0, offset : 0 }),
         obj.paginate = function() {
+            this.is_loading.value = true;
             store.page_offset = this.pagination.offset;
             store.reload()
             .then(response => {

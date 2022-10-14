@@ -46,25 +46,21 @@
 
     const disabled = computed(() => {
         return (delval.value == check_str) ? false : true;
-    })
+    });
 
 
     function del() {
         let params = {};
-        if (props.data.length > 1) {
-            const keys = [];
-            for(const row of props.data) {
-                keys.push(row.key);
-            }
-            params["--id"] = keys;
-        } else {
-            params["--id"] = props.data[0].key;
+        const keys = [];
+        for(const row of repo.selected.value) {
+            keys.push(row['--id']);
         }
-
-
+        params["--id"] = keys;
+        
         client.delete("/data/" +repo.store.model, params)
         .then(() => {
             dialog.value = false;
+            repo.selected.value = [];
             emits("onDel");
         })
         .catch(e => console.log(e));
