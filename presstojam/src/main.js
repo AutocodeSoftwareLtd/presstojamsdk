@@ -6,9 +6,9 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import { logout } from "./js/controller.js";
 
-//const url = "https://api.presstojam.com";
+const url = "https://api.presstojam.com";
 //const url = "https://api.genercode.com";
-const url = "http://slim.localhost";
+//const url = "http://slim.localhost";
 //https://api.presstojam.com
 
 /*const url = "https://dev-local.api-capstonegroup.com/v4";
