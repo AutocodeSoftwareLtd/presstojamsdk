@@ -31,15 +31,25 @@ const home = {icon: 'pi pi-home', to: props.base};
 
 const routes = ref(getRouteStructure(store.model));
 
-const slug_trail = ref({});
+const slug_trail = ref(null);
 
 
 if (store.route.parent) { 
-    const id =store.parent_id;
-    Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
-    .then(response => {
-        slug_trail.value = rowToTree(response, store.route.parent);
-    }).catch(e => console.log(e));
+    if (repo.active_id) {
+        repo.load()
+        .then(() => {
+            const id = repo.data.value['--parent'];
+            return Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
+        }).then(response => {
+            slug_trail.value = rowToTree(response, store.route.parent);
+        }).catch(e => console.log(e));
+    } else {
+        const id = repo.parent_id;
+        Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
+        .then(response => {
+            slug_trail.value = rowToTree(response, store.route.parent);
+        }).catch(e => console.log(e));
+    }
 } 
  
 
@@ -61,8 +71,10 @@ function trailRouteInfo(trail, route) {
 
 let crumbs = computed(() => {
     let arr = [];
+    if (!slug_trail.value) return arr;
+
     let trail = slug_trail.value;
-  
+
     for(let route of routes.value) {
         if (!trail[route.name]) continue;
         //set multiple route

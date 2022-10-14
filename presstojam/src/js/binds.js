@@ -16,7 +16,6 @@ export function createBind(cell, value) {
         },
         setValue(val) {
             val = this.cell.clean(val);
-            console.log("Setting value to", val);
             this.error.value = this.cell.validate(val);
             this.value.value = val;
             this.setDirty(true)
@@ -30,7 +29,6 @@ export function createBind(cell, value) {
         },
         activateValidation() {
             this.active_validation.value = true;
-            if (this.group) this.group.activateValidation();
         }
     }
 
