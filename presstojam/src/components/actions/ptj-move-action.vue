@@ -5,7 +5,7 @@
         <ul>
             <li v-for="item in repo.selected.value">{{ getLabel(repo.store.route.schema, item) }}</li>
         </ul>
-        <move-action :name="name" />
+        <move-action :name="name" @onMove="onMove()" />
     </Dialog>
 
 </template>
