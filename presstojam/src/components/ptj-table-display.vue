@@ -1,10 +1,10 @@
 <template>
-    <ptj-filter-form v-if="repo.pagination.count && !store.route.settings.nofilter"  :store="store" />
+    <ptj-filter-form v-if="repo.pagination && !store.route.settings.nofilter"  :store="store" />
     <Message severity="success" v-if="newrow">New row created</Message>
     <Message severity="success" v-if="delrow">Rows removed</Message>
     <Toolbar class="mb-4">
                 <template #start>
-                    <span class="p-input-icon-left mr-2" v-if="!repo.pagination.count">
+                    <span class="p-input-icon-left mr-2" v-if="!repo.pagination">
                         <i class="pi pi-search" />
                         <InputText v-model="search" placeholder="Keyword Search" />
                     </span>
@@ -22,9 +22,9 @@
                     <ptj-delete-action v-if="store.route.perms.includes('delete')" :name="name" @onDel="onDel"/>
                 </template>
     </Toolbar>
-    <p v-if="repo.pagination.count">Total Rows: {{ repo.pagination.count }}</p>
+    <p v-if="repo.pagination">Total Rows: {{ repo.pagination.count }}</p>
     <ptj-table ref="dt" :name="name" :fields="fields" :search="search" @reorder="onRowReorder" />
-    <ptj-pagination v-if="repo.pagination.count" :pagination="repo.pagination" @reload="reloadPage" />
+    <ptj-pagination v-if="repo.pagination" :pagination="repo.pagination" @reload="reloadPage" />
 </template>
 
 <script setup>

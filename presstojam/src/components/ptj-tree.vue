@@ -88,7 +88,7 @@ let fields = computed(() => {
 
 function reorderRows(rows) {
   childRepo.data.value = rows;
-  saveOrder(props.model, childRows.value);
+  saveOrder(store.model, rows);
 }
 
 repo.load()

@@ -98,9 +98,9 @@ const children = (store.route.schema['--id']) ? store.route.schema['--id'].refer
 const has_primary = (children.length > 1) ? true : false;
 const has_expandable = (children.length == 1) ? true : false;
 const has_sort = store.route.schema['--sort'];
-const sortable = (!props.nosort && !repo.pagination.count && !has_sort) ? true : false;
+const sortable = (!props.nosort && !repo.pagination && !has_sort) ? true : false;
 const global_filter_fields = [];
-if (!repo.pagination.count) {
+if (!repo.pagination) {
     for(let field in props.fields) {
         global_filter_fields.push(field);
     }

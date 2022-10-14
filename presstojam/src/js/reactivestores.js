@@ -20,46 +20,69 @@ export function getStore(name) {
 }
 
 export function createRepoStore(store) {
-    return {
+    const obj = {
         parent_id : ref(store.parent_id),
         store : store,
         active : ref({}),
         selected : ref([]),
         is_loading : ref(false),
-        pagination : reactive({ rows_per_page : store.limit, count : 0, offset : 0 }),
         data : ref([]),
-        load_promise : null,
-        serve(response) {
+        load_promise : null
+    };
+
+    obj.serve = function(response) {
             this.data.value = response;
             this.is_loading.value = false;
-        },
-        load() {
-            if (!this.load_promise) {
-                this.is_loading.value = true;
-                let promise;
-                if (store.limit) {
-                    promise = this.load_promise = store.loadCount()
-                    .then(count => {
-                        this.pagination.count = count;
-                        return store.load();
-                    });
-                } else {
-                    promise = store.load();
-                }
-                
-                this.load_promise = promise
-                .then(response => {
-                    this.serve(response);
-                })
-                .catch(e => {
-                    console.log(e);
-                    this.is_loading.value = false;
-                    throw e;
+    };
+
+    obj.load = function() {
+        if (!this.load_promise) {
+            this.is_loading.value = true;
+            let promise;
+            if (store.limit) {
+                promise = this.load_promise = store.loadCount()
+                .then(count => {
+                    this.pagination.count = count;
+                    return store.load();
                 });
+            } else {
+                promise = store.load();
             }
-            return this.load_promise;
-        },
-        paginate() {
+                
+            this.load_promise = promise
+            .then(response => {
+                this.serve(response);
+            })
+            .catch(e => {
+                console.log(e);
+                this.is_loading.value = false;
+                throw e;
+            });
+        }
+        return this.load_promise;
+    };
+
+
+    obj.reload = function() {
+        this.store.reset();
+        this.load_promise = null;
+        return this.load();
+    }
+
+    obj.overwrite = function(obj) {
+        for(let row of this.data.value) {
+            if (row['--id'] == obj['--id']) {
+                for(let x in obj) {
+                    row[x] = obj[x];
+                }
+            } 
+        }
+    } 
+
+
+    if (store.limit) {
+        obj.pagination = reactive({ rows_per_page : store.limit, count : 0, offset : 0 }),
+        obj.paginate = function() {
             store.page_offset = this.pagination.offset;
             store.reload()
             .then(response => {
@@ -69,22 +92,10 @@ export function createRepoStore(store) {
                 console.log(e);
                 this.is_loading.value = false;
             });
-        },
-        reload() {
-            this.store.reset();
-            this.load_promise = null;
-            return this.load();
-        },
-        overwrite(obj) {
-            for(let row of this.data.value) {
-                if (row['--id'] == obj['--id']) {
-                    for(let x in obj) {
-                        row[x] = obj[x];
-                    }
-                } 
-            }
-        } 
+        }
     }
+
+    return obj;
 }
 
 
