@@ -1,24 +1,15 @@
+export class Client {
 
-let custom_headers  = {};
-let main_url;
-
-export default {
-
-    initSettings(settings) {
-        main_url = settings.url;
-        if (settings.custom_headers) {
-            for(let name in settings.custom_headers) {
-                custom_headers[name] = settings.custom_headers[name];
+    constructor(url, headers = null) {
+        this._main_url = url;
+        this._custom_headers = {};
+        if (headers) {
+            for(let name in headers) {
+                this._custom_headers[name] = headers[name];
             }
         }
-    },
+    }
 
-    getSettings() {
-        return { 
-            url : main_url,
-            custom_headers
-        }
-    },
 
     createClientException(type, detail, response) {
         return { 
@@ -28,12 +19,12 @@ export default {
             "status" : response.status,
             response 
         };
-    },
+    }
 
     createHeaders(dynamic_headers = null) {
         const headers = new Headers();
-        for(let i in custom_headers) {
-            headers.set(i, custom_headers[i]);
+        for(let i in this._custom_headers) {
+            headers.set(i, this._custom_headers[i]);
         }
 
         if (dynamic_headers) {
@@ -42,7 +33,7 @@ export default {
             }
         }
         return headers;
-    },
+    }
 
     createParams(data) {
         const params = new URLSearchParams();
@@ -52,7 +43,7 @@ export default {
             } else params.append(i, data[i]);
         }
         return params;
-    },
+    }
 
     createOptions(method, headers, body = null) {
         return {
@@ -63,15 +54,15 @@ export default {
             headers  : headers,
             body : body
         }
-    },
+    }
 
     switchTokens() {
         const options = this.createOptions("PUT", this.createHeaders({"x-force-auth-cookies" : 1}));
-        return fetch(main_url + "/user/switch-tokens", options)
-    },
+        return fetch(this._main_url + "/user/switch-tokens", options)
+    }
 
     call(url, options) {
-        return fetch(main_url + url, options)
+        return fetch(this._main_url + url, options)
         .then(response => {
             if (response.ok) {
                 return response.json();
@@ -79,7 +70,7 @@ export default {
                 throw this.createClientException("error", "apierror", response);
             }
         });
-    },
+    }
 
     get(url, data) {
         if (data) {
@@ -92,11 +83,11 @@ export default {
             'GET', 
             this.createHeaders())
         );
-    },
+    }
 
     getprimary(url, data) {
         return this.get(url, data);
-    },
+    }
 
     save(url, method, data, dynamic_headers = null) {
         const headers = this.createHeaders(dynamic_headers);
@@ -107,7 +98,7 @@ export default {
         const options = this.createOptions(method, headers, body);
         //call our fetch response and return
         return this.call(url, options);
-    },
+    }
 
     post(url, data, headers = null) {
         if (!(data instanceof FormData)) {
@@ -117,7 +108,7 @@ export default {
         }
         
         return this.save(url, "POST", data, headers);
-    },
+    }
 
     put(url, data, headers = null) {
         if (data instanceof FormData) {
@@ -127,18 +118,18 @@ export default {
         if (!headers) headers = {};
         headers["Content-Type"] = "application/json";
         return this.save(url, 'PUT', data, headers);
-    },
+    }
 
     delete(url, data) {
         const headers = {"Content-Type" : "application/json"};
         return this.save(url, 'DELETE', JSON.stringify(data), headers);
-    },
+    }
 
     getAsset(url) {
 
         const options = this.createOptions("GET", { mode : 'no-cors'});
     
-        return fetch(main_url + url, options)
+        return fetch(this._main_url + url, options)
         .then(response => {
             if (response.ok) {
                 return response.blob();
@@ -148,4 +139,25 @@ export default {
         });
     }
     
+}
+
+let client;
+
+export function createClient(app, settings) {
+
+    if (!settings) {
+        throw "Must set client settings";
+    }
+
+    if (!settings.url) {
+        throw("No URL defined for client");
+    }
+
+    client = new Client(settings.url, settings.custom_headers);
+    app.provide("client", client);
+    return client;
+}
+
+export function getClient() {
+    return client;
 }

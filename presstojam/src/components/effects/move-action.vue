@@ -5,12 +5,13 @@
     <Button :label="$t('btns.save')" @click="submit" />
 </template>
 <script setup>
-    import { provide, computed } from "vue"
+    import { provide, inject } from "vue"
     import Button from "primevue/Button"
     import { createBind } from "./../../js/binds.js"
     import PtjIdEdit from "./../fields/ptj-id-edit.vue"
     import {getStore } from "./../../js/reactivestores.js"
-    import client from "./../../js/client.js"
+    
+    const client = inject("client");
 
     const props = defineProps({
         name : {

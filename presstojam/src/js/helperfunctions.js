@@ -1,5 +1,7 @@
 import { defineAsyncComponent } from "vue"
-import client from "./client.js"
+import { getClient } from "./client.js"
+
+const client = getClient();
 
 
 export function toTree(arr, schema, parent_id = 0) {

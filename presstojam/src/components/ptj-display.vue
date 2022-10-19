@@ -1,7 +1,7 @@
 <template>
     <Panel :header="$t('models.' + store.model + '.title')">
         <template #icons>
-            <ptj-show-audit v-if="store.route.audit" :id="repo.data['--id']" :store="store" />
+            <ptj-show-audit v-if="store.route.audit" :repo="repo" />
             <ptj-delete-action :name="name" :single="true" />
         </template>
         <ptj-form :schema="store.route.schema" :model="store.model" :data="repo.data.value" method="put" />

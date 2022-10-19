@@ -119,7 +119,6 @@ function onSave() {
 
 function onDel() {
     repo.reload();
-    selected.value = [];
     delrow.value = true;
 }
 

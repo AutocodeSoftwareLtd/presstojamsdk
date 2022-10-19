@@ -12,6 +12,7 @@
 	  </SplitterPanel>
 	  <SplitterPanel :size="80" style="padding:10px">
       <div>
+        <Message severity="success" v-if="newrow">New row created</Message>
         <Message severity="success" v-if="delrow">Rows removed</Message>
         <Toolbar>
                 <template #start>
@@ -69,6 +70,7 @@ const has_primary = (store.route.children.length > 1) ? true : false;
 const expanded = ref(false);
 //const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
 const delrow = ref(false);
+const newrow = ref(false);
 const childRepo = createRepoStore(store);
 regStore(props.name + "_selected", childRepo);
 childRepo.parent_id = repo.parent_id;
@@ -125,10 +127,9 @@ const expandNode = (node) => {
 };
 
 function onDel() {
-    store.reload()
-    .then(response => {
-      data_rows.value = response;
-      childRows.value = data_rows.value.filter(obj => obj['--recursive'] == repo.active.value['--id']);
+    repo.reload()
+    .then(() => {
+      childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
     });
     delrow.value = true;
 }
@@ -139,13 +140,7 @@ const label = computed(() => {
 
 const onNodeSelect = (node) => {
    repo.active.value = node.data;
-   console.log(repo.active.value);
    childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == node.key);
-   /*  toast.add({
-      severity:'success', 
-      summary: 'Node Unselected', 
-      detail: node.label, 
-      life: 3000});*/
 };
 
 const onNodeClear = (node) => {
@@ -156,7 +151,11 @@ const onNodeClear = (node) => {
 
 
 function reload() {
-  emits("onMove");
+  repo.reload()
+  .then(() => {
+    childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
+  });
+  newrow.value = true;
 }
 
 </script>

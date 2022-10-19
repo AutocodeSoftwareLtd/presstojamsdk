@@ -1,5 +1,7 @@
 import { Field } from "./field.js"
-import Client from "./../client.js"
+import { getClient } from "./../client.js"
+
+const Client = getClient();
 
 export class Aggregate extends Field {
 

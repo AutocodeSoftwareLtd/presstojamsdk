@@ -1,5 +1,4 @@
 import { Field } from "./field.js"
-import Client from "./../client.js"
 import { sortByDictionary, toReferenceTree } from "./../helperfunctions.js"
 
 export const ReferenceTypes = {
@@ -31,10 +30,10 @@ export class ID extends Field {
     }
 
 
-    getOptions(model, id) {
+    getOptions(client, model, id) {
         if (!this._load_promise || id != this._cache_id) {
             this._cache_id = id;
-            this._load_promise = Client.get("/reference/" + model + "/" + this._name + "/" + id)
+            this._load_promise = client.get("/reference/" + model + "/" + this._name + "/" + id)
             .then(response => {
                 response.sort(sortByDictionary);
                 return response;
@@ -45,10 +44,10 @@ export class ID extends Field {
 
 
     
-    getRecursiveOptions(model, id, schema) {
+    getRecursiveOptions(client, model, id, schema) {
         if (!this._load_promise) {
             this._cache_id = id;
-            this._load_promise = Client.get("/reference/" + model + "/" + this._name + "/" + id)
+            this._load_promise = client.get("/reference/" + model + "/" + this._name + "/" + id)
             .then(response => {
                 return toReferenceTree(response, schema)
             });

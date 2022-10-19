@@ -1,5 +1,5 @@
 import { Field } from "./field.js"
-import Client from "./../client.js"
+
 
 export class Asset extends Field {
 

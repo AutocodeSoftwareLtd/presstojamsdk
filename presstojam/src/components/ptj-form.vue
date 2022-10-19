@@ -21,17 +21,19 @@
 
 <script setup>
 
-import { provide, ref, computed } from "vue" 
+import { provide, ref, computed, inject } from "vue" 
 import PtjEditField from "./ptj-edit-field.vue"
 import Button from 'primevue/Button'
 import PtjError from "./ptj-error.vue"
 import { getMutableCells, getImmutableCells } from "./../js/helperfunctions.js"
 import Message from 'primevue/message';
-import Client from "./../js/client.js"
 import PtjParentSelect from "./fields/ptj-parent-select.vue"
 import { createBind, createBindGroup } from "./../js/binds.js"
 import PtjDispatch from "./ptj-dispatch-response.vue"
 import Dialog from 'primevue/dialog'
+
+
+const Client = inject("client");
 
 const props = defineProps({
     schema : Object,

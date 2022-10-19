@@ -15,13 +15,14 @@
 
 </template>
 <script setup>
-    import { ref, computed } from "vue"
+    import { ref, computed, inject } from "vue"
     import Dialog from 'primevue/dialog'
     import Button from "primevue/Button"
     import { getStore } from "./../../js/reactivestores.js"
-    import client from "./../../js/client.js"
     import InputText from 'primevue/inputtext';
     import { getLabel } from "./../../js/helperfunctions.js"
+
+    const client = inject("client");
 
     const props = defineProps({
         name : String,

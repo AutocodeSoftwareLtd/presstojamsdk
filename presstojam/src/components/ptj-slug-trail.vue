@@ -12,9 +12,11 @@ import Breadcrumb from 'primevue/breadcrumb';
 import { getRouteStructure} from "./../js/routes.js"
 import PtjCrumb from "./ptj-crumb.vue"
 import { useI18n } from 'vue-i18n';
-import Client from "./../js/client.js"
 import { rowToTree } from "./../js/helperfunctions.js"
 import { getStore } from "./../js/reactivestores.js"
+import { inject } from "vue"
+
+const Client = inject("client");
 
 
 const { t } = useI18n();

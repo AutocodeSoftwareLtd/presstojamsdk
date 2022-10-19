@@ -4,7 +4,7 @@ import 'primeicons/primeicons.css';
 import 'primevue/resources/primevue.min.css'
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
-import { logout } from "./js/controller.js";
+import Schema from "./schema.vue";
 
 const url = "https://api.presstojam.com";
 //const url = "https://api.genercode.com";
@@ -148,7 +148,10 @@ let settings = {
             {"model" : "projects", "method" : "post"},
             {"model" : "profiles", "method" : "crud"}
         ]
-    }]
+    }],
+    "routes" : [
+        { "path" : "/schema", component : Schema, name :"name"}
+    ]
 };
 
 

@@ -4,14 +4,12 @@
 
 
 <script setup>
-import { inject, ref, onMounted, computed } from "vue"
+import { inject, ref,  } from "vue"
 
 import TreeSelect from 'primevue/treeselect';
 import { createTemporaryStore } from "./../../js/datastore.js"
-import { toTree } from "./../../js/helperfunctions.js"
 import { getRouteStructure } from "./../../js/routes.js"
-import PtjReferenceCreate from "./../actions/ptj-reference-create.vue"
-import CascadeSelect from 'primevue/cascadeselect';
+
 
 const props = defineProps({
     modelValue : [Number, String, Boolean],
@@ -19,6 +17,8 @@ const props = defineProps({
     common_parent : String,
     common_id : Number
 });
+
+const client = inject("client");
 
 const emits = defineEmits([
     "update:modelValue"
@@ -28,7 +28,7 @@ const struc = getRouteStructure(props.model);
 
 const models = [];
 
-const store = createTemporaryStore(props.model);
+const store = createTemporaryStore(client, props.model);
 const params = { to : props.common_parent };
 params[props.common_parent + "/--id"] = props.common_id; 
 store.setParams({ to : props.common_parent });

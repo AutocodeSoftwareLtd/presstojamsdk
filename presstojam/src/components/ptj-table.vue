@@ -38,7 +38,7 @@
         </template>
     </DataTable>
     <Dialog v-if="store.route.audit" v-model:visible="show_audit" header="Audit" :modal="true" class="p-fluid">
-        <audit :repo="repo" />
+        <audit :repo="repo" :id="repo.active.value['--id']"/>
     </Dialog>
     <Dialog v-if="store.route.perms.includes('put')" v-model:visible="show_edit" :header="'Edit ' + $t('models.' + store.model + '.title', 1)" :modal="true" class="p-fluid">
         <ptj-form :schema="store.route.schema" :data="repo.active.value" :model="store.model" @saved="hideEdit()" @dataChanged="updated" method="put"/>
@@ -51,7 +51,7 @@
 import DataTable from "primevue/DataTable"
 import Column from 'primevue/column';
 import PtjViewField from "./ptj-view-field.vue"
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, inject } from "vue"
 import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
 import {  createDataStore } from "./../js/datastore.js"
 import PtjTableDisplay from "./ptj-table-display.vue"
@@ -78,6 +78,8 @@ const emits = defineEmits([
     "reorder",
     "edit"
 ]);
+
+const client = inject("client");
 
 const repo = getStore(props.name);
 const store = repo.store;
@@ -153,7 +155,7 @@ function showAudit(data) {
 let childstore = null;
 let childrepo = null;
 if (has_expandable) {
-    childstore = createDataStore(store.route.children[0]);
+    childstore = createDataStore(client, store.route.children[0]);
 }
 
 

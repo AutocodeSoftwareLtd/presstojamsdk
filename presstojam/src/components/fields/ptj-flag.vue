@@ -4,7 +4,9 @@
 </template>
 
 <script setup>
-import client from "./../../js/client.js"
+import { inject } from "vue"
+
+const client = inject("client");
 
 const props = defineProps({
     value : [Number, Boolean],

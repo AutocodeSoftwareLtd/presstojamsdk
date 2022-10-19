@@ -1,11 +1,9 @@
-import Client from "./client.js"
 import { createView } from "./routes.js"
-
-
 
 class DataStore {
 
-    constructor(model) {
+    constructor(client, model) {
+        this._client = client;
         this._model = model;
         this._count_promise = null;
         this._load_promise = null;
@@ -20,7 +18,7 @@ class DataStore {
         const keys = Object.keys(this);
        
         keys.forEach(property => {
-            if (property == "_parent_id" || property == "_active_id" || property == "_limit" || property == "_page_offset") {
+            if (property == "_parent_id" || property == "_active_id" || property == "_limit" || property == "_page_offset" || property == "_filters") {
                 Object.defineProperty(this, property.substring(1), {
                     get: function() { 
                         return this[property];
@@ -45,7 +43,7 @@ class DataStore {
             if (!this._limit) {
                 this._count_promise = Promise.resolve(true);
             } else {
-                this._count_promise = Client.get("/count/" + this._model, this.buildParams())
+                this._count_promise = this._client.get("/count/" + this._model, this.buildParams())
                 .then(response => {
                     return parseInt(response.count);
                 });
@@ -58,7 +56,7 @@ class DataStore {
         if (!this._load_promise) {
             let url = "/data/" + this._model;
             if (this._active_id) url += "/active";
-            this._load_promise = Client.get(url, this.buildParams())
+            this._load_promise = this._client.get(url, this.buildParams())
         }
         return this.load_promise;
     }
@@ -131,15 +129,15 @@ class DataStore {
 
 
 
-export function createDataStore(model_name) {
+export function createDataStore(client, model_name) {
 
-    const model = new DataStore(model_name);
+    const model = new DataStore(client, model_name);
     cache[model_name] = model;
     return cache[model_name];
 }
 
-export function createTemporaryStore(model) {
-    return new DataStore(model);
+export function createTemporaryStore(client, model) {
+    return new DataStore(client, model);
 }
 
 

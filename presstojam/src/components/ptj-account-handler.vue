@@ -71,12 +71,13 @@
 
 <script setup>
 import InputText from 'primevue/inputtext';
-import { login, forgotPassword, createUser } from "./../js/user.js"
-import { reactive } from 'vue'
+import { reactive, inject } from 'vue'
 import Card from 'primevue/card';
 import Button from 'primevue/Button'
 
 
+const Client = inject("client");
+const expected_user = inject("profile");
 
 const props = defineProps({
     actions : [],
@@ -96,6 +97,33 @@ const store = reactive({
 function toggleState(state) {
     store.state = state;
 }
+
+
+function login(username, password) {
+    const formData = new FormData();
+    formData.append("email", username);
+    formData.append("password", password);
+    return Client.post("/user/login/" + expected_user, formData)
+}
+
+
+
+function forgotPassword(username) {
+    const formData = new FormData();
+    formData.append("email", username);
+    return Client.post("/user/login/" + expected_user + "/forgotpassword", formData );
+}
+
+
+function createUser(name, username, password) {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", username);
+    formData.append("password", password);
+    return Client.post("/user/login/" + expected_user, formData)
+}
+
+
 
 
 function submit() {

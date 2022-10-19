@@ -6,8 +6,10 @@
 </template>
 <script setup>
 import { ref, } from "vue"
-import client from "./../js/client.js"
-import ProgressSpinner from 'primevue/progressspinner';
+import ProgressSpinner from 'primevue/progressspinner'
+import { inject } from "vue"
+
+const client = inject("client");
 
 
 const props = defineProps({

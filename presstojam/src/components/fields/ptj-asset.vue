@@ -1,10 +1,12 @@
 <template>
-   <span>{{ value }}   <a @click="download()"><span class="material-icons">download</span></a></span>
+   <span>{{ value }}   <a @click="download()"><i class="pi pi-download"></i></a></span>
    
 </template>
 
 <script setup>
-import client from "./../../js/client.js"
+import { inject } from "vue"
+
+const client = inject("client");
 
 const props = defineProps({
     value : String,

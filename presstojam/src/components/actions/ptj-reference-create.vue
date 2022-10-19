@@ -8,7 +8,7 @@
     import Button from "primevue/Button"
     import PtjForm from "./../ptj-form.vue"
     import Dialog from 'primevue/dialog'
-    import { ref } from "vue"
+    import { ref, inject } from "vue"
     import { ReferenceTypes } from "./../../js/meta/id.js"
     import { createTemporaryStore } from "./../../js/datastore.js"
 
@@ -19,13 +19,15 @@
      });
 
    
+     const client = inject("client");
+
      const emits = defineEmits(['onCreate']);
 
      const dialog = ref(false);
 
     
     
-    const referencestore = createTemporaryStore(props.cell.reference);
+    const referencestore = createTemporaryStore(client, props.cell.reference);
     let parent = false;
     let common_parent = "";
     let common_parent_id = 0;

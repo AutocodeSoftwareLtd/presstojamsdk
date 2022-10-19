@@ -28,6 +28,7 @@ const props = defineProps({
 
 const model = inject("model");
 const store = getStoreById(model);
+const client = inject("client");
 
 
 const options = ref([]);
@@ -38,7 +39,7 @@ const cell = props.bind.cell;
 
 if (cell.isReferenceType()) {
     onMounted(() => {
-        cell.getOptions(model, id)
+        cell.getOptions(client, model, id)
         .then(response => options.value =response)
         .catch(e => console.log(e));
     });  
@@ -54,7 +55,7 @@ if (cell.isReferenceType()) {
 
 } else if (cell.recursive) {
     onMounted(() => {
-       cell.getRecursiveOptions(model, id, store.route.schema)
+       cell.getRecursiveOptions(client, model, id, store.route.schema)
        .then(response => {
         let arr = [...response];
         arr.unshift({key : 0, value : 'Root'});

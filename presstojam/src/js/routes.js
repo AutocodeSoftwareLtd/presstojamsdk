@@ -1,6 +1,8 @@
-import client from "./client.js"
 import { Aggregate } from "./meta/aggregate.js";
 import { createField } from "./meta/fieldfactory.js"
+import { getClient } from "./client.js"
+
+const client = getClient();
 
 
 let settings = {};
@@ -15,33 +17,30 @@ function setFieldSettings(field, settings) {
 
 
 
-export function loadSiteMap() {
-    return client.get("/user/site-map")
-    .then(response => {
-        for(let i in response) {
-            response[i].name = i;
-            const schema = response[i].schema;
-            //set up some shortcuts
-            if (schema['--parent']) {
-                response[i].parent = schema['--parent'].reference;
-            }
-            response[i].children = schema["--id"].reference;
-            response[i].sort = (schema["--sort"]) ? true : false;
-
-            for (let x in schema) {
-                const field = schema[x];
-                if (settings[i] && settings[i][x]) {
-                    setFieldSettings(field, settings[i][x]);
-                }
-
-                response[i].schema[x] = createField(x, field, i);
-            }
-
-            response[i].settings = (settings[i]) ? settings[i] : {};
+export function loadSiteMap(response) {
+    for(let i in response) {
+        response[i].name = i;
+        const schema = response[i].schema;
+        //set up some shortcuts
+        if (schema['--parent']) {
+            response[i].parent = schema['--parent'].reference;
         }
-        routes = response;
-        return routes;
-    });
+        response[i].children = schema["--id"].reference;
+        response[i].sort = (schema["--sort"]) ? true : false;
+
+        for (let x in schema) {
+            const field = schema[x];
+            if (settings[i] && settings[i][x]) {
+                setFieldSettings(field, settings[i][x]);
+            }
+
+            response[i].schema[x] = createField(x, field, i);
+        }
+
+        response[i].settings = (settings[i]) ? settings[i] : {};
+    }
+    routes = response;
+    return routes;
 }
 
 export function getRoute(model) {

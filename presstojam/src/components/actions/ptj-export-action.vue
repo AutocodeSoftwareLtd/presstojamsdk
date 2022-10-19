@@ -6,9 +6,11 @@ import Button from "primevue/Button"
 import { useI18n } from 'vue-i18n';
 import { createTemporaryStore } from "./../../js/datastore.js"
 import { getStore, createRepoStore } from "./../../js/reactivestores.js"
+import { inject } from "vue"
 
 
 const { t } = useI18n();
+const client = inject("client");
 
 const props = defineProps({
     name : String
@@ -67,7 +69,7 @@ function exportCSV() {
 
 	if (repo.pagination.count) {
 		//need to load all data
-		let tstore = createTemporaryStore(store.model);
+		let tstore = createTemporaryStore(client, store.model);
 		tstore.parent_id = store.parent_id;
 		let temp_repo = createRepoStore(tstore);
 		tstore.limit = 0; //reset any limits so no pagination
