@@ -2,18 +2,16 @@ let expected_user = "public";
 let actual_user = "public";
 const user_check = 600000;
 
+
 export function createUser(client, profile = "public") {
 
     expected_user = profile;
-
-    function logout() {
-        return client.post("/user/logout", {'x-force-auth-cookies' : 1})
-    }
-    
+     
+    if (profile == "public") return;
 
     function resetTokens() {
-        if (expected_user == "Public") return Promise.resolve(); //no need to do anything if public user
-            return client.switchTokens()
+        if (expected_user == "public") return Promise.resolve(); //no need to do anything if public user
+        return client.switchTokens()
         .then(() => {
             return client.get("/user/check-user")
         }).then(response => {
@@ -21,7 +19,7 @@ export function createUser(client, profile = "public") {
             setTimeout(resetTokens, user_check);
         }).catch(e => {
             console.log(e)
-            return logout()
+            return client.post("/user/logout")
             .catch(e => {
                 console.log(e);
             }); 
@@ -30,8 +28,6 @@ export function createUser(client, profile = "public") {
     
     return resetTokens();
 }
-
-
 
 
 export function isUserAuthenticated() {

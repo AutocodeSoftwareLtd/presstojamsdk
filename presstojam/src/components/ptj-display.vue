@@ -3,8 +3,9 @@
         <template #icons>
             <ptj-show-audit v-if="store.route.audit" :repo="repo" />
             <ptj-delete-action :name="name" :single="true" />
+            <component v-for="component in store.route.settings.actions" :is="component" :data="repo.data.value" />
         </template>
-        <ptj-form :schema="store.route.schema" :model="store.model" :data="repo.data.value" method="put" />
+        <ptj-form v-if="repo.data.value['--id']" :schema="store.route.schema" :model="store.model" :data="repo.data.value" method="put" />
     </Panel>
 </template>
 <script setup>

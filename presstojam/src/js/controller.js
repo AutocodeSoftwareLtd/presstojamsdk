@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router"
-import { createApp } from 'vue'
+import { createApp, defineAsyncComponent } from 'vue'
 import PrimeVue from 'primevue/config';
 import PtjAccountHandler from "./../components/ptj-account-handler.vue"
 import PtjRoot from "./../components/ptj-root.vue"
@@ -15,6 +15,7 @@ import { createDataStore, clearDataCache } from "./datastore.js"
 import { registerFlow } from "./flows.js"
 import { clearStores } from "./reactivestores.js";
 import { createUser, isUserAuthenticated } from "./user.js"
+import { setSettings } from "./settings.js"
 
 
 
@@ -166,6 +167,8 @@ function initIl8n(app, client) {
 
 export function PtjRun(profile, settings = {}) {
     if (!settings) settings = {};
+
+    setSettings(settings);
     
     if (settings.models) {
         setRouteSettings(settings.models);
@@ -178,7 +181,7 @@ export function PtjRun(profile, settings = {}) {
     let client = createClient(app, settings.client);
     container.client = client;
   
-    return createUser(client, profile)
+    return createUser(client, profile, settings.map.base)
     .then(() => {
         return initIl8n(app, client);
     }).then(() => {
@@ -195,6 +198,11 @@ export function PtjRun(profile, settings = {}) {
         container.mount = function(selector) {
             this.app.mount(selector);
         }
+
+        app.component('ptj-dispatch', defineAsyncComponent(() => {
+            import ('./../components/ptj-dispatch-response.vue');
+        }));
+
         return container;
     })
     .catch(e => {

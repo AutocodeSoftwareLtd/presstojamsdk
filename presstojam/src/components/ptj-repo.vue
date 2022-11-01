@@ -1,4 +1,5 @@
 <template>
+    <ptj-user />
     <ptj-slug-trail :name="model" :base="base" />
     <Panel :header="store.route.title">
 
@@ -13,6 +14,7 @@ import Panel from 'primevue/panel'
 import PtjTableDisplay from "./ptj-table-display.vue"
 import PtjTree from "./ptj-tree.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
+import PtjUser from "./ptj-user.vue"
 import { computed, onMounted } from "vue"
 import { getStoreById } from "./../js/datastore.js"
 import { createRepoStore, regStore } from "./../js/reactivestores.js"

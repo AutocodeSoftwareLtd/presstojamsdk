@@ -108,7 +108,15 @@ export function getSchema(name, schema) {
     return schema;
 }
 
-
+export function getRoutesByProfile(profile) {
+    let croutes = {}
+    for(let route in routes) {
+        if (routes[route].schema['--owner'] && routes[route].schema['--owner'].reference==profile) {
+            croutes[route] = routes[route];
+        }
+    }
+    return croutes;
+}
 
 
 export function createView(model) {

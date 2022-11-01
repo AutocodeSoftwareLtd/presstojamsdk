@@ -1,4 +1,5 @@
 <template>
+    <ptj-user />
     <ptj-slug-trail :name="model" :base="base" />
     <Panel :header="label">
     
@@ -20,6 +21,7 @@ import TabPanel from 'primevue/tabpanel';
 import PtjChildPanel from "./ptj-child-panel.vue"
 import PtjDisplay from "./ptj-display.vue"
 import PtjSlugTrail from "./ptj-slug-trail.vue"
+import PtjUser from "./ptj-user.vue"
 import { getStoreById } from "./../js/datastore.js"
 import Panel from 'primevue/panel';
 import { useI18n } from 'vue-i18n';

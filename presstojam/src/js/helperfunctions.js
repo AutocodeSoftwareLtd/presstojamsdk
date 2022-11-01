@@ -21,7 +21,7 @@ export function toReferenceTree(arr, schema, parent_id = 0) {
     const nodes = [];
     const items = arr.filter(obj => obj['--recursive'] == parent_id);
     for (const item of items) {
-      const obj = { key: item.key, "label":item.value, data : item};
+      const obj = { key: item['--key'], "label":item['--value'], data : item};
       obj.children = toReferenceTree(arr, schema, obj.key);
       nodes.push(obj);
     }

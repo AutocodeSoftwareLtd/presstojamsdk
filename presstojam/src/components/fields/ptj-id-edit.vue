@@ -1,6 +1,6 @@
 <template>
   <div v-if="bind.cell.isReferenceType()" class="p-component">
-    <Dropdown placeholder="Please Select" :field="bind.cell" :options="options" optionValue="key" optionLabel="value" v-model="value"/>
+    <Dropdown placeholder="Please Select" :field="bind.cell" :options="options" optionValue="--key" optionLabel="--value" v-model="value"/>
     <ptj-reference-create :cell="bind.cell" :store="store" @onCreate="onCreate" />
   </div>
   <TreeSelect v-else-if="bind.cell.recursive" v-model="value" :options="options" placeholder="Select Item" />
@@ -16,6 +16,7 @@ import InputNumber from "primevue/InputNumber"
 import TreeSelect from 'primevue/treeselect';
 import { getStoreById } from "./../../js/datastore.js"
 import PtjReferenceCreate from "./../actions/ptj-reference-create.vue"
+import { getStore } from "./../../js/reactivestores.js"
 
 
 const props = defineProps({
@@ -33,7 +34,14 @@ const client = inject("client");
 
 const options = ref([]);
 let value;
-const id = (store.active_id) ? store.active_id : store.parent_id;
+let id = 0;
+
+if (store.active_id) {
+    const repo = getStore(model);
+    id = repo.data.value['--parent'];
+} else {
+    id = store.parent_id;
+}
 
 const cell = props.bind.cell;
 

@@ -668,3 +668,9 @@ button[disabled]{
 .ptj-modal-backdrop-full .ptj-form.get input[type='submit']{
     width : 5vw;
 }
+
+#user-wrapper{
+    position: fixed;
+    right: 10px;
+    z-index: 10;
+}

@@ -105,7 +105,7 @@ let settings = {
   "client" : { "url" : url, "debug" : true },
   "map" : { base : "/admin/"},
   "user" : {
-      "teleport" : "#ptj-accountdetails",
+      "teleport" : "#user",
       "role" : ""
   },
   "models" : {
@@ -155,8 +155,6 @@ let settings = {
 };
 
 
-//settings = { map : { model : "", key : '', state : '', param_str : '', to : '' }}
-document.getElementById("logout").addEventListener("click", logout);
 
 PtjRun("accounts", settings)
 .then(app => {
