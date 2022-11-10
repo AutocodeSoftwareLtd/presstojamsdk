@@ -1,7 +1,7 @@
 <template>
     <div ref="group">
     <DataTable :value="repo.data.value" v-model:selection="repo.selected.value" dataKey="--id" :rowClass="rowClass"
-                responsiveLayout="scroll" :loading="repo.is_loading.value" :rowHover="true" @rowReorder="onRowReorder" 
+                responsiveLayout="stack" :loading="repo.is_loading.value" :rowHover="true" @rowReorder="onRowReorder" 
                 @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" 
                 v-model:expandedRows="expandedRows" :globalFilterFields="global_filter_fields"
                 :filters="filters" v-bind="atts">
@@ -48,20 +48,23 @@
 
 <script setup>
 
-import DataTable from "primevue/DataTable"
 import Column from 'primevue/column';
-import PtjViewField from "./ptj-view-field.vue"
 import { ref, computed, onMounted, inject } from "vue"
-import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
 import {  createDataStore } from "./../js/datastore.js"
-import PtjTableDisplay from "./ptj-table-display.vue"
 import Card from 'primevue/card';
 import { FilterMatchMode } from 'primevue/api';
 import { getStore, createRepoStore, regStore } from "./../js/reactivestores.js"
-import Button from "primevue/Button"
+import Button from "primevue/button"
 import Dialog from 'primevue/dialog'
-import Audit from "./effects/audit.vue"
+
+
 import PtjForm from "./ptj-form.vue"
+import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
+import PtjTableDisplay from "./ptj-table-display.vue"
+import Audit from "./effects/audit.vue"
+import PtjViewField from "./ptj-view-field.vue"
+import DataTable from "primevue/DataTable"
+
 
 
 const props = defineProps({

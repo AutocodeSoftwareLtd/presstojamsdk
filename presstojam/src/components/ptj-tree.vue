@@ -11,7 +11,7 @@
         <Tree :value="nodes" :filter="true" filterMode="lenient" selectionMode="single" :expandedKeys="expandedKeys" @nodeSelect="onNodeSelect" v-model:selectionKeys="selectedKey"/>
 	  </SplitterPanel>
 	  <SplitterPanel :size="80" style="padding:10px">
-      <div>
+      <div class="wrapper">
         <Message severity="success" v-if="newrow">New row created</Message>
         <Message severity="success" v-if="delrow">Rows removed</Message>
         <Toolbar>
@@ -23,19 +23,21 @@
                 </template>
 
                 <template #end>
-                    <ptj-move-action :name="name + '_selected'" @onMove="reload"/>
-                    <ptj-create-action :name="name" @onSave="reload"/> 
-                    <ptj-delete-action :name="name + '_selected'" @onDel="onDel" />
+                    <ptj-move-action :name="name + '_selected'" @onMove="reload" v-if="store.route.perms.includes('put')"/>
+                    <ptj-create-action :name="name" @onSave="reload" v-if="store.route.perms.includes('post')"/> 
+                    <ptj-delete-action :name="name + '_selected'" @onDel="onDel" v-if="store.route.perms.includes('delete')"/>
                 </template>
-              </Toolbar>
-          <ptj-table :name="name + '_selected'" :fields="fields" @reorder="reorderRows" />
-       </div>
+          </Toolbar>
+          <div style="overflow-x:scroll;">
+            <ptj-table :name="name + '_selected'" :fields="fields" @reorder="reorderRows" />
+          </div>
+        </div>
     </SplitterPanel>
   </Splitter>
 </template>
 
 <script setup>
-import Button from "primevue/Button"
+import Button from "primevue/button"
 import Tree from 'primevue/tree'
 import { computed, ref } from "vue"
 import Splitter from 'primevue/splitter'
@@ -44,12 +46,14 @@ import PtjTable from "./ptj-table.vue"
 import Toolbar from 'primevue/Toolbar'
 import { toTree, getForegroundCells, getLabel, saveOrder } from "./../js/helperfunctions.js" 
 import PtjPrimaryAction from "./actions/ptj-primary-action.vue"
-import PtjCreateAction from "./actions/ptj-create-action.vue"
-import PtjEditAction from "./actions/ptj-edit-action.vue"
-import PtjDeleteAction from "./actions/ptj-delete-action.vue"
-import PtjMoveAction from "./actions/ptj-move-action.vue"
 import Message from 'primevue/message';
 import { createRepoStore, getStore, regStore } from "./../js/reactivestores.js"
+
+import PtjMoveAction from "./actions/ptj-move-action.vue"
+import PtjCreateAction from "./actions/ptj-create-action.vue"
+import PtjDeleteAction from "./actions/ptj-delete-action.vue"
+import PtjEditAction from "./actions/ptj-edit-action.vue"
+
 
 
 
@@ -159,3 +163,13 @@ function reload() {
 }
 
 </script>
+<style scoped>
+
+.wrapper {
+  display : grid;
+  margin-left : 0;
+  margin-right : 0;
+  box-sizing : content-box;
+}
+
+</style>

@@ -1,12 +1,13 @@
 <template>
-   <router-view v-slot="{ Component, route }">
+    <router-view v-slot="{ Component, route }">
       <transition name="fade" mode="out-in">
-         <div :key="route.path">
-            <component :is="Component" />
-         </div>
+         <component :is="Component" v-bind:atts="route.params" :key="route.model + route.id" />
       </transition>
    </router-view>
 </template>
+<script setup>
+
+</script>
 <style>
    .fade-enter-active, .fade-leave-active {
   transition-property: opacity;

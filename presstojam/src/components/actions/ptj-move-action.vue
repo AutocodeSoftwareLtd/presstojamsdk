@@ -12,7 +12,7 @@
 <script setup>
     import { ref } from "vue"
     import Dialog from 'primevue/dialog'
-    import Button from "primevue/Button"
+    import Button from "primevue/button"
     import MoveAction from "./../effects/move-action.vue"
     import { getStore } from "./../../js/reactivestores.js"
     import { getLabel } from "./../../js/helperfunctions.js"

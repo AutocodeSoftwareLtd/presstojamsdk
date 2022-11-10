@@ -2,12 +2,10 @@
    <ptj-table :nosort="true" name="audit_repo" :fields="fields" />
 </template>
 <script setup>
-import { onMounted, ref, inject } from "vue"
+import { onMounted, inject } from "vue"
 import { createDataStore } from "./../../js/datastore.js"
 import { createRepoStore, regStore } from "./../../js/reactivestores.js"
 import PtjTable from "./../ptj-table.vue"
-
-
 
 const props = defineProps({
     repo : {

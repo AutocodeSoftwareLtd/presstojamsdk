@@ -6,30 +6,29 @@
     </Breadcrumb>
 </template>
 <script setup>
-import { ref, computed } from "vue";
-
-import Breadcrumb from 'primevue/breadcrumb';
+import { ref, computed, inject } from "vue";
 import { getRouteStructure} from "./../js/routes.js"
-import PtjCrumb from "./ptj-crumb.vue"
-import { useI18n } from 'vue-i18n';
 import { rowToTree } from "./../js/helperfunctions.js"
 import { getStore } from "./../js/reactivestores.js"
-import { inject } from "vue"
+import configs from "./../js/configs.js"
+
+import Breadcrumb from "primevue/breadcrumb"
+import PtjCrumb from "./ptj-crumb.vue"
+
 
 const Client = inject("client");
+const i18n = inject("i18n");
 
-
-const { t } = useI18n();
+const t = i18n.t;
 
 
 const props = defineProps({
-    name : String,
-    base : String
+    name : String
 });
 
 const repo = getStore(props.name);
 const store = repo.store;
-const home = {icon: 'pi pi-home', to: props.base};
+const home = {icon: 'pi pi-home', to: configs.get("base")};
 
 const routes = ref(getRouteStructure(store.model));
 

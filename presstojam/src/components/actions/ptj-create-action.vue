@@ -6,16 +6,15 @@
 
 </template>
 <script setup>
-    import { ref, } from "vue"
-    import PtjForm from "./../ptj-form.vue"
+    import { ref, inject } from "vue"
     import Dialog from 'primevue/dialog'
-    import Button from "primevue/Button"
-    import { useI18n } from 'vue-i18n'
+    import Button from "primevue/button"
     import { getStore } from "./../../js/reactivestores.js"
+    import PtjForm from "./../ptj-form.vue"
   
-
-    const {t} = useI18n({});
-
+    const i18n = inject("i18n");
+    const t = i18n.t;
+   
     const props = defineProps({
        name : String,
        parentlabel : String

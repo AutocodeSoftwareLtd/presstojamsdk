@@ -1,10 +1,12 @@
-import { PtjRun } from "./js/controller.js"
+import PtjController from "./components/ptj-controller.vue"
 
 import 'primeicons/primeicons.css';
 import 'primevue/resources/primevue.min.css'
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import Schema from "./schema.vue";
+import { createApp } from 'vue'
+import container from "./js/container-plugin.js";
 
 const url = "https://api.presstojam.com";
 //const url = "https://api.genercode.com";
@@ -102,8 +104,9 @@ let settings = {
 
 
 let settings = { 
-  "client" : { "url" : url, "debug" : true },
-  "map" : { base : "/admin/"},
+  "profile" : "accounts",
+  "url" : url,
+  "base" : "/admin",
   "user" : {
       "teleport" : "#user",
       "role" : ""
@@ -154,12 +157,9 @@ let settings = {
     ]
 };
 
-
-
-PtjRun("accounts", settings)
-.then(app => {
-  app.mount("#app");
-});
+const app = createApp(PtjController);
+app.use(container, settings);
+app.mount("#app");
 
 /*
 const queryString = window.location.search;

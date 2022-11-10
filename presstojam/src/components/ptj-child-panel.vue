@@ -8,11 +8,9 @@
 import Panel from 'primevue/panel';
 import { getStoreById } from "./../js/datastore.js"
 import { computed } from "vue"
-
+import { createRepoStore, regStore } from "./../js/reactivestores.js"
 import PtjTableDisplay from "./ptj-table-display.vue"
 import PtjTree from "./ptj-tree.vue"
-import { createRepoStore, regStore } from "./../js/reactivestores.js"
-
 
 const props = defineProps({
     model : String

@@ -7,9 +7,9 @@
 </template>
 <script setup>
     import { ref } from "vue"
-    import PtjForm from "./../ptj-form.vue"
     import Dialog from 'primevue/dialog'
-    import Button from "primevue/Button"
+    import Button from "primevue/button"
+    import PtjForm from "./../ptj-form.vue"
 
     const props = defineProps({
         store : Object,

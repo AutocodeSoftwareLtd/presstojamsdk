@@ -9,7 +9,7 @@
 
 <script setup>
 
-import InputNumber from "primevue/InputNumber"
+import InputNumber from "primevue/inputnumber"
 import { computed } from "vue"
 
 const props = defineProps({

@@ -2,7 +2,7 @@
     <Button label="Export" icon="pi pi-external-link" class="p-button-help mr-2"  @click="exportCSV" />
 </template>
 <script setup>
-import Button from "primevue/Button"
+import Button from "primevue/button"
 import { useI18n } from 'vue-i18n';
 import { createTemporaryStore } from "./../../js/datastore.js"
 import { getStore, createRepoStore } from "./../../js/reactivestores.js"

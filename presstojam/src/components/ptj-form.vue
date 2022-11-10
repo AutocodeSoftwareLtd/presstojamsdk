@@ -23,7 +23,7 @@
 
 import { provide, ref, computed, inject } from "vue" 
 import PtjEditField from "./ptj-edit-field.vue"
-import Button from 'primevue/Button'
+import Button from 'primevue/button'
 import PtjError from "./ptj-error.vue"
 import { getMutableCells, getImmutableCells } from "./../js/helperfunctions.js"
 import Message from 'primevue/message';

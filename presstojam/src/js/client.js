@@ -1,3 +1,5 @@
+import configs from "./configs.js"
+
 export class Client {
 
     constructor(url, headers = null) {
@@ -143,18 +145,9 @@ export class Client {
 
 let client;
 
-export function createClient(app, settings) {
+export function createClient() {
 
-    if (!settings) {
-        throw "Must set client settings";
-    }
-
-    if (!settings.url) {
-        throw("No URL defined for client");
-    }
-
-    client = new Client(settings.url, settings.custom_headers);
-    app.provide("client", client);
+    client = new Client(configs.get("url"), configs.get("client.custom_headers", {}));
     return client;
 }
 

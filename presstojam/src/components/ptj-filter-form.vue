@@ -18,7 +18,7 @@
 
 import PtjFilter from "./ptj-filter.vue"
 import { computed, provide } from "vue"
-import Button from 'primevue/Button'
+import Button from 'primevue/button'
 import Fieldset from 'primevue/fieldset';
 
 const props = defineProps({

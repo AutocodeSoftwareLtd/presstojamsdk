@@ -9,7 +9,7 @@
     </Dialog>
 </template>
 <script setup>
-import Button from "primevue/Button"
+import Button from "primevue/button"
 import { ref } from "vue"
 import Dialog from 'primevue/dialog'
 import Audit from "./../effects/audit.vue"

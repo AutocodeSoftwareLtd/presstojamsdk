@@ -12,7 +12,7 @@
     </router-link>
 </template>
 <script setup>
-    import Button from "primevue/Button"
+    import Button from "primevue/button"
 
     const props = defineProps({
         model : String,

@@ -12,11 +12,11 @@
 <script setup>
 import { inject, ref, onMounted, computed } from "vue"
 import Dropdown from 'primevue/dropdown';
-import InputNumber from "primevue/InputNumber"
+import InputNumber from "primevue/inputnumber"
 import TreeSelect from 'primevue/treeselect';
 import { getStoreById } from "./../../js/datastore.js"
-import PtjReferenceCreate from "./../actions/ptj-reference-create.vue"
 import { getStore } from "./../../js/reactivestores.js"
+import PtjReferenceCreate from "./../actions/ptj-reference-create.vue"
 
 
 const props = defineProps({

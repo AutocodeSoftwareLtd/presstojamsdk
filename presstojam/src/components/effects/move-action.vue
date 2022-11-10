@@ -6,7 +6,7 @@
 </template>
 <script setup>
     import { provide, inject } from "vue"
-    import Button from "primevue/Button"
+    import Button from "primevue/button"
     import { createBind } from "./../../js/binds.js"
     import PtjIdEdit from "./../fields/ptj-id-edit.vue"
     import {getStore } from "./../../js/reactivestores.js"

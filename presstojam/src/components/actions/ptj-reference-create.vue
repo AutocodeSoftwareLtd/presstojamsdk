@@ -5,12 +5,12 @@
     </Dialog>
  </template>
  <script setup>
-    import Button from "primevue/Button"
-    import PtjForm from "./../ptj-form.vue"
+    import Button from "primevue/button"
     import Dialog from 'primevue/dialog'
     import { ref, inject } from "vue"
     import { ReferenceTypes } from "./../../js/meta/id.js"
     import { createTemporaryStore } from "./../../js/datastore.js"
+    import PtjForm from "./../ptj-form.vue"
 
  
      const props = defineProps({

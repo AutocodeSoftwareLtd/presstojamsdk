@@ -25,11 +25,11 @@
    
    <script setup>
    
-   import { inject, ref, computed, reactive } from "vue" 
-   import PtjFilterField from "./ptj-filter-field.vue"
-   import Button from 'primevue/Button';
-   import OverlayPanel from 'primevue/overlaypanel';
+   import { inject, ref, computed, reactive} from "vue" 
+   import Button from 'primevue/button'
+   import OverlayPanel from 'primevue/overlaypanel'
    import { getStoreById } from "./../js/datastore.js"
+   import PtjFilterField from "./ptj-filter-field.vue"
    
    const props = defineProps({
     field : {

@@ -20,7 +20,7 @@
         </span>
         </div>
         <div class="row">
-            <Button :label="$t('btns.login')" @click="submit" />
+            <Button :label="t('btns.login')" @click="submit" />
         </div>
     </form>
     <form v-show="store.state=='create'" class="ptj-register">
@@ -44,7 +44,7 @@
         </span>
         </div>
         <div class="row">
-            <Button :label="$t('btns.create')" @click="submit" />
+            <Button :label="t('btns.create')" @click="submit" />
         </div>
     </form>
     <form v-show="store.state=='forgotpassword'" class="ptj-register">
@@ -56,7 +56,7 @@
         </span>
         </div>
         <div class="row">
-            <Button :label="$t('btns.forgot')" @click="submit" />
+            <Button :label="t('btns.forgot')" @click="submit" />
         </div>
     </form>
     <div class="row">
@@ -73,15 +73,18 @@
 import InputText from 'primevue/inputtext';
 import { reactive, inject } from 'vue'
 import Card from 'primevue/card';
-import Button from 'primevue/Button'
+import Button from 'primevue/button'
+import configs from "./../js/configs.js"
 
 
 const Client = inject("client");
-const expected_user = inject("profile");
+const expected_user = configs.get("profile");
+const i18n = inject("i18n");
+const t = i18n.t;
+const base = configs.get("base");
 
 const props = defineProps({
-    actions : [],
-    base : String
+    actions : []
 });
 
 
@@ -132,7 +135,7 @@ function submit() {
     if (store.state == "login") {
         login(store.email, store.password)
         .then(() => {
-            location.href = props.base;
+            location.href = base;
         })
         .catch(e => {
             store.globalerror = "Incorrect username / password";

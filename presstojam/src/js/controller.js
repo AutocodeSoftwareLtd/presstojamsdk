@@ -15,7 +15,7 @@ import { createDataStore, clearDataCache } from "./datastore.js"
 import { registerFlow } from "./flows.js"
 import { clearStores } from "./reactivestores.js";
 import { createUser, isUserAuthenticated } from "./user.js"
-import { setSettings } from "./settings.js"
+import { setSettings } from "./configs.js"
 
 
 

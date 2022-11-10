@@ -35,13 +35,14 @@ import PtjPagination from "./ptj-pagination.vue";
 import MultiSelect from 'primevue/multiselect';
 import Toolbar from 'primevue/Toolbar';
 import PtjTable from "./ptj-table.vue"
-import PtjCreateAction from "./actions/ptj-create-action.vue"
-import PtjDeleteAction from "./actions/ptj-delete-action.vue"
 import Message from 'primevue/message';
 import  {saveOrder } from "./../js/helperfunctions.js" 
 import InputText from 'primevue/inputtext'
-import PtjExportAction from './actions/ptj-export-action.vue'
 import { getStore } from "./../js/reactivestores.js"
+import PtjExportAction from './actions/ptj-export-action.vue'
+import PtjCreateAction from './actions/ptj-create-action.vue'
+import PtjDeleteAction from './actions/ptj-delete-action.vue'
+
 
 
 

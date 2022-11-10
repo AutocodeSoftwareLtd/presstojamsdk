@@ -9,12 +9,11 @@
     </Panel>
 </template>
 <script setup>
-import PtjForm from "./ptj-form.vue"
 import Panel from 'primevue/panel'
+import { getStore } from "./../js/reactivestores.js"
+import PtjForm from "./ptj-form.vue"
 import PtjDeleteAction from "./actions/ptj-delete-action.vue"
 import PtjShowAudit from "./actions/ptj-show-audit.vue"
-import { getStore } from "./../js/reactivestores.js"
-
 
 
 const props = defineProps({

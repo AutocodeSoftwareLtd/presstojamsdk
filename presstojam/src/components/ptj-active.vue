@@ -1,6 +1,5 @@
 <template>
-    <ptj-user />
-    <ptj-slug-trail :name="model" :base="base" />
+    <ptj-slug-trail :name="model" />
     <Panel :header="label">
     
    <TabView>
@@ -15,19 +14,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from "vue"
-import TabView from 'primevue/tabview';
-import TabPanel from 'primevue/tabpanel';
-import PtjChildPanel from "./ptj-child-panel.vue"
-import PtjDisplay from "./ptj-display.vue"
-import PtjSlugTrail from "./ptj-slug-trail.vue"
-import PtjUser from "./ptj-user.vue"
+import { computed, onMounted, inject } from "vue"
 import { getStoreById } from "./../js/datastore.js"
-import Panel from 'primevue/panel';
-import { useI18n } from 'vue-i18n';
-
 import { createActiveStore, regStore } from "./../js/reactivestores.js"
-const { t } = useI18n();
+import PtjDisplay from "./ptj-display.vue"
+import PtjChildPanel from  "./ptj-child-panel.vue"
+import PtjSlugTrail from "./ptj-slug-trail.vue"
+import TabView from "primevue/tabview"
+import TabPanel from "primevue/tabpanel"
+import Panel from "primevue/panel"
+
+const i18n = inject("i18n");
+const t = i18n.t;
+
+
 
 /*
 <TabPanel v-for="child in store.route.children" :header="child">

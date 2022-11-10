@@ -17,7 +17,7 @@
 <script setup>
     import { ref, computed, inject } from "vue"
     import Dialog from 'primevue/dialog'
-    import Button from "primevue/Button"
+    import Button from "primevue/button"
     import { getStore } from "./../../js/reactivestores.js"
     import InputText from 'primevue/inputtext';
     import { getLabel } from "./../../js/helperfunctions.js"
