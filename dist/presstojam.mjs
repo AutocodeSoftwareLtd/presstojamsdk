@@ -1,4 +1,4 @@
-/*! DS Library v3.2.5 */
+/*! DS Library v3.2.8 */
 
 import { shallowRef, unref, computed, reactive, nextTick, defineComponent, inject, h, provide, ref, watch, getCurrentInstance, watchEffect, effectScope, onMounted, onUnmounted, onBeforeMount, Fragment, isRef, createVNode, Text, renderSlot, openBlock, createBlock, Teleport, createCommentVNode, resolveComponent, resolveDirective, createElementBlock, normalizeClass, normalizeStyle, withCtx, withDirectives, createElementVNode, toDisplayString as toDisplayString$1, resolveDynamicComponent, Transition, mergeProps, renderList, createTextVNode, vShow, withAsyncContext, Suspense, vModelText, toHandlers, createSlots, withKeys, withModifiers, pushScopeId, popScopeId } from 'vue';
 
@@ -38109,6 +38109,7 @@ var ptjModel = /*#__PURE__*/Object.freeze({
 
 var containerPlugin = {
   install: (app, options) => {
+    console.log("Are we being claled?");
     initConfigs(options);
     const base = options.base;
 
@@ -38205,6 +38206,7 @@ var containerPlugin = {
     let client = createClient();
     app.provide("client", client);
     app.component("PtjController", script$1k);
+    console.log("Going to register");
   }
 };
 
@@ -38768,4 +38770,4 @@ var ptjMissingPage = /*#__PURE__*/Object.freeze({
     'default': script
 });
 
-export { script$1n as PtjAccountHandler, script$R as PtjDispatch, script$U as PtjEditField, script$G as PtjFilterField, script$E as PtjFilterForm, script$Q as PtjForm, script$7 as PtjModel, script$f as PtjSlugTrail, script$o as PtjViewField, containerPlugin as default };
+export { script$1n as PtjAccountHandler, script$1k as PtjController, script$R as PtjDispatch, script$U as PtjEditField, script$G as PtjFilterField, script$E as PtjFilterForm, script$Q as PtjForm, script$7 as PtjModel, script$f as PtjSlugTrail, script$o as PtjViewField, containerPlugin as default };

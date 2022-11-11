@@ -105,6 +105,7 @@ export {
   PtjFilterField,
   PtjSlugTrail,
   PtjViewField,
-  PtjEditField
+  PtjEditField,
+  PtjController
 }
 
