@@ -8,7 +8,7 @@
     import { provide, inject } from "vue"
     import Button from "primevue/button"
     import { createBind } from "./../../js/binds.js"
-    import PtjIdEdit from "./../fields/ptj-id-edit.vue"
+    import PtjIdEdit from "../form/id-edit.vue"
     import {getStore } from "./../../js/reactivestores.js"
     
     const client = inject("client");

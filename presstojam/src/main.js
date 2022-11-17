@@ -1,4 +1,4 @@
-import PtjController from "./components/ptj-controller.vue"
+import { Controller } from "./index.js"
 
 import 'primeicons/primeicons.css';
 import 'primevue/resources/primevue.min.css'
@@ -6,7 +6,7 @@ import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import Schema from "./schema.vue";
 import { createApp } from 'vue'
-import container from "./js/container-plugin.js";
+import container from "./index.js";
 
 const url = "https://api.presstojam.com";
 //const url = "https://api.genercode.com";
@@ -157,7 +157,7 @@ let settings = {
     ]
 };
 
-const app = createApp(PtjController);
+const app = createApp(Controller);
 app.use(container, settings);
 app.mount("#app");
 

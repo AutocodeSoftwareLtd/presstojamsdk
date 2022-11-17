@@ -1,15 +1,6 @@
 let _configs = {};
 
 
-function flattenConfigs(configs, prefix = "") {
-    for(let i in configs) {
-        if (typeof configs[i] === 'object') {
-            flattenConfigs(configs[i], prefix + i + ".");
-        } else {
-            _configs[prefix + i] = configs[i];
-        }
-    }
-}
 export function initConfigs(configs) {
     if (!configs.profile) {
         throw "Profile must be set in settings";
@@ -22,7 +13,7 @@ export function initConfigs(configs) {
     if (!configs.url) {
         throw "API url must be set in settings";
     }
-    flattenConfigs(configs);
+    _configs = configs;
 }
 
 export default {
@@ -30,6 +21,15 @@ export default {
         _configs[key] = val;
     },
     get : function(key, def = null) {
-        return (_configs.hasOwnProperty(key))  ? _configs[key] : def;
+        const keys = key.split(".");
+        const fkey = keys.pop();
+        let obj = _configs;
+    
+        for(let key of keys) {
+            if (!obj.hasOwnProperty(key)) return def;
+            obj = obj[key];
+        }
+
+        return (obj.hasOwnProperty(fkey)) ? obj[fkey] : def;
     }
 }

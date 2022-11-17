@@ -48,61 +48,47 @@ const vuePluginConfig = {
 
 https://www.thisdot.co/blog/how-to-create-and-deploy-a-vue-component-library-to-npm
 
-import { App, Plugin } from 'vue'
-
-import Button from './button.vue'
-
-export default {
-    install(Vue: App) {
-        Vue.component(Button.name, Button)
-    }
-} as Plugin
-
-export {
-    Button as DSButton
-}
-
 */
 
-/*
+
 const entries = {
-  'index': './presstojam/src/js/container-plugin.js',
+  'index': './presstojam/src/index.js',
   ...components.reduce((obj, name) => {
       obj[name] = (baseFolderPath + name)
       return obj
   }, {})
 }
-*/
+
 
 
 
 export default () => {
   let config = [
-    /*{
-    input: entries,
-    external: ['vue'],
-    output: {
-        format: 'esm',
-        dir: `dist/esm`,
-        entryFileNames: '[name].mjs',
-        chunkFileNames: '[name]-[hash].mjs',
-    },
-    plugins: [
-        node({
-            extensions: ['.vue', '.ts']
-        }),
-        vue(vuePluginConfig),
-        babel(babelOptions),
-        cjs(),
-        postcss({
-          extract : false,
-          modules : true
-        }),
-        nodeResolve()
-    ]
-    },*/
     {
-      input: './presstojam/src/js/container-plugin.js',
+      input: entries,
+      external: ['vue'],
+      output: {
+          format: 'esm',
+          dir: `dist/esm`,
+          entryFileNames: '[name].mjs',
+          chunkFileNames: '[name]-[hash].mjs',
+      },
+      plugins: [
+          node({
+              extensions: ['.vue']
+          }),
+          vue(vuePluginConfig),
+          babel(babelOptions),
+          cjs(),
+          postcss({
+            extract : false,
+            modules : true
+          }),
+          nodeResolve()
+      ]
+    },
+    {
+      input: './presstojam/src/index.js',
       external: ['vue'],
       output: {
           format: 'esm',
@@ -125,7 +111,7 @@ export default () => {
       ]
   }
 
-  ]
+  ];
 
   if (process.env.MINIFY === 'true') {
       config = config.filter((c) => !!c.output.file)

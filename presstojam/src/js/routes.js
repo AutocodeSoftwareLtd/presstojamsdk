@@ -1,13 +1,11 @@
 import { Aggregate } from "./meta/aggregate.js";
 import { createField } from "./meta/fieldfactory.js"
 import { getClient } from "./client.js"
+import configs from "./../js/configs.js"
 
 const client = getClient();
 
-
-let settings = {};
 let routes = {};
-
 
 function setFieldSettings(field, settings) {
     for(let i in settings) {
@@ -18,6 +16,7 @@ function setFieldSettings(field, settings) {
 
 
 export function loadSiteMap(response) {
+    const settings = configs.get("models");
     for(let i in response) {
         response[i].name = i;
         const schema = response[i].schema;
@@ -46,6 +45,13 @@ export function loadSiteMap(response) {
 export function getRoute(model) {
     if (!routes[model]) throw "Trying to find model " + model + " in routes that doesn't exists";
     return routes[model];
+}
+
+
+export function getDefaultRoute() {
+    for(let i in routes) {
+        return i;
+    }
 }
 
 export function getRouteStructure(model) {

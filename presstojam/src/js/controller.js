@@ -169,10 +169,6 @@ export function PtjRun(profile, settings = {}) {
     if (!settings) settings = {};
 
     setSettings(settings);
-    
-    if (settings.models) {
-        setRouteSettings(settings.models);
-    }
    
     //set up plugins and defaults
     const app = createApp(PtjRoot).use(PrimeVue);

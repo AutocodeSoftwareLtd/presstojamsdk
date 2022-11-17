@@ -27,7 +27,8 @@ export function createRepoStore(store) {
         selected : ref([]),
         is_loading : ref(false),
         data : ref([]),
-        load_promise : null
+        load_promise : null,
+        key : new Date().getTime()
     };
 
     obj.serve = function(response) {

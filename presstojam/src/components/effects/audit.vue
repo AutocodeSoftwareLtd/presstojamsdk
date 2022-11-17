@@ -5,7 +5,7 @@
 import { onMounted, inject } from "vue"
 import { createDataStore } from "./../../js/datastore.js"
 import { createRepoStore, regStore } from "./../../js/reactivestores.js"
-import PtjTable from "./../ptj-table.vue"
+import PtjTable from "../table/table.vue"
 
 const props = defineProps({
     repo : {
