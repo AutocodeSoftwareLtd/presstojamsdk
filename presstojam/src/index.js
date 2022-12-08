@@ -14,6 +14,7 @@ import SetDefault from "./components/setdefault.vue"
 export default {
     install : (app, options) => {
   
+      console.log("Logging options of ", options);
       initConfigs(options);
 
       const base = options.base;
