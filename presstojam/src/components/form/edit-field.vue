@@ -1,20 +1,33 @@
  <template>
-    <ptj-number v-if="bind.cell.type=='number'" :bind="bind" />
-    <ptj-flag v-else-if="bind.cell.type=='flag'" :bind="bind" />
-    <ptj-id v-else-if="bind.cell.type=='id'" :bind="bind" />
-    <ptj-asset v-else-if="bind.cell.type=='asset'" :bind="bind" />
-    <ptj-time v-else-if="bind.cell.type=='time'" :bind="bind" />
-    <ptj-json v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" />
-    <ptj-string v-else :bind="bind" />
+    <div class="form-check" v-if="bind.cell.type=='flag'">
+        <Flag :bind="bind" />
+        <label :for="bind.cell.name" class="form-check-label">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
+        <Error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" />
+
+    </div>
+    <div class="json-group" v-else-if="bind.cell.type=='json'">
+        <PtjJson :bind="bind" :active_validation="active_validation" />
+    </div>
+    <div class="form-group" v-else>
+        <label :for="bind.cell.name">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
+        <Number v-if="bind.cell.type=='number'" :bind="bind" />
+        <Id v-else-if="bind.cell.type=='id'" :bind="bind" />
+        <Asset v-else-if="bind.cell.type=='asset'" :bind="bind" />
+        <Time v-else-if="bind.cell.type=='time'" :bind="bind" />
+        <PtjJson v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" />
+        <PtjString v-else :bind="bind" />
+        <Error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" />
+    </div>
 </template>
 <script setup>
- import PtjNumber from "./number-edit.vue"
- import PtjFlag from "./flag-edit.vue"
- import PtjId from "./id-edit.vue"
- import PtjTime from "./time-edit.vue"
+ import Number from "./number-edit.vue"
+ import Flag from "./flag-edit.vue"
+ import Id from "./id-edit.vue"
+ import Time from "./time-edit.vue"
  import PtjString from "./string-edit.vue"
- import PtjAsset from "./asset-edit.vue"
+ import Asset from "./asset-edit.vue"
  import PtjJson from "./json-edit.vue"
+ import Error from "./error.vue"
 
 
 const props = defineProps({

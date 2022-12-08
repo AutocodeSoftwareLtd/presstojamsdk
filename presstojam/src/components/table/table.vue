@@ -49,7 +49,7 @@
 <script setup>
 
 import Column from 'primevue/column';
-import { ref, computed, onMounted, inject } from "vue"
+import { ref, computed, onMounted } from "vue"
 import Card from 'primevue/card';
 import { FilterMatchMode } from 'primevue/api';
 import { getStore } from "../../js/reactivestores.js"
@@ -114,6 +114,11 @@ if (store.route.settings.group) {
    // atts.sortMode="single";
    // atts.sortField = store.route.settings.group;
    // atts.sortOrder=1;
+} else if (store.route.settings.distinguish) {
+    let id = store.route.settings.distinguish;
+    atts.rowClass = function(data) {
+        return id + "-" + data[id];
+    }
 }
 
 groupcell = props.fields[store.route.settings.group];

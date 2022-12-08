@@ -1,10 +1,10 @@
 <template>
-    <small class="p-error" v-if="error == 1">{{ $t("errors.min",  { min : field.min })}}</small>
-    <small class="p-error" v-else-if="error == 2">{{ $t("errors.max", { max : field.max }) }}</small>
-    <small class="p-error" v-else-if="error == 3">{{ $t("errors.contains", { char : field.contains }) }}</small>
-    <small class="p-error" v-else-if="error == 4">{{ $t("errors.notcontains",  { char : field.notcontains }) }}</small>
-    <small class="p-error" v-else-if="error == 5">{{ $t("errors.unique") }}</small>
-    <small class="p-error" v-else-if="error == 6">{{ $t("errors.null") }}</small>
+    <small class="form-text text-muted" v-if="error == 1">{{ $t("errors.min",  { min : field.min })}}</small>
+    <small class="form-text text-muted" v-else-if="error == 2">{{ $t("errors.max", { max : field.max }) }}</small>
+    <small class="form-text text-muted" v-else-if="error == 3">{{ $t("errors.contains", { char : field.contains }) }}</small>
+    <small class="form-text text-muted" v-else-if="error == 4">{{ $t("errors.notcontains",  { char : field.notcontains }) }}</small>
+    <small class="form-text text-muted" v-else-if="error == 5">{{ $t("errors.unique") }}</small>
+    <small class="form-text text-muted" v-else-if="error == 6">{{ $t("errors.null") }}</small>
 </template>
 
 <script setup>

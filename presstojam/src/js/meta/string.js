@@ -14,11 +14,11 @@ export class String extends Field {
         let opts = [];
         if (Array.isArray(this._list)) {
             for(const item of this._list) {
-                opts.push({ key : item, value : item});
+                opts.push({ value : item, label : item});
             }
         } else {
             for(const key in this._list) {
-                opts.push({ key : key, value : this._list[key]});
+                opts.push({ value : key, label : this._list[key]});
             }
         }
         return opts;

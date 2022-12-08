@@ -50,7 +50,7 @@ https://www.thisdot.co/blog/how-to-create-and-deploy-a-vue-component-library-to-
 
 */
 
-
+/*
 const entries = {
   'index': './presstojam/src/index.js',
   ...components.reduce((obj, name) => {
@@ -58,13 +58,13 @@ const entries = {
       return obj
   }, {})
 }
-
+*/
 
 
 
 export default () => {
   let config = [
-    {
+  /*  {
       input: entries,
       external: ['vue'],
       output: {
@@ -86,7 +86,7 @@ export default () => {
           }),
           nodeResolve()
       ]
-    },
+    },*/
     {
       input: './presstojam/src/index.js',
       external: ['vue'],

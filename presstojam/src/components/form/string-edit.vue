@@ -1,18 +1,10 @@
 <template>
     <Password v-if="bind.cell.encrypted" v-model="value" class="focus:border-primary"/>
    <Textarea v-else-if="tag=='textarea'" v-model="value" rows="5" />
-  <Dropdown v-else-if="tag=='select'" 
-        v-model="value"
-        :name="bind.cell.name"
-        v-bind="atts"
-        optionLabel="value"
-        optionValue="key"
-        :options="options"
-        placeholder="Please Select"
-        class="focus:border-primary"
-         @blur="bind.active_validation.value = true"
-        >
-  </Dropdown>
+  <AutocompleteSelect v-else-if="tag=='select'" 
+       :bind="bind"
+       :options="options"
+        />
   <InputText v-else v-bind="atts"
         :name="bind.cell.name"
         class="focus:border-primary form-control"
@@ -21,12 +13,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue"
-import Dropdown from 'primevue/dropdown';
+import { computed } from "vue"
 import Password from 'primevue/password';
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea';
 import { useI18n } from 'vue-i18n';
+import AutocompleteSelect from "./autocomplete-select.vue"
 
 
 const props = defineProps({
@@ -35,7 +27,6 @@ const props = defineProps({
         required : true
     }
 });
-
 
 const value = computed({
     get() {
@@ -46,23 +37,23 @@ const value = computed({
     }
 });
 
+
 const cell = props.bind.cell;
-const options = ref([]);
 const { te, t } = useI18n();
+let options = [];
 
 
-const tag = computed(() => {
+let tag;
 if (cell.isEnum()) {
-    options.value = cell.getOptions();
-    return "select";
+    options = cell.getOptions();
+    tag = "select";
 } else if (cell.encrypted) {
-    return "input";
+    tag = "input";
 } else if (cell.html || cell.max > 300) {
-    return "textarea";
+    tag = "textarea";
 } else {
-    return "input";
+    tag = "input";
 }
-});
 
 
 
@@ -84,6 +75,8 @@ if (pholder) {
 if (cell.contains.includes("html")) {
     atts["data-html"] = 1;
 }
+
+
 
 
 </script>

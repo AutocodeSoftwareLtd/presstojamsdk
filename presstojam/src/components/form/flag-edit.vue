@@ -1,6 +1,5 @@
 <template>
     <Checkbox v-model="value" :binary="true" @blur="bind.active_validation.value = true"></Checkbox>
-
 </template>
 
 <script setup>

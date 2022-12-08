@@ -91,6 +91,20 @@ export default {
 
 
 export {
-  Controller
+  Controller,
+  createClient,
+  initConfigs
 }
+
+export * as Dispatch from "./components/dispatch/dispatch-response.vue"
+export * as Filter from "./components/filter/filter.vue"
+export * as Form from "./components/form/form.vue"
+export * as slugtrail from "./components/slugtrail/slug-trail.vue"
+export * as Login from "./components/login/login.vue"
+export * as ViewField from "./components/view/view-field.vue"
+export * as Tree from "./components/tree/tree.vue"
+export * as Table from "./components/table/table-display.vue"
+export * as Paginator from "./components/paginator/pagination.vue"
+export * as Flow from "./components/flow/flow.vue"
+
 

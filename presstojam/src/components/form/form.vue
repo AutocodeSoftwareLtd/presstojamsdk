@@ -7,11 +7,7 @@
         <label>{{ $t("models." + store.route.parent + ".title")}}</label>
         <ptj-parent-select v-model="proxy_values['--parent']" :model="store.route.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
     </div>
-    <div class="field form-group" v-for="bind in binds" :key="bind.cell.name">
-       <label :for="bind.cell.name" v-if="bind.cell.type!='json'" >{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
-        <ptj-edit-field :bind="bind" />
-        <ptj-error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" />
-    </div>
+    <ptj-edit-field :bind="bind" v-for="bind in binds" :key="bind.cell.name"/>
     <Button :label="$t('btns.save')" @click="submit" />
   </form>
   <Dialog v-model:visible="dispatch" :modal="true" class="p-fluid" >
@@ -24,13 +20,14 @@
 import { provide, ref, computed, inject } from "vue" 
 import PtjEditField from "./edit-field.vue"
 import Button from 'primevue/button'
-import PtjError from "./error.vue"
+
 import { getMutableCells, getImmutableCells } from "../../js/helperfunctions.js"
 import Message from 'primevue/message';
 import PtjParentSelect from "./parent-select.vue"
 import { createBind, createBindGroup } from "../../js/binds.js"
 import PtjDispatch from "../dispatch/dispatch-response.vue"
 import Dialog from 'primevue/dialog'
+
 
 
 const Client = inject("client");
@@ -89,18 +86,12 @@ const binds = computed(() => {
 });
 
 function setErrors(err) {
-    if (typeof err == "string") {
-        global_error.value = err;
+    if (typeof err.error == "string") {
+        global_error.value = err.error;
     } else {
-        return err.json()
-        .then(response => {
-            const msg = response.exception[0];
-            if (msg.type == "PressToJamCore\\Exceptions\\ValidationException") {
-                for(let i in err) {
-                    if (i.indexOf("__") !== 0) bindGroup.binds[i].setError(err[i]);
-                }
-            }
-        });
+        for(let i in err.response) {
+            if (bindGroup.binds[i]) bindGroup.binds[i].setError(err[i]);
+        }
     }
 }
 
@@ -152,7 +143,7 @@ function submit() {
         }
     })
     .catch(err => {
-        if (err.response) setErrors(err.response);
+        if (err.status == 402) setErrors(err.response);
         else console.log(err);
     });
     

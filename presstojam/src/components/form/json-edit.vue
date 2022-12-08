@@ -1,9 +1,7 @@
 <template>
    <Fieldset :legend="$t('models.' + bind.cell.model + '.fields.' + bind.cell.name + '.label')">
     <div class="field form-group" v-for="jbind in binds" :key="jbind.cell.name">
-        <label :for="jbind.cell.name">{{ $t("models." + jbind.cell.model + ".fields." + jbind.cell.name + ".label") }}</label>
         <ptj-edit-field :bind="jbind" />
-        <ptj-error :field="jbind.cell" v-if="jbind.active_validation && jbind.error" :error="jbind.error" />
     </div>
    </Fieldset>
 </template>

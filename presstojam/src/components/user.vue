@@ -99,28 +99,8 @@ function loadUser() {
 
 
 
-function resetTokens() {
-    client.switchTokens()
-    .then(() => {
-        return client.get("/user/check-user")
-    })
-    .then(response => {
-        if (response.name != _profile) {
-            require_login.value = true;
-        } else {
-            setTimeout(resetTokens, user_check);
-        }
-    }).catch(e => {
-        require_login.value = true;
-    });
-}
-
-
-
-await client.switchTokens()
-.then(() => {
-    return client.get("/user/check-user")
-}).then(response => {
+await client.get("/user/check-user")
+.then(response => {
     if (response.name != _profile) {
         require_login.value = true;
         return loadDictionary();
@@ -129,7 +109,6 @@ await client.switchTokens()
         promises.push(loadUser());
         promises.push(loadDictionary());
         promises.push(loadRoutes());
-        if (response.name != "public") setTimeout(resetTokens, user_check);
         return Promise.all(promises);
     }    
 });

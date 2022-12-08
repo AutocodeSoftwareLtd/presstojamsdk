@@ -1,13 +1,9 @@
 <template>
-    <Button icon="pi pi-plus" class="p-button-rounded p-button-success mr-2" @click="createReference" />
-    <Dialog v-model:visible="dialog" :header="'Create ' + $t('models.' + cell.reference + '.title', 1)" :modal="true" class="p-fluid">
-        <ptj-form :store="referencestore" @saved="onCreate" :parent="parent" :common_parent="cell.common" :common_parent_id="common_parent_id"/>
-    </Dialog>
+    <ptj-form :store="referencestore" @saved="onCreate" :parent="parent" :common_parent="cell.common" :common_parent_id="common_parent_id"/>
  </template>
  <script setup>
-    import Button from "primevue/button"
-    import Dialog from 'primevue/dialog'
-    import { ref, inject } from "vue"
+    
+    import { inject } from "vue"
     import { ReferenceTypes } from "../../js/meta/id.js"
     import { createTemporaryStore } from "../../js/datastore.js"
     import PtjForm from "../form/form.vue"
@@ -23,7 +19,7 @@
 
      const emits = defineEmits(['onCreate']);
 
-     const dialog = ref(false);
+     
 
     
     
