@@ -1,6 +1,6 @@
 <template>
   <div v-if="bind.cell.isReferenceType()" class="p-inputgroup">
-    <AutocompleteSelect :bind="bind" :options="options" optionValue="--key" optionLabel="--value"/>
+    <AutocompleteSelect :bind="bind" :options="options" />
     <span class="p-inputgroup-addon">
         <i class="pi pi-plus" @click="dialog='true'" style="cursor:pointer;"></i>
     </span>
@@ -48,7 +48,7 @@ let id = 0;
 if (store.active_id) {
     const repo = getStore(model);
     id = repo.data.value['--parent'];
-} else {
+} else if (store.parent_id) {
     id = store.parent_id;
 }
 
@@ -57,7 +57,11 @@ const cell = props.bind.cell;
 if (cell.isReferenceType()) {
     onMounted(() => {
         cell.getOptions(client, model, id)
-        .then(response => options.value =response)
+        .then(response => {
+            let arr = [...response];
+            arr.unshift({value:0,label:"None"})
+            options.value = arr;
+        })
         .catch(e => console.log(e));
     });  
 
@@ -75,7 +79,7 @@ if (cell.isReferenceType()) {
        cell.getRecursiveOptions(client, model, id, store.route.schema)
        .then(response => {
         let arr = [...response];
-        arr.unshift({key : 0, value : 'Root'});
+        arr.unshift({key : "0", label : 'None' , "--recursive" : 0});
         options.value =arr;
        })
        .catch(e => console.log(e));
@@ -88,6 +92,7 @@ if (cell.isReferenceType()) {
             return obj;
         },
         set(val) {
+            console.log("Setting value to ", val);
             const keys = Object.keys(val);
             props.bind.setValue(keys[0]);
         }

@@ -1,14 +1,16 @@
 <template>
-    <Password v-if="bind.cell.encrypted" v-model="value" class="focus:border-primary"/>
-   <Textarea v-else-if="tag=='textarea'" v-model="value" rows="5" />
+    <Password v-if="bind.cell.encrypted" v-model="value" class="focus:border-primary" :class="errClass"/>
+   <Textarea v-else-if="tag=='textarea'" v-model="value" rows="5" :class="errClass"/>
   <AutocompleteSelect v-else-if="tag=='select'" 
        :bind="bind"
        :options="options"
+       :class="errClass"
         />
   <InputText v-else v-bind="atts"
         :name="bind.cell.name"
         class="focus:border-primary form-control"
         v-model="value" 
+        :class="errClass"
         @blur="bind.active_validation.value = true" />
 </template>
 
@@ -78,5 +80,7 @@ if (cell.contains.includes("html")) {
 
 
 
-
+const errClass = computed(() => {
+    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+});
 </script>

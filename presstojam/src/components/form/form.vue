@@ -1,6 +1,6 @@
 <template>
 
- <form @submit.prevent="submit" class="card">
+ <form @submit.prevent="submit" class="card needs-validation" novalidate>
     <Message severity="success" v-if="saved">Saved</Message>
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
     <div v-if="parent" class="form-group">

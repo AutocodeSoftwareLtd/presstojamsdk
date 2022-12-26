@@ -39,7 +39,7 @@
 <script setup>
 import Button from "primevue/button"
 import Tree from 'primevue/tree'
-import { computed, ref } from "vue"
+import { computed, ref, inject } from "vue"
 import Splitter from 'primevue/splitter'
 import SplitterPanel from 'primevue/splitterpanel'
 import PtjTable from "../table/table.vue"
@@ -69,6 +69,8 @@ const emits = defineEmits(["onMove"]);
 const repo = getStore(props.name);
 const store = repo.store;
 
+const client = inject("client");
+
 
 const has_primary = (store.route.children.length > 1) ? true : false;
 const expanded = ref(false);
@@ -94,7 +96,7 @@ let fields = computed(() => {
 
 function reorderRows(rows) {
   childRepo.data.value = rows;
-  saveOrder(store.model, rows);
+  saveOrder(store.model, rows, client);
 }
 
 repo.load()
@@ -155,6 +157,7 @@ const onNodeClear = (node) => {
 
 
 function reload() {
+  repo.selected.value = [];
   repo.reload()
   .then(() => {
     childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);

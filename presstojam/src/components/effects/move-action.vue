@@ -37,6 +37,7 @@
             const obj = {"--id" : row['--id'], "--recursive" : bind.value.value };
             promise.push(client.put("/data/" + store.model, obj));
         }
+
         return Promise.all(promise)
         .then(() => {
             emits("onMove");

@@ -1,39 +1,33 @@
 <template>
-    <div v-if="parsed==false">
+    <div v-if="is_passed == false">
+    <h3>Column Headers</h3>
     <table>
         <tr v-for="(header, key) in headers">
-            <td>key</td>
-            <td><input type="text" v-bind="header"></td>
+            <td>{{ (key + 1) }}.</td>
+            <td>
+                <div class="p-inputgroup">
+                <input type="text" v-model="headers[key]" class="form-control">
+                <span class="p-inputgroup-addon">
+                <i class="pi pi-refresh" @click="refreshHeader(key, headers)" style="cursor:pointer;"></i>
+                </span>
+                </div>
+            </td>
         </tr>
     </table>
     <div>
-        <label>Upload File</label>
-        <input type="file" />
+        <file-upload name="file" mode="basic" @customUpload="true" @uploader="importCSV" :auto="true"  />
     </div>
     </div>
-    <table v-if="parsed" style="width: 100%;">
-    <thead>
-        <tr>
-            <th v-for="(header, key) in content.meta.fields"
-                v-bind:key="'header-'+key">
-                {{ header }}
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr v-for="(row, rowKey) in content.data"
-            v-bind:key="'row-'+rowKey">
-                <td v-for="(column, columnKey) in content.meta.fields"
-                    v-bind:key="'row-'+rowKey+'-column-'+columnKey">
-                        <input v-model="content.data[rowKey][column]"/>
-                </td>
-        </tr>
-    </tbody>
-</table>
+    <div v-else>
+        <h3>Results</h3>
+        <p>Passed: {{success}}</p>
+        <p>Failed: {{failed}}</p>
+    </div> 
 </template>
 <script setup>
-import { ref } from "vue"
-import Papa from 'papaparse';
+import { ref, inject } from "vue"
+import { getStore } from "../../js/reactivestores.js"
+import FileUpload from 'primevue/FileUpload'
 
 const props = defineProps({
     name : String
@@ -42,53 +36,38 @@ const props = defineProps({
 const repo = getStore(props.name);
 const store = repo.store;
 
-let parsed = ref(false);
-let content = ref();
+const client = inject("client");
+
+const is_passed = ref(false);
+const success = ref(0);
+const failed = ref(0);
+
 
 let headers = [];
+const oheaders = [];
 for(let i in store.route.schema) {
-    headers.push(i);
-}
-
-
-
-function parseFile(file){
-    Papa.parse( file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function( results ){
-            content.value = results;
-            parsed.value = true;
-        }.bind(this)
-    } );
-}
-
-
-function handleFileUpload( event ){
-    parseFile(event.target.files[0]);
-}
-
-
-function getCsvHeaders() {
-    const positions = {};
-
-    for(let col in cols) {
-        for(let ans of headers) {
-            if (ans.value == cols[col]) {
-                positions[ans] = col;
-            }
-        }
+    if (!store.route.schema[i].system) {
+        headers.push(i);
+        oheaders.push(i);
     }
-    return positions;
 }
 
 
-function nextRow(row) {
-    let obj = {};
-    for(let i in positions) {
-        obj[i] = row[positions[i]];
-    }
-    return obj;
+function importCSV( event ){
+    const formData = new FormData();
+    formData.append("headers", headers);
+    formData.append("csv-file", event.target.files);
+    return client.post("/bulk/" + props.model, data)
+    .then(response => {
+        is_passed.value = true;
+        success.value = response.success;
+        failed.value = response.failure;
+    });
+}
+
+
+function refreshHeader(key, headers) {
+    headers[key] = oheaders[key];
 }
 
 

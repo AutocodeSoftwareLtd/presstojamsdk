@@ -9,6 +9,7 @@ import { createApp } from 'vue'
 import container from "./index.js";
 
 const url = "https://api.presstojam.com";
+//const url = "https://api-owen.presstojam.com";
 //const url = "https://api.genercode.com";
 //const url = "http://slim.localhost";
 //https://api.presstojam.com
@@ -113,6 +114,7 @@ let settings = {
   },
   "models" : {
       "projects" : {
+            "import" : true,
            "export_fields" : {
             "cfdist-id" : "Distribution ID",
             "domain" : "Domain",

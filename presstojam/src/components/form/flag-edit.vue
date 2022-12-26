@@ -1,5 +1,10 @@
 <template>
-    <Checkbox v-model="value" :binary="true" @blur="bind.active_validation.value = true"></Checkbox>
+    <Checkbox 
+        v-model="value" 
+        :binary="true" 
+        :class="errClass"
+        @blur="bind.active_validation.value = true">
+    </Checkbox>
 </template>
 
 <script setup>
@@ -21,6 +26,10 @@ const value = computed({
     set(val) {
         props.bind.setValue(val);
     }
+});
+
+const errClass = computed(() => {
+    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
 });
 
 </script>

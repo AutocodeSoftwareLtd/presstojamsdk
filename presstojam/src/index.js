@@ -3,6 +3,7 @@ import { createI18n } from 'vue-i18n'
 import PrimeVue from 'primevue/config';
 import { createClient } from "./js/client.js"
 import { registerFlow } from "./js/flows.js"
+import PtjSingle from "./components/active/single.vue"
 import { initConfigs } from "./js/configs.js"
 import Controller from "./components/controller.vue"
 import Model from "./components/model.vue"
@@ -14,7 +15,6 @@ import SetDefault from "./components/setdefault.vue"
 export default {
     install : (app, options) => {
   
-      console.log("Logging options of ", options);
       initConfigs(options);
 
       const base = options.base;
@@ -32,6 +32,7 @@ export default {
       croutes.push({ path : base + "/user-login", component : Login, name : 'login', props : {}});
       croutes.push({ path : base + "/data/:model/:id?", component : Model, name : 'repo', props : route => ({ model : route.params.model, id : route.params.id })});
       croutes.push({ path : base + "/data/active/:model/:id", component : Model, name : 'primary', props : route => ({ model : route.params.model, is_active : true, id : route.params.id }) });
+      croutes.push({ path : base + "/data/single/:model/:id?", component : PtjSingle, name : 'single', props : route => ({ model : route.params.model, base : base + "/" }) });
       //croutes.push({ path : base + "/flow/:flow/:position?", component : PtjFlow.vue, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position) })});
       croutes.push({ path : base + "/dev/site-map", component : SiteMap, name : 'sitemap'});
       croutes.push({ path : base + "/", component : SetDefault, name : 'default'});

@@ -2,6 +2,7 @@
    <InputNumber
         class="focus:border-primary"
         :name="bind.cell.name" 
+        :class="errClass"
         v-model="value" 
         v-bind="atts"
         @blur="bind.active_validation.value = true" />
@@ -40,4 +41,9 @@ if (cell.round) {
     step += "1";
     atts["step"]  = parseInt(step);
 }
+
+
+const errClass = computed(() => {
+    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+});
 </script>

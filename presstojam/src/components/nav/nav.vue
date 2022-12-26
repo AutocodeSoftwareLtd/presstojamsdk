@@ -1,0 +1,101 @@
+<template>
+    <Menubar :model="items">
+        <template #item="{item}">
+            <router-link :to="{ name : 'repo', params : { 'model' : item.model }}" v-slot="{href, route, navigate, isActive, isExactActive}">
+                <a :href="href" @click="navigate" class="p-menuitem-link p-menuitem-content" :class="{'active-link': isActive, 'active-link-exact': isExactActive}">{{item.label}}</a>
+            </router-link>
+        </template>
+        <template #end>
+            <Button type="button" label="Toggle" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu">{{ name }}</Button>
+            <Menu id="overlay_menu" ref="menu" :model="account_items" :popup="true">
+                <template #item="{item}">
+                    <router-link v-if="item.model" :to="{ name : 'single', params : { 'model' : item.model }}" v-slot="{href, route, navigate, isActive, isExactActive}">
+                        <a @click="navigate" class="p-menuitem-link p-menuitem-content" :class="{'active-link': isActive, 'active-link-exact': isExactActive}">{{item.label}}</a>
+                    </router-link>
+                    <div v-else>
+                        <a @click="item.command" class="p-menuitem-link p-menuitem-content">{{item.label}}</a>
+                    </div>
+                </template>
+            </Menu>
+        </template>
+    </Menubar>
+</template>
+<script setup>
+import { getRoutes } from "./../../js/routes.js"
+import Menubar from 'primevue/menubar';
+import { ref, inject } from "vue"
+import Menu from 'primevue/menu';
+import Button from "primevue/button"
+import configs from "./../../js/configs.js"
+
+const props = defineProps({
+    name : [String, Object]
+});
+
+const _profile = configs.get("profile");
+const client = inject("client");
+
+const items = ref([]);
+const account_items = ref([]);
+const menu = ref();
+
+let routes = getRoutes();
+
+let arr = [];
+let carr = [];
+
+for(const i in routes) {
+    const route = routes[i];
+    if (!route.parent) {
+        if (route.min_rows == 1 && route.max_rows == 1 && route.schema['--owner'] && route.schema['--owner'].reference == _profile) {
+            carr.push({
+                label : route.name,
+                model : i
+            });
+            
+            for(const x of route.schema['--id'].reference) {
+                const croute = routes[x];
+                arr.push({
+                    label : croute.name,
+                    model : x
+                });
+            }
+        } else {
+            arr.push({
+                label : route.name,
+                model : i
+            });
+        }
+    }
+}
+
+items.value = arr;
+
+carr.push({
+    label : 'Logout',
+    command() {
+        logout();
+    }
+});
+
+account_items.value = carr;
+/*
+        items.value.push({
+            label : 'Logout',
+            command() {
+                logout();
+            }
+        })
+*/
+
+function logout()  {
+    return client.post("/user/logout", {'x-force-auth-cookies' : 1})
+    .then(() => {
+        location.href = configs.get("base") + "/";
+    });
+}
+
+const toggle = (event) => {
+    menu.value.toggle(event);
+};
+</script>

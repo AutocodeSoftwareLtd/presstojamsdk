@@ -6,10 +6,11 @@ import PtjRoot from "./../components/ptj-root.vue"
 import PtjRepo from "./../components/ptj-repo.vue"
 import PtjActive from "./../components/ptj-active.vue"
 import PtjFlow from "./../components/ptj-flow.vue"
+import PtjSingle from "./../components/active/single.vue"
 import PtjMissingPage from "./../components/ptj-missing-page.vue"
 import PtjSitemap from "./../components/dev/ptj-sitemap.vue"
 import { createClient } from "./client.js"
-import { setRouteSettings, hasRoute, loadSiteMap } from "./routes.js"
+import { hasRoute, loadSiteMap } from "./routes.js"
 import { createI18n } from 'vue-i18n'
 import { createDataStore, clearDataCache } from "./datastore.js"
 import { registerFlow } from "./flows.js"
@@ -45,10 +46,12 @@ function initRouter(app, client, base, routes) {
     croutes.push({ path : base + "/user-login", component : PtjAccountHandler, name : 'login', props : { base : base + "/"}});
     croutes.push({ path : base + "/data/:model/:id?", component : PtjRepo, name : 'repo', props : route => ({ model : route.params.model, base : base + "/" })});
     croutes.push({ path : base + "/data/active/:model/:id", component : PtjActive, name : 'primary', props : route => ({ model : route.params.model, base : base + "/" }) });
+    croutes.push({ path : base + "/data/single/:model/:id?", component : PtjSingle, name : 'single', props : route => ({ model : route.params.model, base : base + "/" }) });
     croutes.push({ path : base + "/flow/:flow/:position?", component : PtjFlow, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position), base : base + "/" })});
     croutes.push({ path : base + "/dev/site-map", component : PtjSitemap, name : 'sitemap'});
     croutes.push({ path : '/:pathMatch(.*)*', component: PtjMissingPage });
 
+    console.log("Croutes are ", croutes);
 
     let router = createRouter({
         history: createWebHistory(),
@@ -105,10 +108,13 @@ function initRouter(app, client, base, routes) {
                     
                     store.active_id = to.params.id;
                     return true;
+                } else if (to.name == "single") {
+                    const store = createDataStore(client, to.params.model);
+                    store.parent_id = to.params.id;
+                    return true;
                 } else {
                     const store = createDataStore(client, to.params.model);
                     store.parent_id = to.params.id;
-                   
                     return true;
                 }
             }

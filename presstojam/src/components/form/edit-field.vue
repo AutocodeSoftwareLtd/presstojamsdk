@@ -1,5 +1,5 @@
  <template>
-    <div class="form-check" v-if="bind.cell.type=='flag'">
+    <div class="form-check field-checkbox" v-if="bind.cell.type=='flag'">
         <Flag :bind="bind" />
         <label :for="bind.cell.name" class="form-check-label">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
         <Error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" />
@@ -8,15 +8,15 @@
     <div class="json-group" v-else-if="bind.cell.type=='json'">
         <PtjJson :bind="bind" :active_validation="active_validation" />
     </div>
-    <div class="form-group" v-else>
-        <label :for="bind.cell.name">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
-        <Number v-if="bind.cell.type=='number'" :bind="bind" />
-        <Id v-else-if="bind.cell.type=='id'" :bind="bind" />
-        <Asset v-else-if="bind.cell.type=='asset'" :bind="bind" />
-        <Time v-else-if="bind.cell.type=='time'" :bind="bind" />
-        <PtjJson v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" />
-        <PtjString v-else :bind="bind" />
-        <Error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" />
+    <div class="form-group field row" v-else>
+        <label :for="bind.cell.name" class="form-label">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }} </label>
+        <Number v-if="bind.cell.type=='number'" :bind="bind" class="col"/>
+        <Id v-else-if="bind.cell.type=='id'" :bind="bind" class="col"/>
+        <Asset v-else-if="bind.cell.type=='asset'" :bind="bind" class="col"/>
+        <Time v-else-if="bind.cell.type=='time'" :bind="bind" class="col"/>
+        <PtjJson v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" class="col"/>
+        <PtjString v-else :bind="bind" class="col"/>
+        <Error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" class="col"/>
     </div>
 </template>
 <script setup>

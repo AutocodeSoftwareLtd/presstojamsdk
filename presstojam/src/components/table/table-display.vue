@@ -17,6 +17,7 @@
                 </template>
 
                 <template #end>
+                    <ptj-import-action v-if="has_import" :name="name" />
                     <ptj-export-action v-if="has_export" :name="name" />
                     <ptj-create-action v-if="store.route.perms.includes('post')" :name="name" @onSave="onSave" /> 
                     <ptj-delete-action v-if="store.route.perms.includes('delete')" :name="name" @onDel="onDel"/>
@@ -42,6 +43,7 @@ import { getStore } from "../../js/reactivestores.js"
 import PtjExportAction from '../actions/export-action.vue'
 import PtjCreateAction from '../actions/create-action.vue'
 import PtjDeleteAction from '../actions/delete-action.vue'
+import PtjImportAction from '../actions/import-action.vue'
 
 
 
@@ -59,6 +61,8 @@ const store = repo.store;
 
 const max_cols = (!store.route.settings.max_cols) ? 10 : store.route.settings.max_cols;
 const has_export =store.route.export;
+const has_import = true;//store.route.import;
+
 //const has_export = true;
 const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
 const fixed_fields = [];

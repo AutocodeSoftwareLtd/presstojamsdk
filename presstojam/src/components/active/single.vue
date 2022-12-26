@@ -1,27 +1,16 @@
 <template>
     <ptj-slug-trail :name="model" />
     <Panel :header="label">
-    
-   <TabView>
-        <TabPanel :header="repo.label.value">
-		    <display :name="props.model" />
-	    </TabPanel>
-        <TabPanel v-for="child in store.route.schema['--id'].reference" :header="$t('models.' + child + '.title', 2)">
-            <PtjChildPanel :model="child" />
-        </TabPanel>
-   </TabView>
+        <display :name="props.model" />
    </Panel>
 </template>
 
 <script setup>
 import { computed, onMounted, inject } from "vue"
 import { getStoreById } from "../../js/datastore.js"
-import { createActiveStore, regStore } from "../../js/reactivestores.js"
+import { createFirstStore, regStore } from "../../js/reactivestores.js"
 import Display from "../display.vue"
-import PtjChildPanel from  "./child-panel.vue"
-import PtjSlugTrail from "./../slugtrail/slug-trail.vue"
-import TabView from "primevue/tabview"
-import TabPanel from "primevue/tabpanel"
+import PtjSlugTrail from "../slugtrail/slug-trail.vue"
 import Panel from "primevue/panel"
 
 const i18n = inject("i18n");
@@ -42,7 +31,7 @@ const props = defineProps({
 
 const store = getStoreById(props.model);
 
-const repo = createActiveStore(store);
+const repo = createFirstStore(store);
 regStore(props.model, repo);
 repo.load()
 .catch(e => console.log(e));

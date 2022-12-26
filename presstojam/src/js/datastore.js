@@ -7,6 +7,7 @@ class DataStore {
         this._model = model;
         this._count_promise = null;
         this._load_promise = null;
+        this._first_promise = null;
         this._params = {};
         this._route = createView(model);
         this._filters ={};
@@ -59,6 +60,17 @@ class DataStore {
             this._load_promise = this._client.get(url, this.buildParams())
         }
         return this.load_promise;
+    }
+
+    loadFirst() {
+        if (!this._first_promise) {
+            let url = "/data/" + this._model + "/first";
+            this._first_promise = this._client.get(url, this.buildParams())
+            .then(row => {
+                this._active_id = row['--id'];
+            });
+        }
+        return this.first_promise;
     }
 
     reset() {

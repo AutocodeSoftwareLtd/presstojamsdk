@@ -4,6 +4,7 @@ export class Number extends Field {
     constructor(name, obj) {
         super(name);
         this._round = 0;
+        this._range = false;
         this.buildGetterSetters();
         if (obj) this.apply(obj);
     }

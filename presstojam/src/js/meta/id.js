@@ -33,7 +33,9 @@ export class ID extends Field {
     getOptions(client, model, id) {
         if (!this._load_promise || id != this._cache_id) {
             this._cache_id = id;
-            this._load_promise = client.get("/reference/" + model + "/" + this._name + "/" + id)
+            let url = "/reference/" + model + "/" + this._name;
+            if (id) url += "/" + id;
+            this._load_promise = client.get(url)
             .then(response => {
                 response.sort(sortByDictionary);
                 return response;
@@ -47,7 +49,9 @@ export class ID extends Field {
     getRecursiveOptions(client, model, id, schema) {
         if (!this._load_promise) {
             this._cache_id = id;
-            this._load_promise = client.get("/reference/" + model + "/" + this._name + "/" + id)
+            let url = "/reference/" + model + "/" + this._name;
+            if (id) url += "/" + id;
+            this._load_promise = client.get(url)
             .then(response => {
                 return toReferenceTree(response, schema)
             });

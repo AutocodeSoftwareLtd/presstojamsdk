@@ -1,36 +1,27 @@
 <template>
     <PtjAccountHandler v-if="require_login" />
     <div v-else>
-        <Teleport :to="teleport">
-            <div class="ptj-users">
-                <Button type="button" label="Toggle" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu">{{ name }}</Button>
-                <Menu id="overlay_menu" ref="menu" :model="items" :popup="true" />
-            </div>
-        </Teleport>
+        <Nav :name="name" v-if="no_nav == false"/>
+        
         <PtjRoutes />
     </div>
 </template>
 <script setup>
-import Menu from 'primevue/menu';
+
 import { ref, inject } from 'vue';
-import { getRoutesByProfile } from "../js/routes.js"
 import configs from "../js/configs.js"
-import Button from "primevue/button"
+
 import { loadSiteMap } from "../js/routes.js"
 
 import PtjAccountHandler from "./login/login.vue"
 import PtjRoutes from './routes.vue'
+import Nav from "./nav/nav.vue"
 
 
 const _profile = configs.get("profile");
 
-const user_check = 600000;
-
-
-const menu = ref();
 const name = ref("");
-const items = ref([]);
-const teleport = configs.get("user.teleport", "body");
+
 
 const client = inject("client");
 const i18n = inject("i18n");
@@ -38,16 +29,8 @@ const router = inject("router");
 
 const require_login = ref(false);
 
-const toggle = (event) => {
-    menu.value.toggle(event);
-};
+const no_nav = configs.get("no_nav", false);
 
-function logout()  {
-    return client.post("/user/logout", {'x-force-auth-cookies' : 1})
-    .then(() => {
-        location.href = configs.get("base") + "/";
-    });
-}
 
 
 function loadRoutes() {
@@ -69,13 +52,7 @@ function loadRoutes() {
         }
     })
     .then(() => {
-        let routes = getRoutesByProfile(_profile);
-        items.value.push({
-            label : 'Logout',
-            command() {
-                logout();
-            }
-        })
+        
     })
 }
 

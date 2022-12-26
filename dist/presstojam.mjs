@@ -1,6 +1,6 @@
-/*! DS Library v3.2.19 */
+/*! DS Library v3.2.30 */
 
-import { shallowRef, unref, computed, reactive, nextTick, defineComponent, inject, h, provide, ref, watch, getCurrentInstance, watchEffect, effectScope, onMounted, onUnmounted, onBeforeMount, Fragment, isRef, createVNode, Text, renderSlot, openBlock, createBlock, Teleport, createCommentVNode, resolveComponent, resolveDirective, createElementBlock, normalizeClass, normalizeStyle, createElementVNode, withCtx, withDirectives, toDisplayString as toDisplayString$1, resolveDynamicComponent, Transition, mergeProps, renderList, createTextVNode, vShow, withAsyncContext, Suspense, vModelText, toHandlers, createSlots, withKeys, withModifiers, pushScopeId, popScopeId } from 'vue';
+import { shallowRef, unref, computed, reactive, nextTick, defineComponent, inject, h, provide, ref, watch, getCurrentInstance, watchEffect, effectScope, onMounted, onUnmounted, onBeforeMount, Fragment, isRef, createVNode, Text, resolveDirective, openBlock, createElementBlock, normalizeClass, createElementVNode, renderSlot, toDisplayString as toDisplayString$1, createCommentVNode, withDirectives, Transition, withCtx, vShow, resolveComponent, mergeProps, toHandlers, createBlock, normalizeStyle, resolveDynamicComponent, createTextVNode, renderList, vModelText, Teleport, createSlots, withKeys, withModifiers, pushScopeId, popScopeId, withAsyncContext, Suspense } from 'vue';
 
 function getDevtoolsGlobalHook() {
   return getTarget().__VUE_DEVTOOLS_GLOBAL_HOOK__;
@@ -12539,788 +12539,16 @@ class Client {
   }
 
 }
-let client$1;
+let client;
 function createClient() {
-  client$1 = new Client(configs.get("url"), configs.get("client.custom_headers", {}));
-  return client$1;
-}
-function getClient() {
-  return client$1;
+  client = new Client(configs.get("url"), configs.get("client.custom_headers", {}));
+  return client;
 }
 
 const flows = {};
 function getFlow(key) {
   return flows[key];
 }
-
-var OverlayEventBus = primebus();
-
-var script$1x = {
-  name: 'Portal',
-  props: {
-    appendTo: {
-      type: String,
-      default: 'body'
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    }
-  },
-
-  data() {
-    return {
-      mounted: false
-    };
-  },
-
-  mounted() {
-    this.mounted = DomHandler.isClient();
-  },
-
-  computed: {
-    inline() {
-      return this.disabled || this.appendTo === 'self';
-    }
-
-  }
-};
-
-function render$C(_ctx, _cache, $props, $setup, $data, $options) {
-  return $options.inline ? renderSlot(_ctx.$slots, "default", {
-    key: 0
-  }) : $data.mounted ? (openBlock(), createBlock(Teleport, {
-    key: 1,
-    to: $props.appendTo
-  }, [renderSlot(_ctx.$slots, "default")], 8, ["to"])) : createCommentVNode("", true);
-}
-
-script$1x.render = render$C;
-
-let timeout;
-
-function bindEvents(el) {
-  el.addEventListener('mousedown', onMouseDown);
-}
-
-function unbindEvents(el) {
-  el.removeEventListener('mousedown', onMouseDown);
-}
-
-function create(el) {
-  let ink = document.createElement('span');
-  ink.className = 'p-ink';
-  ink.setAttribute('role', 'presentation');
-  el.appendChild(ink);
-  ink.addEventListener('animationend', onAnimationEnd);
-}
-
-function remove(el) {
-  let ink = getInk(el);
-
-  if (ink) {
-    unbindEvents(el);
-    ink.removeEventListener('animationend', onAnimationEnd);
-    ink.remove();
-  }
-}
-
-function onMouseDown(event) {
-  let target = event.currentTarget;
-  let ink = getInk(target);
-
-  if (!ink || getComputedStyle(ink, null).display === 'none') {
-    return;
-  }
-
-  DomHandler.removeClass(ink, 'p-ink-active');
-
-  if (!DomHandler.getHeight(ink) && !DomHandler.getWidth(ink)) {
-    let d = Math.max(DomHandler.getOuterWidth(target), DomHandler.getOuterHeight(target));
-    ink.style.height = d + 'px';
-    ink.style.width = d + 'px';
-  }
-
-  let offset = DomHandler.getOffset(target);
-  let x = event.pageX - offset.left + document.body.scrollTop - DomHandler.getWidth(ink) / 2;
-  let y = event.pageY - offset.top + document.body.scrollLeft - DomHandler.getHeight(ink) / 2;
-  ink.style.top = y + 'px';
-  ink.style.left = x + 'px';
-  DomHandler.addClass(ink, 'p-ink-active');
-  timeout = setTimeout(() => {
-    if (ink) {
-      DomHandler.removeClass(ink, 'p-ink-active');
-    }
-  }, 401);
-}
-
-function onAnimationEnd(event) {
-  if (timeout) {
-    clearTimeout(timeout);
-  }
-
-  DomHandler.removeClass(event.currentTarget, 'p-ink-active');
-}
-
-function getInk(el) {
-  for (let i = 0; i < el.children.length; i++) {
-    if (typeof el.children[i].className === 'string' && el.children[i].className.indexOf('p-ink') !== -1) {
-      return el.children[i];
-    }
-  }
-
-  return null;
-}
-
-const Ripple = {
-  mounted(el, binding) {
-    if (binding.instance.$primevue && binding.instance.$primevue.config && binding.instance.$primevue.config.ripple) {
-      create(el);
-      bindEvents(el);
-    }
-  },
-
-  unmounted(el) {
-    remove(el);
-  }
-
-};
-
-var script$1$6 = {
-  name: 'Menuitem',
-  inheritAttrs: false,
-  emits: ['item-click'],
-  props: {
-    item: null,
-    template: null,
-    exact: null,
-    id: null,
-    focusedOptionId: null
-  },
-  methods: {
-    getItemProp(processedItem, name) {
-      return processedItem && processedItem.item ? ObjectUtils.getItemValue(processedItem.item[name]) : undefined;
-    },
-
-    onItemActionClick(event, navigate) {
-      navigate && navigate(event);
-    },
-
-    onItemClick(event) {
-      const command = this.getItemProp(this.item, 'command');
-      command && command({
-        originalEvent: event,
-        item: this.item.item
-      });
-      this.$emit('item-click', {
-        originalEvent: event,
-        item: this.item,
-        id: this.id
-      });
-    },
-
-    containerClass() {
-      return ['p-menuitem', this.item.class, {
-        'p-focus': this.id === this.focusedOptionId,
-        'p-disabled': this.disabled()
-      }];
-    },
-
-    linkClass(routerProps) {
-      return ['p-menuitem-link', {
-        'router-link-active': routerProps && routerProps.isActive,
-        'router-link-active-exact': this.exact && routerProps && routerProps.isExactActive
-      }];
-    },
-
-    visible() {
-      return typeof this.item.visible === 'function' ? this.item.visible() : this.item.visible !== false;
-    },
-
-    disabled() {
-      return typeof this.item.disabled === 'function' ? this.item.disabled() : this.item.disabled;
-    },
-
-    label() {
-      return typeof this.item.label === 'function' ? this.item.label() : this.item.label;
-    }
-
-  },
-  directives: {
-    ripple: Ripple
-  }
-};
-const _hoisted_1$1$6 = ["id", "aria-label", "aria-disabled"];
-const _hoisted_2$1$6 = ["href", "onClick"];
-const _hoisted_3$1$5 = {
-  class: "p-menuitem-text"
-};
-const _hoisted_4$u = ["href", "target"];
-const _hoisted_5$n = {
-  class: "p-menuitem-text"
-};
-
-function render$1$6(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_router_link = resolveComponent("router-link");
-
-  const _directive_ripple = resolveDirective("ripple");
-
-  return $options.visible() ? (openBlock(), createElementBlock("li", {
-    key: 0,
-    id: $props.id,
-    class: normalizeClass($options.containerClass()),
-    role: "menuitem",
-    style: normalizeStyle($props.item.style),
-    "aria-label": $options.label(),
-    "aria-disabled": $options.disabled()
-  }, [createElementVNode("div", {
-    class: "p-menuitem-content",
-    onClick: _cache[0] || (_cache[0] = $event => $options.onItemClick($event))
-  }, [!$props.template ? (openBlock(), createElementBlock(Fragment, {
-    key: 0
-  }, [$props.item.to && !$options.disabled() ? (openBlock(), createBlock(_component_router_link, {
-    key: 0,
-    to: $props.item.to,
-    custom: ""
-  }, {
-    default: withCtx(({
-      navigate,
-      href,
-      isActive,
-      isExactActive
-    }) => [withDirectives((openBlock(), createElementBlock("a", {
-      href: href,
-      class: normalizeClass($options.linkClass({
-        isActive,
-        isExactActive
-      })),
-      tabindex: "-1",
-      "aria-hidden": "true",
-      onClick: $event => $options.onItemActionClick($event, navigate)
-    }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
-      key: 0,
-      class: normalizeClass(['p-menuitem-icon', $props.item.icon])
-    }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_3$1$5, toDisplayString$1($options.label()), 1)], 10, _hoisted_2$1$6)), [[_directive_ripple]])]),
-    _: 1
-  }, 8, ["to"])) : withDirectives((openBlock(), createElementBlock("a", {
-    key: 1,
-    href: $props.item.url,
-    class: normalizeClass($options.linkClass()),
-    target: $props.item.target,
-    tabindex: "-1",
-    "aria-hidden": "true"
-  }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
-    key: 0,
-    class: normalizeClass(['p-menuitem-icon', $props.item.icon])
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_5$n, toDisplayString$1($options.label()), 1)], 10, _hoisted_4$u)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
-    key: 1,
-    item: $props.item
-  }, null, 8, ["item"]))])], 14, _hoisted_1$1$6)) : createCommentVNode("", true);
-}
-
-script$1$6.render = render$1$6;
-var script$1w = {
-  name: 'Menu',
-  inheritAttrs: false,
-  emits: ['show', 'hide', 'focus', 'blur'],
-  props: {
-    popup: {
-      type: Boolean,
-      default: false
-    },
-    model: {
-      type: Array,
-      default: null
-    },
-    appendTo: {
-      type: String,
-      default: 'body'
-    },
-    autoZIndex: {
-      type: Boolean,
-      default: true
-    },
-    baseZIndex: {
-      type: Number,
-      default: 0
-    },
-    exact: {
-      type: Boolean,
-      default: true
-    },
-    tabindex: {
-      type: Number,
-      default: 0
-    },
-    'aria-label': {
-      type: String,
-      default: null
-    },
-    'aria-labelledby': {
-      type: String,
-      default: null
-    }
-  },
-
-  data() {
-    return {
-      overlayVisible: false,
-      focused: false,
-      focusedOptionIndex: -1,
-      selectedOptionIndex: -1
-    };
-  },
-
-  target: null,
-  outsideClickListener: null,
-  scrollHandler: null,
-  resizeListener: null,
-  container: null,
-  list: null,
-
-  mounted() {
-    if (!this.popup) {
-      this.bindResizeListener();
-      this.bindOutsideClickListener();
-    }
-  },
-
-  beforeUnmount() {
-    this.unbindResizeListener();
-    this.unbindOutsideClickListener();
-
-    if (this.scrollHandler) {
-      this.scrollHandler.destroy();
-      this.scrollHandler = null;
-    }
-
-    this.target = null;
-
-    if (this.container && this.autoZIndex) {
-      ZIndexUtils.clear(this.container);
-    }
-
-    this.container = null;
-  },
-
-  methods: {
-    itemClick(event) {
-      const item = event.item;
-
-      if (this.disabled(item)) {
-        return;
-      }
-
-      if (item.command) {
-        item.command(event);
-      }
-
-      if (item.to && event.navigate) {
-        event.navigate(event.originalEvent);
-      }
-
-      if (this.overlayVisible) this.hide();
-
-      if (!this.popup && this.focusedOptionIndex !== event.id) {
-        this.focusedOptionIndex = event.id;
-      }
-    },
-
-    onListFocus(event) {
-      this.focused = true;
-
-      if (!this.popup) {
-        if (this.selectedOptionIndex !== -1) {
-          this.changeFocusedOptionIndex(this.selectedOptionIndex);
-          this.selectedOptionIndex = -1;
-        } else this.changeFocusedOptionIndex(0);
-      }
-
-      this.$emit('focus', event);
-    },
-
-    onListBlur(event) {
-      this.focused = false;
-      this.focusedOptionIndex = -1;
-      this.$emit('blur', event);
-    },
-
-    onListKeyDown(event) {
-      switch (event.code) {
-        case 'ArrowDown':
-          this.onArrowDownKey(event);
-          break;
-
-        case 'ArrowUp':
-          this.onArrowUpKey(event);
-          break;
-
-        case 'Home':
-          this.onHomeKey(event);
-          break;
-
-        case 'End':
-          this.onEndKey(event);
-          break;
-
-        case 'Enter':
-          this.onEnterKey(event);
-          break;
-
-        case 'Space':
-          this.onSpaceKey(event);
-          break;
-
-        case 'Tab':
-          this.overlayVisible && this.hide();
-          break;
-      }
-    },
-
-    onArrowDownKey(event) {
-      const optionIndex = this.findNextOptionIndex(this.focusedOptionIndex);
-      this.changeFocusedOptionIndex(optionIndex);
-      event.preventDefault();
-    },
-
-    onArrowUpKey(event) {
-      if (event.altKey && this.popup) {
-        DomHandler.focus(this.target);
-        this.hide();
-        event.preventDefault();
-      } else {
-        const optionIndex = this.findPrevOptionIndex(this.focusedOptionIndex);
-        this.changeFocusedOptionIndex(optionIndex);
-        event.preventDefault();
-      }
-    },
-
-    onHomeKey(event) {
-      this.changeFocusedOptionIndex(0);
-      event.preventDefault();
-    },
-
-    onEndKey(event) {
-      this.changeFocusedOptionIndex(DomHandler.find(this.container, 'li.p-menuitem:not(.p-disabled)').length - 1);
-      event.preventDefault();
-    },
-
-    onEnterKey(event) {
-      const element = DomHandler.findSingle(this.list, `li[id="${`${this.focusedOptionIndex}`}"]`);
-      const anchorElement = element && DomHandler.findSingle(element, '.p-menuitem-link');
-      this.popup && DomHandler.focus(this.target);
-      anchorElement ? anchorElement.click() : element && element.click();
-      event.preventDefault();
-    },
-
-    onSpaceKey(event) {
-      this.onEnterKey(event);
-    },
-
-    findNextOptionIndex(index) {
-      const links = DomHandler.find(this.container, 'li.p-menuitem:not(.p-disabled)');
-      const matchedOptionIndex = [...links].findIndex(link => link.id === index);
-      return matchedOptionIndex > -1 ? matchedOptionIndex + 1 : 0;
-    },
-
-    findPrevOptionIndex(index) {
-      const links = DomHandler.find(this.container, 'li.p-menuitem:not(.p-disabled)');
-      const matchedOptionIndex = [...links].findIndex(link => link.id === index);
-      return matchedOptionIndex > -1 ? matchedOptionIndex - 1 : 0;
-    },
-
-    changeFocusedOptionIndex(index) {
-      const links = DomHandler.find(this.container, 'li.p-menuitem:not(.p-disabled)');
-      let order = index > links.length ? links.length - 1 : index < 0 ? 0 : index;
-      order > -1 && links.length > 0 && (this.focusedOptionIndex = links[order].getAttribute('id'));
-    },
-
-    toggle(event) {
-      if (this.overlayVisible) this.hide();else this.show(event);
-    },
-
-    show(event) {
-      this.overlayVisible = true;
-      this.target = event.currentTarget;
-    },
-
-    hide() {
-      this.overlayVisible = false;
-      this.target = null;
-    },
-
-    onEnter(el) {
-      this.alignOverlay();
-      this.bindOutsideClickListener();
-      this.bindResizeListener();
-      this.bindScrollListener();
-
-      if (this.autoZIndex) {
-        ZIndexUtils.set('menu', el, this.baseZIndex + this.$primevue.config.zIndex.menu);
-      }
-
-      if (this.popup) {
-        DomHandler.focus(this.list);
-        this.changeFocusedOptionIndex(0);
-      }
-
-      this.$emit('show');
-    },
-
-    onLeave() {
-      this.unbindOutsideClickListener();
-      this.unbindResizeListener();
-      this.unbindScrollListener();
-      this.$emit('hide');
-    },
-
-    onAfterLeave(el) {
-      if (this.autoZIndex) {
-        ZIndexUtils.clear(el);
-      }
-    },
-
-    alignOverlay() {
-      DomHandler.absolutePosition(this.container, this.target);
-      this.container.style.minWidth = DomHandler.getOuterWidth(this.target) + 'px';
-    },
-
-    bindOutsideClickListener() {
-      if (!this.outsideClickListener) {
-        this.outsideClickListener = event => {
-          const isOutsideContainer = this.container && !this.container.contains(event.target);
-          const isOutsideTarget = !(this.target && (this.target === event.target || this.target.contains(event.target)));
-
-          if (this.overlayVisible && isOutsideContainer && isOutsideTarget) {
-            this.hide();
-          } else if (!this.popup && isOutsideContainer && isOutsideTarget) {
-            this.focusedOptionIndex = -1;
-          }
-        };
-
-        document.addEventListener('click', this.outsideClickListener);
-      }
-    },
-
-    unbindOutsideClickListener() {
-      if (this.outsideClickListener) {
-        document.removeEventListener('click', this.outsideClickListener);
-        this.outsideClickListener = null;
-      }
-    },
-
-    bindScrollListener() {
-      if (!this.scrollHandler) {
-        this.scrollHandler = new ConnectedOverlayScrollHandler(this.target, () => {
-          if (this.overlayVisible) {
-            this.hide();
-          }
-        });
-      }
-
-      this.scrollHandler.bindScrollListener();
-    },
-
-    unbindScrollListener() {
-      if (this.scrollHandler) {
-        this.scrollHandler.unbindScrollListener();
-      }
-    },
-
-    bindResizeListener() {
-      if (!this.resizeListener) {
-        this.resizeListener = () => {
-          if (this.overlayVisible && !DomHandler.isTouchDevice()) {
-            this.hide();
-          }
-        };
-
-        window.addEventListener('resize', this.resizeListener);
-      }
-    },
-
-    unbindResizeListener() {
-      if (this.resizeListener) {
-        window.removeEventListener('resize', this.resizeListener);
-        this.resizeListener = null;
-      }
-    },
-
-    visible(item) {
-      return typeof item.visible === 'function' ? item.visible() : item.visible !== false;
-    },
-
-    disabled(item) {
-      return typeof item.disabled === 'function' ? item.disabled() : item.disabled;
-    },
-
-    label(item) {
-      return typeof item.label === 'function' ? item.label() : item.label;
-    },
-
-    separatorClass(item) {
-      return ['p-menuitem-separator', item.class];
-    },
-
-    onOverlayClick(event) {
-      OverlayEventBus.emit('overlay-click', {
-        originalEvent: event,
-        target: this.target
-      });
-    },
-
-    containerRef(el) {
-      this.container = el;
-    },
-
-    listRef(el) {
-      this.list = el;
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-menu p-component', {
-        'p-menu-overlay': this.popup,
-        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
-        'p-ripple-disabled': this.$primevue.config.ripple === false
-      }];
-    },
-
-    id() {
-      return this.$attrs.id || UniqueComponentId();
-    },
-
-    focusedOptionId() {
-      return this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : null;
-    }
-
-  },
-  components: {
-    PVMenuitem: script$1$6,
-    Portal: script$1x
-  }
-};
-const _hoisted_1$T = ["id"];
-const _hoisted_2$K = ["id", "tabindex", "aria-activedescendant", "aria-label", "aria-labelledby"];
-const _hoisted_3$y = ["id"];
-
-function render$B(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_PVMenuitem = resolveComponent("PVMenuitem");
-
-  const _component_Portal = resolveComponent("Portal");
-
-  return openBlock(), createBlock(_component_Portal, {
-    appendTo: $props.appendTo,
-    disabled: !$props.popup
-  }, {
-    default: withCtx(() => [createVNode(Transition, {
-      name: "p-connected-overlay",
-      onEnter: $options.onEnter,
-      onLeave: $options.onLeave,
-      onAfterLeave: $options.onAfterLeave
-    }, {
-      default: withCtx(() => [($props.popup ? $data.overlayVisible : true) ? (openBlock(), createElementBlock("div", mergeProps({
-        key: 0,
-        ref: $options.containerRef,
-        id: $options.id,
-        class: $options.containerClass
-      }, _ctx.$attrs, {
-        onClick: _cache[3] || (_cache[3] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args))
-      }), [createElementVNode("ul", {
-        ref: $options.listRef,
-        id: $options.id + '_list',
-        class: "p-menu-list p-reset",
-        role: "menu",
-        tabindex: $props.tabindex,
-        "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
-        "aria-label": _ctx.ariaLabel,
-        "aria-labelledby": _ctx.ariaLabelledby,
-        onFocus: _cache[0] || (_cache[0] = (...args) => $options.onListFocus && $options.onListFocus(...args)),
-        onBlur: _cache[1] || (_cache[1] = (...args) => $options.onListBlur && $options.onListBlur(...args)),
-        onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onListKeyDown && $options.onListKeyDown(...args))
-      }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.model, (item, i) => {
-        return openBlock(), createElementBlock(Fragment, {
-          key: $options.label(item) + i.toString()
-        }, [item.items && $options.visible(item) && !item.separator ? (openBlock(), createElementBlock(Fragment, {
-          key: 0
-        }, [item.items ? (openBlock(), createElementBlock("li", {
-          key: 0,
-          id: $options.id + '_' + i,
-          class: "p-submenu-header",
-          role: "none"
-        }, [renderSlot(_ctx.$slots, "item", {
-          item: item
-        }, () => [createTextVNode(toDisplayString$1($options.label(item)), 1)])], 8, _hoisted_3$y)) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(item.items, (child, j) => {
-          return openBlock(), createElementBlock(Fragment, {
-            key: child.label + i + '_' + j
-          }, [$options.visible(child) && !child.separator ? (openBlock(), createBlock(_component_PVMenuitem, {
-            key: 0,
-            id: $options.id + '_' + i + '_' + j,
-            item: child,
-            template: _ctx.$slots.item,
-            exact: $props.exact,
-            focusedOptionId: $options.focusedOptionId,
-            onItemClick: $options.itemClick
-          }, null, 8, ["id", "item", "template", "exact", "focusedOptionId", "onItemClick"])) : $options.visible(child) && child.separator ? (openBlock(), createElementBlock("li", {
-            key: 'separator' + i + j,
-            class: normalizeClass($options.separatorClass(item)),
-            style: normalizeStyle(child.style),
-            role: "separator"
-          }, null, 6)) : createCommentVNode("", true)], 64);
-        }), 128))], 64)) : $options.visible(item) && item.separator ? (openBlock(), createElementBlock("li", {
-          key: 'separator' + i.toString(),
-          class: normalizeClass($options.separatorClass(item)),
-          style: normalizeStyle(item.style),
-          role: "separator"
-        }, null, 6)) : (openBlock(), createBlock(_component_PVMenuitem, {
-          key: $options.label(item) + i.toString(),
-          id: $options.id + '_' + i,
-          item: item,
-          template: _ctx.$slots.item,
-          exact: $props.exact,
-          focusedOptionId: $options.focusedOptionId,
-          onItemClick: $options.itemClick
-        }, null, 8, ["id", "item", "template", "exact", "focusedOptionId", "onItemClick"]))], 64);
-      }), 128))], 40, _hoisted_2$K)], 16, _hoisted_1$T)) : createCommentVNode("", true)]),
-      _: 3
-    }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
-    _: 3
-  }, 8, ["appendTo", "disabled"]);
-}
-
-function styleInject$t(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$B = "\n.p-menu-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-menu ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menu .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menu .p-menuitem-text {\n    line-height: 1;\n}\n";
-styleInject$t(css_248z$B);
-script$1w.render = render$B;
 
 const Errors = {
   OK: 0,
@@ -13433,7 +12661,6 @@ class Aggregate extends Field {
 
 }
 
-const client = getClient();
 function toTree(arr, schema, parent_id = 0) {
   const nodes = [];
   const items = arr.filter(obj => obj['--recursive'] == parent_id);
@@ -13457,8 +12684,8 @@ function toReferenceTree(arr, schema, parent_id = 0) {
 
   for (const item of items) {
     const obj = {
-      key: item['--key'],
-      "label": item['--value'],
+      key: item.value,
+      "label": item.label,
       data: item
     };
     obj.children = toReferenceTree(arr, schema, obj.key);
@@ -13550,7 +12777,7 @@ function rowToTree(obj, parent) {
 
   return nobj;
 }
-function saveOrder(model, rows) {
+function saveOrder(model, rows, client) {
   const vals = [];
 
   for (let i in rows) {
@@ -13591,7 +12818,9 @@ class ID extends Field {
   getOptions(client, model, id) {
     if (!this._load_promise || id != this._cache_id) {
       this._cache_id = id;
-      this._load_promise = client.get("/reference/" + model + "/" + this._name + "/" + id).then(response => {
+      let url = "/reference/" + model + "/" + this._name;
+      if (id) url += "/" + id;
+      this._load_promise = client.get(url).then(response => {
         response.sort(sortByDictionary);
         return response;
       });
@@ -13603,7 +12832,9 @@ class ID extends Field {
   getRecursiveOptions(client, model, id, schema) {
     if (!this._load_promise) {
       this._cache_id = id;
-      this._load_promise = client.get("/reference/" + model + "/" + this._name + "/" + id).then(response => {
+      let url = "/reference/" + model + "/" + this._name;
+      if (id) url += "/" + id;
+      this._load_promise = client.get(url).then(response => {
         return toReferenceTree(response, schema);
       });
     }
@@ -13683,6 +12914,7 @@ class Time extends Field {
       date: true,
       time: false
     };
+    this._range = false;
     this._invalid_dates = [];
     this.buildGetterSetters();
     if (obj) this.apply(obj);
@@ -13744,6 +12976,7 @@ class Number$1 extends Field {
   constructor(name, obj) {
     super(name);
     this._round = 0;
+    this._range = false;
     this.buildGetterSetters();
     if (obj) this.apply(obj);
   }
@@ -13771,6 +13004,7 @@ class String$1 extends Field {
     super(name);
     this._encrypted = false;
     this._list;
+    this._multiple = false;
     this.buildGetterSetters();
     if (obj) this.apply(obj);
   }
@@ -13984,17 +13218,6 @@ function getSchema(name, schema) {
 
   return schema;
 }
-function getRoutesByProfile(profile) {
-  let croutes = {};
-
-  for (let route in routes) {
-    if (routes[route].schema['--owner'] && routes[route].schema['--owner'].reference == profile) {
-      croutes[route] = routes[route];
-    }
-  }
-
-  return croutes;
-}
 function createView(model) {
   function getFields(fields, schema) {
     let obj = {};
@@ -14047,683 +13270,13 @@ setStates(fields) {
     }
 */
 
-var script$1v = {
-  name: 'Button',
-  props: {
-    label: {
-      type: String,
-      default: null
-    },
-    icon: {
-      type: String,
-      default: null
-    },
-    iconPos: {
-      type: String,
-      default: 'left'
-    },
-    iconClass: {
-      type: String,
-      default: null
-    },
-    badge: {
-      type: String,
-      default: null
-    },
-    badgeClass: {
-      type: String,
-      default: null
-    },
-    loading: {
-      type: Boolean,
-      default: false
-    },
-    loadingIcon: {
-      type: String,
-      default: 'pi pi-spinner pi-spin'
-    }
-  },
-  computed: {
-    buttonClass() {
-      return {
-        'p-button p-component': true,
-        'p-button-icon-only': this.icon && !this.label,
-        'p-button-vertical': (this.iconPos === 'top' || this.iconPos === 'bottom') && this.label,
-        'p-disabled': this.$attrs.disabled || this.loading,
-        'p-button-loading': this.loading,
-        'p-button-loading-label-only': this.loading && !this.icon && this.label
-      };
-    },
-
-    iconStyleClass() {
-      return [this.loading ? 'p-button-loading-icon ' + this.loadingIcon : this.icon, 'p-button-icon', this.iconClass, {
-        'p-button-icon-left': this.iconPos === 'left' && this.label,
-        'p-button-icon-right': this.iconPos === 'right' && this.label,
-        'p-button-icon-top': this.iconPos === 'top' && this.label,
-        'p-button-icon-bottom': this.iconPos === 'bottom' && this.label
-      }];
-    },
-
-    badgeStyleClass() {
-      return ['p-badge p-component', this.badgeClass, {
-        'p-badge-no-gutter': this.badge && String(this.badge).length === 1
-      }];
-    },
-
-    disabled() {
-      return this.$attrs.disabled || this.loading;
-    },
-
-    defaultAriaLabel() {
-      return this.label ? this.label + (this.badge ? ' ' + this.badge : '') : this.$attrs['aria-label'];
-    }
-
-  },
-  directives: {
-    ripple: Ripple
-  }
-};
-const _hoisted_1$S = ["aria-label", "disabled"];
-const _hoisted_2$J = {
-  class: "p-button-label"
-};
-
-function render$A(_ctx, _cache, $props, $setup, $data, $options) {
-  const _directive_ripple = resolveDirective("ripple");
-
-  return withDirectives((openBlock(), createElementBlock("button", {
-    class: normalizeClass($options.buttonClass),
-    type: "button",
-    "aria-label": $options.defaultAriaLabel,
-    disabled: $options.disabled
-  }, [renderSlot(_ctx.$slots, "default", {}, () => [$props.loading && !$props.icon ? (openBlock(), createElementBlock("span", {
-    key: 0,
-    class: normalizeClass($options.iconStyleClass)
-  }, null, 2)) : createCommentVNode("", true), $props.icon ? (openBlock(), createElementBlock("span", {
-    key: 1,
-    class: normalizeClass($options.iconStyleClass)
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_2$J, toDisplayString$1($props.label || ' '), 1), $props.badge ? (openBlock(), createElementBlock("span", {
-    key: 2,
-    class: normalizeClass($options.badgeStyleClass)
-  }, toDisplayString$1($props.badge), 3)) : createCommentVNode("", true)])], 10, _hoisted_1$S)), [[_directive_ripple]]);
-}
-
-script$1v.render = render$A;
-
-var script$1u = {
-  name: 'InputText',
-  emits: ['update:modelValue'],
-  props: {
-    modelValue: null
-  },
-  methods: {
-    onInput(event) {
-      this.$emit('update:modelValue', event.target.value);
-    }
-
-  },
-  computed: {
-    filled() {
-      return this.modelValue != null && this.modelValue.toString().length > 0;
-    }
-
-  }
-};
-const _hoisted_1$R = ["value"];
-
-function render$z(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("input", {
-    class: normalizeClass(['p-inputtext p-component', {
-      'p-filled': $options.filled
-    }]),
-    value: $props.modelValue,
-    onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
-  }, null, 42, _hoisted_1$R);
-}
-
-script$1u.render = render$z;
-
-var script$1t = {
-  name: 'Card'
-};
-const _hoisted_1$Q = {
-  class: "p-card p-component"
-};
-const _hoisted_2$I = {
-  key: 0,
-  class: "p-card-header"
-};
-const _hoisted_3$x = {
-  class: "p-card-body"
-};
-const _hoisted_4$t = {
-  key: 0,
-  class: "p-card-title"
-};
-const _hoisted_5$m = {
-  key: 1,
-  class: "p-card-subtitle"
-};
-const _hoisted_6$h = {
-  class: "p-card-content"
-};
-const _hoisted_7$a = {
-  key: 2,
-  class: "p-card-footer"
-};
-
-function render$y(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$Q, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$I, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_3$x, [_ctx.$slots.title ? (openBlock(), createElementBlock("div", _hoisted_4$t, [renderSlot(_ctx.$slots, "title")])) : createCommentVNode("", true), _ctx.$slots.subtitle ? (openBlock(), createElementBlock("div", _hoisted_5$m, [renderSlot(_ctx.$slots, "subtitle")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_6$h, [renderSlot(_ctx.$slots, "content")]), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_7$a, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)])]);
-}
-
-function styleInject$s(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$A = "\n.p-card-header img {\n    width: 100%;\n}\n";
-styleInject$s(css_248z$A);
-script$1t.render = render$y;
-
-const _hoisted_1$P = /*#__PURE__*/createTextVNode(" Login ");
-const _hoisted_2$H = { class: "ptj-login" };
-const _hoisted_3$w = { class: "field row" };
-const _hoisted_4$s = { class: "p-float-label" };
-const _hoisted_5$l = /*#__PURE__*/createElementVNode("label", { for: "lusername" }, "Username", -1 /* HOISTED */);
-const _hoisted_6$g = { class: "field row" };
-const _hoisted_7$9 = { class: "p-float-label" };
-const _hoisted_8$8 = /*#__PURE__*/createElementVNode("label", { for: "lpassword" }, "Password", -1 /* HOISTED */);
-const _hoisted_9$6 = { class: "row" };
-const _hoisted_10$6 = { class: "ptj-register" };
-const _hoisted_11$6 = { class: "row" };
-const _hoisted_12$6 = { class: "p-float-label" };
-const _hoisted_13$5 = /*#__PURE__*/createElementVNode("label", { for: "cusername" }, "Username", -1 /* HOISTED */);
-const _hoisted_14$4 = { class: "row" };
-const _hoisted_15$3 = { class: "p-float-label" };
-const _hoisted_16$2 = /*#__PURE__*/createElementVNode("label", { for: "cpassword" }, "Password", -1 /* HOISTED */);
-const _hoisted_17$2 = { class: "row" };
-const _hoisted_18$2 = { class: "p-float-label" };
-const _hoisted_19$2 = /*#__PURE__*/createElementVNode("label", { for: "cconfirm_password" }, "Confirm Password", -1 /* HOISTED */);
-const _hoisted_20$2 = { class: "row" };
-const _hoisted_21$2 = { class: "ptj-register" };
-const _hoisted_22$1 = { class: "row" };
-const _hoisted_23$1 = { class: "p-float-label" };
-const _hoisted_24$1 = /*#__PURE__*/createElementVNode("label", { for: "fusername" }, "Username", -1 /* HOISTED */);
-const _hoisted_25$1 = { class: "row" };
-const _hoisted_26$1 = { class: "row" };
-const _hoisted_27$1 = /*#__PURE__*/createTextVNode(" | ");
-const _hoisted_28$1 = /*#__PURE__*/createTextVNode(" | ");
-
-
-
-var script$1s = {
-  props: {
-    actions : []
-},
-  setup(__props) {
-
-const Client = inject("client");
-const expected_user = configs.get("profile");
-const i18n = inject("i18n");
-const t = i18n.t;
-const base = configs.get("base");
-
-
-
-
-const store = reactive({
-    state : 'login',
-    active : true,
-    email : "",
-    password : "",
-    confirm_password : "",
-    globalerror : ''
-});
-
-function toggleState(state) {
-    store.state = state;
-}
-
-
-function login(username, password) {
-    const formData = new FormData();
-    formData.append("email", username);
-    formData.append("password", password);
-    return Client.post("/user/login/" + expected_user, formData)
-}
-
-
-
-function forgotPassword(username) {
-    const formData = new FormData();
-    formData.append("email", username);
-    return Client.post("/user/login/" + expected_user + "/forgotpassword", formData );
-}
-
-
-function createUser(name, username, password) {
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("email", username);
-    formData.append("password", password);
-    return Client.post("/user/login/" + expected_user, formData)
-}
-
-
-
-
-function submit() {
-    store.active = false;
-    store.globalerror = "";
-    if (store.state == "login") {
-        login(store.email, store.password)
-        .then(() => {
-            location.href = base + "/";
-        })
-        .catch(e => {
-            store.globalerror = "Incorrect username / password";
-        });
-    } else if (store.state == "forgotpassword") {
-        forgotPassword(store.username)
-        .catch(e => {
-            store.globalerror = "This user doesn't exist";
-        });
-    } else {
-        createUser(store.username, store.password)
-        .catch(e => {
-            store.applyErrors(e);
-        });
-    }
-} 
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1t), null, {
-    title: withCtx(() => [
-      _hoisted_1$P
-    ]),
-    content: withCtx(() => [
-      createElementVNode("div", _hoisted_2$H, [
-        withDirectives(createElementVNode("form", null, [
-          withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(unref(store).globalerror), 513 /* TEXT, NEED_PATCH */), [
-            [vShow, unref(store).globalerror]
-          ]),
-          createElementVNode("div", _hoisted_3$w, [
-            createElementVNode("span", _hoisted_4$s, [
-              createVNode(unref(script$1u), {
-                id: "lusername",
-                type: "text",
-                modelValue: unref(store).email,
-                "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((unref(store).email) = $event))
-              }, null, 8 /* PROPS */, ["modelValue"]),
-              _hoisted_5$l
-            ])
-          ]),
-          createElementVNode("div", _hoisted_6$g, [
-            createElementVNode("span", _hoisted_7$9, [
-              createVNode(unref(script$1u), {
-                id: "lpassword",
-                type: "password",
-                modelValue: unref(store).password,
-                "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((unref(store).password) = $event))
-              }, null, 8 /* PROPS */, ["modelValue"]),
-              _hoisted_8$8
-            ])
-          ]),
-          createElementVNode("div", _hoisted_9$6, [
-            createVNode(unref(script$1v), {
-              label: unref(t)('btns.login'),
-              onClick: submit
-            }, null, 8 /* PROPS */, ["label"])
-          ])
-        ], 512 /* NEED_PATCH */), [
-          [vShow, unref(store).state=='login']
-        ]),
-        withDirectives(createElementVNode("form", _hoisted_10$6, [
-          withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(unref(store).globalerror), 513 /* TEXT, NEED_PATCH */), [
-            [vShow, unref(store).globalerror]
-          ]),
-          createElementVNode("div", _hoisted_11$6, [
-            createElementVNode("span", _hoisted_12$6, [
-              createVNode(unref(script$1u), {
-                id: "cusername",
-                type: "text",
-                modelValue: unref(store).username,
-                "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => ((unref(store).username) = $event))
-              }, null, 8 /* PROPS */, ["modelValue"]),
-              _hoisted_13$5
-            ])
-          ]),
-          createElementVNode("div", _hoisted_14$4, [
-            createElementVNode("span", _hoisted_15$3, [
-              createVNode(unref(script$1u), {
-                id: "cpassword",
-                type: "password",
-                modelValue: unref(store).password,
-                "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => ((unref(store).password) = $event))
-              }, null, 8 /* PROPS */, ["modelValue"]),
-              _hoisted_16$2
-            ])
-          ]),
-          createElementVNode("div", _hoisted_17$2, [
-            createElementVNode("span", _hoisted_18$2, [
-              createVNode(unref(script$1u), {
-                id: "cconfirm_password",
-                type: "password",
-                modelValue: unref(store).confirm_password,
-                "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => ((unref(store).confirm_password) = $event))
-              }, null, 8 /* PROPS */, ["modelValue"]),
-              _hoisted_19$2
-            ])
-          ]),
-          createElementVNode("div", _hoisted_20$2, [
-            createVNode(unref(script$1v), {
-              label: unref(t)('btns.create'),
-              onClick: submit
-            }, null, 8 /* PROPS */, ["label"])
-          ])
-        ], 512 /* NEED_PATCH */), [
-          [vShow, unref(store).state=='create']
-        ]),
-        withDirectives(createElementVNode("form", _hoisted_21$2, [
-          withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(unref(store).globalerror), 513 /* TEXT, NEED_PATCH */), [
-            [vShow, unref(store).globalerror]
-          ]),
-          createElementVNode("div", _hoisted_22$1, [
-            createElementVNode("span", _hoisted_23$1, [
-              createVNode(unref(script$1u), {
-                id: "fusername",
-                type: "text",
-                modelValue: unref(store).username,
-                "onUpdate:modelValue": _cache[5] || (_cache[5] = $event => ((unref(store).username) = $event))
-              }, null, 8 /* PROPS */, ["modelValue"]),
-              _hoisted_24$1
-            ])
-          ]),
-          createElementVNode("div", _hoisted_25$1, [
-            createVNode(unref(script$1v), {
-              label: unref(t)('btns.forgot'),
-              onClick: submit
-            }, null, 8 /* PROPS */, ["label"])
-          ])
-        ], 512 /* NEED_PATCH */), [
-          [vShow, unref(store).state=='forgotpassword']
-        ]),
-        createElementVNode("div", _hoisted_26$1, [
-          createElementVNode("a", {
-            onClick: _cache[6] || (_cache[6] = $event => (toggleState('login')))
-          }, "Login"),
-          _hoisted_27$1,
-          createElementVNode("a", {
-            onClick: _cache[7] || (_cache[7] = $event => (toggleState('create')))
-          }, "Register"),
-          _hoisted_28$1,
-          createElementVNode("a", {
-            onClick: _cache[8] || (_cache[8] = $event => (toggleState('forgotpassword')))
-          }, "Forgotten password?")
-        ])
-      ])
-    ]),
-    _: 1 /* STABLE */
-  }))
-}
-}
-
-};
-
-function styleInject$r(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$z = "\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v {\r\n        width : 450px;\r\n        margin-left : auto;\r\n        margin-right : auto;\n}\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v > form > div {\r\n        margin-bottom :28px;\n}\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v input {\r\n        width : 100%;\n}\r\n";
-styleInject$r(css_248z$z);
-
-script$1s.__file = "presstojam/src/components/login/login.vue";
-
-var login = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': script$1s
-});
-
-function render$x(_ctx, _cache) {
-  const _component_router_view = resolveComponent("router-view");
-
-  return (openBlock(), createBlock(_component_router_view, null, {
-    default: withCtx(({ Component, route }) => [
-      createVNode(Transition, {
-        name: "fade",
-        mode: "out-in"
-      }, {
-        default: withCtx(() => [
-          (openBlock(), createBlock(resolveDynamicComponent(Component), {
-            atts: route.params,
-            key: route.model + route.id
-          }, null, 8 /* PROPS */, ["atts"]))
-        ]),
-        _: 2 /* DYNAMIC */
-      }, 1024 /* DYNAMIC_SLOTS */)
-    ]),
-    _: 1 /* STABLE */
-  }))
-}
-
-var css_248z$y = "\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  transition-property: opacity;\r\n  transition-duration: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs {\r\n  transition-delay: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter__T5pru, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  opacity: 0\n}\r\n";
-styleInject$r(css_248z$y);
-
-const script$1r = {};
-
-script$1r.render = render$x;
-script$1r.__file = "presstojam/src/components/routes.vue";
-
-const _hoisted_1$O = { key: 1 };
-const _hoisted_2$G = { class: "ptj-users" };
-
-
-
-var script$1q = {
-  async setup(__props) {
-
-let __temp, __restore;
-
-const _profile = configs.get("profile");
-
-
-const menu = ref();
-const name = ref("");
-const items = ref([]);
-const teleport = configs.get("user.teleport", "body");
-
-const client = inject("client");
-const i18n = inject("i18n");
-const router = inject("router");
-
-const require_login = ref(false);
-
-const toggle = (event) => {
-    menu.value.toggle(event);
-};
-
-function logout()  {
-    return client.post("/user/logout", {'x-force-auth-cookies' : 1})
-    .then(() => {
-        location.href = configs.get("base") + "/";
-    });
-}
-
-
-function loadRoutes() {
-    const base = configs.get("base");
-
-    return client.get("/user/site-map")
-    .then(response => {
-        return loadSiteMap(response);
-    })
-    .then(routes => {
-        let def = false;
-
-        for(const i in routes) {
-            if (!def && !routes[i].parent) def = { path : base + "/" , name : 'home', redirect : base + "/data/" + i};
-        }
-
-        if (def) {
-            router.addRoute(def);
-        }
-    })
-    .then(() => {
-        getRoutesByProfile(_profile);
-        items.value.push({
-            label : 'Logout',
-            command() {
-                logout();
-            }
-        });
-    })
-}
-
-
-function loadDictionary() {
-    client.get("/user/dictionary")
-    .then(response => {
-        for(let i in response) {
-            i18n.setLocaleMessage(i, response[i]);
-        }
-    });
-}
-
-function loadUser() {
-    client.get("/user/details")
-    .then(response => {
-        name.value = (response.name) ? response.name : response.email;
-    });  
-}
-(
-  ([__temp,__restore] = withAsyncContext(() => client.get("/user/check-user")
-.then(response => {
-    if (response.name != _profile) {
-        require_login.value = true;
-        return loadDictionary();
-    } else {
-        let promises = [];
-        promises.push(loadUser());
-        promises.push(loadDictionary());
-        promises.push(loadRoutes());
-        return Promise.all(promises);
-    }    
-}))),
-  await __temp,
-  __restore()
-);
-
-
-
-return (_ctx, _cache) => {
-  return (require_login.value)
-    ? (openBlock(), createBlock(script$1s, { key: 0 }))
-    : (openBlock(), createElementBlock("div", _hoisted_1$O, [
-        (openBlock(), createBlock(Teleport, { to: unref(teleport) }, [
-          createElementVNode("div", _hoisted_2$G, [
-            createVNode(unref(script$1v), {
-              type: "button",
-              label: "Toggle",
-              onClick: toggle,
-              "aria-haspopup": "true",
-              "aria-controls": "overlay_menu"
-            }, {
-              default: withCtx(() => [
-                createTextVNode(toDisplayString$1(name.value), 1 /* TEXT */)
-              ]),
-              _: 1 /* STABLE */
-            }),
-            createVNode(unref(script$1w), {
-              id: "overlay_menu",
-              ref_key: "menu",
-              ref: menu,
-              model: items.value,
-              popup: true
-            }, null, 8 /* PROPS */, ["model"])
-          ])
-        ], 8 /* PROPS */, ["to"])),
-        createVNode(script$1r)
-      ]))
-}
-}
-
-};
-
-script$1q.__file = "presstojam/src/components/user.vue";
-
-var script$1p = {
-  setup(__props) {
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(Suspense, null, {
-    default: withCtx(() => [
-      createVNode(script$1q)
-    ]),
-    _: 1 /* STABLE */
-  }))
-}
-}
-
-};
-
-script$1p.__file = "presstojam/src/components/controller.vue";
-
 class DataStore {
   constructor(client, model) {
     this._client = client;
     this._model = model;
     this._count_promise = null;
     this._load_promise = null;
+    this._first_promise = null;
     this._params = {};
     this._route = createView(model);
     this._filters = {};
@@ -14775,6 +13328,17 @@ class DataStore {
     }
 
     return this.load_promise;
+  }
+
+  loadFirst() {
+    if (!this._first_promise) {
+      let url = "/data/" + this._model + "/first";
+      this._first_promise = this._client.get(url, this.buildParams()).then(row => {
+        this._active_id = row['--id'];
+      });
+    }
+
+    return this.first_promise;
   }
 
   reset() {
@@ -14994,8 +13558,131 @@ function createActiveStore(store) {
 
   };
 }
+function createFirstStore(store) {
+  return {
+    parent_id: ref(0),
+    store: store,
+    active_id: 0,
+    is_loading: ref(false),
+    selected: ref([]),
+    data: ref({}),
+    label: ref(''),
+    load_promise: null,
 
-var script$1o = {
+    load() {
+      this.is_loading.value = true;
+      this.load_promise = store.loadFirst().then(() => {
+        return store.load();
+      }).then(response => {
+        this.data.value = response;
+        if (this.data.value['--parentid']) this.parent_id.value = this.data.value['--parentid'];
+        this.label.value = getLabel(store.route.schema, this.data.value);
+        this.is_loading.value = false;
+      }).catch(e => {
+        console.log(e);
+        this.is_loading.value = false;
+      });
+    },
+
+    overwrite(obj) {
+      for (let x in obj) {
+        this.data.value[x] = obj[x];
+      }
+    }
+
+  };
+}
+
+let timeout;
+
+function bindEvents(el) {
+  el.addEventListener('mousedown', onMouseDown);
+}
+
+function unbindEvents(el) {
+  el.removeEventListener('mousedown', onMouseDown);
+}
+
+function create(el) {
+  let ink = document.createElement('span');
+  ink.className = 'p-ink';
+  ink.setAttribute('role', 'presentation');
+  el.appendChild(ink);
+  ink.addEventListener('animationend', onAnimationEnd);
+}
+
+function remove(el) {
+  let ink = getInk(el);
+
+  if (ink) {
+    unbindEvents(el);
+    ink.removeEventListener('animationend', onAnimationEnd);
+    ink.remove();
+  }
+}
+
+function onMouseDown(event) {
+  let target = event.currentTarget;
+  let ink = getInk(target);
+
+  if (!ink || getComputedStyle(ink, null).display === 'none') {
+    return;
+  }
+
+  DomHandler.removeClass(ink, 'p-ink-active');
+
+  if (!DomHandler.getHeight(ink) && !DomHandler.getWidth(ink)) {
+    let d = Math.max(DomHandler.getOuterWidth(target), DomHandler.getOuterHeight(target));
+    ink.style.height = d + 'px';
+    ink.style.width = d + 'px';
+  }
+
+  let offset = DomHandler.getOffset(target);
+  let x = event.pageX - offset.left + document.body.scrollTop - DomHandler.getWidth(ink) / 2;
+  let y = event.pageY - offset.top + document.body.scrollLeft - DomHandler.getHeight(ink) / 2;
+  ink.style.top = y + 'px';
+  ink.style.left = x + 'px';
+  DomHandler.addClass(ink, 'p-ink-active');
+  timeout = setTimeout(() => {
+    if (ink) {
+      DomHandler.removeClass(ink, 'p-ink-active');
+    }
+  }, 401);
+}
+
+function onAnimationEnd(event) {
+  if (timeout) {
+    clearTimeout(timeout);
+  }
+
+  DomHandler.removeClass(event.currentTarget, 'p-ink-active');
+}
+
+function getInk(el) {
+  for (let i = 0; i < el.children.length; i++) {
+    if (typeof el.children[i].className === 'string' && el.children[i].className.indexOf('p-ink') !== -1) {
+      return el.children[i];
+    }
+  }
+
+  return null;
+}
+
+const Ripple = {
+  mounted(el, binding) {
+    if (binding.instance.$primevue && binding.instance.$primevue.config && binding.instance.$primevue.config.ripple) {
+      create(el);
+      bindEvents(el);
+    }
+  },
+
+  unmounted(el) {
+    remove(el);
+  }
+
+};
+
+var script$1A = {
   name: 'Panel',
   emits: ['update:collapsed', 'toggle'],
   props: {
@@ -15051,29 +13738,29 @@ var script$1o = {
     ripple: Ripple
   }
 };
-const _hoisted_1$N = {
+const _hoisted_1$V = {
   class: "p-panel-header"
 };
-const _hoisted_2$F = ["id"];
-const _hoisted_3$v = {
+const _hoisted_2$L = ["id"];
+const _hoisted_3$A = {
   class: "p-panel-icons"
 };
-const _hoisted_4$r = ["id", "aria-label", "aria-controls", "aria-expanded"];
-const _hoisted_5$k = ["id", "aria-labelledby"];
-const _hoisted_6$f = {
+const _hoisted_4$w = ["id", "aria-label", "aria-controls", "aria-expanded"];
+const _hoisted_5$o = ["id", "aria-labelledby"];
+const _hoisted_6$i = {
   class: "p-panel-content"
 };
 
-function render$w(_ctx, _cache, $props, $setup, $data, $options) {
+function render$D(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [createElementVNode("div", _hoisted_1$N, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
+  }, [createElementVNode("div", _hoisted_1$V, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
     key: 0,
     id: $options.ariaId + '_header',
     class: "p-panel-title"
-  }, toDisplayString$1($props.header), 9, _hoisted_2$F)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$v, [renderSlot(_ctx.$slots, "icons"), $props.toggleable ? withDirectives((openBlock(), createElementBlock("button", {
+  }, toDisplayString$1($props.header), 9, _hoisted_2$L)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$A, [renderSlot(_ctx.$slots, "icons"), $props.toggleable ? withDirectives((openBlock(), createElementBlock("button", {
     key: 0,
     id: $options.ariaId + '_header',
     type: "button",
@@ -15089,7 +13776,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
       'pi pi-minus': !$data.d_collapsed,
       'pi pi-plus': $data.d_collapsed
     })
-  }, null, 2)], 40, _hoisted_4$r)), [[_directive_ripple]]) : createCommentVNode("", true)])]), createVNode(Transition, {
+  }, null, 2)], 40, _hoisted_4$w)), [[_directive_ripple]]) : createCommentVNode("", true)])]), createVNode(Transition, {
     name: "p-toggleable-content"
   }, {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
@@ -15097,12 +13784,12 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
       class: "p-toggleable-content",
       role: "region",
       "aria-labelledby": $options.ariaId + '_header'
-    }, [createElementVNode("div", _hoisted_6$f, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$k), [[vShow, !$data.d_collapsed]])]),
+    }, [createElementVNode("div", _hoisted_6$i, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$o), [[vShow, !$data.d_collapsed]])]),
     _: 3
   })], 2);
 }
 
-function styleInject$q(css, ref) {
+function styleInject$u(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -15131,407 +13818,36 @@ function styleInject$q(css, ref) {
   }
 }
 
-var css_248z$x = "\n.p-panel-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-panel-title {\n    line-height: 1;\n}\n.p-panel-header-icon {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n";
-styleInject$q(css_248z$x);
-script$1o.render = render$w;
+var css_248z$C = "\n.p-panel-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-panel-title {\n    line-height: 1;\n}\n.p-panel-header-icon {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n";
+styleInject$u(css_248z$C);
+script$1A.render = render$D;
 
-var script$1$5 = {
-  name: 'TreeNode',
-  emits: ['node-toggle', 'node-click', 'checkbox-change'],
+var script$1z = {
+  name: 'Button',
   props: {
-    node: {
-      type: null,
-      default: null
-    },
-    expandedKeys: {
-      type: null,
-      default: null
-    },
-    selectionKeys: {
-      type: null,
-      default: null
-    },
-    selectionMode: {
+    label: {
       type: String,
       default: null
     },
-    templates: {
-      type: null,
-      default: null
-    },
-    level: {
-      type: Number,
-      default: null
-    },
-    index: {
-      type: Number,
-      default: null
-    }
-  },
-  nodeTouched: false,
-  methods: {
-    toggle() {
-      this.$emit('node-toggle', this.node);
-    },
-
-    label(node) {
-      return typeof node.label === 'function' ? node.label() : node.label;
-    },
-
-    onChildNodeToggle(node) {
-      this.$emit('node-toggle', node);
-    },
-
-    onClick(event) {
-      if (DomHandler.hasClass(event.target, 'p-tree-toggler') || DomHandler.hasClass(event.target.parentElement, 'p-tree-toggler')) {
-        return;
-      }
-
-      if (this.isCheckboxSelectionMode()) {
-        this.toggleCheckbox();
-      } else {
-        this.$emit('node-click', {
-          originalEvent: event,
-          nodeTouched: this.nodeTouched,
-          node: this.node
-        });
-      }
-
-      this.nodeTouched = false;
-    },
-
-    onChildNodeClick(event) {
-      this.$emit('node-click', event);
-    },
-
-    onTouchEnd() {
-      this.nodeTouched = true;
-    },
-
-    onKeyDown(event) {
-      const nodeElement = event.target.parentElement;
-
-      switch (event.code) {
-        case 'ArrowDown':
-          var listElement = nodeElement.children[1];
-
-          if (listElement) {
-            this.focusNode(listElement.children[0]);
-          } else {
-            const nextNodeElement = nodeElement.nextElementSibling;
-
-            if (nextNodeElement) {
-              this.focusNode(nextNodeElement);
-            } else {
-              let nextSiblingAncestor = this.findNextSiblingOfAncestor(nodeElement);
-
-              if (nextSiblingAncestor) {
-                this.focusNode(nextSiblingAncestor);
-              }
-            }
-          }
-
-          break;
-
-        case 'ArrowUp':
-          if (nodeElement.previousElementSibling) {
-            this.focusNode(this.findLastVisibleDescendant(nodeElement.previousElementSibling));
-          } else {
-            let parentNodeElement = this.getParentNodeElement(nodeElement);
-
-            if (parentNodeElement) {
-              this.focusNode(parentNodeElement);
-            }
-          }
-
-          break;
-
-        case 'ArrowRight':
-        case 'ArrowLeft':
-          this.$emit('node-toggle', this.node);
-          break;
-
-        case 'Enter':
-        case 'Space':
-          this.onClick(event);
-          break;
-      }
-
-      event.preventDefault();
-    },
-
-    toggleCheckbox() {
-      let _selectionKeys = this.selectionKeys ? { ...this.selectionKeys
-      } : {};
-
-      const _check = !this.checked;
-
-      this.propagateDown(this.node, _check, _selectionKeys);
-      this.$emit('checkbox-change', {
-        node: this.node,
-        check: _check,
-        selectionKeys: _selectionKeys
-      });
-    },
-
-    propagateDown(node, check, selectionKeys) {
-      if (check) selectionKeys[node.key] = {
-        checked: true,
-        partialChecked: false
-      };else delete selectionKeys[node.key];
-
-      if (node.children && node.children.length) {
-        for (let child of node.children) {
-          this.propagateDown(child, check, selectionKeys);
-        }
-      }
-    },
-
-    propagateUp(event) {
-      let check = event.check;
-      let _selectionKeys = { ...event.selectionKeys
-      };
-      let checkedChildCount = 0;
-      let childPartialSelected = false;
-
-      for (let child of this.node.children) {
-        if (_selectionKeys[child.key] && _selectionKeys[child.key].checked) checkedChildCount++;else if (_selectionKeys[child.key] && _selectionKeys[child.key].partialChecked) childPartialSelected = true;
-      }
-
-      if (check && checkedChildCount === this.node.children.length) {
-        _selectionKeys[this.node.key] = {
-          checked: true,
-          partialChecked: false
-        };
-      } else {
-        if (!check) {
-          delete _selectionKeys[this.node.key];
-        }
-
-        if (childPartialSelected || checkedChildCount > 0 && checkedChildCount !== this.node.children.length) _selectionKeys[this.node.key] = {
-          checked: false,
-          partialChecked: true
-        };else delete _selectionKeys[this.node.key];
-      }
-
-      this.$emit('checkbox-change', {
-        node: event.node,
-        check: event.check,
-        selectionKeys: _selectionKeys
-      });
-    },
-
-    onChildCheckboxChange(event) {
-      this.$emit('checkbox-change', event);
-    },
-
-    findNextSiblingOfAncestor(nodeElement) {
-      let parentNodeElement = this.getParentNodeElement(nodeElement);
-
-      if (parentNodeElement) {
-        if (parentNodeElement.nextElementSibling) return parentNodeElement.nextElementSibling;else return this.findNextSiblingOfAncestor(parentNodeElement);
-      } else {
-        return null;
-      }
-    },
-
-    findLastVisibleDescendant(nodeElement) {
-      const childrenListElement = nodeElement.children[1];
-
-      if (childrenListElement) {
-        const lastChildElement = childrenListElement.children[childrenListElement.children.length - 1];
-        return this.findLastVisibleDescendant(lastChildElement);
-      } else {
-        return nodeElement;
-      }
-    },
-
-    getParentNodeElement(nodeElement) {
-      const parentNodeElement = nodeElement.parentElement.parentElement;
-      return DomHandler.hasClass(parentNodeElement, 'p-treenode') ? parentNodeElement : null;
-    },
-
-    focusNode(element) {
-      element.children[0].focus();
-    },
-
-    isCheckboxSelectionMode() {
-      return this.selectionMode === 'checkbox';
-    }
-
-  },
-  computed: {
-    hasChildren() {
-      return this.node.children && this.node.children.length > 0;
-    },
-
-    expanded() {
-      return this.expandedKeys && this.expandedKeys[this.node.key] === true;
-    },
-
-    leaf() {
-      return this.node.leaf === false ? false : !(this.node.children && this.node.children.length);
-    },
-
-    selectable() {
-      return this.node.selectable === false ? false : this.selectionMode != null;
-    },
-
-    selected() {
-      return this.selectionMode && this.selectionKeys ? this.selectionKeys[this.node.key] === true : false;
-    },
-
-    containerClass() {
-      return ['p-treenode', {
-        'p-treenode-leaf': this.leaf
-      }];
-    },
-
-    contentClass() {
-      return ['p-treenode-content', this.node.styleClass, {
-        'p-treenode-selectable': this.selectable,
-        'p-highlight': this.checkboxMode ? this.checked : this.selected
-      }];
-    },
-
-    icon() {
-      return ['p-treenode-icon', this.node.icon];
-    },
-
-    toggleIcon() {
-      return ['p-tree-toggler-icon pi pi-fw', this.expanded ? this.node.expandedIcon || 'pi-chevron-down' : this.node.collapsedIcon || 'pi-chevron-right'];
-    },
-
-    checkboxClass() {
-      return ['p-checkbox-box', {
-        'p-highlight': this.checked,
-        'p-indeterminate': this.partialChecked
-      }];
-    },
-
-    checkboxIcon() {
-      return ['p-checkbox-icon', {
-        'pi pi-check': this.checked,
-        'pi pi-minus': this.partialChecked
-      }];
-    },
-
-    checkboxMode() {
-      return this.selectionMode === 'checkbox' && this.node.selectable !== false;
-    },
-
-    checked() {
-      return this.selectionKeys ? this.selectionKeys[this.node.key] && this.selectionKeys[this.node.key].checked : false;
-    },
-
-    partialChecked() {
-      return this.selectionKeys ? this.selectionKeys[this.node.key] && this.selectionKeys[this.node.key].partialChecked : false;
-    }
-
-  },
-  directives: {
-    ripple: Ripple
-  }
-};
-const _hoisted_1$1$5 = ["aria-label", "aria-selected", "aria-expanded", "aria-setsize", "aria-posinset", "aria-level"];
-const _hoisted_2$1$5 = ["aria-expanded"];
-const _hoisted_3$1$4 = {
-  key: 0,
-  class: "p-checkbox p-component"
-};
-const _hoisted_4$1$3 = ["aria-checked"];
-const _hoisted_5$1$3 = {
-  class: "p-treenode-label"
-};
-const _hoisted_6$e = {
-  key: 0,
-  class: "p-treenode-children",
-  role: "group"
-};
-
-function render$1$5(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_TreeNode = resolveComponent("TreeNode", true);
-
-  const _directive_ripple = resolveDirective("ripple");
-
-  return openBlock(), createElementBlock("li", {
-    class: normalizeClass($options.containerClass),
-    role: "treeitem",
-    "aria-label": $options.label($props.node),
-    "aria-selected": $options.selected,
-    "aria-expanded": $options.expanded,
-    "aria-setsize": $props.node.children ? $props.node.children.length : 0,
-    "aria-posinset": $props.index + 1,
-    "aria-level": $props.level
-  }, [createElementVNode("div", {
-    class: normalizeClass($options.contentClass),
-    tabindex: "0",
-    role: "treeitem",
-    "aria-expanded": $options.expanded,
-    onClick: _cache[1] || (_cache[1] = (...args) => $options.onClick && $options.onClick(...args)),
-    onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
-    onTouchend: _cache[3] || (_cache[3] = (...args) => $options.onTouchEnd && $options.onTouchEnd(...args)),
-    style: normalizeStyle($props.node.style)
-  }, [withDirectives((openBlock(), createElementBlock("button", {
-    type: "button",
-    class: "p-tree-toggler p-link",
-    onClick: _cache[0] || (_cache[0] = (...args) => $options.toggle && $options.toggle(...args)),
-    tabindex: "-1"
-  }, [createElementVNode("span", {
-    class: normalizeClass($options.toggleIcon)
-  }, null, 2)])), [[_directive_ripple]]), $options.checkboxMode ? (openBlock(), createElementBlock("div", _hoisted_3$1$4, [createElementVNode("div", {
-    class: normalizeClass($options.checkboxClass),
-    role: "checkbox",
-    "aria-checked": $options.checked
-  }, [createElementVNode("span", {
-    class: normalizeClass($options.checkboxIcon)
-  }, null, 2)], 10, _hoisted_4$1$3)])) : createCommentVNode("", true), createElementVNode("span", {
-    class: normalizeClass($options.icon)
-  }, null, 2), createElementVNode("span", _hoisted_5$1$3, [$props.templates[$props.node.type] || $props.templates['default'] ? (openBlock(), createBlock(resolveDynamicComponent($props.templates[$props.node.type] || $props.templates['default']), {
-    key: 0,
-    node: $props.node
-  }, null, 8, ["node"])) : (openBlock(), createElementBlock(Fragment, {
-    key: 1
-  }, [createTextVNode(toDisplayString$1($options.label($props.node)), 1)], 64))])], 46, _hoisted_2$1$5), $options.hasChildren && $options.expanded ? (openBlock(), createElementBlock("ul", _hoisted_6$e, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.node.children, childNode => {
-    return openBlock(), createBlock(_component_TreeNode, {
-      key: childNode.key,
-      node: childNode,
-      templates: $props.templates,
-      level: $props.level + 1,
-      expandedKeys: $props.expandedKeys,
-      onNodeToggle: $options.onChildNodeToggle,
-      onNodeClick: $options.onChildNodeClick,
-      selectionMode: $props.selectionMode,
-      selectionKeys: $props.selectionKeys,
-      onCheckboxChange: $options.propagateUp
-    }, null, 8, ["node", "templates", "level", "expandedKeys", "onNodeToggle", "onNodeClick", "selectionMode", "selectionKeys", "onCheckboxChange"]);
-  }), 128))])) : createCommentVNode("", true)], 10, _hoisted_1$1$5);
-}
-
-script$1$5.render = render$1$5;
-var script$1n = {
-  name: 'Tree',
-  emits: ['node-expand', 'node-collapse', 'update:expandedKeys', 'update:selectionKeys', 'node-select', 'node-unselect'],
-  props: {
-    value: {
-      type: null,
-      default: null
-    },
-    expandedKeys: {
-      type: null,
-      default: null
-    },
-    selectionKeys: {
-      type: null,
-      default: null
-    },
-    selectionMode: {
+    icon: {
       type: String,
       default: null
     },
-    metaKeySelection: {
-      type: Boolean,
-      default: true
+    iconPos: {
+      type: String,
+      default: 'left'
+    },
+    iconClass: {
+      type: String,
+      default: null
+    },
+    badge: {
+      type: String,
+      default: null
+    },
+    badgeClass: {
+      type: String,
+      default: null
     },
     loading: {
       type: Boolean,
@@ -15539,1738 +13855,110 @@ var script$1n = {
     },
     loadingIcon: {
       type: String,
-      default: 'pi pi-spinner'
-    },
-    filter: {
-      type: Boolean,
-      default: false
-    },
-    filterBy: {
-      type: String,
-      default: 'label'
-    },
-    filterMode: {
-      type: String,
-      default: 'lenient'
-    },
-    filterPlaceholder: {
-      type: String,
-      default: null
-    },
-    filterLocale: {
-      type: String,
-      default: undefined
-    },
-    scrollHeight: {
-      type: String,
-      default: null
-    },
-    level: {
-      type: Number,
-      default: 0
-    }
-  },
-
-  data() {
-    return {
-      d_expandedKeys: this.expandedKeys || {},
-      filterValue: null
-    };
-  },
-
-  watch: {
-    expandedKeys(newValue) {
-      this.d_expandedKeys = newValue;
-    }
-
-  },
-  methods: {
-    onNodeToggle(node) {
-      const key = node.key;
-
-      if (this.d_expandedKeys[key]) {
-        delete this.d_expandedKeys[key];
-        this.$emit('node-collapse', node);
-      } else {
-        this.d_expandedKeys[key] = true;
-        this.$emit('node-expand', node);
-      }
-
-      this.d_expandedKeys = { ...this.d_expandedKeys
-      };
-      this.$emit('update:expandedKeys', this.d_expandedKeys);
-    },
-
-    onNodeClick(event) {
-      if (this.selectionMode != null && event.node.selectable !== false) {
-        const metaSelection = event.nodeTouched ? false : this.metaKeySelection;
-
-        const _selectionKeys = metaSelection ? this.handleSelectionWithMetaKey(event) : this.handleSelectionWithoutMetaKey(event);
-
-        this.$emit('update:selectionKeys', _selectionKeys);
-      }
-    },
-
-    onCheckboxChange(event) {
-      this.$emit('update:selectionKeys', event.selectionKeys);
-      if (event.check) this.$emit('node-select', event.node);else this.$emit('node-unselect', event.node);
-    },
-
-    handleSelectionWithMetaKey(event) {
-      const originalEvent = event.originalEvent;
-      const node = event.node;
-      const metaKey = originalEvent.metaKey || originalEvent.ctrlKey;
-      const selected = this.isNodeSelected(node);
-
-      let _selectionKeys;
-
-      if (selected && metaKey) {
-        if (this.isSingleSelectionMode()) {
-          _selectionKeys = {};
-        } else {
-          _selectionKeys = { ...this.selectionKeys
-          };
-          delete _selectionKeys[node.key];
-        }
-
-        this.$emit('node-unselect', node);
-      } else {
-        if (this.isSingleSelectionMode()) {
-          _selectionKeys = {};
-        } else if (this.isMultipleSelectionMode()) {
-          _selectionKeys = !metaKey ? {} : this.selectionKeys ? { ...this.selectionKeys
-          } : {};
-        }
-
-        _selectionKeys[node.key] = true;
-        this.$emit('node-select', node);
-      }
-
-      return _selectionKeys;
-    },
-
-    handleSelectionWithoutMetaKey(event) {
-      const node = event.node;
-      const selected = this.isNodeSelected(node);
-
-      let _selectionKeys;
-
-      if (this.isSingleSelectionMode()) {
-        if (selected) {
-          _selectionKeys = {};
-          this.$emit('node-unselect', node);
-        } else {
-          _selectionKeys = {};
-          _selectionKeys[node.key] = true;
-          this.$emit('node-select', node);
-        }
-      } else {
-        if (selected) {
-          _selectionKeys = { ...this.selectionKeys
-          };
-          delete _selectionKeys[node.key];
-          this.$emit('node-unselect', node);
-        } else {
-          _selectionKeys = this.selectionKeys ? { ...this.selectionKeys
-          } : {};
-          _selectionKeys[node.key] = true;
-          this.$emit('node-select', node);
-        }
-      }
-
-      return _selectionKeys;
-    },
-
-    isSingleSelectionMode() {
-      return this.selectionMode === 'single';
-    },
-
-    isMultipleSelectionMode() {
-      return this.selectionMode === 'multiple';
-    },
-
-    isNodeSelected(node) {
-      return this.selectionMode && this.selectionKeys ? this.selectionKeys[node.key] === true : false;
-    },
-
-    isChecked(node) {
-      return this.selectionKeys ? this.selectionKeys[node.key] && this.selectionKeys[node.key].checked : false;
-    },
-
-    isNodeLeaf(node) {
-      return node.leaf === false ? false : !(node.children && node.children.length);
-    },
-
-    onFilterKeydown(event) {
-      if (event.which === 13) {
-        event.preventDefault();
-      }
-    },
-
-    findFilteredNodes(node, paramsWithoutNode) {
-      if (node) {
-        let matched = false;
-
-        if (node.children) {
-          let childNodes = [...node.children];
-          node.children = [];
-
-          for (let childNode of childNodes) {
-            let copyChildNode = { ...childNode
-            };
-
-            if (this.isFilterMatched(copyChildNode, paramsWithoutNode)) {
-              matched = true;
-              node.children.push(copyChildNode);
-            }
-          }
-        }
-
-        if (matched) {
-          return true;
-        }
-      }
-    },
-
-    isFilterMatched(node, {
-      searchFields,
-      filterText,
-      strict
-    }) {
-      let matched = false;
-
-      for (let field of searchFields) {
-        let fieldValue = String(ObjectUtils.resolveFieldData(node, field)).toLocaleLowerCase(this.filterLocale);
-
-        if (fieldValue.indexOf(filterText) > -1) {
-          matched = true;
-        }
-      }
-
-      if (!matched || strict && !this.isNodeLeaf(node)) {
-        matched = this.findFilteredNodes(node, {
-          searchFields,
-          filterText,
-          strict
-        }) || matched;
-      }
-
-      return matched;
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-tree p-component', {
-        'p-tree-selectable': this.selectionMode != null,
-        'p-tree-loading': this.loading,
-        'p-tree-flex-scrollable': this.scrollHeight === 'flex'
-      }];
-    },
-
-    loadingIconClass() {
-      return ['p-tree-loading-icon pi-spin', this.loadingIcon];
-    },
-
-    filteredValue() {
-      let filteredNodes = [];
-      const searchFields = this.filterBy.split(',');
-      const filterText = this.filterValue.trim().toLocaleLowerCase(this.filterLocale);
-      const strict = this.filterMode === 'strict';
-
-      for (let node of this.value) {
-        let _node = { ...node
-        };
-        let paramsWithoutNode = {
-          searchFields,
-          filterText,
-          strict
-        };
-
-        if (strict && (this.findFilteredNodes(_node, paramsWithoutNode) || this.isFilterMatched(_node, paramsWithoutNode)) || !strict && (this.isFilterMatched(_node, paramsWithoutNode) || this.findFilteredNodes(_node, paramsWithoutNode))) {
-          filteredNodes.push(_node);
-        }
-      }
-
-      return filteredNodes;
-    },
-
-    valueToRender() {
-      if (this.filterValue && this.filterValue.trim().length > 0) return this.filteredValue;else return this.value;
-    }
-
-  },
-  components: {
-    TreeNode: script$1$5
-  }
-};
-const _hoisted_1$M = {
-  key: 0,
-  class: "p-tree-loading-overlay p-component-overlay"
-};
-const _hoisted_2$E = {
-  key: 1,
-  class: "p-tree-filter-container"
-};
-const _hoisted_3$u = ["placeholder"];
-
-const _hoisted_4$q = /*#__PURE__*/createElementVNode("span", {
-  class: "p-tree-filter-icon pi pi-search"
-}, null, -1);
-
-const _hoisted_5$j = {
-  class: "p-tree-container",
-  role: "tree"
-};
-
-function render$v(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_TreeNode = resolveComponent("TreeNode");
-
-  return openBlock(), createElementBlock("div", {
-    class: normalizeClass($options.containerClass)
-  }, [$props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$M, [createElementVNode("i", {
-    class: normalizeClass($options.loadingIconClass)
-  }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_2$E, [withDirectives(createElementVNode("input", {
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => $data.filterValue = $event),
-    type: "text",
-    autocomplete: "off",
-    class: "p-tree-filter p-inputtext p-component",
-    placeholder: $props.filterPlaceholder,
-    onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onFilterKeydown && $options.onFilterKeydown(...args))
-  }, null, 40, _hoisted_3$u), [[vModelText, $data.filterValue]]), _hoisted_4$q])) : createCommentVNode("", true), createElementVNode("div", {
-    class: "p-tree-wrapper",
-    style: normalizeStyle({
-      maxHeight: $props.scrollHeight
-    })
-  }, [createElementVNode("ul", _hoisted_5$j, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.valueToRender, (node, index) => {
-    return openBlock(), createBlock(_component_TreeNode, {
-      key: node.key,
-      node: node,
-      templates: _ctx.$slots,
-      level: $props.level + 1,
-      index: index,
-      expandedKeys: $data.d_expandedKeys,
-      onNodeToggle: $options.onNodeToggle,
-      onNodeClick: $options.onNodeClick,
-      selectionMode: $props.selectionMode,
-      selectionKeys: $props.selectionKeys,
-      onCheckboxChange: $options.onCheckboxChange
-    }, null, 8, ["node", "templates", "level", "index", "expandedKeys", "onNodeToggle", "onNodeClick", "selectionMode", "selectionKeys", "onCheckboxChange"]);
-  }), 128))])], 4)], 2);
-}
-
-function styleInject$p(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$w = "\n.p-tree-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    overflow: auto;\n}\n.p-treenode-children {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-tree-wrapper {\n    overflow: auto;\n}\n.p-treenode-selectable {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-tree-toggler {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treenode-leaf > .p-treenode-content .p-tree-toggler {\n    visibility: hidden;\n}\n.p-treenode-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-tree-filter {\n    width: 100%;\n}\n.p-tree-filter-container {\n    position: relative;\n    display: block;\n    width: 100%;\n}\n.p-tree-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-tree-loading {\n    position: relative;\n    min-height: 4rem;\n}\n.p-tree .p-tree-loading-overlay {\n    position: absolute;\n    z-index: 1;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tree-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-tree-flex-scrollable .p-tree-wrapper {\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n}\n";
-styleInject$p(css_248z$w);
-script$1n.render = render$v;
-
-var script$1m = {
-  name: 'Splitter',
-  emits: ['resizestart', 'resizeend'],
-  props: {
-    layout: {
-      type: String,
-      default: 'horizontal'
-    },
-    gutterSize: {
-      type: Number,
-      default: 4
-    },
-    stateKey: {
-      type: String,
-      default: null
-    },
-    stateStorage: {
-      type: String,
-      default: 'session'
-    },
-    step: {
-      type: Number,
-      default: 5
-    }
-  },
-  dragging: false,
-  mouseMoveListener: null,
-  mouseUpListener: null,
-  touchMoveListener: null,
-  touchEndListener: null,
-  size: null,
-  gutterElement: null,
-  startPos: null,
-  prevPanelElement: null,
-  nextPanelElement: null,
-  nextPanelSize: null,
-  prevPanelSize: null,
-  panelSizes: null,
-  prevPanelIndex: null,
-  timer: null,
-
-  data() {
-    return {
-      prevSize: null
-    };
-  },
-
-  mounted() {
-    if (this.panels && this.panels.length) {
-      let initialized = false;
-
-      if (this.isStateful()) {
-        initialized = this.restoreState();
-      }
-
-      if (!initialized) {
-        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
-        let _panelSizes = [];
-        this.panels.map((panel, i) => {
-          let panelInitialSize = panel.props && panel.props.size ? panel.props.size : null;
-          let panelSize = panelInitialSize || 100 / this.panels.length;
-          _panelSizes[i] = panelSize;
-          children[i].style.flexBasis = 'calc(' + panelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        });
-        this.panelSizes = _panelSizes;
-        this.prevSize = parseFloat(_panelSizes[0]).toFixed(4);
-      }
-    }
-  },
-
-  beforeUnmount() {
-    this.clear();
-    this.unbindMouseListeners();
-  },
-
-  methods: {
-    isSplitterPanel(child) {
-      return child.type.name === 'SplitterPanel';
-    },
-
-    onResizeStart(event, index, isKeyDown) {
-      this.gutterElement = event.currentTarget || event.target.parentElement;
-      this.size = this.horizontal ? DomHandler.getWidth(this.$el) : DomHandler.getHeight(this.$el);
-
-      if (!isKeyDown) {
-        this.dragging = true;
-        this.startPos = this.layout === 'horizontal' ? event.pageX || event.changedTouches[0].pageX : event.pageY || event.changedTouches[0].pageY;
-      }
-
-      this.prevPanelElement = this.gutterElement.previousElementSibling;
-      this.nextPanelElement = this.gutterElement.nextElementSibling;
-
-      if (isKeyDown) {
-        this.prevPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true);
-        this.nextPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true);
-      } else {
-        this.prevPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true)) / this.size;
-        this.nextPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true)) / this.size;
-      }
-
-      this.prevPanelIndex = index;
-      this.$emit('resizestart', {
-        originalEvent: event,
-        sizes: this.panelSizes
-      });
-      DomHandler.addClass(this.gutterElement, 'p-splitter-gutter-resizing');
-      DomHandler.addClass(this.$el, 'p-splitter-resizing');
-    },
-
-    onResize(event, step, isKeyDown) {
-      let newPos, newPrevPanelSize, newNextPanelSize;
-
-      if (isKeyDown) {
-        if (this.horizontal) {
-          newPrevPanelSize = 100 * (this.prevPanelSize + step) / this.size;
-          newNextPanelSize = 100 * (this.nextPanelSize - step) / this.size;
-        } else {
-          newPrevPanelSize = 100 * (this.prevPanelSize - step) / this.size;
-          newNextPanelSize = 100 * (this.nextPanelSize + step) / this.size;
-        }
-      } else {
-        if (this.horizontal) newPos = event.pageX * 100 / this.size - this.startPos * 100 / this.size;else newPos = event.pageY * 100 / this.size - this.startPos * 100 / this.size;
-        newPrevPanelSize = this.prevPanelSize + newPos;
-        newNextPanelSize = this.nextPanelSize - newPos;
-      }
-
-      this.prevSize = parseFloat(newPrevPanelSize).toFixed(4);
-
-      if (this.validateResize(newPrevPanelSize, newNextPanelSize)) {
-        this.prevPanelElement.style.flexBasis = 'calc(' + newPrevPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        this.nextPanelElement.style.flexBasis = 'calc(' + newNextPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        this.panelSizes[this.prevPanelIndex] = newPrevPanelSize;
-        this.panelSizes[this.prevPanelIndex + 1] = newNextPanelSize;
-      }
-    },
-
-    onResizeEnd(event) {
-      if (this.isStateful()) {
-        this.saveState();
-      }
-
-      this.$emit('resizeend', {
-        originalEvent: event,
-        sizes: this.panelSizes
-      });
-      DomHandler.removeClass(this.gutterElement, 'p-splitter-gutter-resizing');
-      DomHandler.removeClass(this.$el, 'p-splitter-resizing');
-      this.clear();
-    },
-
-    repeat(event, index, step) {
-      this.onResizeStart(event, index, true);
-      this.onResize(event, step, true);
-    },
-
-    setTimer(event, index, step) {
-      this.clearTimer();
-      this.timer = setTimeout(() => {
-        this.repeat(event, index, step);
-      }, 40);
-    },
-
-    clearTimer() {
-      if (this.timer) {
-        clearTimeout(this.timer);
-      }
-    },
-
-    onGutterKeyUp() {
-      this.clearTimer();
-      this.onResizeEnd();
-    },
-
-    onGutterKeyDown(event, index) {
-      switch (event.code) {
-        case 'ArrowLeft':
-          {
-            if (this.layout === 'horizontal') {
-              this.setTimer(event, index, this.step * -1);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowRight':
-          {
-            if (this.layout === 'horizontal') {
-              this.setTimer(event, index, this.step);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowDown':
-          {
-            if (this.layout === 'vertical') {
-              this.setTimer(event, index, this.step * -1);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowUp':
-          {
-            if (this.layout === 'vertical') {
-              this.setTimer(event, index, this.step);
-            }
-
-            event.preventDefault();
-            break;
-          }
-      }
-    },
-
-    onGutterMouseDown(event, index) {
-      this.onResizeStart(event, index);
-      this.bindMouseListeners();
-    },
-
-    onGutterTouchStart(event, index) {
-      this.onResizeStart(event, index);
-      this.bindTouchListeners();
-      event.preventDefault();
-    },
-
-    onGutterTouchMove(event) {
-      this.onResize(event);
-      event.preventDefault();
-    },
-
-    onGutterTouchEnd(event) {
-      this.onResizeEnd(event);
-      this.unbindTouchListeners();
-      event.preventDefault();
-    },
-
-    bindMouseListeners() {
-      if (!this.mouseMoveListener) {
-        this.mouseMoveListener = event => this.onResize(event);
-
-        document.addEventListener('mousemove', this.mouseMoveListener);
-      }
-
-      if (!this.mouseUpListener) {
-        this.mouseUpListener = event => {
-          this.onResizeEnd(event);
-          this.unbindMouseListeners();
-        };
-
-        document.addEventListener('mouseup', this.mouseUpListener);
-      }
-    },
-
-    bindTouchListeners() {
-      if (!this.touchMoveListener) {
-        this.touchMoveListener = event => this.onResize(event.changedTouches[0]);
-
-        document.addEventListener('touchmove', this.touchMoveListener);
-      }
-
-      if (!this.touchEndListener) {
-        this.touchEndListener = event => {
-          this.resizeEnd(event);
-          this.unbindTouchListeners();
-        };
-
-        document.addEventListener('touchend', this.touchEndListener);
-      }
-    },
-
-    validateResize(newPrevPanelSize, newNextPanelSize) {
-      let prevPanelMinSize = ObjectUtils.getVNodeProp(this.panels[0], 'minSize');
-
-      if (this.panels[0].props && prevPanelMinSize && prevPanelMinSize > newPrevPanelSize) {
-        return false;
-      }
-
-      let newPanelMinSize = ObjectUtils.getVNodeProp(this.panels[1], 'minSize');
-
-      if (this.panels[1].props && newPanelMinSize && newPanelMinSize > newNextPanelSize) {
-        return false;
-      }
-
-      return true;
-    },
-
-    unbindMouseListeners() {
-      if (this.mouseMoveListener) {
-        document.removeEventListener('mousemove', this.mouseMoveListener);
-        this.mouseMoveListener = null;
-      }
-
-      if (this.mouseUpListener) {
-        document.removeEventListener('mouseup', this.mouseUpListener);
-        this.mouseUpListener = null;
-      }
-    },
-
-    unbindTouchListeners() {
-      if (this.touchMoveListener) {
-        document.removeEventListener('touchmove', this.touchMoveListener);
-        this.touchMoveListener = null;
-      }
-
-      if (this.touchEndListener) {
-        document.removeEventListener('touchend', this.touchEndListener);
-        this.touchEndListener = null;
-      }
-    },
-
-    clear() {
-      this.dragging = false;
-      this.size = null;
-      this.startPos = null;
-      this.prevPanelElement = null;
-      this.nextPanelElement = null;
-      this.prevPanelSize = null;
-      this.nextPanelSize = null;
-      this.gutterElement = null;
-      this.prevPanelIndex = null;
-    },
-
-    isStateful() {
-      return this.stateKey != null;
-    },
-
-    getStorage() {
-      switch (this.stateStorage) {
-        case 'local':
-          return window.localStorage;
-
-        case 'session':
-          return window.sessionStorage;
-
-        default:
-          throw new Error(this.stateStorage + ' is not a valid value for the state storage, supported values are "local" and "session".');
-      }
-    },
-
-    saveState() {
-      this.getStorage().setItem(this.stateKey, JSON.stringify(this.panelSizes));
-    },
-
-    restoreState() {
-      const storage = this.getStorage();
-      const stateString = storage.getItem(this.stateKey);
-
-      if (stateString) {
-        this.panelSizes = JSON.parse(stateString);
-        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
-        children.forEach((child, i) => {
-          child.style.flexBasis = 'calc(' + this.panelSizes[i] + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        });
-        return true;
-      }
-
-      return false;
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-splitter p-component', 'p-splitter-' + this.layout];
-    },
-
-    panels() {
-      const panels = [];
-      this.$slots.default().forEach(child => {
-        if (this.isSplitterPanel(child)) {
-          panels.push(child);
-        } else if (child.children instanceof Array) {
-          child.children.forEach(nestedChild => {
-            if (this.isSplitterPanel(nestedChild)) {
-              panels.push(nestedChild);
-            }
-          });
-        }
-      });
-      return panels;
-    },
-
-    gutterStyle() {
-      if (this.horizontal) return {
-        width: this.gutterSize + 'px'
-      };else return {
-        height: this.gutterSize + 'px'
-      };
-    },
-
-    horizontal() {
-      return this.layout === 'horizontal';
-    }
-
-  }
-};
-const _hoisted_1$L = ["onMousedown", "onTouchstart", "onTouchmove", "onTouchend"];
-const _hoisted_2$D = ["aria-orientation", "aria-valuenow", "onKeydown"];
-
-function render$u(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: normalizeClass($options.containerClass)
-  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.panels, (panel, i) => {
-    return openBlock(), createElementBlock(Fragment, {
-      key: i
-    }, [(openBlock(), createBlock(resolveDynamicComponent(panel), {
-      tabindex: "-1"
-    })), i !== $options.panels.length - 1 ? (openBlock(), createElementBlock("div", {
-      key: 0,
-      class: "p-splitter-gutter",
-      role: "separator",
-      tabindex: "-1",
-      onMousedown: $event => $options.onGutterMouseDown($event, i),
-      onTouchstart: $event => $options.onGutterTouchStart($event, i),
-      onTouchmove: $event => $options.onGutterTouchMove($event, i),
-      onTouchend: $event => $options.onGutterTouchEnd($event, i)
-    }, [createElementVNode("div", {
-      class: "p-splitter-gutter-handle",
-      tabindex: "0",
-      style: normalizeStyle($options.gutterStyle),
-      "aria-orientation": $props.layout,
-      "aria-valuenow": $data.prevSize,
-      onKeyup: _cache[0] || (_cache[0] = (...args) => $options.onGutterKeyUp && $options.onGutterKeyUp(...args)),
-      onKeydown: $event => $options.onGutterKeyDown($event, i)
-    }, null, 44, _hoisted_2$D)], 40, _hoisted_1$L)) : createCommentVNode("", true)], 64);
-  }), 128))], 2);
-}
-
-function styleInject$o(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$v = "\n.p-splitter {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-splitter-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-splitter-panel {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n.p-splitter-panel-nested {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-splitter-panel .p-splitter {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n    border: 0 none;\n}\n.p-splitter-gutter {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: col-resize;\n}\n.p-splitter-horizontal.p-splitter-resizing {\n    cursor: col-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-horizontal > .p-splitter-gutter > .p-splitter-gutter-handle {\n    height: 24px;\n    width: 100%;\n}\n.p-splitter-horizontal > .p-splitter-gutter {\n    cursor: col-resize;\n}\n.p-splitter-vertical.p-splitter-resizing {\n    cursor: row-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-vertical > .p-splitter-gutter {\n    cursor: row-resize;\n}\n.p-splitter-vertical > .p-splitter-gutter > .p-splitter-gutter-handle {\n    width: 24px;\n    height: 100%;\n}\n";
-styleInject$o(css_248z$v);
-script$1m.render = render$u;
-
-var script$1l = {
-  name: 'SplitterPanel',
-  props: {
-    size: {
-      type: Number,
-      default: null
-    },
-    minSize: {
-      type: Number,
-      default: null
+      default: 'pi pi-spinner pi-spin'
     }
   },
   computed: {
-    containerClass() {
-      return ['p-splitter-panel', {
-        'p-splitter-panel-nested': this.isNested
+    buttonClass() {
+      return {
+        'p-button p-component': true,
+        'p-button-icon-only': this.icon && !this.label,
+        'p-button-vertical': (this.iconPos === 'top' || this.iconPos === 'bottom') && this.label,
+        'p-disabled': this.$attrs.disabled || this.loading,
+        'p-button-loading': this.loading,
+        'p-button-loading-label-only': this.loading && !this.icon && this.label
+      };
+    },
+
+    iconStyleClass() {
+      return [this.loading ? 'p-button-loading-icon ' + this.loadingIcon : this.icon, 'p-button-icon', this.iconClass, {
+        'p-button-icon-left': this.iconPos === 'left' && this.label,
+        'p-button-icon-right': this.iconPos === 'right' && this.label,
+        'p-button-icon-top': this.iconPos === 'top' && this.label,
+        'p-button-icon-bottom': this.iconPos === 'bottom' && this.label
       }];
     },
 
-    isNested() {
-      return this.$slots.default().some(child => {
-        return child.type.name === 'Splitter';
-      });
-    }
-
-  }
-};
-
-function render$t(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    ref: "container",
-    class: normalizeClass($options.containerClass)
-  }, [renderSlot(_ctx.$slots, "default")], 2);
-}
-
-script$1l.render = render$t;
-
-var script$1k = {
-  name: 'Column',
-  props: {
-    columnKey: {
-      type: null,
-      default: null
-    },
-    field: {
-      type: [String, Function],
-      default: null
-    },
-    sortField: {
-      type: [String, Function],
-      default: null
-    },
-    filterField: {
-      type: [String, Function],
-      default: null
-    },
-    dataType: {
-      type: String,
-      default: 'text'
-    },
-    sortable: {
-      type: Boolean,
-      default: false
-    },
-    header: {
-      type: null,
-      default: null
-    },
-    footer: {
-      type: null,
-      default: null
-    },
-    style: {
-      type: null,
-      default: null
-    },
-    class: {
-      type: String,
-      default: null
-    },
-    headerStyle: {
-      type: null,
-      default: null
-    },
-    headerClass: {
-      type: String,
-      default: null
-    },
-    bodyStyle: {
-      type: null,
-      default: null
-    },
-    bodyClass: {
-      type: String,
-      default: null
-    },
-    footerStyle: {
-      type: null,
-      default: null
-    },
-    footerClass: {
-      type: String,
-      default: null
-    },
-    showFilterMenu: {
-      type: Boolean,
-      default: true
-    },
-    showFilterOperator: {
-      type: Boolean,
-      default: true
-    },
-    showClearButton: {
-      type: Boolean,
-      default: true
-    },
-    showApplyButton: {
-      type: Boolean,
-      default: true
-    },
-    showFilterMatchModes: {
-      type: Boolean,
-      default: true
-    },
-    showAddButton: {
-      type: Boolean,
-      default: true
-    },
-    filterMatchModeOptions: {
-      type: Array,
-      default: null
-    },
-    maxConstraints: {
-      type: Number,
-      default: 2
-    },
-    excludeGlobalFilter: {
-      type: Boolean,
-      default: false
-    },
-    filterHeaderClass: {
-      type: String,
-      default: null
-    },
-    filterHeaderStyle: {
-      type: null,
-      default: null
-    },
-    filterMenuClass: {
-      type: String,
-      default: null
-    },
-    filterMenuStyle: {
-      type: null,
-      default: null
-    },
-    selectionMode: {
-      type: String,
-      default: null
-    },
-    expander: {
-      type: Boolean,
-      default: false
-    },
-    colspan: {
-      type: Number,
-      default: null
-    },
-    rowspan: {
-      type: Number,
-      default: null
-    },
-    rowReorder: {
-      type: Boolean,
-      default: false
-    },
-    rowReorderIcon: {
-      type: String,
-      default: 'pi pi-bars'
-    },
-    reorderableColumn: {
-      type: Boolean,
-      default: true
-    },
-    rowEditor: {
-      type: Boolean,
-      default: false
-    },
-    frozen: {
-      type: Boolean,
-      default: false
-    },
-    alignFrozen: {
-      type: String,
-      default: 'left'
-    },
-    exportable: {
-      type: Boolean,
-      default: true
-    },
-    exportHeader: {
-      type: String,
-      default: null
-    },
-    exportFooter: {
-      type: String,
-      default: null
-    },
-    filterMatchMode: {
-      type: String,
-      default: null
-    },
-    hidden: {
-      type: Boolean,
-      default: false
-    }
-  },
-
-  render() {
-    return null;
-  }
-
-};
-
-let element,
-    firstVNode,
-    lastVNode,
-    shiftKey = false;
-
-function firstHiddenFocus() {
-  if (shiftKey) {
-    lastVNode.focus();
-  } else {
-    const firstFocusableEl = DomHandler.getFirstFocusableElement(element, ':not(.p-hidden-focusable)');
-    DomHandler.focus(firstFocusableEl);
-  }
-}
-
-function lastHiddenFocus() {
-  if (shiftKey) {
-    const lastFocusableEl = DomHandler.getLastFocusableElement(element, ':not(.p-hidden-focusable)');
-    DomHandler.focus(lastFocusableEl);
-  } else {
-    firstVNode.focus();
-  }
-}
-
-function createHiddenElement(callback) {
-  const el = document.createElement('span');
-  el.classList = 'p-hidden-accessible p-hidden-focusable';
-  el.tabIndex = '0';
-  el.setAttribute('aria-hidden', 'true');
-  el.setAttribute('role', 'presentation');
-  el.addEventListener('focus', callback);
-  return el;
-}
-
-function createHiddenElements(el) {
-  firstVNode = createHiddenElement(firstHiddenFocus);
-  lastVNode = createHiddenElement(lastHiddenFocus);
-  el.prepend(firstVNode);
-  el.append(lastVNode);
-}
-
-function bind$1(el) {
-  el.$_pfocustrap_keydownlistener = e => {
-    if (e.code === 'Tab') {
-      shiftKey = e.shiftKey;
-    }
-  };
-
-  el.addEventListener('keydown', el.$_pfocustrap_keydownlistener);
-}
-
-function unbind(el) {
-  if (el.$_pfocustrap_keydownlistener) {
-    el.removeEventListener('keydown', el.$_pfocustrap_keydownlistener);
-    el.$_pfocustrap_keydownlistener = null;
-  }
-}
-
-const FocusTrap = {
-  mounted(el, binding, vnode) {
-    const firstFocusableEl = DomHandler.getFirstFocusableElement(el, ':not(.p-hidden-focusable)');
-
-    if (firstFocusableEl) {
-      el.$_pfocustrapFocusTrapDisabled = false;
-
-      if (binding.value && typeof binding.value === 'object') {
-        el.$_pfocustrapFocusTrapDisabled = binding.value.focusTrapDisabled;
-      }
-
-      if (!el.$_pfocustrapFocusTrapDisabled) {
-        element = el;
-        createHiddenElements(el);
-        bind$1(el);
-      }
-    }
-  },
-
-  unmounted(el) {
-    element = null;
-    firstVNode = null;
-    lastVNode = null;
-    shiftKey = false;
-    unbind(el);
-  }
-
-};
-
-var script$1j = {
-  name: 'Dialog',
-  inheritAttrs: false,
-  emits: ['update:visible', 'show', 'hide', 'after-hide', 'maximize', 'unmaximize', 'dragend'],
-  props: {
-    header: {
-      type: null,
-      default: null
-    },
-    footer: {
-      type: null,
-      default: null
-    },
-    visible: {
-      type: Boolean,
-      default: false
-    },
-    modal: {
-      type: Boolean,
-      default: null
-    },
-    contentStyle: {
-      type: null,
-      default: null
-    },
-    contentClass: {
-      type: String,
-      default: null
-    },
-    contentProps: {
-      type: null,
-      default: null
-    },
-    rtl: {
-      type: Boolean,
-      default: null
-    },
-    maximizable: {
-      type: Boolean,
-      default: false
-    },
-    dismissableMask: {
-      type: Boolean,
-      default: false
-    },
-    closable: {
-      type: Boolean,
-      default: true
-    },
-    closeOnEscape: {
-      type: Boolean,
-      default: true
-    },
-    showHeader: {
-      type: Boolean,
-      default: true
-    },
-    baseZIndex: {
-      type: Number,
-      default: 0
-    },
-    autoZIndex: {
-      type: Boolean,
-      default: true
-    },
-    position: {
-      type: String,
-      default: 'center'
-    },
-    breakpoints: {
-      type: Object,
-      default: null
-    },
-    draggable: {
-      type: Boolean,
-      default: true
-    },
-    keepInViewport: {
-      type: Boolean,
-      default: true
-    },
-    minX: {
-      type: Number,
-      default: 0
-    },
-    minY: {
-      type: Number,
-      default: 0
-    },
-    appendTo: {
-      type: String,
-      default: 'body'
-    },
-    closeIcon: {
-      type: String,
-      default: 'pi pi-times'
-    },
-    maximizeIcon: {
-      type: String,
-      default: 'pi pi-window-maximize'
-    },
-    minimizeIcon: {
-      type: String,
-      default: 'pi pi-window-minimize'
-    },
-    closeButtonProps: {
-      type: null,
-      default: null
-    },
-    _instance: null
-  },
-
-  provide() {
-    return {
-      dialogRef: computed(() => this._instance)
-    };
-  },
-
-  data() {
-    return {
-      containerVisible: this.visible,
-      maximized: false
-    };
-  },
-
-  documentKeydownListener: null,
-  container: null,
-  mask: null,
-  content: null,
-  headerContainer: null,
-  footerContainer: null,
-  maximizableButton: null,
-  closeButton: null,
-  styleElement: null,
-  dragging: null,
-  documentDragListener: null,
-  documentDragEndListener: null,
-  lastPageX: null,
-  lastPageY: null,
-
-  updated() {
-    if (this.visible) {
-      this.containerVisible = this.visible;
-    }
-  },
-
-  beforeUnmount() {
-    this.unbindDocumentState();
-    this.unbindGlobalListeners();
-    this.destroyStyle();
-
-    if (this.mask && this.autoZIndex) {
-      ZIndexUtils.clear(this.mask);
-    }
-
-    this.container = null;
-    this.mask = null;
-  },
-
-  mounted() {
-    if (this.breakpoints) {
-      this.createStyle();
-    }
-  },
-
-  methods: {
-    close() {
-      this.$emit('update:visible', false);
-    },
-
-    onBeforeEnter(el) {
-      el.setAttribute(this.attributeSelector, '');
-    },
-
-    onEnter() {
-      this.$emit('show');
-      this.focus();
-      this.enableDocumentSettings();
-      this.bindGlobalListeners();
-
-      if (this.autoZIndex) {
-        ZIndexUtils.set('modal', this.mask, this.baseZIndex + this.$primevue.config.zIndex.modal);
-      }
-    },
-
-    onBeforeLeave() {
-      if (this.modal) {
-        DomHandler.addClass(this.mask, 'p-component-overlay-leave');
-      }
-    },
-
-    onLeave() {
-      this.$emit('hide');
-    },
-
-    onAfterLeave() {
-      if (this.autoZIndex) {
-        ZIndexUtils.clear(this.mask);
-      }
-
-      this.containerVisible = false;
-      this.unbindDocumentState();
-      this.unbindGlobalListeners();
-      this.$emit('after-hide');
-    },
-
-    onMaskClick(event) {
-      if (this.dismissableMask && this.closable && this.modal && this.mask === event.target) {
-        this.close();
-      }
-    },
-
-    focus() {
-      const findFocusableElement = container => {
-        return container.querySelector('[autofocus]');
-      };
-
-      let focusTarget = this.$slots.default && findFocusableElement(this.content);
-
-      if (!focusTarget) {
-        focusTarget = this.$slots.header && findFocusableElement(this.headerContainer);
-
-        if (!focusTarget) {
-          focusTarget = this.$slots.footer && findFocusableElement(this.footerContainer);
-
-          if (!focusTarget) {
-            focusTarget = findFocusableElement(this.container);
-          }
-        }
-      }
-
-      focusTarget && focusTarget.focus();
-    },
-
-    maximize(event) {
-      if (this.maximized) {
-        this.maximized = false;
-        this.$emit('unmaximize', event);
-      } else {
-        this.maximized = true;
-        this.$emit('maximize', event);
-      }
-
-      if (!this.modal) {
-        if (this.maximized) DomHandler.addClass(document.body, 'p-overflow-hidden');else DomHandler.removeClass(document.body, 'p-overflow-hidden');
-      }
-    },
-
-    enableDocumentSettings() {
-      if (this.modal || this.maximizable && this.maximized) {
-        DomHandler.addClass(document.body, 'p-overflow-hidden');
-      }
-    },
-
-    unbindDocumentState() {
-      if (this.modal || this.maximizable && this.maximized) {
-        DomHandler.removeClass(document.body, 'p-overflow-hidden');
-      }
-    },
-
-    onKeyDown(event) {
-      if (event.code === 'Escape' && this.closeOnEscape) {
-        this.close();
-      }
-    },
-
-    bindDocumentKeyDownListener() {
-      if (!this.documentKeydownListener) {
-        this.documentKeydownListener = this.onKeyDown.bind(this);
-        window.document.addEventListener('keydown', this.documentKeydownListener);
-      }
-    },
-
-    unbindDocumentKeyDownListener() {
-      if (this.documentKeydownListener) {
-        window.document.removeEventListener('keydown', this.documentKeydownListener);
-        this.documentKeydownListener = null;
-      }
-    },
-
-    getPositionClass() {
-      const positions = ['left', 'right', 'top', 'topleft', 'topright', 'bottom', 'bottomleft', 'bottomright'];
-      const pos = positions.find(item => item === this.position);
-      return pos ? `p-dialog-${pos}` : '';
-    },
-
-    containerRef(el) {
-      this.container = el;
-    },
-
-    maskRef(el) {
-      this.mask = el;
-    },
-
-    contentRef(el) {
-      this.content = el;
-    },
-
-    headerContainerRef(el) {
-      this.headerContainer = el;
-    },
-
-    footerContainerRef(el) {
-      this.footerContainer = el;
-    },
-
-    maximizableRef(el) {
-      this.maximizableButton = el;
-    },
-
-    closeButtonRef(el) {
-      this.closeButton = el;
-    },
-
-    createStyle() {
-      if (!this.styleElement) {
-        this.styleElement = document.createElement('style');
-        this.styleElement.type = 'text/css';
-        document.head.appendChild(this.styleElement);
-        let innerHTML = '';
-
-        for (let breakpoint in this.breakpoints) {
-          innerHTML += `
-                        @media screen and (max-width: ${breakpoint}) {
-                            .p-dialog[${this.attributeSelector}] {
-                                width: ${this.breakpoints[breakpoint]} !important;
-                            }
-                        }
-                    `;
-        }
-
-        this.styleElement.innerHTML = innerHTML;
-      }
-    },
-
-    destroyStyle() {
-      if (this.styleElement) {
-        document.head.removeChild(this.styleElement);
-        this.styleElement = null;
-      }
-    },
-
-    initDrag(event) {
-      if (DomHandler.hasClass(event.target, 'p-dialog-header-icon') || DomHandler.hasClass(event.target.parentElement, 'p-dialog-header-icon')) {
-        return;
-      }
-
-      if (this.draggable) {
-        this.dragging = true;
-        this.lastPageX = event.pageX;
-        this.lastPageY = event.pageY;
-        this.container.style.margin = '0';
-        DomHandler.addClass(document.body, 'p-unselectable-text');
-      }
-    },
-
-    bindGlobalListeners() {
-      if (this.draggable) {
-        this.bindDocumentDragListener();
-        this.bindDocumentDragEndListener();
-      }
-
-      if (this.closeOnEscape && this.closable) {
-        this.bindDocumentKeyDownListener();
-      }
-    },
-
-    unbindGlobalListeners() {
-      this.unbindDocumentDragListener();
-      this.unbindDocumentDragEndListener();
-      this.unbindDocumentKeyDownListener();
-    },
-
-    bindDocumentDragListener() {
-      this.documentDragListener = event => {
-        if (this.dragging) {
-          let width = DomHandler.getOuterWidth(this.container);
-          let height = DomHandler.getOuterHeight(this.container);
-          let deltaX = event.pageX - this.lastPageX;
-          let deltaY = event.pageY - this.lastPageY;
-          let offset = this.container.getBoundingClientRect();
-          let leftPos = offset.left + deltaX;
-          let topPos = offset.top + deltaY;
-          let viewport = DomHandler.getViewport();
-          this.container.style.position = 'fixed';
-
-          if (this.keepInViewport) {
-            if (leftPos >= this.minX && leftPos + width < viewport.width) {
-              this.lastPageX = event.pageX;
-              this.container.style.left = leftPos + 'px';
-            }
-
-            if (topPos >= this.minY && topPos + height < viewport.height) {
-              this.lastPageY = event.pageY;
-              this.container.style.top = topPos + 'px';
-            }
-          } else {
-            this.lastPageX = event.pageX;
-            this.container.style.left = leftPos + 'px';
-            this.lastPageY = event.pageY;
-            this.container.style.top = topPos + 'px';
-          }
-        }
-      };
-
-      window.document.addEventListener('mousemove', this.documentDragListener);
-    },
-
-    unbindDocumentDragListener() {
-      if (this.documentDragListener) {
-        window.document.removeEventListener('mousemove', this.documentDragListener);
-        this.documentDragListener = null;
-      }
-    },
-
-    bindDocumentDragEndListener() {
-      this.documentDragEndListener = event => {
-        if (this.dragging) {
-          this.dragging = false;
-          DomHandler.removeClass(document.body, 'p-unselectable-text');
-          this.$emit('dragend', event);
-        }
-      };
-
-      window.document.addEventListener('mouseup', this.documentDragEndListener);
-    },
-
-    unbindDocumentDragEndListener() {
-      if (this.documentDragEndListener) {
-        window.document.removeEventListener('mouseup', this.documentDragEndListener);
-        this.documentDragEndListener = null;
-      }
-    }
-
-  },
-  computed: {
-    maskClass() {
-      return ['p-dialog-mask', {
-        'p-component-overlay p-component-overlay-enter': this.modal
-      }, this.getPositionClass()];
-    },
-
-    dialogClass() {
-      return ['p-dialog p-component', {
-        'p-dialog-rtl': this.rtl,
-        'p-dialog-maximized': this.maximizable && this.maximized,
-        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
-        'p-ripple-disabled': this.$primevue.config.ripple === false
+    badgeStyleClass() {
+      return ['p-badge p-component', this.badgeClass, {
+        'p-badge-no-gutter': this.badge && String(this.badge).length === 1
       }];
     },
 
-    maximizeIconClass() {
-      return ['p-dialog-header-maximize-icon', {
-        [this.maximizeIcon]: !this.maximized,
-        [this.minimizeIcon]: this.maximized
-      }];
+    disabled() {
+      return this.$attrs.disabled || this.loading;
     },
 
-    ariaId() {
-      return UniqueComponentId();
-    },
-
-    ariaLabelledById() {
-      return this.header != null || this.$attrs['aria-labelledby'] !== null ? this.ariaId + '_header' : null;
-    },
-
-    closeAriaLabel() {
-      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria.close : undefined;
-    },
-
-    attributeSelector() {
-      return UniqueComponentId();
-    },
-
-    contentStyleClass() {
-      return ['p-dialog-content', this.contentClass];
+    defaultAriaLabel() {
+      return this.label ? this.label + (this.badge ? ' ' + this.badge : '') : this.$attrs['aria-label'];
     }
 
   },
   directives: {
-    ripple: Ripple,
-    focustrap: FocusTrap
-  },
-  components: {
-    Portal: script$1x
+    ripple: Ripple
   }
 };
-const _hoisted_1$K = ["aria-labelledby", "aria-modal"];
-const _hoisted_2$C = ["id"];
-const _hoisted_3$t = {
-  class: "p-dialog-header-icons"
+const _hoisted_1$U = ["aria-label", "disabled"];
+const _hoisted_2$K = {
+  class: "p-button-label"
 };
-const _hoisted_4$p = ["tabindex"];
-const _hoisted_5$i = ["aria-label"];
 
-function render$s(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_Portal = resolveComponent("Portal");
-
+function render$C(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
-  const _directive_focustrap = resolveDirective("focustrap");
-
-  return openBlock(), createBlock(_component_Portal, {
-    appendTo: $props.appendTo
-  }, {
-    default: withCtx(() => [$data.containerVisible ? (openBlock(), createElementBlock("div", {
-      key: 0,
-      ref: $options.maskRef,
-      class: normalizeClass($options.maskClass),
-      onClick: _cache[3] || (_cache[3] = (...args) => $options.onMaskClick && $options.onMaskClick(...args))
-    }, [createVNode(Transition, {
-      name: "p-dialog",
-      onBeforeEnter: $options.onBeforeEnter,
-      onEnter: $options.onEnter,
-      onBeforeLeave: $options.onBeforeLeave,
-      onLeave: $options.onLeave,
-      onAfterLeave: $options.onAfterLeave,
-      appear: ""
-    }, {
-      default: withCtx(() => [$props.visible ? withDirectives((openBlock(), createElementBlock("div", mergeProps({
-        key: 0,
-        ref: $options.containerRef,
-        class: $options.dialogClass,
-        role: "dialog",
-        "aria-labelledby": $options.ariaLabelledById,
-        "aria-modal": $props.modal
-      }, _ctx.$attrs), [$props.showHeader ? (openBlock(), createElementBlock("div", {
-        key: 0,
-        ref: $options.headerContainerRef,
-        class: "p-dialog-header",
-        onMousedown: _cache[2] || (_cache[2] = (...args) => $options.initDrag && $options.initDrag(...args))
-      }, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
-        key: 0,
-        id: $options.ariaLabelledById,
-        class: "p-dialog-title"
-      }, toDisplayString$1($props.header), 9, _hoisted_2$C)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$t, [$props.maximizable ? withDirectives((openBlock(), createElementBlock("button", {
-        key: 0,
-        ref: $options.maximizableRef,
-        autofocus: "",
-        class: "p-dialog-header-icon p-dialog-header-maximize p-link",
-        onClick: _cache[0] || (_cache[0] = (...args) => $options.maximize && $options.maximize(...args)),
-        type: "button",
-        tabindex: $props.maximizable ? '0' : '-1'
-      }, [createElementVNode("span", {
-        class: normalizeClass($options.maximizeIconClass)
-      }, null, 2)], 8, _hoisted_4$p)), [[_directive_ripple]]) : createCommentVNode("", true), $props.closable ? withDirectives((openBlock(), createElementBlock("button", mergeProps({
-        key: 1,
-        ref: $options.closeButtonRef,
-        autofocus: "",
-        class: "p-dialog-header-icon p-dialog-header-close p-link",
-        onClick: _cache[1] || (_cache[1] = (...args) => $options.close && $options.close(...args)),
-        "aria-label": $options.closeAriaLabel,
-        type: "button"
-      }, $props.closeButtonProps), [createElementVNode("span", {
-        class: normalizeClass(['p-dialog-header-close-icon', $props.closeIcon])
-      }, null, 2)], 16, _hoisted_5$i)), [[_directive_ripple]]) : createCommentVNode("", true)])], 544)) : createCommentVNode("", true), createElementVNode("div", mergeProps({
-        ref: $options.contentRef,
-        class: $options.contentStyleClass,
-        style: $props.contentStyle
-      }, $props.contentProps), [renderSlot(_ctx.$slots, "default")], 16), $props.footer || _ctx.$slots.footer ? (openBlock(), createElementBlock("div", {
-        key: 1,
-        ref: $options.footerContainerRef,
-        class: "p-dialog-footer"
-      }, [renderSlot(_ctx.$slots, "footer", {}, () => [createTextVNode(toDisplayString$1($props.footer), 1)])], 512)) : createCommentVNode("", true)], 16, _hoisted_1$K)), [[_directive_focustrap, {
-        focusTrapDisabled: !$props.modal
-      }]]) : createCommentVNode("", true)]),
-      _: 3
-    }, 8, ["onBeforeEnter", "onEnter", "onBeforeLeave", "onLeave", "onAfterLeave"])], 2)) : createCommentVNode("", true)]),
-    _: 3
-  }, 8, ["appendTo"]);
+  return withDirectives((openBlock(), createElementBlock("button", {
+    class: normalizeClass($options.buttonClass),
+    type: "button",
+    "aria-label": $options.defaultAriaLabel,
+    disabled: $options.disabled
+  }, [renderSlot(_ctx.$slots, "default", {}, () => [$props.loading && !$props.icon ? (openBlock(), createElementBlock("span", {
+    key: 0,
+    class: normalizeClass($options.iconStyleClass)
+  }, null, 2)) : createCommentVNode("", true), $props.icon ? (openBlock(), createElementBlock("span", {
+    key: 1,
+    class: normalizeClass($options.iconStyleClass)
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_2$K, toDisplayString$1($props.label || ' '), 1), $props.badge ? (openBlock(), createElementBlock("span", {
+    key: 2,
+    class: normalizeClass($options.badgeStyleClass)
+  }, toDisplayString$1($props.badge), 3)) : createCommentVNode("", true)])], 10, _hoisted_1$U)), [[_directive_ripple]]);
 }
 
-function styleInject$n(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
+script$1z.render = render$C;
 
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
+var script$1y = {
+  name: 'InputText',
+  emits: ['update:modelValue'],
+  props: {
+    modelValue: null
+  },
+  methods: {
+    onInput(event) {
+      this.$emit('update:modelValue', event.target.value);
     }
-  } else {
-    head.appendChild(style);
-  }
 
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
+  },
+  computed: {
+    filled() {
+      return this.modelValue != null && this.modelValue.toString().length > 0;
+    }
+
   }
+};
+const _hoisted_1$T = ["value"];
+
+function render$B(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("input", {
+    class: normalizeClass(['p-inputtext p-component', {
+      'p-filled': $options.filled
+    }]),
+    value: $props.modelValue,
+    onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
+  }, null, 42, _hoisted_1$T);
 }
 
-var css_248z$u = "\n.p-dialog-mask {\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    pointer-events: none;\n}\n.p-dialog-mask.p-component-overlay {\n    pointer-events: auto;\n}\n.p-dialog {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    pointer-events: auto;\n    max-height: 90%;\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n.p-dialog-content {\n    overflow-y: auto;\n}\n.p-dialog-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog-footer {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog .p-dialog-header-icons {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-dialog .p-dialog-header-icon {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Fluid */\n.p-fluid .p-dialog-footer .p-button {\n    width: auto;\n}\n\n/* Animation */\n/* Center */\n.p-dialog-enter-active {\n    -webkit-transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n}\n.p-dialog-leave-active {\n    -webkit-transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n.p-dialog-enter-from,\n.p-dialog-leave-to {\n    opacity: 0;\n    -webkit-transform: scale(0.7);\n            transform: scale(0.7);\n}\n\n/* Top, Bottom, Left, Right, Top* and Bottom* */\n.p-dialog-top .p-dialog,\n.p-dialog-bottom .p-dialog,\n.p-dialog-left .p-dialog,\n.p-dialog-right .p-dialog,\n.p-dialog-topleft .p-dialog,\n.p-dialog-topright .p-dialog,\n.p-dialog-bottomleft .p-dialog,\n.p-dialog-bottomright .p-dialog {\n    margin: 0.75rem;\n    -webkit-transform: translate3d(0px, 0px, 0px);\n            transform: translate3d(0px, 0px, 0px);\n}\n.p-dialog-top .p-dialog-enter-active,\n.p-dialog-top .p-dialog-leave-active,\n.p-dialog-bottom .p-dialog-enter-active,\n.p-dialog-bottom .p-dialog-leave-active,\n.p-dialog-left .p-dialog-enter-active,\n.p-dialog-left .p-dialog-leave-active,\n.p-dialog-right .p-dialog-enter-active,\n.p-dialog-right .p-dialog-leave-active,\n.p-dialog-topleft .p-dialog-enter-active,\n.p-dialog-topleft .p-dialog-leave-active,\n.p-dialog-topright .p-dialog-enter-active,\n.p-dialog-topright .p-dialog-leave-active,\n.p-dialog-bottomleft .p-dialog-enter-active,\n.p-dialog-bottomleft .p-dialog-leave-active,\n.p-dialog-bottomright .p-dialog-enter-active,\n.p-dialog-bottomright .p-dialog-leave-active {\n    -webkit-transition: all 0.3s ease-out;\n    transition: all 0.3s ease-out;\n}\n.p-dialog-top .p-dialog-enter-from,\n.p-dialog-top .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, -100%, 0px);\n            transform: translate3d(0px, -100%, 0px);\n}\n.p-dialog-bottom .p-dialog-enter-from,\n.p-dialog-bottom .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, 100%, 0px);\n            transform: translate3d(0px, 100%, 0px);\n}\n.p-dialog-left .p-dialog-enter-from,\n.p-dialog-left .p-dialog-leave-to,\n.p-dialog-topleft .p-dialog-enter-from,\n.p-dialog-topleft .p-dialog-leave-to,\n.p-dialog-bottomleft .p-dialog-enter-from,\n.p-dialog-bottomleft .p-dialog-leave-to {\n    -webkit-transform: translate3d(-100%, 0px, 0px);\n            transform: translate3d(-100%, 0px, 0px);\n}\n.p-dialog-right .p-dialog-enter-from,\n.p-dialog-right .p-dialog-leave-to,\n.p-dialog-topright .p-dialog-enter-from,\n.p-dialog-topright .p-dialog-leave-to,\n.p-dialog-bottomright .p-dialog-enter-from,\n.p-dialog-bottomright .p-dialog-leave-to {\n    -webkit-transform: translate3d(100%, 0px, 0px);\n            transform: translate3d(100%, 0px, 0px);\n}\n\n/* Maximize */\n.p-dialog-maximized {\n    -webkit-transition: none;\n    transition: none;\n    -webkit-transform: none;\n            transform: none;\n    width: 100vw !important;\n    height: 100vh !important;\n    top: 0px !important;\n    left: 0px !important;\n    max-height: 100%;\n    height: 100%;\n}\n.p-dialog-maximized .p-dialog-content {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n\n/* Position */\n.p-dialog-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-dialog-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-dialog-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-confirm-dialog .p-dialog-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
-styleInject$n(css_248z$u);
-script$1j.render = render$s;
+script$1y.render = render$B;
 
-var script$1i = {
+var script$1x = {
   name: 'InputNumber',
   emits: ['update:modelValue', 'input', 'focus', 'blur'],
   props: {
@@ -18389,16 +15077,16 @@ var script$1i = {
 
   },
   components: {
-    INInputText: script$1u,
-    INButton: script$1v
+    INInputText: script$1y,
+    INButton: script$1z
   }
 };
-const _hoisted_1$J = {
+const _hoisted_1$S = {
   key: 0,
   class: "p-inputnumber-button-group"
 };
 
-function render$r(_ctx, _cache, $props, $setup, $data, $options) {
+function render$A(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_INInputText = resolveComponent("INInputText");
 
   const _component_INButton = resolveComponent("INButton");
@@ -18427,7 +15115,7 @@ function render$r(_ctx, _cache, $props, $setup, $data, $options) {
     onClick: $options.onInputClick,
     onFocus: $options.onInputFocus,
     onBlur: $options.onInputBlur
-  }, $props.inputProps), null, 16, ["id", "class", "style", "value", "aria-valuemin", "aria-valuemax", "aria-valuenow", "disabled", "readonly", "placeholder", "aria-labelledby", "aria-label", "onInput", "onKeydown", "onKeypress", "onPaste", "onClick", "onFocus", "onBlur"]), $props.showButtons && $props.buttonLayout === 'stacked' ? (openBlock(), createElementBlock("span", _hoisted_1$J, [createVNode(_component_INButton, mergeProps({
+  }, $props.inputProps), null, 16, ["id", "class", "style", "value", "aria-valuemin", "aria-valuemax", "aria-valuenow", "disabled", "readonly", "placeholder", "aria-labelledby", "aria-label", "onInput", "onKeydown", "onKeypress", "onPaste", "onClick", "onFocus", "onBlur"]), $props.showButtons && $props.buttonLayout === 'stacked' ? (openBlock(), createElementBlock("span", _hoisted_1$S, [createVNode(_component_INButton, mergeProps({
     class: $options.upButtonClass,
     icon: $props.incrementButtonIcon
   }, toHandlers($options.upButtonListeners), {
@@ -18460,7 +15148,7 @@ function render$r(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.decrementButtonProps), null, 16, ["class", "icon", "disabled"])) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$m(css, ref) {
+function styleInject$t(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -18489,11 +15177,11 @@ function styleInject$m(css, ref) {
   }
 }
 
-var css_248z$t = "\n.p-inputnumber {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-inputnumber-button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button .p-button-label,\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button .p-button-label {\n    display: none;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-input {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    border-bottom-left-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group .p-button.p-inputnumber-button {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-buttons-vertical .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n    text-align: center;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-fluid .p-inputnumber {\n    width: 100%;\n}\n.p-fluid .p-inputnumber .p-inputnumber-input {\n    width: 1%;\n}\n.p-fluid .p-inputnumber-buttons-vertical .p-inputnumber-input {\n    width: 100%;\n}\n";
-styleInject$m(css_248z$t);
-script$1i.render = render$r;
+var css_248z$B = "\n.p-inputnumber {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-inputnumber-button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button .p-button-label,\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button .p-button-label {\n    display: none;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-input {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    border-bottom-left-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group .p-button.p-inputnumber-button {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-buttons-vertical .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n    text-align: center;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-fluid .p-inputnumber {\n    width: 100%;\n}\n.p-fluid .p-inputnumber .p-inputnumber-input {\n    width: 1%;\n}\n.p-fluid .p-inputnumber-buttons-vertical .p-inputnumber-input {\n    width: 100%;\n}\n";
+styleInject$t(css_248z$B);
+script$1x.render = render$A;
 
-var script$1h = {
+var script$1w = {
   props: {
     bind : {
         type : Object,
@@ -18529,23 +15217,28 @@ if (cell.round) {
     atts["step"]  = parseInt(step);
 }
 
+
+const errClass = computed(() => {
+    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+});
+
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1i), mergeProps({
-    class: "focus:border-primary",
+  return (openBlock(), createBlock(unref(script$1x), mergeProps({
+    class: ["focus:border-primary", unref(errClass)],
     name: __props.bind.cell.name,
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null))
   }, atts, {
     onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.active_validation.value = true))
-  }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]))
+  }), null, 16 /* FULL_PROPS */, ["name", "class", "modelValue"]))
 }
 }
 
 };
 
-script$1h.__file = "presstojam/src/components/form/number-edit.vue";
+script$1w.__file = "presstojam/src/components/form/number-edit.vue";
 
-var script$1g = {
+var script$1v = {
   name: 'Checkbox',
   emits: ['click', 'update:modelValue', 'change', 'input', 'focus', 'blur'],
   props: {
@@ -18657,16 +15350,16 @@ var script$1g = {
 
   }
 };
-const _hoisted_1$I = {
+const _hoisted_1$R = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$B = ["id", "value", "name", "checked", "tabindex", "disabled", "readonly", "required", "aria-labelledby", "aria-label"];
+const _hoisted_2$J = ["id", "value", "name", "checked", "tabindex", "disabled", "readonly", "required", "aria-labelledby", "aria-label"];
 
-function render$q(_ctx, _cache, $props, $setup, $data, $options) {
+function render$z(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass),
     onClick: _cache[2] || (_cache[2] = $event => $options.onClick($event))
-  }, [createElementVNode("div", _hoisted_1$I, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$R, [createElementVNode("input", mergeProps({
     ref: "input",
     id: $props.inputId,
     type: "checkbox",
@@ -18683,7 +15376,7 @@ function render$q(_ctx, _cache, $props, $setup, $data, $options) {
     "aria-label": _ctx.ariaLabel,
     onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
     onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event))
-  }, $props.inputProps), null, 16, _hoisted_2$B)]), createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$J)]), createElementVNode("div", {
     ref: "box",
     class: normalizeClass(['p-checkbox-box', {
       'p-highlight': $options.checked,
@@ -18697,9 +15390,9 @@ function render$q(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 2)], 2)], 2);
 }
 
-script$1g.render = render$q;
+script$1v.render = render$z;
 
-var script$1f = {
+var script$1u = {
   props: {
     bind : {
         type : Object,
@@ -18722,22 +15415,828 @@ const value = computed({
     }
 });
 
+const errClass = computed(() => {
+    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+});
+
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1g), {
+  return (openBlock(), createBlock(unref(script$1v), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
     binary: true,
+    class: normalizeClass(unref(errClass)),
     onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.active_validation.value = true))
-  }, null, 8 /* PROPS */, ["modelValue"]))
+  }, null, 8 /* PROPS */, ["modelValue", "class"]))
 }
 }
 
 };
 
-script$1f.__file = "presstojam/src/components/form/flag-edit.vue";
+script$1u.__file = "presstojam/src/components/form/flag-edit.vue";
 
-var script$1e = {
+var OverlayEventBus = primebus();
+
+var script$1$7 = {
+  name: 'TreeNode',
+  emits: ['node-toggle', 'node-click', 'checkbox-change'],
+  props: {
+    node: {
+      type: null,
+      default: null
+    },
+    expandedKeys: {
+      type: null,
+      default: null
+    },
+    selectionKeys: {
+      type: null,
+      default: null
+    },
+    selectionMode: {
+      type: String,
+      default: null
+    },
+    templates: {
+      type: null,
+      default: null
+    },
+    level: {
+      type: Number,
+      default: null
+    },
+    index: {
+      type: Number,
+      default: null
+    }
+  },
+  nodeTouched: false,
+  methods: {
+    toggle() {
+      this.$emit('node-toggle', this.node);
+    },
+
+    label(node) {
+      return typeof node.label === 'function' ? node.label() : node.label;
+    },
+
+    onChildNodeToggle(node) {
+      this.$emit('node-toggle', node);
+    },
+
+    onClick(event) {
+      if (DomHandler.hasClass(event.target, 'p-tree-toggler') || DomHandler.hasClass(event.target.parentElement, 'p-tree-toggler')) {
+        return;
+      }
+
+      if (this.isCheckboxSelectionMode()) {
+        this.toggleCheckbox();
+      } else {
+        this.$emit('node-click', {
+          originalEvent: event,
+          nodeTouched: this.nodeTouched,
+          node: this.node
+        });
+      }
+
+      this.nodeTouched = false;
+    },
+
+    onChildNodeClick(event) {
+      this.$emit('node-click', event);
+    },
+
+    onTouchEnd() {
+      this.nodeTouched = true;
+    },
+
+    onKeyDown(event) {
+      const nodeElement = event.target.parentElement;
+
+      switch (event.code) {
+        case 'ArrowDown':
+          var listElement = nodeElement.children[1];
+
+          if (listElement) {
+            this.focusNode(listElement.children[0]);
+          } else {
+            const nextNodeElement = nodeElement.nextElementSibling;
+
+            if (nextNodeElement) {
+              this.focusNode(nextNodeElement);
+            } else {
+              let nextSiblingAncestor = this.findNextSiblingOfAncestor(nodeElement);
+
+              if (nextSiblingAncestor) {
+                this.focusNode(nextSiblingAncestor);
+              }
+            }
+          }
+
+          break;
+
+        case 'ArrowUp':
+          if (nodeElement.previousElementSibling) {
+            this.focusNode(this.findLastVisibleDescendant(nodeElement.previousElementSibling));
+          } else {
+            let parentNodeElement = this.getParentNodeElement(nodeElement);
+
+            if (parentNodeElement) {
+              this.focusNode(parentNodeElement);
+            }
+          }
+
+          break;
+
+        case 'ArrowRight':
+        case 'ArrowLeft':
+          this.$emit('node-toggle', this.node);
+          break;
+
+        case 'Enter':
+        case 'Space':
+          this.onClick(event);
+          break;
+      }
+
+      event.preventDefault();
+    },
+
+    toggleCheckbox() {
+      let _selectionKeys = this.selectionKeys ? { ...this.selectionKeys
+      } : {};
+
+      const _check = !this.checked;
+
+      this.propagateDown(this.node, _check, _selectionKeys);
+      this.$emit('checkbox-change', {
+        node: this.node,
+        check: _check,
+        selectionKeys: _selectionKeys
+      });
+    },
+
+    propagateDown(node, check, selectionKeys) {
+      if (check) selectionKeys[node.key] = {
+        checked: true,
+        partialChecked: false
+      };else delete selectionKeys[node.key];
+
+      if (node.children && node.children.length) {
+        for (let child of node.children) {
+          this.propagateDown(child, check, selectionKeys);
+        }
+      }
+    },
+
+    propagateUp(event) {
+      let check = event.check;
+      let _selectionKeys = { ...event.selectionKeys
+      };
+      let checkedChildCount = 0;
+      let childPartialSelected = false;
+
+      for (let child of this.node.children) {
+        if (_selectionKeys[child.key] && _selectionKeys[child.key].checked) checkedChildCount++;else if (_selectionKeys[child.key] && _selectionKeys[child.key].partialChecked) childPartialSelected = true;
+      }
+
+      if (check && checkedChildCount === this.node.children.length) {
+        _selectionKeys[this.node.key] = {
+          checked: true,
+          partialChecked: false
+        };
+      } else {
+        if (!check) {
+          delete _selectionKeys[this.node.key];
+        }
+
+        if (childPartialSelected || checkedChildCount > 0 && checkedChildCount !== this.node.children.length) _selectionKeys[this.node.key] = {
+          checked: false,
+          partialChecked: true
+        };else delete _selectionKeys[this.node.key];
+      }
+
+      this.$emit('checkbox-change', {
+        node: event.node,
+        check: event.check,
+        selectionKeys: _selectionKeys
+      });
+    },
+
+    onChildCheckboxChange(event) {
+      this.$emit('checkbox-change', event);
+    },
+
+    findNextSiblingOfAncestor(nodeElement) {
+      let parentNodeElement = this.getParentNodeElement(nodeElement);
+
+      if (parentNodeElement) {
+        if (parentNodeElement.nextElementSibling) return parentNodeElement.nextElementSibling;else return this.findNextSiblingOfAncestor(parentNodeElement);
+      } else {
+        return null;
+      }
+    },
+
+    findLastVisibleDescendant(nodeElement) {
+      const childrenListElement = nodeElement.children[1];
+
+      if (childrenListElement) {
+        const lastChildElement = childrenListElement.children[childrenListElement.children.length - 1];
+        return this.findLastVisibleDescendant(lastChildElement);
+      } else {
+        return nodeElement;
+      }
+    },
+
+    getParentNodeElement(nodeElement) {
+      const parentNodeElement = nodeElement.parentElement.parentElement;
+      return DomHandler.hasClass(parentNodeElement, 'p-treenode') ? parentNodeElement : null;
+    },
+
+    focusNode(element) {
+      element.children[0].focus();
+    },
+
+    isCheckboxSelectionMode() {
+      return this.selectionMode === 'checkbox';
+    }
+
+  },
+  computed: {
+    hasChildren() {
+      return this.node.children && this.node.children.length > 0;
+    },
+
+    expanded() {
+      return this.expandedKeys && this.expandedKeys[this.node.key] === true;
+    },
+
+    leaf() {
+      return this.node.leaf === false ? false : !(this.node.children && this.node.children.length);
+    },
+
+    selectable() {
+      return this.node.selectable === false ? false : this.selectionMode != null;
+    },
+
+    selected() {
+      return this.selectionMode && this.selectionKeys ? this.selectionKeys[this.node.key] === true : false;
+    },
+
+    containerClass() {
+      return ['p-treenode', {
+        'p-treenode-leaf': this.leaf
+      }];
+    },
+
+    contentClass() {
+      return ['p-treenode-content', this.node.styleClass, {
+        'p-treenode-selectable': this.selectable,
+        'p-highlight': this.checkboxMode ? this.checked : this.selected
+      }];
+    },
+
+    icon() {
+      return ['p-treenode-icon', this.node.icon];
+    },
+
+    toggleIcon() {
+      return ['p-tree-toggler-icon pi pi-fw', this.expanded ? this.node.expandedIcon || 'pi-chevron-down' : this.node.collapsedIcon || 'pi-chevron-right'];
+    },
+
+    checkboxClass() {
+      return ['p-checkbox-box', {
+        'p-highlight': this.checked,
+        'p-indeterminate': this.partialChecked
+      }];
+    },
+
+    checkboxIcon() {
+      return ['p-checkbox-icon', {
+        'pi pi-check': this.checked,
+        'pi pi-minus': this.partialChecked
+      }];
+    },
+
+    checkboxMode() {
+      return this.selectionMode === 'checkbox' && this.node.selectable !== false;
+    },
+
+    checked() {
+      return this.selectionKeys ? this.selectionKeys[this.node.key] && this.selectionKeys[this.node.key].checked : false;
+    },
+
+    partialChecked() {
+      return this.selectionKeys ? this.selectionKeys[this.node.key] && this.selectionKeys[this.node.key].partialChecked : false;
+    }
+
+  },
+  directives: {
+    ripple: Ripple
+  }
+};
+const _hoisted_1$1$7 = ["aria-label", "aria-selected", "aria-expanded", "aria-setsize", "aria-posinset", "aria-level"];
+const _hoisted_2$1$7 = ["aria-expanded"];
+const _hoisted_3$1$6 = {
+  key: 0,
+  class: "p-checkbox p-component"
+};
+const _hoisted_4$1$4 = ["aria-checked"];
+const _hoisted_5$1$4 = {
+  class: "p-treenode-label"
+};
+const _hoisted_6$h = {
+  key: 0,
+  class: "p-treenode-children",
+  role: "group"
+};
+
+function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_TreeNode = resolveComponent("TreeNode", true);
+
+  const _directive_ripple = resolveDirective("ripple");
+
+  return openBlock(), createElementBlock("li", {
+    class: normalizeClass($options.containerClass),
+    role: "treeitem",
+    "aria-label": $options.label($props.node),
+    "aria-selected": $options.selected,
+    "aria-expanded": $options.expanded,
+    "aria-setsize": $props.node.children ? $props.node.children.length : 0,
+    "aria-posinset": $props.index + 1,
+    "aria-level": $props.level
+  }, [createElementVNode("div", {
+    class: normalizeClass($options.contentClass),
+    tabindex: "0",
+    role: "treeitem",
+    "aria-expanded": $options.expanded,
+    onClick: _cache[1] || (_cache[1] = (...args) => $options.onClick && $options.onClick(...args)),
+    onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
+    onTouchend: _cache[3] || (_cache[3] = (...args) => $options.onTouchEnd && $options.onTouchEnd(...args)),
+    style: normalizeStyle($props.node.style)
+  }, [withDirectives((openBlock(), createElementBlock("button", {
+    type: "button",
+    class: "p-tree-toggler p-link",
+    onClick: _cache[0] || (_cache[0] = (...args) => $options.toggle && $options.toggle(...args)),
+    tabindex: "-1"
+  }, [createElementVNode("span", {
+    class: normalizeClass($options.toggleIcon)
+  }, null, 2)])), [[_directive_ripple]]), $options.checkboxMode ? (openBlock(), createElementBlock("div", _hoisted_3$1$6, [createElementVNode("div", {
+    class: normalizeClass($options.checkboxClass),
+    role: "checkbox",
+    "aria-checked": $options.checked
+  }, [createElementVNode("span", {
+    class: normalizeClass($options.checkboxIcon)
+  }, null, 2)], 10, _hoisted_4$1$4)])) : createCommentVNode("", true), createElementVNode("span", {
+    class: normalizeClass($options.icon)
+  }, null, 2), createElementVNode("span", _hoisted_5$1$4, [$props.templates[$props.node.type] || $props.templates['default'] ? (openBlock(), createBlock(resolveDynamicComponent($props.templates[$props.node.type] || $props.templates['default']), {
+    key: 0,
+    node: $props.node
+  }, null, 8, ["node"])) : (openBlock(), createElementBlock(Fragment, {
+    key: 1
+  }, [createTextVNode(toDisplayString$1($options.label($props.node)), 1)], 64))])], 46, _hoisted_2$1$7), $options.hasChildren && $options.expanded ? (openBlock(), createElementBlock("ul", _hoisted_6$h, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.node.children, childNode => {
+    return openBlock(), createBlock(_component_TreeNode, {
+      key: childNode.key,
+      node: childNode,
+      templates: $props.templates,
+      level: $props.level + 1,
+      expandedKeys: $props.expandedKeys,
+      onNodeToggle: $options.onChildNodeToggle,
+      onNodeClick: $options.onChildNodeClick,
+      selectionMode: $props.selectionMode,
+      selectionKeys: $props.selectionKeys,
+      onCheckboxChange: $options.propagateUp
+    }, null, 8, ["node", "templates", "level", "expandedKeys", "onNodeToggle", "onNodeClick", "selectionMode", "selectionKeys", "onCheckboxChange"]);
+  }), 128))])) : createCommentVNode("", true)], 10, _hoisted_1$1$7);
+}
+
+script$1$7.render = render$1$7;
+var script$1t = {
+  name: 'Tree',
+  emits: ['node-expand', 'node-collapse', 'update:expandedKeys', 'update:selectionKeys', 'node-select', 'node-unselect'],
+  props: {
+    value: {
+      type: null,
+      default: null
+    },
+    expandedKeys: {
+      type: null,
+      default: null
+    },
+    selectionKeys: {
+      type: null,
+      default: null
+    },
+    selectionMode: {
+      type: String,
+      default: null
+    },
+    metaKeySelection: {
+      type: Boolean,
+      default: true
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    },
+    loadingIcon: {
+      type: String,
+      default: 'pi pi-spinner'
+    },
+    filter: {
+      type: Boolean,
+      default: false
+    },
+    filterBy: {
+      type: String,
+      default: 'label'
+    },
+    filterMode: {
+      type: String,
+      default: 'lenient'
+    },
+    filterPlaceholder: {
+      type: String,
+      default: null
+    },
+    filterLocale: {
+      type: String,
+      default: undefined
+    },
+    scrollHeight: {
+      type: String,
+      default: null
+    },
+    level: {
+      type: Number,
+      default: 0
+    }
+  },
+
+  data() {
+    return {
+      d_expandedKeys: this.expandedKeys || {},
+      filterValue: null
+    };
+  },
+
+  watch: {
+    expandedKeys(newValue) {
+      this.d_expandedKeys = newValue;
+    }
+
+  },
+  methods: {
+    onNodeToggle(node) {
+      const key = node.key;
+
+      if (this.d_expandedKeys[key]) {
+        delete this.d_expandedKeys[key];
+        this.$emit('node-collapse', node);
+      } else {
+        this.d_expandedKeys[key] = true;
+        this.$emit('node-expand', node);
+      }
+
+      this.d_expandedKeys = { ...this.d_expandedKeys
+      };
+      this.$emit('update:expandedKeys', this.d_expandedKeys);
+    },
+
+    onNodeClick(event) {
+      if (this.selectionMode != null && event.node.selectable !== false) {
+        const metaSelection = event.nodeTouched ? false : this.metaKeySelection;
+
+        const _selectionKeys = metaSelection ? this.handleSelectionWithMetaKey(event) : this.handleSelectionWithoutMetaKey(event);
+
+        this.$emit('update:selectionKeys', _selectionKeys);
+      }
+    },
+
+    onCheckboxChange(event) {
+      this.$emit('update:selectionKeys', event.selectionKeys);
+      if (event.check) this.$emit('node-select', event.node);else this.$emit('node-unselect', event.node);
+    },
+
+    handleSelectionWithMetaKey(event) {
+      const originalEvent = event.originalEvent;
+      const node = event.node;
+      const metaKey = originalEvent.metaKey || originalEvent.ctrlKey;
+      const selected = this.isNodeSelected(node);
+
+      let _selectionKeys;
+
+      if (selected && metaKey) {
+        if (this.isSingleSelectionMode()) {
+          _selectionKeys = {};
+        } else {
+          _selectionKeys = { ...this.selectionKeys
+          };
+          delete _selectionKeys[node.key];
+        }
+
+        this.$emit('node-unselect', node);
+      } else {
+        if (this.isSingleSelectionMode()) {
+          _selectionKeys = {};
+        } else if (this.isMultipleSelectionMode()) {
+          _selectionKeys = !metaKey ? {} : this.selectionKeys ? { ...this.selectionKeys
+          } : {};
+        }
+
+        _selectionKeys[node.key] = true;
+        this.$emit('node-select', node);
+      }
+
+      return _selectionKeys;
+    },
+
+    handleSelectionWithoutMetaKey(event) {
+      const node = event.node;
+      const selected = this.isNodeSelected(node);
+
+      let _selectionKeys;
+
+      if (this.isSingleSelectionMode()) {
+        if (selected) {
+          _selectionKeys = {};
+          this.$emit('node-unselect', node);
+        } else {
+          _selectionKeys = {};
+          _selectionKeys[node.key] = true;
+          this.$emit('node-select', node);
+        }
+      } else {
+        if (selected) {
+          _selectionKeys = { ...this.selectionKeys
+          };
+          delete _selectionKeys[node.key];
+          this.$emit('node-unselect', node);
+        } else {
+          _selectionKeys = this.selectionKeys ? { ...this.selectionKeys
+          } : {};
+          _selectionKeys[node.key] = true;
+          this.$emit('node-select', node);
+        }
+      }
+
+      return _selectionKeys;
+    },
+
+    isSingleSelectionMode() {
+      return this.selectionMode === 'single';
+    },
+
+    isMultipleSelectionMode() {
+      return this.selectionMode === 'multiple';
+    },
+
+    isNodeSelected(node) {
+      return this.selectionMode && this.selectionKeys ? this.selectionKeys[node.key] === true : false;
+    },
+
+    isChecked(node) {
+      return this.selectionKeys ? this.selectionKeys[node.key] && this.selectionKeys[node.key].checked : false;
+    },
+
+    isNodeLeaf(node) {
+      return node.leaf === false ? false : !(node.children && node.children.length);
+    },
+
+    onFilterKeydown(event) {
+      if (event.which === 13) {
+        event.preventDefault();
+      }
+    },
+
+    findFilteredNodes(node, paramsWithoutNode) {
+      if (node) {
+        let matched = false;
+
+        if (node.children) {
+          let childNodes = [...node.children];
+          node.children = [];
+
+          for (let childNode of childNodes) {
+            let copyChildNode = { ...childNode
+            };
+
+            if (this.isFilterMatched(copyChildNode, paramsWithoutNode)) {
+              matched = true;
+              node.children.push(copyChildNode);
+            }
+          }
+        }
+
+        if (matched) {
+          return true;
+        }
+      }
+    },
+
+    isFilterMatched(node, {
+      searchFields,
+      filterText,
+      strict
+    }) {
+      let matched = false;
+
+      for (let field of searchFields) {
+        let fieldValue = String(ObjectUtils.resolveFieldData(node, field)).toLocaleLowerCase(this.filterLocale);
+
+        if (fieldValue.indexOf(filterText) > -1) {
+          matched = true;
+        }
+      }
+
+      if (!matched || strict && !this.isNodeLeaf(node)) {
+        matched = this.findFilteredNodes(node, {
+          searchFields,
+          filterText,
+          strict
+        }) || matched;
+      }
+
+      return matched;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-tree p-component', {
+        'p-tree-selectable': this.selectionMode != null,
+        'p-tree-loading': this.loading,
+        'p-tree-flex-scrollable': this.scrollHeight === 'flex'
+      }];
+    },
+
+    loadingIconClass() {
+      return ['p-tree-loading-icon pi-spin', this.loadingIcon];
+    },
+
+    filteredValue() {
+      let filteredNodes = [];
+      const searchFields = this.filterBy.split(',');
+      const filterText = this.filterValue.trim().toLocaleLowerCase(this.filterLocale);
+      const strict = this.filterMode === 'strict';
+
+      for (let node of this.value) {
+        let _node = { ...node
+        };
+        let paramsWithoutNode = {
+          searchFields,
+          filterText,
+          strict
+        };
+
+        if (strict && (this.findFilteredNodes(_node, paramsWithoutNode) || this.isFilterMatched(_node, paramsWithoutNode)) || !strict && (this.isFilterMatched(_node, paramsWithoutNode) || this.findFilteredNodes(_node, paramsWithoutNode))) {
+          filteredNodes.push(_node);
+        }
+      }
+
+      return filteredNodes;
+    },
+
+    valueToRender() {
+      if (this.filterValue && this.filterValue.trim().length > 0) return this.filteredValue;else return this.value;
+    }
+
+  },
+  components: {
+    TreeNode: script$1$7
+  }
+};
+const _hoisted_1$Q = {
+  key: 0,
+  class: "p-tree-loading-overlay p-component-overlay"
+};
+const _hoisted_2$I = {
+  key: 1,
+  class: "p-tree-filter-container"
+};
+const _hoisted_3$z = ["placeholder"];
+
+const _hoisted_4$v = /*#__PURE__*/createElementVNode("span", {
+  class: "p-tree-filter-icon pi pi-search"
+}, null, -1);
+
+const _hoisted_5$n = {
+  class: "p-tree-container",
+  role: "tree"
+};
+
+function render$y(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_TreeNode = resolveComponent("TreeNode");
+
+  return openBlock(), createElementBlock("div", {
+    class: normalizeClass($options.containerClass)
+  }, [$props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$Q, [createElementVNode("i", {
+    class: normalizeClass($options.loadingIconClass)
+  }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_2$I, [withDirectives(createElementVNode("input", {
+    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => $data.filterValue = $event),
+    type: "text",
+    autocomplete: "off",
+    class: "p-tree-filter p-inputtext p-component",
+    placeholder: $props.filterPlaceholder,
+    onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onFilterKeydown && $options.onFilterKeydown(...args))
+  }, null, 40, _hoisted_3$z), [[vModelText, $data.filterValue]]), _hoisted_4$v])) : createCommentVNode("", true), createElementVNode("div", {
+    class: "p-tree-wrapper",
+    style: normalizeStyle({
+      maxHeight: $props.scrollHeight
+    })
+  }, [createElementVNode("ul", _hoisted_5$n, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.valueToRender, (node, index) => {
+    return openBlock(), createBlock(_component_TreeNode, {
+      key: node.key,
+      node: node,
+      templates: _ctx.$slots,
+      level: $props.level + 1,
+      index: index,
+      expandedKeys: $data.d_expandedKeys,
+      onNodeToggle: $options.onNodeToggle,
+      onNodeClick: $options.onNodeClick,
+      selectionMode: $props.selectionMode,
+      selectionKeys: $props.selectionKeys,
+      onCheckboxChange: $options.onCheckboxChange
+    }, null, 8, ["node", "templates", "level", "index", "expandedKeys", "onNodeToggle", "onNodeClick", "selectionMode", "selectionKeys", "onCheckboxChange"]);
+  }), 128))])], 4)], 2);
+}
+
+function styleInject$s(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$A = "\n.p-tree-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    overflow: auto;\n}\n.p-treenode-children {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-tree-wrapper {\n    overflow: auto;\n}\n.p-treenode-selectable {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-tree-toggler {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treenode-leaf > .p-treenode-content .p-tree-toggler {\n    visibility: hidden;\n}\n.p-treenode-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-tree-filter {\n    width: 100%;\n}\n.p-tree-filter-container {\n    position: relative;\n    display: block;\n    width: 100%;\n}\n.p-tree-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-tree-loading {\n    position: relative;\n    min-height: 4rem;\n}\n.p-tree .p-tree-loading-overlay {\n    position: absolute;\n    z-index: 1;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tree-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-tree-flex-scrollable .p-tree-wrapper {\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n}\n";
+styleInject$s(css_248z$A);
+script$1t.render = render$y;
+
+var script$1s = {
+  name: 'Portal',
+  props: {
+    appendTo: {
+      type: String,
+      default: 'body'
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  data() {
+    return {
+      mounted: false
+    };
+  },
+
+  mounted() {
+    this.mounted = DomHandler.isClient();
+  },
+
+  computed: {
+    inline() {
+      return this.disabled || this.appendTo === 'self';
+    }
+
+  }
+};
+
+function render$x(_ctx, _cache, $props, $setup, $data, $options) {
+  return $options.inline ? renderSlot(_ctx.$slots, "default", {
+    key: 0
+  }) : $data.mounted ? (openBlock(), createBlock(Teleport, {
+    key: 1,
+    to: $props.appendTo
+  }, [renderSlot(_ctx.$slots, "default")], 8, ["to"])) : createCommentVNode("", true);
+}
+
+script$1s.render = render$x;
+
+var script$1r = {
   name: 'TreeSelect',
   emits: ['update:modelValue', 'before-show', 'before-hide', 'change', 'show', 'hide', 'node-select', 'node-unselect', 'node-expand', 'node-collapse', 'focus', 'blur'],
   props: {
@@ -19188,35 +16687,35 @@ var script$1e = {
 
   },
   components: {
-    TSTree: script$1n,
-    Portal: script$1x
+    TSTree: script$1t,
+    Portal: script$1s
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$H = {
+const _hoisted_1$P = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$A = ["id", "disabled", "tabindex", "aria-labelledby", "aria-label", "aria-expanded", "aria-controls"];
-const _hoisted_3$s = {
+const _hoisted_2$H = ["id", "disabled", "tabindex", "aria-labelledby", "aria-label", "aria-expanded", "aria-controls"];
+const _hoisted_3$y = {
   class: "p-treeselect-label-container"
 };
-const _hoisted_4$o = {
+const _hoisted_4$u = {
   class: "p-treeselect-token-label"
 };
-const _hoisted_5$h = ["aria-expanded"];
+const _hoisted_5$m = ["aria-expanded"];
 
-const _hoisted_6$d = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_6$g = /*#__PURE__*/createElementVNode("span", {
   class: "p-treeselect-trigger-icon pi pi-chevron-down"
 }, null, -1);
 
-const _hoisted_7$8 = {
+const _hoisted_7$b = {
   key: 0,
   class: "p-treeselect-empty-message"
 };
 
-function render$p(_ctx, _cache, $props, $setup, $data, $options) {
+function render$w(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_TSTree = resolveComponent("TSTree");
 
   const _component_Portal = resolveComponent("Portal");
@@ -19225,7 +16724,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
     ref: "container",
     class: normalizeClass($options.containerClass),
     onClick: _cache[6] || (_cache[6] = (...args) => $options.onClick && $options.onClick(...args))
-  }, [createElementVNode("div", _hoisted_1$H, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$P, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
     type: "text",
@@ -19243,7 +16742,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
     onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event)),
     onKeydown: _cache[2] || (_cache[2] = $event => $options.onKeyDown($event))
-  }, $props.inputProps), null, 16, _hoisted_2$A)]), createElementVNode("div", _hoisted_3$s, [createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$H)]), createElementVNode("div", _hoisted_3$y, [createElementVNode("div", {
     class: normalizeClass($options.labelClass)
   }, [renderSlot(_ctx.$slots, "value", {
     value: $options.selectedNodes,
@@ -19256,7 +16755,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
     return openBlock(), createElementBlock("div", {
       key: node.key,
       class: "p-treeselect-token"
-    }, [createElementVNode("span", _hoisted_4$o, toDisplayString$1(node.label), 1)]);
+    }, [createElementVNode("span", _hoisted_4$u, toDisplayString$1(node.label), 1)]);
   }), 128)), $options.emptyValue ? (openBlock(), createElementBlock(Fragment, {
     key: 0
   }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", {
@@ -19264,7 +16763,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
     role: "button",
     "aria-haspopup": "tree",
     "aria-expanded": $data.overlayVisible
-  }, [renderSlot(_ctx.$slots, "indicator", {}, () => [_hoisted_6$d])], 8, _hoisted_5$h), createVNode(_component_Portal, {
+  }, [renderSlot(_ctx.$slots, "indicator", {}, () => [_hoisted_6$g])], 8, _hoisted_5$m), createVNode(_component_Portal, {
     appendTo: $props.appendTo
   }, {
     default: withCtx(() => [createVNode(Transition, {
@@ -19300,7 +16799,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
         onNodeSelect: $options.onNodeSelect,
         onNodeUnselect: $options.onNodeUnselect,
         level: 0
-      }, null, 8, ["id", "value", "selectionMode", "onUpdate:selectionKeys", "selectionKeys", "expandedKeys", "onUpdate:expandedKeys", "metaKeySelection", "onNodeSelect", "onNodeUnselect"]), $options.emptyOptions ? (openBlock(), createElementBlock("div", _hoisted_7$8, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 4), renderSlot(_ctx.$slots, "footer", {
+      }, null, 8, ["id", "value", "selectionMode", "onUpdate:selectionKeys", "selectionKeys", "expandedKeys", "onUpdate:expandedKeys", "metaKeySelection", "onNodeSelect", "onNodeUnselect"]), $options.emptyOptions ? (openBlock(), createElementBlock("div", _hoisted_7$b, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 4), renderSlot(_ctx.$slots, "footer", {
         value: $props.modelValue,
         options: $props.options
       })], 16)) : createCommentVNode("", true)]),
@@ -19310,7 +16809,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$l(css, ref) {
+function styleInject$r(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -19339,11 +16838,11 @@ function styleInject$l(css, ref) {
   }
 }
 
-var css_248z$s = "\n.p-treeselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-treeselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treeselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-treeselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-treeselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-treeselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-treeselect .p-treeselect-panel {\n    min-width: 100%;\n}\n.p-treeselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-treeselect-items-wrapper {\n    overflow: auto;\n}\n.p-fluid .p-treeselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$l(css_248z$s);
-script$1e.render = render$p;
+var css_248z$z = "\n.p-treeselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-treeselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treeselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-treeselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-treeselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-treeselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-treeselect .p-treeselect-panel {\n    min-width: 100%;\n}\n.p-treeselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-treeselect-items-wrapper {\n    overflow: auto;\n}\n.p-fluid .p-treeselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$r(css_248z$z);
+script$1r.render = render$w;
 
-var script$1d = {
+var script$1q = {
   props: {
          cell : Object,
          store : Object
@@ -19382,7 +16881,7 @@ const props = __props;
     }
  
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$T, {
+  return (openBlock(), createBlock(script$13, {
     store: unref(referencestore),
     onSaved: onCreate,
     parent: unref(parent),
@@ -19394,9 +16893,700 @@ return (_ctx, _cache) => {
 
 };
 
-script$1d.__file = "presstojam/src/components/actions/reference-create.vue";
+script$1q.__file = "presstojam/src/components/actions/reference-create.vue";
 
-var script$1c = {
+let element,
+    firstVNode,
+    lastVNode,
+    shiftKey = false;
+
+function firstHiddenFocus() {
+  if (shiftKey) {
+    lastVNode.focus();
+  } else {
+    const firstFocusableEl = DomHandler.getFirstFocusableElement(element, ':not(.p-hidden-focusable)');
+    DomHandler.focus(firstFocusableEl);
+  }
+}
+
+function lastHiddenFocus() {
+  if (shiftKey) {
+    const lastFocusableEl = DomHandler.getLastFocusableElement(element, ':not(.p-hidden-focusable)');
+    DomHandler.focus(lastFocusableEl);
+  } else {
+    firstVNode.focus();
+  }
+}
+
+function createHiddenElement(callback) {
+  const el = document.createElement('span');
+  el.classList = 'p-hidden-accessible p-hidden-focusable';
+  el.tabIndex = '0';
+  el.setAttribute('aria-hidden', 'true');
+  el.setAttribute('role', 'presentation');
+  el.addEventListener('focus', callback);
+  return el;
+}
+
+function createHiddenElements(el) {
+  firstVNode = createHiddenElement(firstHiddenFocus);
+  lastVNode = createHiddenElement(lastHiddenFocus);
+  el.prepend(firstVNode);
+  el.append(lastVNode);
+}
+
+function bind$1(el) {
+  el.$_pfocustrap_keydownlistener = e => {
+    if (e.code === 'Tab') {
+      shiftKey = e.shiftKey;
+    }
+  };
+
+  el.addEventListener('keydown', el.$_pfocustrap_keydownlistener);
+}
+
+function unbind(el) {
+  if (el.$_pfocustrap_keydownlistener) {
+    el.removeEventListener('keydown', el.$_pfocustrap_keydownlistener);
+    el.$_pfocustrap_keydownlistener = null;
+  }
+}
+
+const FocusTrap = {
+  mounted(el, binding, vnode) {
+    const firstFocusableEl = DomHandler.getFirstFocusableElement(el, ':not(.p-hidden-focusable)');
+
+    if (firstFocusableEl) {
+      el.$_pfocustrapFocusTrapDisabled = false;
+
+      if (binding.value && typeof binding.value === 'object') {
+        el.$_pfocustrapFocusTrapDisabled = binding.value.focusTrapDisabled;
+      }
+
+      if (!el.$_pfocustrapFocusTrapDisabled) {
+        element = el;
+        createHiddenElements(el);
+        bind$1(el);
+      }
+    }
+  },
+
+  unmounted(el) {
+    element = null;
+    firstVNode = null;
+    lastVNode = null;
+    shiftKey = false;
+    unbind(el);
+  }
+
+};
+
+var script$1p = {
+  name: 'Dialog',
+  inheritAttrs: false,
+  emits: ['update:visible', 'show', 'hide', 'after-hide', 'maximize', 'unmaximize', 'dragend'],
+  props: {
+    header: {
+      type: null,
+      default: null
+    },
+    footer: {
+      type: null,
+      default: null
+    },
+    visible: {
+      type: Boolean,
+      default: false
+    },
+    modal: {
+      type: Boolean,
+      default: null
+    },
+    contentStyle: {
+      type: null,
+      default: null
+    },
+    contentClass: {
+      type: String,
+      default: null
+    },
+    contentProps: {
+      type: null,
+      default: null
+    },
+    rtl: {
+      type: Boolean,
+      default: null
+    },
+    maximizable: {
+      type: Boolean,
+      default: false
+    },
+    dismissableMask: {
+      type: Boolean,
+      default: false
+    },
+    closable: {
+      type: Boolean,
+      default: true
+    },
+    closeOnEscape: {
+      type: Boolean,
+      default: true
+    },
+    showHeader: {
+      type: Boolean,
+      default: true
+    },
+    baseZIndex: {
+      type: Number,
+      default: 0
+    },
+    autoZIndex: {
+      type: Boolean,
+      default: true
+    },
+    position: {
+      type: String,
+      default: 'center'
+    },
+    breakpoints: {
+      type: Object,
+      default: null
+    },
+    draggable: {
+      type: Boolean,
+      default: true
+    },
+    keepInViewport: {
+      type: Boolean,
+      default: true
+    },
+    minX: {
+      type: Number,
+      default: 0
+    },
+    minY: {
+      type: Number,
+      default: 0
+    },
+    appendTo: {
+      type: String,
+      default: 'body'
+    },
+    closeIcon: {
+      type: String,
+      default: 'pi pi-times'
+    },
+    maximizeIcon: {
+      type: String,
+      default: 'pi pi-window-maximize'
+    },
+    minimizeIcon: {
+      type: String,
+      default: 'pi pi-window-minimize'
+    },
+    closeButtonProps: {
+      type: null,
+      default: null
+    },
+    _instance: null
+  },
+
+  provide() {
+    return {
+      dialogRef: computed(() => this._instance)
+    };
+  },
+
+  data() {
+    return {
+      containerVisible: this.visible,
+      maximized: false
+    };
+  },
+
+  documentKeydownListener: null,
+  container: null,
+  mask: null,
+  content: null,
+  headerContainer: null,
+  footerContainer: null,
+  maximizableButton: null,
+  closeButton: null,
+  styleElement: null,
+  dragging: null,
+  documentDragListener: null,
+  documentDragEndListener: null,
+  lastPageX: null,
+  lastPageY: null,
+
+  updated() {
+    if (this.visible) {
+      this.containerVisible = this.visible;
+    }
+  },
+
+  beforeUnmount() {
+    this.unbindDocumentState();
+    this.unbindGlobalListeners();
+    this.destroyStyle();
+
+    if (this.mask && this.autoZIndex) {
+      ZIndexUtils.clear(this.mask);
+    }
+
+    this.container = null;
+    this.mask = null;
+  },
+
+  mounted() {
+    if (this.breakpoints) {
+      this.createStyle();
+    }
+  },
+
+  methods: {
+    close() {
+      this.$emit('update:visible', false);
+    },
+
+    onBeforeEnter(el) {
+      el.setAttribute(this.attributeSelector, '');
+    },
+
+    onEnter() {
+      this.$emit('show');
+      this.focus();
+      this.enableDocumentSettings();
+      this.bindGlobalListeners();
+
+      if (this.autoZIndex) {
+        ZIndexUtils.set('modal', this.mask, this.baseZIndex + this.$primevue.config.zIndex.modal);
+      }
+    },
+
+    onBeforeLeave() {
+      if (this.modal) {
+        DomHandler.addClass(this.mask, 'p-component-overlay-leave');
+      }
+    },
+
+    onLeave() {
+      this.$emit('hide');
+    },
+
+    onAfterLeave() {
+      if (this.autoZIndex) {
+        ZIndexUtils.clear(this.mask);
+      }
+
+      this.containerVisible = false;
+      this.unbindDocumentState();
+      this.unbindGlobalListeners();
+      this.$emit('after-hide');
+    },
+
+    onMaskClick(event) {
+      if (this.dismissableMask && this.closable && this.modal && this.mask === event.target) {
+        this.close();
+      }
+    },
+
+    focus() {
+      const findFocusableElement = container => {
+        return container.querySelector('[autofocus]');
+      };
+
+      let focusTarget = this.$slots.default && findFocusableElement(this.content);
+
+      if (!focusTarget) {
+        focusTarget = this.$slots.header && findFocusableElement(this.headerContainer);
+
+        if (!focusTarget) {
+          focusTarget = this.$slots.footer && findFocusableElement(this.footerContainer);
+
+          if (!focusTarget) {
+            focusTarget = findFocusableElement(this.container);
+          }
+        }
+      }
+
+      focusTarget && focusTarget.focus();
+    },
+
+    maximize(event) {
+      if (this.maximized) {
+        this.maximized = false;
+        this.$emit('unmaximize', event);
+      } else {
+        this.maximized = true;
+        this.$emit('maximize', event);
+      }
+
+      if (!this.modal) {
+        if (this.maximized) DomHandler.addClass(document.body, 'p-overflow-hidden');else DomHandler.removeClass(document.body, 'p-overflow-hidden');
+      }
+    },
+
+    enableDocumentSettings() {
+      if (this.modal || this.maximizable && this.maximized) {
+        DomHandler.addClass(document.body, 'p-overflow-hidden');
+      }
+    },
+
+    unbindDocumentState() {
+      if (this.modal || this.maximizable && this.maximized) {
+        DomHandler.removeClass(document.body, 'p-overflow-hidden');
+      }
+    },
+
+    onKeyDown(event) {
+      if (event.code === 'Escape' && this.closeOnEscape) {
+        this.close();
+      }
+    },
+
+    bindDocumentKeyDownListener() {
+      if (!this.documentKeydownListener) {
+        this.documentKeydownListener = this.onKeyDown.bind(this);
+        window.document.addEventListener('keydown', this.documentKeydownListener);
+      }
+    },
+
+    unbindDocumentKeyDownListener() {
+      if (this.documentKeydownListener) {
+        window.document.removeEventListener('keydown', this.documentKeydownListener);
+        this.documentKeydownListener = null;
+      }
+    },
+
+    getPositionClass() {
+      const positions = ['left', 'right', 'top', 'topleft', 'topright', 'bottom', 'bottomleft', 'bottomright'];
+      const pos = positions.find(item => item === this.position);
+      return pos ? `p-dialog-${pos}` : '';
+    },
+
+    containerRef(el) {
+      this.container = el;
+    },
+
+    maskRef(el) {
+      this.mask = el;
+    },
+
+    contentRef(el) {
+      this.content = el;
+    },
+
+    headerContainerRef(el) {
+      this.headerContainer = el;
+    },
+
+    footerContainerRef(el) {
+      this.footerContainer = el;
+    },
+
+    maximizableRef(el) {
+      this.maximizableButton = el;
+    },
+
+    closeButtonRef(el) {
+      this.closeButton = el;
+    },
+
+    createStyle() {
+      if (!this.styleElement) {
+        this.styleElement = document.createElement('style');
+        this.styleElement.type = 'text/css';
+        document.head.appendChild(this.styleElement);
+        let innerHTML = '';
+
+        for (let breakpoint in this.breakpoints) {
+          innerHTML += `
+                        @media screen and (max-width: ${breakpoint}) {
+                            .p-dialog[${this.attributeSelector}] {
+                                width: ${this.breakpoints[breakpoint]} !important;
+                            }
+                        }
+                    `;
+        }
+
+        this.styleElement.innerHTML = innerHTML;
+      }
+    },
+
+    destroyStyle() {
+      if (this.styleElement) {
+        document.head.removeChild(this.styleElement);
+        this.styleElement = null;
+      }
+    },
+
+    initDrag(event) {
+      if (DomHandler.hasClass(event.target, 'p-dialog-header-icon') || DomHandler.hasClass(event.target.parentElement, 'p-dialog-header-icon')) {
+        return;
+      }
+
+      if (this.draggable) {
+        this.dragging = true;
+        this.lastPageX = event.pageX;
+        this.lastPageY = event.pageY;
+        this.container.style.margin = '0';
+        DomHandler.addClass(document.body, 'p-unselectable-text');
+      }
+    },
+
+    bindGlobalListeners() {
+      if (this.draggable) {
+        this.bindDocumentDragListener();
+        this.bindDocumentDragEndListener();
+      }
+
+      if (this.closeOnEscape && this.closable) {
+        this.bindDocumentKeyDownListener();
+      }
+    },
+
+    unbindGlobalListeners() {
+      this.unbindDocumentDragListener();
+      this.unbindDocumentDragEndListener();
+      this.unbindDocumentKeyDownListener();
+    },
+
+    bindDocumentDragListener() {
+      this.documentDragListener = event => {
+        if (this.dragging) {
+          let width = DomHandler.getOuterWidth(this.container);
+          let height = DomHandler.getOuterHeight(this.container);
+          let deltaX = event.pageX - this.lastPageX;
+          let deltaY = event.pageY - this.lastPageY;
+          let offset = this.container.getBoundingClientRect();
+          let leftPos = offset.left + deltaX;
+          let topPos = offset.top + deltaY;
+          let viewport = DomHandler.getViewport();
+          this.container.style.position = 'fixed';
+
+          if (this.keepInViewport) {
+            if (leftPos >= this.minX && leftPos + width < viewport.width) {
+              this.lastPageX = event.pageX;
+              this.container.style.left = leftPos + 'px';
+            }
+
+            if (topPos >= this.minY && topPos + height < viewport.height) {
+              this.lastPageY = event.pageY;
+              this.container.style.top = topPos + 'px';
+            }
+          } else {
+            this.lastPageX = event.pageX;
+            this.container.style.left = leftPos + 'px';
+            this.lastPageY = event.pageY;
+            this.container.style.top = topPos + 'px';
+          }
+        }
+      };
+
+      window.document.addEventListener('mousemove', this.documentDragListener);
+    },
+
+    unbindDocumentDragListener() {
+      if (this.documentDragListener) {
+        window.document.removeEventListener('mousemove', this.documentDragListener);
+        this.documentDragListener = null;
+      }
+    },
+
+    bindDocumentDragEndListener() {
+      this.documentDragEndListener = event => {
+        if (this.dragging) {
+          this.dragging = false;
+          DomHandler.removeClass(document.body, 'p-unselectable-text');
+          this.$emit('dragend', event);
+        }
+      };
+
+      window.document.addEventListener('mouseup', this.documentDragEndListener);
+    },
+
+    unbindDocumentDragEndListener() {
+      if (this.documentDragEndListener) {
+        window.document.removeEventListener('mouseup', this.documentDragEndListener);
+        this.documentDragEndListener = null;
+      }
+    }
+
+  },
+  computed: {
+    maskClass() {
+      return ['p-dialog-mask', {
+        'p-component-overlay p-component-overlay-enter': this.modal
+      }, this.getPositionClass()];
+    },
+
+    dialogClass() {
+      return ['p-dialog p-component', {
+        'p-dialog-rtl': this.rtl,
+        'p-dialog-maximized': this.maximizable && this.maximized,
+        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
+        'p-ripple-disabled': this.$primevue.config.ripple === false
+      }];
+    },
+
+    maximizeIconClass() {
+      return ['p-dialog-header-maximize-icon', {
+        [this.maximizeIcon]: !this.maximized,
+        [this.minimizeIcon]: this.maximized
+      }];
+    },
+
+    ariaId() {
+      return UniqueComponentId();
+    },
+
+    ariaLabelledById() {
+      return this.header != null || this.$attrs['aria-labelledby'] !== null ? this.ariaId + '_header' : null;
+    },
+
+    closeAriaLabel() {
+      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria.close : undefined;
+    },
+
+    attributeSelector() {
+      return UniqueComponentId();
+    },
+
+    contentStyleClass() {
+      return ['p-dialog-content', this.contentClass];
+    }
+
+  },
+  directives: {
+    ripple: Ripple,
+    focustrap: FocusTrap
+  },
+  components: {
+    Portal: script$1s
+  }
+};
+const _hoisted_1$O = ["aria-labelledby", "aria-modal"];
+const _hoisted_2$G = ["id"];
+const _hoisted_3$x = {
+  class: "p-dialog-header-icons"
+};
+const _hoisted_4$t = ["tabindex"];
+const _hoisted_5$l = ["aria-label"];
+
+function render$v(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_Portal = resolveComponent("Portal");
+
+  const _directive_ripple = resolveDirective("ripple");
+
+  const _directive_focustrap = resolveDirective("focustrap");
+
+  return openBlock(), createBlock(_component_Portal, {
+    appendTo: $props.appendTo
+  }, {
+    default: withCtx(() => [$data.containerVisible ? (openBlock(), createElementBlock("div", {
+      key: 0,
+      ref: $options.maskRef,
+      class: normalizeClass($options.maskClass),
+      onClick: _cache[3] || (_cache[3] = (...args) => $options.onMaskClick && $options.onMaskClick(...args))
+    }, [createVNode(Transition, {
+      name: "p-dialog",
+      onBeforeEnter: $options.onBeforeEnter,
+      onEnter: $options.onEnter,
+      onBeforeLeave: $options.onBeforeLeave,
+      onLeave: $options.onLeave,
+      onAfterLeave: $options.onAfterLeave,
+      appear: ""
+    }, {
+      default: withCtx(() => [$props.visible ? withDirectives((openBlock(), createElementBlock("div", mergeProps({
+        key: 0,
+        ref: $options.containerRef,
+        class: $options.dialogClass,
+        role: "dialog",
+        "aria-labelledby": $options.ariaLabelledById,
+        "aria-modal": $props.modal
+      }, _ctx.$attrs), [$props.showHeader ? (openBlock(), createElementBlock("div", {
+        key: 0,
+        ref: $options.headerContainerRef,
+        class: "p-dialog-header",
+        onMousedown: _cache[2] || (_cache[2] = (...args) => $options.initDrag && $options.initDrag(...args))
+      }, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
+        key: 0,
+        id: $options.ariaLabelledById,
+        class: "p-dialog-title"
+      }, toDisplayString$1($props.header), 9, _hoisted_2$G)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$x, [$props.maximizable ? withDirectives((openBlock(), createElementBlock("button", {
+        key: 0,
+        ref: $options.maximizableRef,
+        autofocus: "",
+        class: "p-dialog-header-icon p-dialog-header-maximize p-link",
+        onClick: _cache[0] || (_cache[0] = (...args) => $options.maximize && $options.maximize(...args)),
+        type: "button",
+        tabindex: $props.maximizable ? '0' : '-1'
+      }, [createElementVNode("span", {
+        class: normalizeClass($options.maximizeIconClass)
+      }, null, 2)], 8, _hoisted_4$t)), [[_directive_ripple]]) : createCommentVNode("", true), $props.closable ? withDirectives((openBlock(), createElementBlock("button", mergeProps({
+        key: 1,
+        ref: $options.closeButtonRef,
+        autofocus: "",
+        class: "p-dialog-header-icon p-dialog-header-close p-link",
+        onClick: _cache[1] || (_cache[1] = (...args) => $options.close && $options.close(...args)),
+        "aria-label": $options.closeAriaLabel,
+        type: "button"
+      }, $props.closeButtonProps), [createElementVNode("span", {
+        class: normalizeClass(['p-dialog-header-close-icon', $props.closeIcon])
+      }, null, 2)], 16, _hoisted_5$l)), [[_directive_ripple]]) : createCommentVNode("", true)])], 544)) : createCommentVNode("", true), createElementVNode("div", mergeProps({
+        ref: $options.contentRef,
+        class: $options.contentStyleClass,
+        style: $props.contentStyle
+      }, $props.contentProps), [renderSlot(_ctx.$slots, "default")], 16), $props.footer || _ctx.$slots.footer ? (openBlock(), createElementBlock("div", {
+        key: 1,
+        ref: $options.footerContainerRef,
+        class: "p-dialog-footer"
+      }, [renderSlot(_ctx.$slots, "footer", {}, () => [createTextVNode(toDisplayString$1($props.footer), 1)])], 512)) : createCommentVNode("", true)], 16, _hoisted_1$O)), [[_directive_focustrap, {
+        focusTrapDisabled: !$props.modal
+      }]]) : createCommentVNode("", true)]),
+      _: 3
+    }, 8, ["onBeforeEnter", "onEnter", "onBeforeLeave", "onLeave", "onAfterLeave"])], 2)) : createCommentVNode("", true)]),
+    _: 3
+  }, 8, ["appendTo"]);
+}
+
+function styleInject$q(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$y = "\n.p-dialog-mask {\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    pointer-events: none;\n}\n.p-dialog-mask.p-component-overlay {\n    pointer-events: auto;\n}\n.p-dialog {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    pointer-events: auto;\n    max-height: 90%;\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n.p-dialog-content {\n    overflow-y: auto;\n}\n.p-dialog-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog-footer {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog .p-dialog-header-icons {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-dialog .p-dialog-header-icon {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Fluid */\n.p-fluid .p-dialog-footer .p-button {\n    width: auto;\n}\n\n/* Animation */\n/* Center */\n.p-dialog-enter-active {\n    -webkit-transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n}\n.p-dialog-leave-active {\n    -webkit-transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n.p-dialog-enter-from,\n.p-dialog-leave-to {\n    opacity: 0;\n    -webkit-transform: scale(0.7);\n            transform: scale(0.7);\n}\n\n/* Top, Bottom, Left, Right, Top* and Bottom* */\n.p-dialog-top .p-dialog,\n.p-dialog-bottom .p-dialog,\n.p-dialog-left .p-dialog,\n.p-dialog-right .p-dialog,\n.p-dialog-topleft .p-dialog,\n.p-dialog-topright .p-dialog,\n.p-dialog-bottomleft .p-dialog,\n.p-dialog-bottomright .p-dialog {\n    margin: 0.75rem;\n    -webkit-transform: translate3d(0px, 0px, 0px);\n            transform: translate3d(0px, 0px, 0px);\n}\n.p-dialog-top .p-dialog-enter-active,\n.p-dialog-top .p-dialog-leave-active,\n.p-dialog-bottom .p-dialog-enter-active,\n.p-dialog-bottom .p-dialog-leave-active,\n.p-dialog-left .p-dialog-enter-active,\n.p-dialog-left .p-dialog-leave-active,\n.p-dialog-right .p-dialog-enter-active,\n.p-dialog-right .p-dialog-leave-active,\n.p-dialog-topleft .p-dialog-enter-active,\n.p-dialog-topleft .p-dialog-leave-active,\n.p-dialog-topright .p-dialog-enter-active,\n.p-dialog-topright .p-dialog-leave-active,\n.p-dialog-bottomleft .p-dialog-enter-active,\n.p-dialog-bottomleft .p-dialog-leave-active,\n.p-dialog-bottomright .p-dialog-enter-active,\n.p-dialog-bottomright .p-dialog-leave-active {\n    -webkit-transition: all 0.3s ease-out;\n    transition: all 0.3s ease-out;\n}\n.p-dialog-top .p-dialog-enter-from,\n.p-dialog-top .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, -100%, 0px);\n            transform: translate3d(0px, -100%, 0px);\n}\n.p-dialog-bottom .p-dialog-enter-from,\n.p-dialog-bottom .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, 100%, 0px);\n            transform: translate3d(0px, 100%, 0px);\n}\n.p-dialog-left .p-dialog-enter-from,\n.p-dialog-left .p-dialog-leave-to,\n.p-dialog-topleft .p-dialog-enter-from,\n.p-dialog-topleft .p-dialog-leave-to,\n.p-dialog-bottomleft .p-dialog-enter-from,\n.p-dialog-bottomleft .p-dialog-leave-to {\n    -webkit-transform: translate3d(-100%, 0px, 0px);\n            transform: translate3d(-100%, 0px, 0px);\n}\n.p-dialog-right .p-dialog-enter-from,\n.p-dialog-right .p-dialog-leave-to,\n.p-dialog-topright .p-dialog-enter-from,\n.p-dialog-topright .p-dialog-leave-to,\n.p-dialog-bottomright .p-dialog-enter-from,\n.p-dialog-bottomright .p-dialog-leave-to {\n    -webkit-transform: translate3d(100%, 0px, 0px);\n            transform: translate3d(100%, 0px, 0px);\n}\n\n/* Maximize */\n.p-dialog-maximized {\n    -webkit-transition: none;\n    transition: none;\n    -webkit-transform: none;\n            transform: none;\n    width: 100vw !important;\n    height: 100vh !important;\n    top: 0px !important;\n    left: 0px !important;\n    max-height: 100%;\n    height: 100%;\n}\n.p-dialog-maximized .p-dialog-content {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n\n/* Position */\n.p-dialog-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-dialog-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-dialog-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-confirm-dialog .p-dialog-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
+styleInject$q(css_248z$y);
+script$1p.render = render$v;
+
+var script$1o = {
   name: 'VirtualScroller',
   emits: ['update:numToleratedItems', 'scroll', 'scroll-index-change', 'lazy-load'],
   props: {
@@ -20053,13 +18243,13 @@ var script$1c = {
 
   }
 };
-const _hoisted_1$G = ["tabindex"];
-const _hoisted_2$z = {
+const _hoisted_1$N = ["tabindex"];
+const _hoisted_2$F = {
   key: 1,
   class: "p-virtualscroller-loading-icon pi pi-spinner pi-spin"
 };
 
-function render$o(_ctx, _cache, $props, $setup, $data, $options) {
+function render$u(_ctx, _cache, $props, $setup, $data, $options) {
   return !$props.disabled ? (openBlock(), createElementBlock("div", {
     key: 0,
     ref: $options.elementRef,
@@ -20108,7 +18298,7 @@ function render$o(_ctx, _cache, $props, $setup, $data, $options) {
         numCols: _ctx.d_numItemsInViewport.cols
       })
     });
-  }), 128)) : (openBlock(), createElementBlock("i", _hoisted_2$z))], 2)) : createCommentVNode("", true)], 46, _hoisted_1$G)) : (openBlock(), createElementBlock(Fragment, {
+  }), 128)) : (openBlock(), createElementBlock("i", _hoisted_2$F))], 2)) : createCommentVNode("", true)], 46, _hoisted_1$N)) : (openBlock(), createElementBlock(Fragment, {
     key: 1
   }, [renderSlot(_ctx.$slots, "default"), renderSlot(_ctx.$slots, "content", {
     items: $props.items,
@@ -20117,7 +18307,7 @@ function render$o(_ctx, _cache, $props, $setup, $data, $options) {
   })], 64));
 }
 
-function styleInject$k(css, ref) {
+function styleInject$p(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -20146,11 +18336,11 @@ function styleInject$k(css, ref) {
   }
 }
 
-var css_248z$r = "\n.p-virtualscroller {\n    position: relative;\n    overflow: auto;\n    contain: strict;\n    -webkit-transform: translateZ(0);\n            transform: translateZ(0);\n    will-change: scroll-position;\n    outline: 0 none;\n}\n.p-virtualscroller-content {\n    position: absolute;\n    top: 0;\n    left: 0;\n    contain: content;\n    min-height: 100%;\n    min-width: 100%;\n    will-change: transform;\n}\n.p-virtualscroller-spacer {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 1px;\n    -webkit-transform-origin: 0 0;\n            transform-origin: 0 0;\n    pointer-events: none;\n}\n.p-virtualscroller .p-virtualscroller-loader {\n    position: sticky;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n}\n.p-virtualscroller-loader.p-component-overlay {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n";
-styleInject$k(css_248z$r);
-script$1c.render = render$o;
+var css_248z$x = "\n.p-virtualscroller {\n    position: relative;\n    overflow: auto;\n    contain: strict;\n    -webkit-transform: translateZ(0);\n            transform: translateZ(0);\n    will-change: scroll-position;\n    outline: 0 none;\n}\n.p-virtualscroller-content {\n    position: absolute;\n    top: 0;\n    left: 0;\n    contain: content;\n    min-height: 100%;\n    min-width: 100%;\n    will-change: transform;\n}\n.p-virtualscroller-spacer {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 1px;\n    -webkit-transform-origin: 0 0;\n            transform-origin: 0 0;\n    pointer-events: none;\n}\n.p-virtualscroller .p-virtualscroller-loader {\n    position: sticky;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n}\n.p-virtualscroller-loader.p-component-overlay {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n";
+styleInject$p(css_248z$x);
+script$1o.render = render$u;
 
-var script$1b = {
+var script$1n = {
   name: 'AutoComplete',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'item-select', 'item-unselect', 'dropdown-click', 'clear', 'complete', 'before-show', 'before-hide', 'show', 'hide'],
   props: {
@@ -21136,41 +19326,41 @@ var script$1b = {
 
   },
   components: {
-    Button: script$1v,
-    VirtualScroller: script$1c,
-    Portal: script$1x
+    Button: script$1z,
+    VirtualScroller: script$1o,
+    Portal: script$1s
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$F = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_2$y = ["aria-activedescendant"];
-const _hoisted_3$r = ["id", "aria-label", "aria-setsize", "aria-posinset"];
-const _hoisted_4$n = {
+const _hoisted_1$M = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_2$E = ["aria-activedescendant"];
+const _hoisted_3$w = ["id", "aria-label", "aria-setsize", "aria-posinset"];
+const _hoisted_4$s = {
   class: "p-autocomplete-token-label"
 };
-const _hoisted_5$g = ["onClick"];
-const _hoisted_6$c = {
+const _hoisted_5$k = ["onClick"];
+const _hoisted_6$f = {
   class: "p-autocomplete-input-token",
   role: "option"
 };
-const _hoisted_7$7 = ["id", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_8$7 = {
+const _hoisted_7$a = ["id", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_8$8 = {
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
-const _hoisted_9$5 = ["id"];
-const _hoisted_10$5 = ["id"];
-const _hoisted_11$5 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
-const _hoisted_12$5 = {
+const _hoisted_9$6 = ["id"];
+const _hoisted_10$6 = ["id"];
+const _hoisted_11$6 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
+const _hoisted_12$6 = {
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
 
-function render$n(_ctx, _cache, $props, $setup, $data, $options) {
+function render$t(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Button = resolveComponent("Button");
 
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
@@ -21208,7 +19398,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[3] || (_cache[3] = (...args) => $options.onInput && $options.onInput(...args)),
     onChange: _cache[4] || (_cache[4] = (...args) => $options.onChange && $options.onChange(...args))
-  }, $props.inputProps), null, 16, _hoisted_1$F)) : createCommentVNode("", true), $props.multiple ? (openBlock(), createElementBlock("ul", {
+  }, $props.inputProps), null, 16, _hoisted_1$M)) : createCommentVNode("", true), $props.multiple ? (openBlock(), createElementBlock("ul", {
     key: 1,
     ref: "multiContainer",
     class: normalizeClass($options.multiContainerClass),
@@ -21233,12 +19423,12 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
       "aria-posinset": i + 1
     }, [renderSlot(_ctx.$slots, "chip", {
       value: option
-    }, () => [createElementVNode("span", _hoisted_4$n, toDisplayString$1($options.getOptionLabel(option)), 1)]), createElementVNode("span", {
+    }, () => [createElementVNode("span", _hoisted_4$s, toDisplayString$1($options.getOptionLabel(option)), 1)]), createElementVNode("span", {
       class: normalizeClass(['p-autocomplete-token-icon', $props.removeTokenIcon]),
       onClick: $event => $options.removeOption($event, i),
       "aria-hidden": "true"
-    }, null, 10, _hoisted_5$g)], 10, _hoisted_3$r);
-  }), 128)), createElementVNode("li", _hoisted_6$c, [createElementVNode("input", mergeProps({
+    }, null, 10, _hoisted_5$k)], 10, _hoisted_3$w);
+  }), 128)), createElementVNode("li", _hoisted_6$f, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
     type: "text",
@@ -21261,7 +19451,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[7] || (_cache[7] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[8] || (_cache[8] = (...args) => $options.onInput && $options.onInput(...args)),
     onChange: _cache[9] || (_cache[9] = (...args) => $options.onChange && $options.onChange(...args))
-  }, $props.inputProps), null, 16, _hoisted_7$7)])], 42, _hoisted_2$y)) : createCommentVNode("", true), $data.searching ? (openBlock(), createElementBlock("i", {
+  }, $props.inputProps), null, 16, _hoisted_7$a)])], 42, _hoisted_2$E)) : createCommentVNode("", true), $data.searching ? (openBlock(), createElementBlock("i", {
     key: 2,
     class: normalizeClass($options.loadingIconClass),
     "aria-hidden": "true"
@@ -21275,7 +19465,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
     disabled: $props.disabled,
     "aria-hidden": "true",
     onClick: $options.onDropdownClick
-  }, null, 8, ["icon", "disabled", "onClick"])) : createCommentVNode("", true), createElementVNode("span", _hoisted_8$7, toDisplayString$1($options.searchResultMessageText), 1), createVNode(_component_Portal, {
+  }, null, 8, ["icon", "disabled", "onClick"])) : createCommentVNode("", true), createElementVNode("span", _hoisted_8$8, toDisplayString$1($options.searchResultMessageText), 1), createVNode(_component_Portal, {
     appendTo: $props.appendTo
   }, {
     default: withCtx(() => [createVNode(Transition, {
@@ -21335,7 +19525,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
             option: option.optionGroup,
             item: option.optionGroup,
             index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_10$5)) : withDirectives((openBlock(), createElementBlock("li", {
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_10$6)) : withDirectives((openBlock(), createElementBlock("li", {
             key: 1,
             id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
             style: normalizeStyle({
@@ -21362,8 +19552,8 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
             key: 1,
             item: option,
             index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_11$5)), [[_directive_ripple]])], 64);
-        }), 128))], 14, _hoisted_9$5), createElementVNode("span", _hoisted_12$5, toDisplayString$1($options.selectedMessageText), 1)]),
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_11$6)), [[_directive_ripple]])], 64);
+        }), 128))], 14, _hoisted_9$6), createElementVNode("span", _hoisted_12$6, toDisplayString$1($options.selectedMessageText), 1)]),
         _: 2
       }, [_ctx.$slots.loader ? {
         name: "loader",
@@ -21383,7 +19573,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$j(css, ref) {
+function styleInject$o(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -21412,11 +19602,11 @@ function styleInject$j(css, ref) {
   }
 }
 
-var css_248z$q = "\n.p-autocomplete {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n}\n.p-autocomplete-loader {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-autocomplete-dd .p-autocomplete-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-autocomplete-dd .p-autocomplete-input,\n.p-autocomplete-dd .p-autocomplete-multiple-container {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-autocomplete-dd .p-autocomplete-dropdown {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0px;\n}\n.p-autocomplete .p-autocomplete-panel {\n    min-width: 100%;\n}\n.p-autocomplete-panel {\n    position: absolute;\n    overflow: auto;\n    top: 0;\n    left: 0;\n}\n.p-autocomplete-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-autocomplete-item {\n    cursor: pointer;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-autocomplete-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-autocomplete-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-autocomplete-token-icon {\n    cursor: pointer;\n}\n.p-autocomplete-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-autocomplete-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-autocomplete {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-autocomplete-dd .p-autocomplete-input {\n    width: 1%;\n}\n";
-styleInject$j(css_248z$q);
-script$1b.render = render$n;
+var css_248z$w = "\n.p-autocomplete {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n}\n.p-autocomplete-loader {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-autocomplete-dd .p-autocomplete-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-autocomplete-dd .p-autocomplete-input,\n.p-autocomplete-dd .p-autocomplete-multiple-container {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-autocomplete-dd .p-autocomplete-dropdown {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0px;\n}\n.p-autocomplete .p-autocomplete-panel {\n    min-width: 100%;\n}\n.p-autocomplete-panel {\n    position: absolute;\n    overflow: auto;\n    top: 0;\n    left: 0;\n}\n.p-autocomplete-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-autocomplete-item {\n    cursor: pointer;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-autocomplete-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-autocomplete-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-autocomplete-token-icon {\n    cursor: pointer;\n}\n.p-autocomplete-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-autocomplete-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-autocomplete {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-autocomplete-dd .p-autocomplete-input {\n    width: 1%;\n}\n";
+styleInject$o(css_248z$w);
+script$1n.render = render$t;
 
-var script$1a = {
+var script$1m = {
   props: {
     bind : Object,
     options : Array
@@ -21427,9 +19617,11 @@ const props = __props;
 
 
 
+
 const filtered_options = ref([]);
 
-let cvalue = ref(props.bind.value.value);
+let cvalue = ref({ value : props.bind.value.value, label : "" });
+
 
 const value = computed({
     get() {
@@ -21437,23 +19629,32 @@ const value = computed({
     },
     set(val) {
         cvalue.value = val;
+        console.log("Oval is ", val);
         if (!val || typeof val != 'object') return;
         props.bind.setValue(val.value);
     }
 });
 
 function searchOptions(e) {
-    if (!e.query.trim().length) {
-        filtered_options.value = props.options;
-    } else {
-        filtered_options.value = props.options.filter((opt) => {
-            return opt.label.toLowerCase().startsWith(e.query.toLowerCase());
-        });
-    }
+    const active = props.options.filter(opt => opt.value == cvalue.value.value);
+    if (active.length > 0) cvalue.value = active[0];
+    let vl = (!e || !e.query) ? "" : e.query.trim().toLowerCase();
+    filtered_options.value = props.options.filter((opt) => {
+        return opt.label.toLowerCase().startsWith(vl);
+    });
 }
 
+
+watch(() => props.options, () => {
+    searchOptions();
+});
+
+const errClass = computed(() => {
+    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+});
+
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1b), {
+  return (openBlock(), createBlock(unref(script$1n), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
     name: __props.bind.cell.name,
@@ -21462,26 +19663,27 @@ return (_ctx, _cache) => {
     dropdown: true,
     suggestions: filtered_options.value,
     placeholder: "Please Select",
-    class: "focus:border-primary",
+    class: normalizeClass(["focus:border-primary", unref(errClass)]),
+    multiple: __props.bind.cell.multiple,
     onComplete: _cache[1] || (_cache[1] = $event => (searchOptions($event))),
     onBlur: _cache[2] || (_cache[2] = $event => (__props.bind.active_validation.value = true))
-  }, null, 8 /* PROPS */, ["modelValue", "name", "suggestions"]))
+  }, null, 8 /* PROPS */, ["modelValue", "name", "suggestions", "class", "multiple"]))
 }
 }
 
 };
 
-script$1a.__file = "presstojam/src/components/form/autocomplete-select.vue";
+script$1m.__file = "presstojam/src/components/form/autocomplete-select.vue";
 
-const _hoisted_1$E = {
+const _hoisted_1$L = {
   key: 0,
   class: "p-inputgroup"
 };
-const _hoisted_2$x = { class: "p-inputgroup-addon" };
+const _hoisted_2$D = { class: "p-inputgroup-addon" };
 
 
 
-var script$19 = {
+var script$1l = {
   props: {
     bind : {
         type : Object,
@@ -21510,7 +19712,7 @@ let id = 0;
 if (store.active_id) {
     const repo = getStore(model);
     id = repo.data.value['--parent'];
-} else {
+} else if (store.parent_id) {
     id = store.parent_id;
 }
 
@@ -21519,7 +19721,11 @@ const cell = props.bind.cell;
 if (cell.isReferenceType()) {
     onMounted(() => {
         cell.getOptions(client, model, id)
-        .then(response => options.value =response)
+        .then(response => {
+            let arr = [...response];
+            arr.unshift({value:0,label:"None"});
+            options.value = arr;
+        })
         .catch(e => console.log(e));
     });  
 
@@ -21537,7 +19743,7 @@ if (cell.isReferenceType()) {
        cell.getRecursiveOptions(client, model, id, store.route.schema)
        .then(response => {
         let arr = [...response];
-        arr.unshift({key : 0, value : 'Root'});
+        arr.unshift({key : "0", label : 'None' , "--recursive" : 0});
         options.value =arr;
        })
        .catch(e => console.log(e));
@@ -21550,6 +19756,7 @@ if (cell.isReferenceType()) {
             return obj;
         },
         set(val) {
+            console.log("Setting value to ", val);
             const keys = Object.keys(val);
             props.bind.setValue(keys[0]);
         }
@@ -21560,21 +19767,19 @@ if (cell.isReferenceType()) {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.isReferenceType())
-    ? (openBlock(), createElementBlock("div", _hoisted_1$E, [
-        createVNode(script$1a, {
+    ? (openBlock(), createElementBlock("div", _hoisted_1$L, [
+        createVNode(script$1m, {
           bind: __props.bind,
-          options: options.value,
-          optionValue: "--key",
-          optionLabel: "--value"
+          options: options.value
         }, null, 8 /* PROPS */, ["bind", "options"]),
-        createElementVNode("span", _hoisted_2$x, [
+        createElementVNode("span", _hoisted_2$D, [
           createElementVNode("i", {
             class: "pi pi-plus",
             onClick: _cache[0] || (_cache[0] = $event => (dialog.value='true')),
             style: {"cursor":"pointer"}
           })
         ]),
-        createVNode(unref(script$1j), {
+        createVNode(unref(script$1p), {
           visible: dialog.value,
           "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
           header: 'Create ' + _ctx.$t('models.' + unref(cell).reference + '.title', 1),
@@ -21582,7 +19787,7 @@ return (_ctx, _cache) => {
           class: "p-fluid"
         }, {
           default: withCtx(() => [
-            createVNode(script$1d, {
+            createVNode(script$1q, {
               cell: __props.bind.cell,
               store: unref(store)
             }, null, 8 /* PROPS */, ["cell", "store"])
@@ -21591,14 +19796,14 @@ return (_ctx, _cache) => {
         }, 8 /* PROPS */, ["visible", "header"])
       ]))
     : (__props.bind.cell.recursive)
-      ? (openBlock(), createBlock(unref(script$1e), {
+      ? (openBlock(), createBlock(unref(script$1r), {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : value = $event)),
           options: options.value,
           placeholder: "Select Item"
         }, null, 8 /* PROPS */, ["modelValue", "options"]))
-      : (openBlock(), createBlock(unref(script$1i), {
+      : (openBlock(), createBlock(unref(script$1x), {
           key: 2,
           name: __props.bind.cell.name,
           modelValue: unref(value),
@@ -21610,9 +19815,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$19.__file = "presstojam/src/components/form/id-edit.vue";
+script$1l.__file = "presstojam/src/components/form/id-edit.vue";
 
-var script$18 = {
+var script$1k = {
   name: 'Calendar',
   emits: ['show', 'hide', 'input', 'month-change', 'year-change', 'date-select', 'update:modelValue', 'today-click', 'clear-click', 'focus', 'blur', 'keydown'],
   props: {
@@ -24397,88 +22602,88 @@ var script$18 = {
 
   },
   components: {
-    CalendarButton: script$1v,
-    Portal: script$1x
+    CalendarButton: script$1z,
+    Portal: script$1s
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$D = ["id"];
-const _hoisted_2$w = ["id", "placeholder", "aria-expanded", "aria-controls", "aria-labelledby", "aria-label", "disabled", "readonly"];
-const _hoisted_3$q = ["id", "role", "aria-modal", "aria-label"];
-const _hoisted_4$m = {
+const _hoisted_1$K = ["id"];
+const _hoisted_2$C = ["id", "placeholder", "aria-expanded", "aria-controls", "aria-labelledby", "aria-label", "disabled", "readonly"];
+const _hoisted_3$v = ["id", "role", "aria-modal", "aria-label"];
+const _hoisted_4$r = {
   class: "p-datepicker-group-container"
 };
-const _hoisted_5$f = {
+const _hoisted_5$j = {
   class: "p-datepicker-header"
 };
-const _hoisted_6$b = ["disabled", "aria-label"];
-const _hoisted_7$6 = {
+const _hoisted_6$e = ["disabled", "aria-label"];
+const _hoisted_7$9 = {
   class: "p-datepicker-title"
 };
-const _hoisted_8$6 = ["disabled", "aria-label"];
-const _hoisted_9$4 = ["disabled", "aria-label"];
-const _hoisted_10$4 = {
+const _hoisted_8$7 = ["disabled", "aria-label"];
+const _hoisted_9$5 = ["disabled", "aria-label"];
+const _hoisted_10$5 = {
   key: 2,
   class: "p-datepicker-decade"
 };
-const _hoisted_11$4 = ["disabled", "aria-label"];
-const _hoisted_12$4 = {
+const _hoisted_11$5 = ["disabled", "aria-label"];
+const _hoisted_12$5 = {
   key: 0,
   class: "p-datepicker-calendar-container"
 };
-const _hoisted_13$4 = {
+const _hoisted_13$5 = {
   class: "p-datepicker-calendar",
   role: "grid"
 };
-const _hoisted_14$3 = {
+const _hoisted_14$4 = {
   key: 0,
   scope: "col",
   class: "p-datepicker-weekheader p-disabled"
 };
-const _hoisted_15$2 = ["abbr"];
-const _hoisted_16$1 = {
+const _hoisted_15$3 = ["abbr"];
+const _hoisted_16$2 = {
   key: 0,
   class: "p-datepicker-weeknumber"
 };
-const _hoisted_17$1 = {
+const _hoisted_17$2 = {
   class: "p-disabled"
 };
-const _hoisted_18$1 = {
+const _hoisted_18$2 = {
   key: 0,
   style: {
     "visibility": "hidden"
   }
 };
-const _hoisted_19$1 = ["aria-label"];
-const _hoisted_20$1 = ["onClick", "onKeydown", "aria-selected"];
-const _hoisted_21$1 = {
+const _hoisted_19$2 = ["aria-label"];
+const _hoisted_20$2 = ["onClick", "onKeydown", "aria-selected"];
+const _hoisted_21$2 = {
   key: 0,
   class: "p-hidden-accessible",
   "aria-live": "polite"
 };
-const _hoisted_22 = {
+const _hoisted_22$1 = {
   key: 0,
   class: "p-monthpicker"
 };
-const _hoisted_23 = ["onClick", "onKeydown"];
-const _hoisted_24 = {
+const _hoisted_23$1 = ["onClick", "onKeydown"];
+const _hoisted_24$1 = {
   key: 0,
   class: "p-hidden-accessible",
   "aria-live": "polite"
 };
-const _hoisted_25 = {
+const _hoisted_25$1 = {
   key: 1,
   class: "p-yearpicker"
 };
-const _hoisted_26 = ["onClick", "onKeydown"];
-const _hoisted_27 = {
+const _hoisted_26$1 = ["onClick", "onKeydown"];
+const _hoisted_27$1 = {
   key: 0,
   class: "p-hidden-accessible",
   "aria-live": "polite"
 };
-const _hoisted_28 = {
+const _hoisted_28$1 = {
   key: 1,
   class: "p-timepicker"
 };
@@ -24520,7 +22725,7 @@ const _hoisted_44 = {
   class: "p-datepicker-buttonbar"
 };
 
-function render$m(_ctx, _cache, $props, $setup, $data, $options) {
+function render$s(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_CalendarButton = resolveComponent("CalendarButton");
 
   const _component_Portal = resolveComponent("Portal");
@@ -24555,7 +22760,7 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[2] || (_cache[2] = (...args) => $options.onFocus && $options.onFocus(...args)),
     onBlur: _cache[3] || (_cache[3] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$w)) : createCommentVNode("", true), $props.showIcon ? (openBlock(), createBlock(_component_CalendarButton, {
+  }, $props.inputProps), null, 16, _hoisted_2$C)) : createCommentVNode("", true), $props.showIcon ? (openBlock(), createBlock(_component_CalendarButton, {
     key: 1,
     icon: $props.icon,
     class: "p-datepicker-trigger",
@@ -24591,11 +22796,11 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
         onMouseup: _cache[67] || (_cache[67] = (...args) => $options.onOverlayMouseUp && $options.onOverlayMouseUp(...args))
       }, $props.panelProps), [!$props.timeOnly ? (openBlock(), createElementBlock(Fragment, {
         key: 0
-      }, [createElementVNode("div", _hoisted_4$m, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.months, (month, groupIndex) => {
+      }, [createElementVNode("div", _hoisted_4$r, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.months, (month, groupIndex) => {
         return openBlock(), createElementBlock("div", {
           key: month.month + month.year,
           class: "p-datepicker-group"
-        }, [createElementVNode("div", _hoisted_5$f, [renderSlot(_ctx.$slots, "header"), withDirectives((openBlock(), createElementBlock("button", {
+        }, [createElementVNode("div", _hoisted_5$j, [renderSlot(_ctx.$slots, "header"), withDirectives((openBlock(), createElementBlock("button", {
           class: "p-datepicker-prev p-link",
           onClick: _cache[5] || (_cache[5] = (...args) => $options.onPrevButtonClick && $options.onPrevButtonClick(...args)),
           type: "button",
@@ -24604,7 +22809,7 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
           "aria-label": $data.currentView === 'year' ? _ctx.$primevue.config.locale.prevDecade : $data.currentView === 'month' ? _ctx.$primevue.config.locale.prevYear : _ctx.$primevue.config.locale.prevMonth
         }, [createElementVNode("span", {
           class: normalizeClass(['p-datepicker-prev-icon', $props.previousIcon])
-        }, null, 2)], 40, _hoisted_6$b)), [[vShow, $props.showOtherMonths ? groupIndex === 0 : false], [_directive_ripple]]), createElementVNode("div", _hoisted_7$6, [$data.currentView === 'date' ? (openBlock(), createElementBlock("button", {
+        }, null, 2)], 40, _hoisted_6$e)), [[vShow, $props.showOtherMonths ? groupIndex === 0 : false], [_directive_ripple]]), createElementVNode("div", _hoisted_7$9, [$data.currentView === 'date' ? (openBlock(), createElementBlock("button", {
           key: 0,
           type: "button",
           onClick: _cache[7] || (_cache[7] = (...args) => $options.switchToMonthView && $options.switchToMonthView(...args)),
@@ -24612,7 +22817,7 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
           class: "p-datepicker-month p-link",
           disabled: $options.switchViewButtonDisabled,
           "aria-label": _ctx.$primevue.config.locale.chooseMonth
-        }, toDisplayString$1($options.getMonthName(month.month)), 41, _hoisted_8$6)) : createCommentVNode("", true), $data.currentView !== 'year' ? (openBlock(), createElementBlock("button", {
+        }, toDisplayString$1($options.getMonthName(month.month)), 41, _hoisted_8$7)) : createCommentVNode("", true), $data.currentView !== 'year' ? (openBlock(), createElementBlock("button", {
           key: 1,
           type: "button",
           onClick: _cache[9] || (_cache[9] = (...args) => $options.switchToYearView && $options.switchToYearView(...args)),
@@ -24620,7 +22825,7 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
           class: "p-datepicker-year p-link",
           disabled: $options.switchViewButtonDisabled,
           "aria-label": _ctx.$primevue.config.locale.chooseYear
-        }, toDisplayString$1($options.getYear(month)), 41, _hoisted_9$4)) : createCommentVNode("", true), $data.currentView === 'year' ? (openBlock(), createElementBlock("span", _hoisted_10$4, [renderSlot(_ctx.$slots, "decade", {
+        }, toDisplayString$1($options.getYear(month)), 41, _hoisted_9$5)) : createCommentVNode("", true), $data.currentView === 'year' ? (openBlock(), createElementBlock("span", _hoisted_10$5, [renderSlot(_ctx.$slots, "decade", {
           years: $options.yearPickerValues
         }, () => [createTextVNode(toDisplayString$1($options.yearPickerValues[0]) + " - " + toDisplayString$1($options.yearPickerValues[$options.yearPickerValues.length - 1]), 1)])])) : createCommentVNode("", true)]), withDirectives((openBlock(), createElementBlock("button", {
           class: "p-datepicker-next p-link",
@@ -24631,16 +22836,16 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
           "aria-label": $data.currentView === 'year' ? _ctx.$primevue.config.locale.nextDecade : $data.currentView === 'month' ? _ctx.$primevue.config.locale.nextYear : _ctx.$primevue.config.locale.nextMonth
         }, [createElementVNode("span", {
           class: normalizeClass(['p-datepicker-next-icon', $props.nextIcon])
-        }, null, 2)], 40, _hoisted_11$4)), [[vShow, $props.showOtherMonths ? $props.numberOfMonths === 1 ? true : groupIndex === $props.numberOfMonths - 1 : false], [_directive_ripple]])]), $data.currentView === 'date' ? (openBlock(), createElementBlock("div", _hoisted_12$4, [createElementVNode("table", _hoisted_13$4, [createElementVNode("thead", null, [createElementVNode("tr", null, [$props.showWeek ? (openBlock(), createElementBlock("th", _hoisted_14$3, [createElementVNode("span", null, toDisplayString$1($options.weekHeaderLabel), 1)])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList($options.weekDays, weekDay => {
+        }, null, 2)], 40, _hoisted_11$5)), [[vShow, $props.showOtherMonths ? $props.numberOfMonths === 1 ? true : groupIndex === $props.numberOfMonths - 1 : false], [_directive_ripple]])]), $data.currentView === 'date' ? (openBlock(), createElementBlock("div", _hoisted_12$5, [createElementVNode("table", _hoisted_13$5, [createElementVNode("thead", null, [createElementVNode("tr", null, [$props.showWeek ? (openBlock(), createElementBlock("th", _hoisted_14$4, [createElementVNode("span", null, toDisplayString$1($options.weekHeaderLabel), 1)])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList($options.weekDays, weekDay => {
           return openBlock(), createElementBlock("th", {
             key: weekDay,
             scope: "col",
             abbr: weekDay
-          }, [createElementVNode("span", null, toDisplayString$1(weekDay), 1)], 8, _hoisted_15$2);
+          }, [createElementVNode("span", null, toDisplayString$1(weekDay), 1)], 8, _hoisted_15$3);
         }), 128))])]), createElementVNode("tbody", null, [(openBlock(true), createElementBlock(Fragment, null, renderList(month.dates, (week, i) => {
           return openBlock(), createElementBlock("tr", {
             key: week[0].day + '' + week[0].month
-          }, [$props.showWeek ? (openBlock(), createElementBlock("td", _hoisted_16$1, [createElementVNode("span", _hoisted_17$1, [month.weekNumbers[i] < 10 ? (openBlock(), createElementBlock("span", _hoisted_18$1, "0")) : createCommentVNode("", true), createTextVNode(" " + toDisplayString$1(month.weekNumbers[i]), 1)])])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(week, date => {
+          }, [$props.showWeek ? (openBlock(), createElementBlock("td", _hoisted_16$2, [createElementVNode("span", _hoisted_17$2, [month.weekNumbers[i] < 10 ? (openBlock(), createElementBlock("span", _hoisted_18$2, "0")) : createCommentVNode("", true), createTextVNode(" " + toDisplayString$1(month.weekNumbers[i]), 1)])])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(week, date => {
             return openBlock(), createElementBlock("td", {
               key: date.day + '' + date.month,
               "aria-label": date.day,
@@ -24659,10 +22864,10 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
               "aria-selected": $options.isSelected(date)
             }, [renderSlot(_ctx.$slots, "date", {
               date: date
-            }, () => [createTextVNode(toDisplayString$1(date.day), 1)])], 42, _hoisted_20$1)), [[_directive_ripple]]), $options.isSelected(date) ? (openBlock(), createElementBlock("div", _hoisted_21$1, toDisplayString$1(date.day), 1)) : createCommentVNode("", true)], 10, _hoisted_19$1);
+            }, () => [createTextVNode(toDisplayString$1(date.day), 1)])], 42, _hoisted_20$2)), [[_directive_ripple]]), $options.isSelected(date) ? (openBlock(), createElementBlock("div", _hoisted_21$2, toDisplayString$1(date.day), 1)) : createCommentVNode("", true)], 10, _hoisted_19$2);
           }), 128))]);
         }), 128))])])])) : createCommentVNode("", true)]);
-      }), 128))]), $data.currentView === 'month' ? (openBlock(), createElementBlock("div", _hoisted_22, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.monthPickerValues, (m, i) => {
+      }), 128))]), $data.currentView === 'month' ? (openBlock(), createElementBlock("div", _hoisted_22$1, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.monthPickerValues, (m, i) => {
         return withDirectives((openBlock(), createElementBlock("span", {
           key: m,
           onClick: $event => $options.onMonthSelect($event, i),
@@ -24670,8 +22875,8 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
           class: normalizeClass(["p-monthpicker-month", {
             'p-highlight': $options.isMonthSelected(i)
           }])
-        }, [createTextVNode(toDisplayString$1(m) + " ", 1), $options.isMonthSelected(i) ? (openBlock(), createElementBlock("div", _hoisted_24, toDisplayString$1(m), 1)) : createCommentVNode("", true)], 42, _hoisted_23)), [[_directive_ripple]]);
-      }), 128))])) : createCommentVNode("", true), $data.currentView === 'year' ? (openBlock(), createElementBlock("div", _hoisted_25, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.yearPickerValues, y => {
+        }, [createTextVNode(toDisplayString$1(m) + " ", 1), $options.isMonthSelected(i) ? (openBlock(), createElementBlock("div", _hoisted_24$1, toDisplayString$1(m), 1)) : createCommentVNode("", true)], 42, _hoisted_23$1)), [[_directive_ripple]]);
+      }), 128))])) : createCommentVNode("", true), $data.currentView === 'year' ? (openBlock(), createElementBlock("div", _hoisted_25$1, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.yearPickerValues, y => {
         return withDirectives((openBlock(), createElementBlock("span", {
           key: y,
           onClick: $event => $options.onYearSelect($event, y),
@@ -24679,8 +22884,8 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
           class: normalizeClass(["p-yearpicker-year", {
             'p-highlight': $options.isYearSelected(y)
           }])
-        }, [createTextVNode(toDisplayString$1(y) + " ", 1), $options.isYearSelected(y) ? (openBlock(), createElementBlock("div", _hoisted_27, toDisplayString$1(y), 1)) : createCommentVNode("", true)], 42, _hoisted_26)), [[_directive_ripple]]);
-      }), 128))])) : createCommentVNode("", true)], 64)) : createCommentVNode("", true), ($props.showTime || $props.timeOnly) && $data.currentView === 'date' ? (openBlock(), createElementBlock("div", _hoisted_28, [createElementVNode("div", _hoisted_29, [withDirectives((openBlock(), createElementBlock("button", {
+        }, [createTextVNode(toDisplayString$1(y) + " ", 1), $options.isYearSelected(y) ? (openBlock(), createElementBlock("div", _hoisted_27$1, toDisplayString$1(y), 1)) : createCommentVNode("", true)], 42, _hoisted_26$1)), [[_directive_ripple]]);
+      }), 128))])) : createCommentVNode("", true)], 64)) : createCommentVNode("", true), ($props.showTime || $props.timeOnly) && $data.currentView === 'date' ? (openBlock(), createElementBlock("div", _hoisted_28$1, [createElementVNode("div", _hoisted_29, [withDirectives((openBlock(), createElementBlock("button", {
         class: "p-link",
         "aria-label": _ctx.$primevue.config.locale.nextHour,
         onMousedown: _cache[13] || (_cache[13] = $event => $options.onTimePickerElementMouseDown($event, 0, 1)),
@@ -24778,14 +22983,14 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
         onClick: _cache[64] || (_cache[64] = $event => $options.onClearButtonClick($event)),
         class: "p-button-text",
         onKeydown: $options.onContainerButtonKeydown
-      }, null, 8, ["label", "onKeydown"])])) : createCommentVNode("", true), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_3$q)) : createCommentVNode("", true)]),
+      }, null, 8, ["label", "onKeydown"])])) : createCommentVNode("", true), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_3$v)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onAfterEnter", "onAfterLeave", "onLeave"])]),
     _: 3
-  }, 8, ["appendTo", "disabled"])], 10, _hoisted_1$D);
+  }, 8, ["appendTo", "disabled"])], 10, _hoisted_1$K);
 }
 
-function styleInject$i(css, ref) {
+function styleInject$n(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24814,14 +23019,14 @@ function styleInject$i(css, ref) {
   }
 }
 
-var css_248z$p = "\n.p-calendar {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    max-width: 100%;\n}\n.p-calendar .p-inputtext {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-calendar-w-btn .p-inputtext {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-calendar-w-btn .p-datepicker-trigger {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n\n/* Fluid */\n.p-fluid .p-calendar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-calendar .p-inputtext {\n    width: 1%;\n}\n\n/* Datepicker */\n.p-calendar .p-datepicker {\n    min-width: 100%;\n}\n.p-datepicker {\n    width: auto;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-datepicker-inline {\n    display: inline-block;\n    position: static;\n    overflow-x: auto;\n}\n\n/* Header */\n.p-datepicker-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-datepicker-header .p-datepicker-title {\n    margin: 0 auto;\n}\n.p-datepicker-prev,\n.p-datepicker-next {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Multiple Month DatePicker */\n.p-datepicker-multiple-month .p-datepicker-group-container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-datepicker-multiple-month .p-datepicker-group-container .p-datepicker-group {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n\n/* DatePicker Table */\n.p-datepicker table {\n    width: 100%;\n    border-collapse: collapse;\n}\n.p-datepicker td > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    margin: 0 auto;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Month Picker */\n.p-monthpicker-month {\n    width: 33.3%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Year Picker */\n.p-yearpicker-year {\n    width: 50%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/*  Button Bar */\n.p-datepicker-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n\n/* Time Picker */\n.p-timepicker {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-timepicker button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n.p-timepicker > div {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n\n/* Touch UI */\n.p-datepicker-touch-ui,\n.p-calendar .p-datepicker-touch-ui {\n    position: fixed;\n    top: 50%;\n    left: 50%;\n    min-width: 80vw;\n    -webkit-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%);\n}\n";
-styleInject$i(css_248z$p);
-script$18.render = render$m;
+var css_248z$v = "\n.p-calendar {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    max-width: 100%;\n}\n.p-calendar .p-inputtext {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-calendar-w-btn .p-inputtext {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-calendar-w-btn .p-datepicker-trigger {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n\n/* Fluid */\n.p-fluid .p-calendar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-calendar .p-inputtext {\n    width: 1%;\n}\n\n/* Datepicker */\n.p-calendar .p-datepicker {\n    min-width: 100%;\n}\n.p-datepicker {\n    width: auto;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-datepicker-inline {\n    display: inline-block;\n    position: static;\n    overflow-x: auto;\n}\n\n/* Header */\n.p-datepicker-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-datepicker-header .p-datepicker-title {\n    margin: 0 auto;\n}\n.p-datepicker-prev,\n.p-datepicker-next {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Multiple Month DatePicker */\n.p-datepicker-multiple-month .p-datepicker-group-container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-datepicker-multiple-month .p-datepicker-group-container .p-datepicker-group {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n\n/* DatePicker Table */\n.p-datepicker table {\n    width: 100%;\n    border-collapse: collapse;\n}\n.p-datepicker td > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    margin: 0 auto;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Month Picker */\n.p-monthpicker-month {\n    width: 33.3%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Year Picker */\n.p-yearpicker-year {\n    width: 50%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/*  Button Bar */\n.p-datepicker-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n\n/* Time Picker */\n.p-timepicker {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-timepicker button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n.p-timepicker > div {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n\n/* Touch UI */\n.p-datepicker-touch-ui,\n.p-calendar .p-datepicker-touch-ui {\n    position: fixed;\n    top: 50%;\n    left: 50%;\n    min-width: 80vw;\n    -webkit-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%);\n}\n";
+styleInject$n(css_248z$v);
+script$1k.render = render$s;
 
-const _hoisted_1$C = { key: 1 };
+const _hoisted_1$J = { key: 1 };
 
 
-var script$17 = {
+var script$1j = {
   props: {
     bind : {
         type : Object,
@@ -24847,28 +23052,32 @@ const value = computed({
 
 const disabled = (props.bind.cell.system) ? true : false;
 
+const errClass = computed(() => {
+    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+});
+
 
 return (_ctx, _cache) => {
   return (unref(disabled)==false)
-    ? (openBlock(), createBlock(unref(script$18), {
+    ? (openBlock(), createBlock(unref(script$1k), {
         key: 0,
         id: "range",
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
         disabledDates: __props.bind.cell.invalid_dates,
         manualInput: false,
-        class: "focus:border-primary",
+        class: normalizeClass([unref(errClass), "focus:border-primary"]),
         dateFormat: "dd/mm/yy"
-      }, null, 8 /* PROPS */, ["modelValue", "disabledDates"]))
-    : (openBlock(), createElementBlock("span", _hoisted_1$C, toDisplayString$1(unref(value)), 1 /* TEXT */))
+      }, null, 8 /* PROPS */, ["modelValue", "disabledDates", "class"]))
+    : (openBlock(), createElementBlock("span", _hoisted_1$J, toDisplayString$1(unref(value)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$17.__file = "presstojam/src/components/form/time-edit.vue";
+script$1j.__file = "presstojam/src/components/form/time-edit.vue";
 
-var script$16 = {
+var script$1i = {
   name: 'Password',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'invalid'],
   props: {
@@ -25260,23 +23469,23 @@ var script$16 = {
 
   },
   components: {
-    PInputText: script$1u,
-    Portal: script$1x
+    PInputText: script$1y,
+    Portal: script$1s
   }
 };
-const _hoisted_1$B = {
+const _hoisted_1$I = {
   class: "p-hidden-accessible",
   "aria-live": "polite"
 };
-const _hoisted_2$v = ["id"];
-const _hoisted_3$p = {
+const _hoisted_2$B = ["id"];
+const _hoisted_3$u = {
   class: "p-password-meter"
 };
-const _hoisted_4$l = {
+const _hoisted_4$q = {
   class: "p-password-info"
 };
 
-function render$l(_ctx, _cache, $props, $setup, $data, $options) {
+function render$r(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_PInputText = resolveComponent("PInputText");
 
   const _component_Portal = resolveComponent("Portal");
@@ -25306,7 +23515,7 @@ function render$l(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     class: normalizeClass($options.toggleIconClass),
     onClick: _cache[0] || (_cache[0] = (...args) => $options.onMaskToggle && $options.onMaskToggle(...args))
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_1$B, toDisplayString$1($data.infoText), 1), createVNode(_component_Portal, {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_1$I, toDisplayString$1($data.infoText), 1), createVNode(_component_Portal, {
     appendTo: $props.appendTo
   }, {
     default: withCtx(() => [createVNode(Transition, {
@@ -25322,19 +23531,19 @@ function render$l(_ctx, _cache, $props, $setup, $data, $options) {
         class: $options.panelStyleClass,
         style: $props.panelStyle,
         onClick: _cache[1] || (_cache[1] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args))
-      }, $props.panelProps), [renderSlot(_ctx.$slots, "header"), renderSlot(_ctx.$slots, "content", {}, () => [createElementVNode("div", _hoisted_3$p, [createElementVNode("div", {
+      }, $props.panelProps), [renderSlot(_ctx.$slots, "header"), renderSlot(_ctx.$slots, "content", {}, () => [createElementVNode("div", _hoisted_3$u, [createElementVNode("div", {
         class: normalizeClass($options.strengthClass),
         style: normalizeStyle({
           width: $data.meter ? $data.meter.width : ''
         })
-      }, null, 6)]), createElementVNode("div", _hoisted_4$l, toDisplayString$1($data.infoText), 1)]), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_2$v)) : createCommentVNode("", true)]),
+      }, null, 6)]), createElementVNode("div", _hoisted_4$q, toDisplayString$1($data.infoText), 1)]), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_2$B)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$h(css, ref) {
+function styleInject$m(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25363,11 +23572,11 @@ function styleInject$h(css, ref) {
   }
 }
 
-var css_248z$o = "\n.p-password {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-password-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-password .p-password-panel {\n    min-width: 100%;\n}\n.p-password-meter {\n    height: 10px;\n}\n.p-password-strength {\n    height: 100%;\n    width: 0;\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-fluid .p-password {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$h(css_248z$o);
-script$16.render = render$l;
+var css_248z$u = "\n.p-password {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-password-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-password .p-password-panel {\n    min-width: 100%;\n}\n.p-password-meter {\n    height: 10px;\n}\n.p-password-strength {\n    height: 100%;\n    width: 0;\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-fluid .p-password {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$m(css_248z$u);
+script$1i.render = render$r;
 
-var script$15 = {
+var script$1h = {
   name: 'Textarea',
   emits: ['update:modelValue'],
   props: {
@@ -25417,9 +23626,9 @@ var script$15 = {
 
   }
 };
-const _hoisted_1$A = ["value"];
+const _hoisted_1$H = ["value"];
 
-function render$k(_ctx, _cache, $props, $setup, $data, $options) {
+function render$q(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("textarea", {
     class: normalizeClass(['p-inputtextarea p-inputtext p-component', {
       'p-filled': $options.filled,
@@ -25427,10 +23636,10 @@ function render$k(_ctx, _cache, $props, $setup, $data, $options) {
     }]),
     value: $props.modelValue,
     onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
-  }, null, 42, _hoisted_1$A);
+  }, null, 42, _hoisted_1$H);
 }
 
-function styleInject$g(css, ref) {
+function styleInject$l(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25459,11 +23668,11 @@ function styleInject$g(css, ref) {
   }
 }
 
-var css_248z$n = "\n.p-inputtextarea-resizable {\n    overflow: hidden;\n    resize: none;\n}\n.p-fluid .p-inputtextarea {\n    width: 100%;\n}\n";
-styleInject$g(css_248z$n);
-script$15.render = render$k;
+var css_248z$t = "\n.p-inputtextarea-resizable {\n    overflow: hidden;\n    resize: none;\n}\n.p-fluid .p-inputtextarea {\n    width: 100%;\n}\n";
+styleInject$l(css_248z$t);
+script$1h.render = render$q;
 
-var script$14 = {
+var script$1g = {
   props: {
     bind : {
         type : Object,
@@ -25526,44 +23735,48 @@ if (cell.contains.includes("html")) {
 
 
 
-
+const errClass = computed(() => {
+    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+});
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.encrypted)
-    ? (openBlock(), createBlock(unref(script$16), {
+    ? (openBlock(), createBlock(unref(script$1i), {
         key: 0,
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-        class: "focus:border-primary"
-      }, null, 8 /* PROPS */, ["modelValue"]))
+        class: normalizeClass(["focus:border-primary", unref(errClass)])
+      }, null, 8 /* PROPS */, ["modelValue", "class"]))
     : (unref(tag)=='textarea')
-      ? (openBlock(), createBlock(unref(script$15), {
+      ? (openBlock(), createBlock(unref(script$1h), {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null)),
-          rows: "5"
-        }, null, 8 /* PROPS */, ["modelValue"]))
+          rows: "5",
+          class: normalizeClass(unref(errClass))
+        }, null, 8 /* PROPS */, ["modelValue", "class"]))
       : (unref(tag)=='select')
-        ? (openBlock(), createBlock(script$1a, {
+        ? (openBlock(), createBlock(script$1m, {
             key: 2,
             bind: __props.bind,
-            options: unref(options)
-          }, null, 8 /* PROPS */, ["bind", "options"]))
-        : (openBlock(), createBlock(unref(script$1u), mergeProps({ key: 3 }, atts, {
+            options: unref(options),
+            class: normalizeClass(unref(errClass))
+          }, null, 8 /* PROPS */, ["bind", "options", "class"]))
+        : (openBlock(), createBlock(unref(script$1y), mergeProps({ key: 3 }, atts, {
             name: __props.bind.cell.name,
-            class: "focus:border-primary form-control",
+            class: ["focus:border-primary form-control", unref(errClass)],
             modelValue: unref(value),
             "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
             onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.active_validation.value = true))
-          }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]))
+          }), null, 16 /* FULL_PROPS */, ["name", "modelValue", "class"]))
 }
 }
 
 };
 
-script$14.__file = "presstojam/src/components/form/string-edit.vue";
+script$1g.__file = "presstojam/src/components/form/string-edit.vue";
 
-var script$13 = {
+var script$1f = {
   name: 'Message',
   emits: ['close'],
   props: {
@@ -25634,14 +23847,14 @@ var script$13 = {
     ripple: Ripple
   }
 };
-const _hoisted_1$z = {
+const _hoisted_1$G = {
   class: "p-message-wrapper"
 };
-const _hoisted_2$u = {
+const _hoisted_2$A = {
   class: "p-message-text"
 };
 
-function render$j(_ctx, _cache, $props, $setup, $data, $options) {
+function render$p(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createBlock(Transition, {
@@ -25651,9 +23864,9 @@ function render$j(_ctx, _cache, $props, $setup, $data, $options) {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
       class: normalizeClass($options.containerClass),
       role: "alert"
-    }, [createElementVNode("div", _hoisted_1$z, [createElementVNode("span", {
+    }, [createElementVNode("div", _hoisted_1$G, [createElementVNode("span", {
       class: normalizeClass($options.iconClass)
-    }, null, 2), createElementVNode("div", _hoisted_2$u, [renderSlot(_ctx.$slots, "default")]), $props.closable ? withDirectives((openBlock(), createElementBlock("button", {
+    }, null, 2), createElementVNode("div", _hoisted_2$A, [renderSlot(_ctx.$slots, "default")]), $props.closable ? withDirectives((openBlock(), createElementBlock("button", {
       key: 0,
       class: "p-message-close p-link",
       onClick: _cache[0] || (_cache[0] = $event => $options.close($event)),
@@ -25665,7 +23878,7 @@ function render$j(_ctx, _cache, $props, $setup, $data, $options) {
   });
 }
 
-function styleInject$f(css, ref) {
+function styleInject$k(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25694,11 +23907,11 @@ function styleInject$f(css, ref) {
   }
 }
 
-var css_248z$m = "\n.p-message-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-message-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-message-close.p-link {\n    margin-left: auto;\n    overflow: hidden;\n    position: relative;\n}\n.p-message-enter-from {\n    opacity: 0;\n}\n.p-message-enter-active {\n    -webkit-transition: opacity 0.3s;\n    transition: opacity 0.3s;\n}\n.p-message.p-message-leave-from {\n    max-height: 1000px;\n}\n.p-message.p-message-leave-to {\n    max-height: 0;\n    opacity: 0;\n    margin: 0 !important;\n}\n.p-message-leave-active {\n    overflow: hidden;\n    -webkit-transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n    transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n}\n.p-message-leave-active .p-message-close {\n    display: none;\n}\n";
-styleInject$f(css_248z$m);
-script$13.render = render$j;
+var css_248z$s = "\n.p-message-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-message-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-message-close.p-link {\n    margin-left: auto;\n    overflow: hidden;\n    position: relative;\n}\n.p-message-enter-from {\n    opacity: 0;\n}\n.p-message-enter-active {\n    -webkit-transition: opacity 0.3s;\n    transition: opacity 0.3s;\n}\n.p-message.p-message-leave-from {\n    max-height: 1000px;\n}\n.p-message.p-message-leave-to {\n    max-height: 0;\n    opacity: 0;\n    margin: 0 !important;\n}\n.p-message-leave-active {\n    overflow: hidden;\n    -webkit-transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n    transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n}\n.p-message-leave-active .p-message-close {\n    display: none;\n}\n";
+styleInject$k(css_248z$s);
+script$1f.render = render$p;
 
-var script$12 = {
+var script$1e = {
   name: 'ProgressBar',
   props: {
     value: {
@@ -25739,23 +23952,23 @@ var script$12 = {
 
   }
 };
-const _hoisted_1$y = ["aria-valuenow"];
-const _hoisted_2$t = {
+const _hoisted_1$F = ["aria-valuenow"];
+const _hoisted_2$z = {
   key: 0,
   class: "p-progressbar-label"
 };
-const _hoisted_3$o = {
+const _hoisted_3$t = {
   key: 1,
   class: "p-progressbar-indeterminate-container"
 };
 
-const _hoisted_4$k = /*#__PURE__*/createElementVNode("div", {
+const _hoisted_4$p = /*#__PURE__*/createElementVNode("div", {
   class: "p-progressbar-value p-progressbar-value-animate"
 }, null, -1);
 
-const _hoisted_5$e = [_hoisted_4$k];
+const _hoisted_5$i = [_hoisted_4$p];
 
-function render$i(_ctx, _cache, $props, $setup, $data, $options) {
+function render$o(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     role: "progressbar",
     class: normalizeClass($options.containerClass),
@@ -25766,10 +23979,10 @@ function render$i(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     class: "p-progressbar-value p-progressbar-value-animate",
     style: normalizeStyle($options.progressStyle)
-  }, [$props.value != null && $props.value !== 0 && $props.showValue ? (openBlock(), createElementBlock("div", _hoisted_2$t, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value + '%'), 1)])])) : createCommentVNode("", true)], 4)) : createCommentVNode("", true), $options.indeterminate ? (openBlock(), createElementBlock("div", _hoisted_3$o, _hoisted_5$e)) : createCommentVNode("", true)], 10, _hoisted_1$y);
+  }, [$props.value != null && $props.value !== 0 && $props.showValue ? (openBlock(), createElementBlock("div", _hoisted_2$z, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value + '%'), 1)])])) : createCommentVNode("", true)], 4)) : createCommentVNode("", true), $options.indeterminate ? (openBlock(), createElementBlock("div", _hoisted_3$t, _hoisted_5$i)) : createCommentVNode("", true)], 10, _hoisted_1$F);
 }
 
-function styleInject$e(css, ref) {
+function styleInject$j(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25798,11 +24011,11 @@ function styleInject$e(css, ref) {
   }
 }
 
-var css_248z$l = "\n.p-progressbar {\n    position: relative;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-value {\n    height: 100%;\n    width: 0%;\n    position: absolute;\n    display: none;\n    border: 0 none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-label {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-progressbar-determinate .p-progressbar-value-animate {\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-progressbar-indeterminate .p-progressbar-value::before {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n    animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n}\n.p-progressbar-indeterminate .p-progressbar-value::after {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    -webkit-animation-delay: 1.15s;\n    animation-delay: 1.15s;\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n";
-styleInject$e(css_248z$l);
-script$12.render = render$i;
+var css_248z$r = "\n.p-progressbar {\n    position: relative;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-value {\n    height: 100%;\n    width: 0%;\n    position: absolute;\n    display: none;\n    border: 0 none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-label {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-progressbar-determinate .p-progressbar-value-animate {\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-progressbar-indeterminate .p-progressbar-value::before {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n    animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n}\n.p-progressbar-indeterminate .p-progressbar-value::after {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    -webkit-animation-delay: 1.15s;\n    animation-delay: 1.15s;\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n";
+styleInject$j(css_248z$r);
+script$1e.render = render$o;
 
-var script$11 = {
+var script$1d = {
   name: 'Badge',
   props: {
     value: null,
@@ -25830,15 +24043,15 @@ var script$11 = {
   }
 };
 
-function render$h(_ctx, _cache, $props, $setup, $data, $options) {
+function render$n(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("span", {
     class: normalizeClass($options.badgeClass)
   }, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value), 1)])], 2);
 }
 
-script$11.render = render$h;
+script$1d.render = render$n;
 
-var script$1$4 = {
+var script$1$6 = {
   emits: ['remove'],
   props: {
     files: {
@@ -25873,25 +24086,25 @@ var script$1$4 = {
 
   },
   components: {
-    FileUploadButton: script$1v,
-    FileUploadBadge: script$11
+    FileUploadButton: script$1z,
+    FileUploadBadge: script$1d
   }
 };
-const _hoisted_1$1$4 = ["alt", "src", "width"];
-const _hoisted_2$1$4 = {
+const _hoisted_1$1$6 = ["alt", "src", "width"];
+const _hoisted_2$1$6 = {
   class: "p-fileupload-file-details"
 };
-const _hoisted_3$1$3 = {
+const _hoisted_3$1$5 = {
   class: "p-fileupload-file-name"
 };
-const _hoisted_4$1$2 = {
+const _hoisted_4$1$3 = {
   class: "p-fileupload-file-size"
 };
-const _hoisted_5$1$2 = {
+const _hoisted_5$1$3 = {
   class: "p-fileupload-file-actions"
 };
 
-function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
+function render$1$6(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FileUploadBadge = resolveComponent("FileUploadBadge");
 
   const _component_FileUploadButton = resolveComponent("FileUploadButton");
@@ -25906,11 +24119,11 @@ function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
       alt: file.name,
       src: file.objectURL,
       width: $props.previewWidth
-    }, null, 8, _hoisted_1$1$4), createElementVNode("div", _hoisted_2$1$4, [createElementVNode("div", _hoisted_3$1$3, toDisplayString$1(file.name), 1), createElementVNode("span", _hoisted_4$1$2, toDisplayString$1($options.formatSize(file.size)), 1), createVNode(_component_FileUploadBadge, {
+    }, null, 8, _hoisted_1$1$6), createElementVNode("div", _hoisted_2$1$6, [createElementVNode("div", _hoisted_3$1$5, toDisplayString$1(file.name), 1), createElementVNode("span", _hoisted_4$1$3, toDisplayString$1($options.formatSize(file.size)), 1), createVNode(_component_FileUploadBadge, {
       value: $props.badgeValue,
       class: "p-fileupload-file-badge",
       severity: $props.badgeSeverity
-    }, null, 8, ["value", "severity"])]), createElementVNode("div", _hoisted_5$1$2, [createVNode(_component_FileUploadButton, {
+    }, null, 8, ["value", "severity"])]), createElementVNode("div", _hoisted_5$1$3, [createVNode(_component_FileUploadButton, {
       icon: "pi pi-times",
       onClick: $event => _ctx.$emit('remove', index),
       class: "p-fileupload-file-remove p-button-text p-button-danger p-button-rounded"
@@ -25918,8 +24131,8 @@ function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128);
 }
 
-script$1$4.render = render$1$4;
-var script$10 = {
+script$1$6.render = render$1$6;
+var script$1c = {
   name: 'FileUpload',
   emits: ['select', 'uploader', 'before-upload', 'progress', 'upload', 'error', 'before-send', 'clear', 'remove', 'removeUploadedFile'],
   props: {
@@ -26401,40 +24614,40 @@ var script$10 = {
 
   },
   components: {
-    FileUploadButton: script$1v,
-    FileUploadProgressBar: script$12,
-    FileUploadMessage: script$13,
-    FileContent: script$1$4
+    FileUploadButton: script$1z,
+    FileUploadProgressBar: script$1e,
+    FileUploadMessage: script$1f,
+    FileContent: script$1$6
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$x = {
+const _hoisted_1$E = {
   key: 0,
   class: "p-fileupload p-fileupload-advanced p-component"
 };
-const _hoisted_2$s = ["multiple", "accept", "disabled"];
-const _hoisted_3$n = {
+const _hoisted_2$y = ["multiple", "accept", "disabled"];
+const _hoisted_3$s = {
   class: "p-fileupload-buttonbar"
 };
-const _hoisted_4$j = {
+const _hoisted_4$o = {
   class: "p-button-label"
 };
-const _hoisted_5$d = {
+const _hoisted_5$h = {
   key: 0,
   class: "p-fileupload-empty"
 };
-const _hoisted_6$a = {
+const _hoisted_6$d = {
   key: 1,
   class: "p-fileupload p-fileupload-basic p-component"
 };
-const _hoisted_7$5 = {
+const _hoisted_7$8 = {
   class: "p-button-label"
 };
-const _hoisted_8$5 = ["accept", "disabled", "multiple"];
+const _hoisted_8$6 = ["accept", "disabled", "multiple"];
 
-function render$g(_ctx, _cache, $props, $setup, $data, $options) {
+function render$m(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FileUploadButton = resolveComponent("FileUploadButton");
 
   const _component_FileUploadProgressBar = resolveComponent("FileUploadProgressBar");
@@ -26445,14 +24658,14 @@ function render$g(_ctx, _cache, $props, $setup, $data, $options) {
 
   const _directive_ripple = resolveDirective("ripple");
 
-  return $options.isAdvanced ? (openBlock(), createElementBlock("div", _hoisted_1$x, [createElementVNode("input", {
+  return $options.isAdvanced ? (openBlock(), createElementBlock("div", _hoisted_1$E, [createElementVNode("input", {
     ref: "fileInput",
     type: "file",
     onChange: _cache[0] || (_cache[0] = (...args) => $options.onFileSelect && $options.onFileSelect(...args)),
     multiple: $props.multiple,
     accept: $props.accept,
     disabled: $options.chooseDisabled
-  }, null, 40, _hoisted_2$s), createElementVNode("div", _hoisted_3$n, [renderSlot(_ctx.$slots, "header", {
+  }, null, 40, _hoisted_2$y), createElementVNode("div", _hoisted_3$s, [renderSlot(_ctx.$slots, "header", {
     files: $data.files,
     uploadedFiles: $data.uploadedFiles,
     chooseCallback: $options.choose,
@@ -26468,7 +24681,7 @@ function render$g(_ctx, _cache, $props, $setup, $data, $options) {
     tabindex: "0"
   }, [createElementVNode("span", {
     class: normalizeClass($options.advancedChooseIconClass)
-  }, null, 2), createElementVNode("span", _hoisted_4$j, toDisplayString$1($options.chooseButtonLabel), 1)], 38)), [[_directive_ripple]]), $props.showUploadButton ? (openBlock(), createBlock(_component_FileUploadButton, {
+  }, null, 2), createElementVNode("span", _hoisted_4$o, toDisplayString$1($options.chooseButtonLabel), 1)], 38)), [[_directive_ripple]]), $props.showUploadButton ? (openBlock(), createBlock(_component_FileUploadButton, {
     key: 0,
     label: $options.uploadButtonLabel,
     icon: $props.uploadIcon,
@@ -26519,7 +24732,7 @@ function render$g(_ctx, _cache, $props, $setup, $data, $options) {
     badgeValue: $options.completedLabel,
     badgeSeverity: "success",
     previewWidth: $props.previewWidth
-  }, null, 8, ["files", "onRemove", "badgeValue", "previewWidth"])]), _ctx.$slots.empty && !$options.hasFiles && !$options.hasUploadedFiles ? (openBlock(), createElementBlock("div", _hoisted_5$d, [renderSlot(_ctx.$slots, "empty")])) : createCommentVNode("", true)], 544)])) : $options.isBasic ? (openBlock(), createElementBlock("div", _hoisted_6$a, [(openBlock(true), createElementBlock(Fragment, null, renderList($data.messages, msg => {
+  }, null, 8, ["files", "onRemove", "badgeValue", "previewWidth"])]), _ctx.$slots.empty && !$options.hasFiles && !$options.hasUploadedFiles ? (openBlock(), createElementBlock("div", _hoisted_5$h, [renderSlot(_ctx.$slots, "empty")])) : createCommentVNode("", true)], 544)])) : $options.isBasic ? (openBlock(), createElementBlock("div", _hoisted_6$d, [(openBlock(true), createElementBlock(Fragment, null, renderList($data.messages, msg => {
     return openBlock(), createBlock(_component_FileUploadMessage, {
       key: msg,
       severity: "error",
@@ -26538,7 +24751,7 @@ function render$g(_ctx, _cache, $props, $setup, $data, $options) {
     tabindex: "0"
   }, [createElementVNode("span", {
     class: normalizeClass($options.basicChooseButtonIconClass)
-  }, null, 2), createElementVNode("span", _hoisted_7$5, toDisplayString$1($options.basicChooseButtonLabel), 1), !$options.hasFiles ? (openBlock(), createElementBlock("input", {
+  }, null, 2), createElementVNode("span", _hoisted_7$8, toDisplayString$1($options.basicChooseButtonLabel), 1), !$options.hasFiles ? (openBlock(), createElementBlock("input", {
     key: 0,
     ref: "fileInput",
     type: "file",
@@ -26548,10 +24761,10 @@ function render$g(_ctx, _cache, $props, $setup, $data, $options) {
     onChange: _cache[9] || (_cache[9] = (...args) => $options.onFileSelect && $options.onFileSelect(...args)),
     onFocus: _cache[10] || (_cache[10] = (...args) => $options.onFocus && $options.onFocus(...args)),
     onBlur: _cache[11] || (_cache[11] = (...args) => $options.onBlur && $options.onBlur(...args))
-  }, null, 40, _hoisted_8$5)) : createCommentVNode("", true)], 38)), [[_directive_ripple]])])) : createCommentVNode("", true);
+  }, null, 40, _hoisted_8$6)) : createCommentVNode("", true)], 38)), [[_directive_ripple]])])) : createCommentVNode("", true);
 }
 
-function styleInject$d(css, ref) {
+function styleInject$i(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -26580,15 +24793,15 @@ function styleInject$d(css, ref) {
   }
 }
 
-var css_248z$k = "\n.p-fileupload-content {\n    position: relative;\n}\n.p-fileupload-content .p-progressbar {\n    width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-button.p-fileupload-choose {\n    position: relative;\n    overflow: hidden;\n}\n.p-fileupload-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-fileupload > input[type='file'],\n.p-fileupload-basic input[type='file'] {\n    display: none;\n}\n.p-fluid .p-fileupload .p-button {\n    width: auto;\n}\n.p-fileupload-file {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-fileupload-file-thumbnail {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-fileupload-file-actions {\n    margin-left: auto;\n}\n";
-styleInject$d(css_248z$k);
-script$10.render = render$g;
+var css_248z$q = "\n.p-fileupload-content {\n    position: relative;\n}\n.p-fileupload-content .p-progressbar {\n    width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-button.p-fileupload-choose {\n    position: relative;\n    overflow: hidden;\n}\n.p-fileupload-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-fileupload > input[type='file'],\n.p-fileupload-basic input[type='file'] {\n    display: none;\n}\n.p-fluid .p-fileupload .p-button {\n    width: auto;\n}\n.p-fileupload-file {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-fileupload-file-thumbnail {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-fileupload-file-actions {\n    margin-left: auto;\n}\n";
+styleInject$i(css_248z$q);
+script$1c.render = render$m;
 
 // accept="image/*" 
 
 
 
-var script$$ = {
+var script$1b = {
   props: {
     bind : {
         type : Object,
@@ -26621,7 +24834,7 @@ function onUpload(e) {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$10), {
+  return (openBlock(), createBlock(unref(script$1c), {
     mode: "basic",
     name: __props.bind.cell.name,
     customUpload: true,
@@ -26633,9 +24846,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$$.__file = "presstojam/src/components/form/asset-edit.vue";
+script$1b.__file = "presstojam/src/components/form/asset-edit.vue";
 
-var script$_ = {
+var script$1a = {
   name: 'Fieldset',
   emits: ['update:collapsed', 'toggle'],
   props: {
@@ -26692,32 +24905,32 @@ var script$_ = {
     ripple: Ripple
   }
 };
-const _hoisted_1$w = {
+const _hoisted_1$D = {
   class: "p-fieldset-legend"
 };
-const _hoisted_2$r = ["id"];
-const _hoisted_3$m = ["id", "aria-controls", "aria-expanded", "aria-label"];
-const _hoisted_4$i = {
+const _hoisted_2$x = ["id"];
+const _hoisted_3$r = ["id", "aria-controls", "aria-expanded", "aria-label"];
+const _hoisted_4$n = {
   class: "p-fieldset-legend-text"
 };
-const _hoisted_5$c = ["id", "aria-labelledby"];
-const _hoisted_6$9 = {
+const _hoisted_5$g = ["id", "aria-labelledby"];
+const _hoisted_6$c = {
   class: "p-fieldset-content"
 };
 
-function render$f(_ctx, _cache, $props, $setup, $data, $options) {
+function render$l(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("fieldset", {
     class: normalizeClass(['p-fieldset p-component', {
       'p-fieldset-toggleable': $props.toggleable
     }])
-  }, [createElementVNode("legend", _hoisted_1$w, [!$props.toggleable ? renderSlot(_ctx.$slots, "legend", {
+  }, [createElementVNode("legend", _hoisted_1$D, [!$props.toggleable ? renderSlot(_ctx.$slots, "legend", {
     key: 0
   }, () => [createElementVNode("span", {
     id: $options.ariaId + '_header',
     class: "p-fieldset-legend-text"
-  }, toDisplayString$1($props.legend), 9, _hoisted_2$r)]) : createCommentVNode("", true), $props.toggleable ? withDirectives((openBlock(), createElementBlock("a", {
+  }, toDisplayString$1($props.legend), 9, _hoisted_2$x)]) : createCommentVNode("", true), $props.toggleable ? withDirectives((openBlock(), createElementBlock("a", {
     key: 1,
     id: $options.ariaId + '_header',
     tabindex: "0",
@@ -26729,7 +24942,7 @@ function render$f(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
   }, [createElementVNode("span", {
     class: normalizeClass($options.iconClass)
-  }, null, 2), renderSlot(_ctx.$slots, "legend", {}, () => [createElementVNode("span", _hoisted_4$i, toDisplayString$1($props.legend), 1)])], 40, _hoisted_3$m)), [[_directive_ripple]]) : createCommentVNode("", true)]), createVNode(Transition, {
+  }, null, 2), renderSlot(_ctx.$slots, "legend", {}, () => [createElementVNode("span", _hoisted_4$n, toDisplayString$1($props.legend), 1)])], 40, _hoisted_3$r)), [[_directive_ripple]]) : createCommentVNode("", true)]), createVNode(Transition, {
     name: "p-toggleable-content"
   }, {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
@@ -26737,12 +24950,12 @@ function render$f(_ctx, _cache, $props, $setup, $data, $options) {
       class: "p-toggleable-content",
       role: "region",
       "aria-labelledby": $options.ariaId + '_header'
-    }, [createElementVNode("div", _hoisted_6$9, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$c), [[vShow, !$data.d_collapsed]])]),
+    }, [createElementVNode("div", _hoisted_6$c, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$g), [[vShow, !$data.d_collapsed]])]),
     _: 3
   })], 2);
 }
 
-function styleInject$c(css, ref) {
+function styleInject$h(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -26771,37 +24984,37 @@ function styleInject$c(css, ref) {
   }
 }
 
-var css_248z$j = "\n.p-fieldset-legend > a,\n.p-fieldset-legend > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-fieldset-toggleable .p-fieldset-legend a {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n    text-decoration: none;\n}\n.p-fieldset-legend-text {\n    line-height: 1;\n}\n";
-styleInject$c(css_248z$j);
-script$_.render = render$f;
+var css_248z$p = "\n.p-fieldset-legend > a,\n.p-fieldset-legend > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-fieldset-toggleable .p-fieldset-legend a {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n    text-decoration: none;\n}\n.p-fieldset-legend-text {\n    line-height: 1;\n}\n";
+styleInject$h(css_248z$p);
+script$1a.render = render$l;
 
-const _hoisted_1$v = {
+const _hoisted_1$C = {
   key: 0,
-  class: "form-text text-muted"
+  class: "form-text text-muted p-invalid"
 };
-const _hoisted_2$q = {
+const _hoisted_2$w = {
   key: 1,
-  class: "form-text text-muted"
+  class: "form-text text-muted p-invalid"
 };
-const _hoisted_3$l = {
+const _hoisted_3$q = {
   key: 2,
-  class: "form-text text-muted"
+  class: "form-text text-muted p-invalid"
 };
-const _hoisted_4$h = {
+const _hoisted_4$m = {
   key: 3,
-  class: "form-text text-muted"
+  class: "form-text text-muted p-invalid"
 };
-const _hoisted_5$b = {
+const _hoisted_5$f = {
   key: 4,
-  class: "form-text text-muted"
+  class: "form-text text-muted p-invalid"
 };
-const _hoisted_6$8 = {
+const _hoisted_6$b = {
   key: 5,
-  class: "form-text text-muted"
+  class: "form-text text-muted p-invalid"
 };
 
 
-var script$Z = {
+var script$19 = {
   props: {
   error : Number,
   field : Object
@@ -26824,26 +25037,26 @@ var script$Z = {
 
 return (_ctx, _cache) => {
   return (__props.error == 1)
-    ? (openBlock(), createElementBlock("small", _hoisted_1$v, toDisplayString$1(_ctx.$t("errors.min",  { min : __props.field.min })), 1 /* TEXT */))
+    ? (openBlock(), createElementBlock("small", _hoisted_1$C, toDisplayString$1(_ctx.$t("errors.min",  { min : __props.field.min })), 1 /* TEXT */))
     : (__props.error == 2)
-      ? (openBlock(), createElementBlock("small", _hoisted_2$q, toDisplayString$1(_ctx.$t("errors.max", { max : __props.field.max })), 1 /* TEXT */))
+      ? (openBlock(), createElementBlock("small", _hoisted_2$w, toDisplayString$1(_ctx.$t("errors.max", { max : __props.field.max })), 1 /* TEXT */))
       : (__props.error == 3)
-        ? (openBlock(), createElementBlock("small", _hoisted_3$l, toDisplayString$1(_ctx.$t("errors.contains", { char : __props.field.contains })), 1 /* TEXT */))
+        ? (openBlock(), createElementBlock("small", _hoisted_3$q, toDisplayString$1(_ctx.$t("errors.contains", { char : __props.field.contains })), 1 /* TEXT */))
         : (__props.error == 4)
-          ? (openBlock(), createElementBlock("small", _hoisted_4$h, toDisplayString$1(_ctx.$t("errors.notcontains",  { char : __props.field.notcontains })), 1 /* TEXT */))
+          ? (openBlock(), createElementBlock("small", _hoisted_4$m, toDisplayString$1(_ctx.$t("errors.notcontains",  { char : __props.field.notcontains })), 1 /* TEXT */))
           : (__props.error == 5)
-            ? (openBlock(), createElementBlock("small", _hoisted_5$b, toDisplayString$1(_ctx.$t("errors.unique")), 1 /* TEXT */))
+            ? (openBlock(), createElementBlock("small", _hoisted_5$f, toDisplayString$1(_ctx.$t("errors.unique")), 1 /* TEXT */))
             : (__props.error == 6)
-              ? (openBlock(), createElementBlock("small", _hoisted_6$8, toDisplayString$1(_ctx.$t("errors.null")), 1 /* TEXT */))
+              ? (openBlock(), createElementBlock("small", _hoisted_6$b, toDisplayString$1(_ctx.$t("errors.null")), 1 /* TEXT */))
               : createCommentVNode("v-if", true)
 }
 }
 
 };
 
-script$Z.__file = "presstojam/src/components/form/error.vue";
+script$19.__file = "presstojam/src/components/form/error.vue";
 
-var script$Y = {
+var script$18 = {
   props: {
     bind : {
         type : Object,
@@ -26869,7 +25082,7 @@ const binds = computed(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$_), {
+  return (openBlock(), createBlock(unref(script$1a), {
     legend: _ctx.$t('models.' + __props.bind.cell.model + '.fields.' + __props.bind.cell.name + '.label')
   }, {
     default: withCtx(() => [
@@ -26878,7 +25091,7 @@ return (_ctx, _cache) => {
           class: "field form-group",
           key: jbind.cell.name
         }, [
-          createVNode(script$X, { bind: jbind }, null, 8 /* PROPS */, ["bind"])
+          createVNode(script$17, { bind: jbind }, null, 8 /* PROPS */, ["bind"])
         ]))
       }), 128 /* KEYED_FRAGMENT */))
     ]),
@@ -26889,26 +25102,26 @@ return (_ctx, _cache) => {
 
 };
 
-script$Y.__file = "presstojam/src/components/form/json-edit.vue";
+script$18.__file = "presstojam/src/components/form/json-edit.vue";
 
-const _hoisted_1$u = {
+const _hoisted_1$B = {
   key: 0,
-  class: "form-check"
+  class: "form-check field-checkbox"
 };
-const _hoisted_2$p = ["for"];
-const _hoisted_3$k = {
+const _hoisted_2$v = ["for"];
+const _hoisted_3$p = {
   key: 1,
   class: "json-group"
 };
-const _hoisted_4$g = {
+const _hoisted_4$l = {
   key: 2,
-  class: "form-group"
+  class: "form-group field row"
 };
-const _hoisted_5$a = ["for"];
+const _hoisted_5$e = ["for"];
 
 
 
-var script$X = {
+var script$17 = {
   props: {
     bind : Object,
     active_validation : Boolean
@@ -26925,14 +25138,14 @@ var script$X = {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.type=='flag')
-    ? (openBlock(), createElementBlock("div", _hoisted_1$u, [
-        createVNode(script$1f, { bind: __props.bind }, null, 8 /* PROPS */, ["bind"]),
+    ? (openBlock(), createElementBlock("div", _hoisted_1$B, [
+        createVNode(script$1u, { bind: __props.bind }, null, 8 /* PROPS */, ["bind"]),
         createElementVNode("label", {
           for: __props.bind.cell.name,
           class: "form-check-label"
-        }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_2$p),
+        }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_2$v),
         (__props.bind.active_validation.value && __props.bind.error.value && __props.bind.cell.type!='json')
-          ? (openBlock(), createBlock(script$Z, {
+          ? (openBlock(), createBlock(script$19, {
               key: 0,
               field: __props.bind.cell,
               error: __props.bind.error.value
@@ -26940,51 +25153,59 @@ return (_ctx, _cache) => {
           : createCommentVNode("v-if", true)
       ]))
     : (__props.bind.cell.type=='json')
-      ? (openBlock(), createElementBlock("div", _hoisted_3$k, [
-          createVNode(script$Y, {
+      ? (openBlock(), createElementBlock("div", _hoisted_3$p, [
+          createVNode(script$18, {
             bind: __props.bind,
             active_validation: __props.active_validation
           }, null, 8 /* PROPS */, ["bind", "active_validation"])
         ]))
-      : (openBlock(), createElementBlock("div", _hoisted_4$g, [
+      : (openBlock(), createElementBlock("div", _hoisted_4$l, [
           createElementVNode("label", {
-            for: __props.bind.cell.name
-          }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_5$a),
+            for: __props.bind.cell.name,
+            class: "form-label"
+          }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_5$e),
           (__props.bind.cell.type=='number')
-            ? (openBlock(), createBlock(script$1h, {
+            ? (openBlock(), createBlock(script$1w, {
                 key: 0,
-                bind: __props.bind
+                bind: __props.bind,
+                class: "col"
               }, null, 8 /* PROPS */, ["bind"]))
             : (__props.bind.cell.type=='id')
-              ? (openBlock(), createBlock(script$19, {
+              ? (openBlock(), createBlock(script$1l, {
                   key: 1,
-                  bind: __props.bind
+                  bind: __props.bind,
+                  class: "col"
                 }, null, 8 /* PROPS */, ["bind"]))
               : (__props.bind.cell.type=='asset')
-                ? (openBlock(), createBlock(script$$, {
+                ? (openBlock(), createBlock(script$1b, {
                     key: 2,
-                    bind: __props.bind
+                    bind: __props.bind,
+                    class: "col"
                   }, null, 8 /* PROPS */, ["bind"]))
                 : (__props.bind.cell.type=='time')
-                  ? (openBlock(), createBlock(script$17, {
+                  ? (openBlock(), createBlock(script$1j, {
                       key: 3,
-                      bind: __props.bind
+                      bind: __props.bind,
+                      class: "col"
                     }, null, 8 /* PROPS */, ["bind"]))
                   : (__props.bind.cell.type=='json')
-                    ? (openBlock(), createBlock(script$Y, {
+                    ? (openBlock(), createBlock(script$18, {
                         key: 4,
                         bind: __props.bind,
-                        active_validation: __props.active_validation
+                        active_validation: __props.active_validation,
+                        class: "col"
                       }, null, 8 /* PROPS */, ["bind", "active_validation"]))
-                    : (openBlock(), createBlock(script$14, {
+                    : (openBlock(), createBlock(script$1g, {
                         key: 5,
-                        bind: __props.bind
+                        bind: __props.bind,
+                        class: "col"
                       }, null, 8 /* PROPS */, ["bind"])),
           (__props.bind.active_validation.value && __props.bind.error.value && __props.bind.cell.type!='json')
-            ? (openBlock(), createBlock(script$Z, {
+            ? (openBlock(), createBlock(script$19, {
                 key: 6,
                 field: __props.bind.cell,
-                error: __props.bind.error.value
+                error: __props.bind.error.value,
+                class: "col"
               }, null, 8 /* PROPS */, ["field", "error"]))
             : createCommentVNode("v-if", true)
         ]))
@@ -26993,9 +25214,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$X.__file = "presstojam/src/components/form/edit-field.vue";
+script$17.__file = "presstojam/src/components/form/edit-field.vue";
 
-var script$W = {
+var script$16 = {
   props: {
     modelValue : [Number, String, Boolean],
     model : String,
@@ -27033,7 +25254,7 @@ let value;
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1e), {
+  return (openBlock(), createBlock(unref(script$1r), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : value = $event)),
     options: options.value,
@@ -27044,7 +25265,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$W.__file = "presstojam/src/components/form/parent-select.vue";
+script$16.__file = "presstojam/src/components/form/parent-select.vue";
 
 function createBind(cell, value) {
   value = cell.clean(value);
@@ -27156,7 +25377,7 @@ function createBindGroup(parent = null) {
   };
 }
 
-var script$V = {
+var script$15 = {
   name: 'ProgressSpinner',
   props: {
     strokeWidth: {
@@ -27181,15 +25402,15 @@ var script$V = {
 
   }
 };
-const _hoisted_1$t = {
+const _hoisted_1$A = {
   class: "p-progress-spinner",
   role: "alert",
   "aria-busy": "true"
 };
-const _hoisted_2$o = ["fill", "stroke-width"];
+const _hoisted_2$u = ["fill", "stroke-width"];
 
-function render$e(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$t, [(openBlock(), createElementBlock("svg", {
+function render$k(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$A, [(openBlock(), createElementBlock("svg", {
     class: "p-progress-spinner-svg",
     viewBox: "25 25 50 50",
     style: normalizeStyle($options.svgStyle)
@@ -27201,10 +25422,10 @@ function render$e(_ctx, _cache, $props, $setup, $data, $options) {
     fill: $props.fill,
     "stroke-width": $props.strokeWidth,
     strokeMiterlimit: "10"
-  }, null, 8, _hoisted_2$o)], 4))]);
+  }, null, 8, _hoisted_2$u)], 4))]);
 }
 
-function styleInject$b(css, ref) {
+function styleInject$g(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -27233,16 +25454,16 @@ function styleInject$b(css, ref) {
   }
 }
 
-var css_248z$i = "\n.p-progress-spinner {\n    position: relative;\n    margin: 0 auto;\n    width: 100px;\n    height: 100px;\n    display: inline-block;\n}\n.p-progress-spinner::before {\n    content: '';\n    display: block;\n    padding-top: 100%;\n}\n.p-progress-spinner-svg {\n    -webkit-animation: p-progress-spinner-rotate 2s linear infinite;\n            animation: p-progress-spinner-rotate 2s linear infinite;\n    height: 100%;\n    -webkit-transform-origin: center center;\n            transform-origin: center center;\n    width: 100%;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    margin: auto;\n}\n.p-progress-spinner-circle {\n    stroke-dasharray: 89, 200;\n    stroke-dashoffset: 0;\n    stroke: #d62d20;\n    -webkit-animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n            animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n    stroke-linecap: round;\n}\n@-webkit-keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@-webkit-keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@-webkit-keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n@keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n";
-styleInject$b(css_248z$i);
-script$V.render = render$e;
+var css_248z$o = "\n.p-progress-spinner {\n    position: relative;\n    margin: 0 auto;\n    width: 100px;\n    height: 100px;\n    display: inline-block;\n}\n.p-progress-spinner::before {\n    content: '';\n    display: block;\n    padding-top: 100%;\n}\n.p-progress-spinner-svg {\n    -webkit-animation: p-progress-spinner-rotate 2s linear infinite;\n            animation: p-progress-spinner-rotate 2s linear infinite;\n    height: 100%;\n    -webkit-transform-origin: center center;\n            transform-origin: center center;\n    width: 100%;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    margin: auto;\n}\n.p-progress-spinner-circle {\n    stroke-dasharray: 89, 200;\n    stroke-dashoffset: 0;\n    stroke: #d62d20;\n    -webkit-animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n            animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n    stroke-linecap: round;\n}\n@-webkit-keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@-webkit-keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@-webkit-keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n@keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n";
+styleInject$g(css_248z$o);
+script$15.render = render$k;
 
-const _hoisted_1$s = /*#__PURE__*/createElementVNode("p", null, "Operation in action, please do not refresh or close the browser until complete", -1 /* HOISTED */);
-const _hoisted_2$n = { style: {"text-align":"center"} };
-const _hoisted_3$j = /*#__PURE__*/createElementVNode("p", null, " ", -1 /* HOISTED */);
+const _hoisted_1$z = /*#__PURE__*/createElementVNode("p", null, "Operation in action, please do not refresh or close the browser until complete", -1 /* HOISTED */);
+const _hoisted_2$t = { style: {"text-align":"center"} };
+const _hoisted_3$o = /*#__PURE__*/createElementVNode("p", null, " ", -1 /* HOISTED */);
 
 
-var script$U = {
+var script$14 = {
   props: {
     id : Number,
     dialog : Object
@@ -27282,28 +25503,28 @@ chkProgress();
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    _hoisted_1$s,
+    _hoisted_1$z,
     createElementVNode("p", null, "Status: " + toDisplayString$1(status.value), 1 /* TEXT */),
-    createElementVNode("p", _hoisted_2$n, [
-      createVNode(unref(script$V))
+    createElementVNode("p", _hoisted_2$t, [
+      createVNode(unref(script$15))
     ]),
-    _hoisted_3$j
+    _hoisted_3$o
   ], 64 /* STABLE_FRAGMENT */))
 }
 }
 
 };
 
-script$U.__file = "presstojam/src/components/dispatch/dispatch-response.vue";
+script$14.__file = "presstojam/src/components/dispatch/dispatch-response.vue";
 
 var dispatchResponse = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$U
+    'default': script$14
 });
 
-const _hoisted_1$r = ["onSubmit"];
-const _hoisted_2$m = /*#__PURE__*/createTextVNode("Saved");
-const _hoisted_3$i = {
+const _hoisted_1$y = ["onSubmit"];
+const _hoisted_2$s = /*#__PURE__*/createTextVNode("Saved");
+const _hoisted_3$n = {
   key: 1,
   class: "form-group"
 };
@@ -27311,7 +25532,7 @@ const _hoisted_3$i = {
 
 
 
-var script$T = {
+var script$13 = {
   props: {
     schema : Object,
     data : Object,
@@ -27457,20 +25678,21 @@ return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
     createElementVNode("form", {
       onSubmit: withModifiers(submit, ["prevent"]),
-      class: "card"
+      class: "card needs-validation",
+      novalidate: ""
     }, [
       (saved.value)
-        ? (openBlock(), createBlock(unref(script$13), {
+        ? (openBlock(), createBlock(unref(script$1f), {
             key: 0,
             severity: "success"
           }, {
             default: withCtx(() => [
-              _hoisted_2$m
+              _hoisted_2$s
             ]),
             _: 1 /* STABLE */
           }))
         : createCommentVNode("v-if", true),
-      withDirectives(createVNode(unref(script$13), { severity: "error" }, {
+      withDirectives(createVNode(unref(script$1f), { severity: "error" }, {
         default: withCtx(() => [
           createTextVNode(toDisplayString$1(global_error.value), 1 /* TEXT */)
         ]),
@@ -27479,9 +25701,9 @@ return (_ctx, _cache) => {
         [vShow, global_error.value]
       ]),
       (__props.parent)
-        ? (openBlock(), createElementBlock("div", _hoisted_3$i, [
+        ? (openBlock(), createElementBlock("div", _hoisted_3$n, [
             createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + _ctx.store.route.parent + ".title")), 1 /* TEXT */),
-            createVNode(script$W, {
+            createVNode(script$16, {
               modelValue: _ctx.proxy_values['--parent'],
               "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((_ctx.proxy_values['--parent']) = $event)),
               model: _ctx.store.route.parent,
@@ -27491,17 +25713,17 @@ return (_ctx, _cache) => {
           ]))
         : createCommentVNode("v-if", true),
       (openBlock(true), createElementBlock(Fragment, null, renderList(unref(binds), (bind) => {
-        return (openBlock(), createBlock(script$X, {
+        return (openBlock(), createBlock(script$17, {
           bind: bind,
           key: bind.cell.name
         }, null, 8 /* PROPS */, ["bind"]))
       }), 128 /* KEYED_FRAGMENT */)),
-      createVNode(unref(script$1v), {
+      createVNode(unref(script$1z), {
         label: _ctx.$t('btns.save'),
         onClick: submit
       }, null, 8 /* PROPS */, ["label"])
-    ], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$r),
-    createVNode(unref(script$1j), {
+    ], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$y),
+    createVNode(unref(script$1p), {
       visible: dispatch.value,
       "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dispatch).value = $event)),
       modal: true,
@@ -27509,7 +25731,7 @@ return (_ctx, _cache) => {
     }, {
       default: withCtx(() => [
         (dispatchid.value != 0)
-          ? (openBlock(), createBlock(script$U, {
+          ? (openBlock(), createBlock(script$14, {
               key: 0,
               onComplete: dispatchComplete,
               onFailed: dispatchFailed,
@@ -27525,14 +25747,387 @@ return (_ctx, _cache) => {
 
 };
 
-script$T.__file = "presstojam/src/components/form/form.vue";
+script$13.__file = "presstojam/src/components/form/form.vue";
 
 var form = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$T
+    'default': script$13
 });
 
-var script$S = {
+const _hoisted_1$x = /*#__PURE__*/createElementVNode("p", null, "Are you sure you want to delete:", -1 /* HOISTED */);
+const _hoisted_2$r = /*#__PURE__*/createTextVNode("Type ");
+const _hoisted_3$m = /*#__PURE__*/createTextVNode(" in the box below");
+const _hoisted_4$k = { class: "p-inputgroup" };
+const _hoisted_5$d = /*#__PURE__*/createTextVNode("Delete");
+
+    
+var script$12 = {
+  props: {
+        name : String,
+        single : false
+    },
+  emits: [
+        "onDel"
+    ],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+    const client = inject("client");
+
+    
+
+    
+
+    const repo = getStore(props.name);
+    const check_str = "delete";
+
+    const dialog = ref(false);
+
+    function delRow() {
+        dialog.value =true;
+        delval.value = "";
+    }
+
+
+    let delval = ref("");
+
+    const disabled = computed(() => {
+        return (delval.value == check_str) ? false : true;
+    });
+
+
+    function del() {
+        let params = {};
+        const keys = [];
+        for(const row of repo.selected.value) {
+            keys.push(row['--id']);
+        }
+        params["--id"] = keys;
+        
+        client.delete("/data/" +repo.store.model, params)
+        .then(() => {
+            dialog.value = false;
+            repo.selected.value = [];
+            emits("onDel");
+        })
+        .catch(e => console.log(e));
+    }
+    
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    createVNode(unref(script$1z), {
+      label: "Delete",
+      icon: "pi pi-trash",
+      class: "p-button-danger",
+      disabled: !unref(repo).selected.value.length,
+      onClick: delRow
+    }, null, 8 /* PROPS */, ["disabled"]),
+    createVNode(unref(script$1p), {
+      visible: dialog.value,
+      "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
+      header: 'Delete ' + _ctx.$t('models.' + unref(repo).store.model + '.title', (__props.single) ? 1 : 2),
+      modal: true,
+      class: "p-fluid"
+    }, {
+      default: withCtx(() => [
+        _hoisted_1$x,
+        createElementVNode("ul", null, [
+          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(repo).selected.value, (item) => {
+            return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).store.route.schema, item)), 1 /* TEXT */))
+          }), 256 /* UNKEYED_FRAGMENT */))
+        ]),
+        createElementVNode("p", null, [
+          _hoisted_2$r,
+          createElementVNode("i", null, toDisplayString$1(check_str)),
+          _hoisted_3$m
+        ]),
+        createElementVNode("div", _hoisted_4$k, [
+          createVNode(unref(script$1y), {
+            placeholder: check_str,
+            modelValue: unref(delval),
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(delval) ? (delval).value = $event : delval = $event))
+          }, null, 8 /* PROPS */, ["modelValue"]),
+          createVNode(unref(script$1z), {
+            label: "Delete",
+            disabled: unref(disabled),
+            icon: "pi pi-trash",
+            onClick: del,
+            class: "p-button-danger"
+          }, {
+            default: withCtx(() => [
+              _hoisted_5$d
+            ]),
+            _: 1 /* STABLE */
+          }, 8 /* PROPS */, ["disabled"])
+        ])
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["visible", "header"])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$12.__file = "presstojam/src/components/actions/delete-action.vue";
+
+var script$11 = {
+  name: 'Column',
+  props: {
+    columnKey: {
+      type: null,
+      default: null
+    },
+    field: {
+      type: [String, Function],
+      default: null
+    },
+    sortField: {
+      type: [String, Function],
+      default: null
+    },
+    filterField: {
+      type: [String, Function],
+      default: null
+    },
+    dataType: {
+      type: String,
+      default: 'text'
+    },
+    sortable: {
+      type: Boolean,
+      default: false
+    },
+    header: {
+      type: null,
+      default: null
+    },
+    footer: {
+      type: null,
+      default: null
+    },
+    style: {
+      type: null,
+      default: null
+    },
+    class: {
+      type: String,
+      default: null
+    },
+    headerStyle: {
+      type: null,
+      default: null
+    },
+    headerClass: {
+      type: String,
+      default: null
+    },
+    bodyStyle: {
+      type: null,
+      default: null
+    },
+    bodyClass: {
+      type: String,
+      default: null
+    },
+    footerStyle: {
+      type: null,
+      default: null
+    },
+    footerClass: {
+      type: String,
+      default: null
+    },
+    showFilterMenu: {
+      type: Boolean,
+      default: true
+    },
+    showFilterOperator: {
+      type: Boolean,
+      default: true
+    },
+    showClearButton: {
+      type: Boolean,
+      default: true
+    },
+    showApplyButton: {
+      type: Boolean,
+      default: true
+    },
+    showFilterMatchModes: {
+      type: Boolean,
+      default: true
+    },
+    showAddButton: {
+      type: Boolean,
+      default: true
+    },
+    filterMatchModeOptions: {
+      type: Array,
+      default: null
+    },
+    maxConstraints: {
+      type: Number,
+      default: 2
+    },
+    excludeGlobalFilter: {
+      type: Boolean,
+      default: false
+    },
+    filterHeaderClass: {
+      type: String,
+      default: null
+    },
+    filterHeaderStyle: {
+      type: null,
+      default: null
+    },
+    filterMenuClass: {
+      type: String,
+      default: null
+    },
+    filterMenuStyle: {
+      type: null,
+      default: null
+    },
+    selectionMode: {
+      type: String,
+      default: null
+    },
+    expander: {
+      type: Boolean,
+      default: false
+    },
+    colspan: {
+      type: Number,
+      default: null
+    },
+    rowspan: {
+      type: Number,
+      default: null
+    },
+    rowReorder: {
+      type: Boolean,
+      default: false
+    },
+    rowReorderIcon: {
+      type: String,
+      default: 'pi pi-bars'
+    },
+    reorderableColumn: {
+      type: Boolean,
+      default: true
+    },
+    rowEditor: {
+      type: Boolean,
+      default: false
+    },
+    frozen: {
+      type: Boolean,
+      default: false
+    },
+    alignFrozen: {
+      type: String,
+      default: 'left'
+    },
+    exportable: {
+      type: Boolean,
+      default: true
+    },
+    exportHeader: {
+      type: String,
+      default: null
+    },
+    exportFooter: {
+      type: String,
+      default: null
+    },
+    filterMatchMode: {
+      type: String,
+      default: null
+    },
+    hidden: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  render() {
+    return null;
+  }
+
+};
+
+var script$10 = {
+  name: 'Card'
+};
+const _hoisted_1$w = {
+  class: "p-card p-component"
+};
+const _hoisted_2$q = {
+  key: 0,
+  class: "p-card-header"
+};
+const _hoisted_3$l = {
+  class: "p-card-body"
+};
+const _hoisted_4$j = {
+  key: 0,
+  class: "p-card-title"
+};
+const _hoisted_5$c = {
+  key: 1,
+  class: "p-card-subtitle"
+};
+const _hoisted_6$a = {
+  class: "p-card-content"
+};
+const _hoisted_7$7 = {
+  key: 2,
+  class: "p-card-footer"
+};
+
+function render$j(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$w, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$q, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_3$l, [_ctx.$slots.title ? (openBlock(), createElementBlock("div", _hoisted_4$j, [renderSlot(_ctx.$slots, "title")])) : createCommentVNode("", true), _ctx.$slots.subtitle ? (openBlock(), createElementBlock("div", _hoisted_5$c, [renderSlot(_ctx.$slots, "subtitle")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_6$a, [renderSlot(_ctx.$slots, "content")]), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_7$7, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)])]);
+}
+
+function styleInject$f(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$n = "\n.p-card-header img {\n    width: 100%;\n}\n";
+styleInject$f(css_248z$n);
+script$10.render = render$j;
+
+var script$$ = {
   props: {
         model : String,
         id : Number
@@ -27548,7 +26143,7 @@ return (_ctx, _cache) => {
     to: { name : 'primary', params : {'model' : __props.model, 'id' : __props.id }}
   }, {
     default: withCtx(({isActive, href, navigate}) => [
-      createVNode(unref(script$1v), {
+      createVNode(unref(script$1z), {
         icon: "pi pi-chevron-right",
         class: "p-button-rounded p-button-success mr-2"
       })
@@ -27560,61 +26155,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$S.__file = "presstojam/src/components/actions/primary-action.vue";
+script$$.__file = "presstojam/src/components/actions/primary-action.vue";
 
-var script$R = {
-  props: {
-    repo : {
-        type : Object,
-        required : true
-    },
-    id : {
-        type : Number,
-        required : true
-    }
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const client = inject("client");
-
-const audit = createDataStore(client, "audit");
-audit.route.schema['user-login-id'].custom_fields = ["name"];
-
-const fields = {};
-fields.action = audit.route.schema.action;
-fields['user-login-id'] = audit.route.schema['user-login-id'];
-fields["log"] = audit.route.schema["log"];
-fields["--created"] = audit.route.schema["--created"];
-
-
-const audit_repo = createRepoStore(audit);
-regStore("audit_repo", audit_repo);
-
-onMounted(() => {
-    audit.filters = {"model" : props.repo.store.model, "model-id" : props.id };
-    audit_repo.reload();
-});
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$n, {
-    nosort: true,
-    name: "audit_repo",
-    fields: fields
-  }))
-}
-}
-
-};
-
-script$R.__file = "presstojam/src/components/effects/audit.vue";
-
-var script$Q = {
+var script$_ = {
   props: {
     value : [Number, String],
     field : Object
@@ -27632,16 +26175,16 @@ return (_ctx, _cache) => {
 
 };
 
-script$Q.__file = "presstojam/src/components/view/number.vue";
+script$_.__file = "presstojam/src/components/view/number.vue";
 
-const _hoisted_1$q = {
+const _hoisted_1$v = {
   key: 0,
   class: "pi pi-check"
 };
-const _hoisted_2$l = { key: 1 };
+const _hoisted_2$p = { key: 1 };
 
 
-var script$P = {
+var script$Z = {
   props: {
     value : [Number, Boolean],
     field : Object
@@ -27654,19 +26197,19 @@ inject("client");
 
 return (_ctx, _cache) => {
   return (__props.field.useIcons() && __props.value)
-    ? (openBlock(), createElementBlock("i", _hoisted_1$q))
-    : (openBlock(), createElementBlock("span", _hoisted_2$l, toDisplayString$1(__props.field.display(__props.value)), 1 /* TEXT */))
+    ? (openBlock(), createElementBlock("i", _hoisted_1$v))
+    : (openBlock(), createElementBlock("span", _hoisted_2$p, toDisplayString$1(__props.field.display(__props.value)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$P.__file = "presstojam/src/components/view/flag.vue";
+script$Z.__file = "presstojam/src/components/view/flag.vue";
 
-const _hoisted_1$p = { key: 1 };
+const _hoisted_1$u = { key: 1 };
 
 
-var script$O = {
+var script$Y = {
   props: {
     value : [Number, String ],
     field : Object,
@@ -27725,15 +26268,15 @@ return (_ctx, _cache) => {
         ]),
         _: 1 /* STABLE */
       }, 8 /* PROPS */, ["to"]))
-    : (openBlock(), createElementBlock("span", _hoisted_1$p, toDisplayString$1(unref(display)), 1 /* TEXT */))
+    : (openBlock(), createElementBlock("span", _hoisted_1$u, toDisplayString$1(unref(display)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$O.__file = "presstojam/src/components/view/id.vue";
+script$Y.__file = "presstojam/src/components/view/id.vue";
 
-var script$N = {
+var script$X = {
   props: {
     value : [Number, String],
     field : Object
@@ -27758,13 +26301,13 @@ return (_ctx, _cache) => {
 
 };
 
-script$N.__file = "presstojam/src/components/view/time.vue";
+script$X.__file = "presstojam/src/components/view/time.vue";
 
-const _hoisted_1$o = { key: 0 };
-const _hoisted_2$k = { key: 1 };
+const _hoisted_1$t = { key: 0 };
+const _hoisted_2$o = { key: 1 };
 
 
-var script$M = {
+var script$W = {
   props: {
     value : [String],
     field : Object
@@ -27788,22 +26331,22 @@ const tag = computed(() => {
 
 return (_ctx, _cache) => {
   return (unref(tag)=='textarea')
-    ? (openBlock(), createElementBlock("div", _hoisted_1$o, toDisplayString$1(__props.value), 1 /* TEXT */))
-    : (openBlock(), createElementBlock("span", _hoisted_2$k, toDisplayString$1(props.field.clean(__props.value)), 1 /* TEXT */))
+    ? (openBlock(), createElementBlock("div", _hoisted_1$t, toDisplayString$1(__props.value), 1 /* TEXT */))
+    : (openBlock(), createElementBlock("span", _hoisted_2$o, toDisplayString$1(props.field.clean(__props.value)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$M.__file = "presstojam/src/components/view/string.vue";
+script$W.__file = "presstojam/src/components/view/string.vue";
 
-const _hoisted_1$n = /*#__PURE__*/createElementVNode("i", { class: "pi pi-download" }, null, -1 /* HOISTED */);
-const _hoisted_2$j = [
-  _hoisted_1$n
+const _hoisted_1$s = /*#__PURE__*/createElementVNode("i", { class: "pi pi-download" }, null, -1 /* HOISTED */);
+const _hoisted_2$n = [
+  _hoisted_1$s
 ];
 
 
-var script$L = {
+var script$V = {
   props: {
     value : String,
     field : Object,
@@ -27841,20 +26384,20 @@ return (_ctx, _cache) => {
     createTextVNode(toDisplayString$1(__props.value) + " ", 1 /* TEXT */),
     createElementVNode("a", {
       onClick: _cache[0] || (_cache[0] = $event => (download()))
-    }, _hoisted_2$j)
+    }, _hoisted_2$n)
   ]))
 }
 }
 
 };
 
-script$L.__file = "presstojam/src/components/view/asset.vue";
+script$V.__file = "presstojam/src/components/view/asset.vue";
 
-const _hoisted_1$m = { key: 0 };
-const _hoisted_2$i = { key: 1 };
+const _hoisted_1$r = { key: 0 };
+const _hoisted_2$m = { key: 1 };
 
 
-var script$K = {
+var script$U = {
   props: {
     value : [Object, String],
     field : Object
@@ -27872,20 +26415,20 @@ const jsonVal = props.field.clean(props.value);
 
 return (_ctx, _cache) => {
   return (__props.field.fields.length > 0)
-    ? (openBlock(), createElementBlock("div", _hoisted_1$m, [
+    ? (openBlock(), createElementBlock("div", _hoisted_1$r, [
         (openBlock(true), createElementBlock(Fragment, null, renderList(__props.field.fields, (field) => {
           return (openBlock(), createElementBlock("div", {
             key: field.name
           }, [
             createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + field.model + ".fields." + field.name + ".label")), 1 /* TEXT */),
-            createVNode(script$J, {
+            createVNode(script$T, {
               field: field,
               value: unref(jsonVal)[field.name]
             }, null, 8 /* PROPS */, ["field", "value"])
           ]))
         }), 128 /* KEYED_FRAGMENT */))
       ]))
-    : (openBlock(), createElementBlock("div", _hoisted_2$i, [
+    : (openBlock(), createElementBlock("div", _hoisted_2$m, [
         (openBlock(true), createElementBlock(Fragment, null, renderList(unref(jsonVal), (value, field) => {
           return (openBlock(), createElementBlock("div", { key: field }, [
             createElementVNode("span", null, toDisplayString$1(field) + ": ", 1 /* TEXT */),
@@ -27898,9 +26441,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$K.__file = "presstojam/src/components/view/json.vue";
+script$U.__file = "presstojam/src/components/view/json.vue";
 
-var script$J = {
+var script$T = {
   props: {
     field : Object,
     row : [Array,Object],
@@ -27911,45 +26454,45 @@ var script$J = {
 
 return (_ctx, _cache) => {
   return (__props.field.type=='number')
-    ? (openBlock(), createBlock(script$Q, {
+    ? (openBlock(), createBlock(script$_, {
         key: 0,
         value: __props.row[__props.field.name],
         field: __props.field
       }, null, 8 /* PROPS */, ["value", "field"]))
     : (__props.field.type=='flag')
-      ? (openBlock(), createBlock(script$P, {
+      ? (openBlock(), createBlock(script$Z, {
           key: 1,
           value: __props.row[__props.field.name],
           field: __props.field
         }, null, 8 /* PROPS */, ["value", "field"]))
       : (__props.field.type=='id')
-        ? (openBlock(), createBlock(script$O, {
+        ? (openBlock(), createBlock(script$Y, {
             key: 2,
             value: __props.row[__props.field.name],
             field: __props.field,
             row: __props.row
           }, null, 8 /* PROPS */, ["value", "field", "row"]))
         : (__props.field.type=='asset')
-          ? (openBlock(), createBlock(script$L, {
+          ? (openBlock(), createBlock(script$V, {
               key: 3,
               value: __props.row[__props.field.name],
               field: __props.field,
               id: __props.row['--id']
             }, null, 8 /* PROPS */, ["value", "field", "id"]))
           : (__props.field.type=='time')
-            ? (openBlock(), createBlock(script$N, {
+            ? (openBlock(), createBlock(script$X, {
                 key: 4,
                 value: __props.row[__props.field.name],
                 field: __props.field
               }, null, 8 /* PROPS */, ["value", "field"]))
             : (__props.field.type=='json')
-              ? (openBlock(), createBlock(script$K, {
+              ? (openBlock(), createBlock(script$U, {
                   key: 5,
                   value: __props.row[__props.field.name],
                   field: __props.field
                 }, null, 8 /* PROPS */, ["value", "field"]))
               : (__props.field.type=='string')
-                ? (openBlock(), createBlock(script$M, {
+                ? (openBlock(), createBlock(script$W, {
                     key: 6,
                     value: __props.row[__props.field.name],
                     field: __props.field
@@ -27960,14 +26503,14 @@ return (_ctx, _cache) => {
 
 };
 
-script$J.__file = "presstojam/src/components/view/view-field.vue";
+script$T.__file = "presstojam/src/components/view/view-field.vue";
 
 var viewField = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$J
+    'default': script$T
 });
 
-var script$I = {
+var script$S = {
   name: 'Dropdown',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter'],
   props: {
@@ -28922,55 +27465,55 @@ var script$I = {
     ripple: Ripple
   },
   components: {
-    VirtualScroller: script$1c,
-    Portal: script$1x
+    VirtualScroller: script$1o,
+    Portal: script$1s
   }
 };
-const _hoisted_1$l = ["id"];
-const _hoisted_2$h = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_3$h = ["id", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant", "aria-disabled"];
-const _hoisted_4$f = {
+const _hoisted_1$q = ["id"];
+const _hoisted_2$l = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_3$k = ["id", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant", "aria-disabled"];
+const _hoisted_4$i = {
   class: "p-dropdown-trigger"
 };
-const _hoisted_5$9 = {
+const _hoisted_5$b = {
   key: 0,
   class: "p-dropdown-header"
 };
-const _hoisted_6$7 = {
+const _hoisted_6$9 = {
   class: "p-dropdown-filter-container"
 };
-const _hoisted_7$4 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
-const _hoisted_8$4 = {
+const _hoisted_7$6 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
+const _hoisted_8$5 = {
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
-const _hoisted_9$3 = ["id"];
-const _hoisted_10$3 = ["id"];
-const _hoisted_11$3 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
-const _hoisted_12$3 = {
+const _hoisted_9$4 = ["id"];
+const _hoisted_10$4 = ["id"];
+const _hoisted_11$4 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
+const _hoisted_12$4 = {
   key: 0,
   class: "p-dropdown-empty-message",
   role: "option"
 };
-const _hoisted_13$3 = {
+const _hoisted_13$4 = {
   key: 1,
   class: "p-dropdown-empty-message",
   role: "option"
 };
-const _hoisted_14$2 = {
+const _hoisted_14$3 = {
   key: 0,
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
-const _hoisted_15$1 = {
+const _hoisted_15$2 = {
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
 
-function render$d(_ctx, _cache, $props, $setup, $data, $options) {
+function render$i(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
 
   const _component_Portal = resolveComponent("Portal");
@@ -29005,7 +27548,7 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
     onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[3] || (_cache[3] = (...args) => $options.onEditableInput && $options.onEditableInput(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$h)) : (openBlock(), createElementBlock("span", mergeProps({
+  }, $props.inputProps), null, 16, _hoisted_2$l)) : (openBlock(), createElementBlock("span", mergeProps({
     key: 1,
     ref: "focusInput",
     id: $props.inputId,
@@ -29026,11 +27569,11 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.inputProps), [renderSlot(_ctx.$slots, "value", {
     value: $props.modelValue,
     placeholder: $props.placeholder
-  }, () => [createTextVNode(toDisplayString$1($options.label === 'p-emptylabel' ? ' ' : $options.label || 'empty'), 1)])], 16, _hoisted_3$h)), $props.showClear && $props.modelValue != null ? (openBlock(), createElementBlock("i", mergeProps({
+  }, () => [createTextVNode(toDisplayString$1($options.label === 'p-emptylabel' ? ' ' : $options.label || 'empty'), 1)])], 16, _hoisted_3$k)), $props.showClear && $props.modelValue != null ? (openBlock(), createElementBlock("i", mergeProps({
     key: 2,
     class: ['p-dropdown-clear-icon', $props.clearIcon],
     onClick: _cache[7] || (_cache[7] = (...args) => $options.onClearClick && $options.onClearClick(...args))
-  }, $props.clearIconProps), null, 16)) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$f, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
+  }, $props.clearIconProps), null, 16)) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$i, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
     class: normalizeClass($options.dropdownIconClass),
     "aria-hidden": "true"
   }, null, 2)])]), createVNode(_component_Portal, {
@@ -29060,7 +27603,7 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
       }, null, 544), renderSlot(_ctx.$slots, "header", {
         value: $props.modelValue,
         options: $options.visibleOptions
-      }), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_5$9, [createElementVNode("div", _hoisted_6$7, [createElementVNode("input", mergeProps({
+      }), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_5$b, [createElementVNode("div", _hoisted_6$9, [createElementVNode("input", mergeProps({
         ref: "filterInput",
         type: "text",
         value: $data.filterValue,
@@ -29074,9 +27617,9 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
         onKeydown: _cache[10] || (_cache[10] = (...args) => $options.onFilterKeyDown && $options.onFilterKeyDown(...args)),
         onBlur: _cache[11] || (_cache[11] = (...args) => $options.onFilterBlur && $options.onFilterBlur(...args)),
         onInput: _cache[12] || (_cache[12] = (...args) => $options.onFilterChange && $options.onFilterChange(...args))
-      }, $props.filterInputProps), null, 16, _hoisted_7$4), createElementVNode("span", {
+      }, $props.filterInputProps), null, 16, _hoisted_7$6), createElementVNode("span", {
         class: normalizeClass(['p-dropdown-filter-icon', $props.filterIcon])
-      }, null, 2)]), createElementVNode("span", _hoisted_8$4, toDisplayString$1($options.filterResultMessageText), 1)])) : createCommentVNode("", true), createElementVNode("div", {
+      }, null, 2)]), createElementVNode("span", _hoisted_8$5, toDisplayString$1($options.filterResultMessageText), 1)])) : createCommentVNode("", true), createElementVNode("div", {
         class: "p-dropdown-items-wrapper",
         style: normalizeStyle({
           'max-height': $options.virtualScrollerDisabled ? $props.scrollHeight : ''
@@ -29118,7 +27661,7 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
           }, [renderSlot(_ctx.$slots, "optiongroup", {
             option: option.optionGroup,
             index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_10$3)) : withDirectives((openBlock(), createElementBlock("li", {
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_10$4)) : withDirectives((openBlock(), createElementBlock("li", {
             key: 1,
             id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
             style: normalizeStyle({
@@ -29140,8 +27683,8 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
           }, [renderSlot(_ctx.$slots, "option", {
             option: option,
             index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_11$3)), [[_directive_ripple]])], 64);
-        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_12$3, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_13$3, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_9$3), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_14$2, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_15$1, toDisplayString$1($options.selectedMessageText), 1)]),
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_11$4)), [[_directive_ripple]])], 64);
+        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_12$4, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_13$4, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_9$4), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_14$3, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_15$2, toDisplayString$1($options.selectedMessageText), 1)]),
         _: 2
       }, [_ctx.$slots.loader ? {
         name: "loader",
@@ -29165,10 +27708,10 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
       _: 3
     }, 8, ["onEnter", "onAfterEnter", "onLeave", "onAfterLeave"])]),
     _: 3
-  }, 8, ["appendTo"])], 10, _hoisted_1$l);
+  }, 8, ["appendTo"])], 10, _hoisted_1$q);
 }
 
-function styleInject$a(css, ref) {
+function styleInject$e(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -29197,9 +27740,9 @@ function styleInject$a(css, ref) {
   }
 }
 
-var css_248z$h = "\n.p-dropdown {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-dropdown-clear-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-dropdown-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dropdown-label {\n    display: block;\n    white-space: nowrap;\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n    text-overflow: ellipsis;\n    cursor: pointer;\n}\n.p-dropdown-label-empty {\n    overflow: hidden;\n    opacity: 0;\n}\ninput.p-dropdown-label {\n    cursor: default;\n}\n.p-dropdown .p-dropdown-panel {\n    min-width: 100%;\n}\n.p-dropdown-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-dropdown-items-wrapper {\n    overflow: auto;\n}\n.p-dropdown-item {\n    cursor: pointer;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-dropdown-item-group {\n    cursor: auto;\n}\n.p-dropdown-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-dropdown-filter {\n    width: 100%;\n}\n.p-dropdown-filter-container {\n    position: relative;\n}\n.p-dropdown-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-fluid .p-dropdown {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-dropdown .p-dropdown-label {\n    width: 1%;\n}\n";
-styleInject$a(css_248z$h);
-script$I.render = render$d;
+var css_248z$m = "\n.p-dropdown {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-dropdown-clear-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-dropdown-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dropdown-label {\n    display: block;\n    white-space: nowrap;\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n    text-overflow: ellipsis;\n    cursor: pointer;\n}\n.p-dropdown-label-empty {\n    overflow: hidden;\n    opacity: 0;\n}\ninput.p-dropdown-label {\n    cursor: default;\n}\n.p-dropdown .p-dropdown-panel {\n    min-width: 100%;\n}\n.p-dropdown-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-dropdown-items-wrapper {\n    overflow: auto;\n}\n.p-dropdown-item {\n    cursor: pointer;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-dropdown-item-group {\n    cursor: auto;\n}\n.p-dropdown-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-dropdown-filter {\n    width: 100%;\n}\n.p-dropdown-filter-container {\n    position: relative;\n}\n.p-dropdown-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-fluid .p-dropdown {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-dropdown .p-dropdown-label {\n    width: 1%;\n}\n";
+styleInject$e(css_248z$m);
+script$S.render = render$i;
 
 var script$9$2 = {
   name: 'CurrentPageReport',
@@ -29313,7 +27856,7 @@ var script$7$2 = {
 
   },
   components: {
-    JTPDropdown: script$I
+    JTPDropdown: script$S
   }
 };
 
@@ -29348,7 +27891,7 @@ var script$6$2 = {
 
   },
   components: {
-    JTPInput: script$1i
+    JTPInput: script$1x
   }
 };
 
@@ -29483,11 +28026,11 @@ var script$2$2 = {
   }
 };
 
-const _hoisted_1$1$3 = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_1$1$5 = /*#__PURE__*/createElementVNode("span", {
   class: "p-paginator-icon pi pi-angle-left"
 }, null, -1);
 
-const _hoisted_2$1$3 = [_hoisted_1$1$3];
+const _hoisted_2$1$5 = [_hoisted_1$1$5];
 
 function render$2$2(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
@@ -29495,11 +28038,11 @@ function render$2$2(_ctx, _cache, $props, $setup, $data, $options) {
   return withDirectives((openBlock(), createElementBlock("button", {
     class: normalizeClass($options.containerClass),
     type: "button"
-  }, _hoisted_2$1$3, 2)), [[_directive_ripple]]);
+  }, _hoisted_2$1$5, 2)), [[_directive_ripple]]);
 }
 
 script$2$2.render = render$2$2;
-var script$1$3 = {
+var script$1$5 = {
   name: 'RowsPerPageDropdown',
   inheritAttrs: false,
   emits: ['rows-change'],
@@ -29532,11 +28075,11 @@ var script$1$3 = {
 
   },
   components: {
-    RPPDropdown: script$I
+    RPPDropdown: script$S
   }
 };
 
-function render$1$3(_ctx, _cache, $props, $setup, $data, $options) {
+function render$1$5(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_RPPDropdown = resolveComponent("RPPDropdown");
 
   return openBlock(), createBlock(_component_RPPDropdown, {
@@ -29550,8 +28093,8 @@ function render$1$3(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["modelValue", "options", "disabled"]);
 }
 
-script$1$3.render = render$1$3;
-var script$H = {
+script$1$5.render = render$1$5;
+var script$R = {
   name: 'Paginator',
   emits: ['update:first', 'update:rows', 'page'],
   props: {
@@ -29833,24 +28376,24 @@ var script$H = {
     NextPageLink: script$4$2,
     PageLinks: script$3$2,
     PrevPageLink: script$2$2,
-    RowsPerPageDropdown: script$1$3,
+    RowsPerPageDropdown: script$1$5,
     JumpToPageDropdown: script$7$2,
     JumpToPageInput: script$6$2
   }
 };
-const _hoisted_1$k = {
+const _hoisted_1$p = {
   key: 0
 };
-const _hoisted_2$g = {
+const _hoisted_2$k = {
   key: 0,
   class: "p-paginator-left-content"
 };
-const _hoisted_3$g = {
+const _hoisted_3$j = {
   key: 1,
   class: "p-paginator-right-content"
 };
 
-function render$c(_ctx, _cache, $props, $setup, $data, $options) {
+function render$h(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FirstPageLink = resolveComponent("FirstPageLink");
 
   const _component_PrevPageLink = resolveComponent("PrevPageLink");
@@ -29869,13 +28412,13 @@ function render$c(_ctx, _cache, $props, $setup, $data, $options) {
 
   const _component_JumpToPageInput = resolveComponent("JumpToPageInput");
 
-  return ($props.alwaysShow ? true : $options.pageLinks && $options.pageLinks.length > 1) ? (openBlock(), createElementBlock("div", _hoisted_1$k, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.templateItems, (value, key) => {
+  return ($props.alwaysShow ? true : $options.pageLinks && $options.pageLinks.length > 1) ? (openBlock(), createElementBlock("div", _hoisted_1$p, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.templateItems, (value, key) => {
     return openBlock(), createElementBlock("div", {
       key: key,
       ref_for: true,
       ref: "paginator",
       class: normalizeClass(["p-paginator p-component", $options.getPaginatorClasses(key)])
-    }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_2$g, [renderSlot(_ctx.$slots, "start", {
+    }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_2$k, [renderSlot(_ctx.$slots, "start", {
       state: $options.currentState
     })])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(value, item => {
       return openBlock(), createElementBlock(Fragment, {
@@ -29928,13 +28471,13 @@ function render$c(_ctx, _cache, $props, $setup, $data, $options) {
         onPageChange: _cache[7] || (_cache[7] = $event => $options.changePage($event)),
         disabled: $options.empty
       }, null, 8, ["page", "disabled"])) : createCommentVNode("", true)], 64);
-    }), 128)), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_3$g, [renderSlot(_ctx.$slots, "end", {
+    }), 128)), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_3$j, [renderSlot(_ctx.$slots, "end", {
       state: $options.currentState
     })])) : createCommentVNode("", true)], 2);
   }), 128))])) : createCommentVNode("", true);
 }
 
-function styleInject$9(css, ref) {
+function styleInject$d(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -29963,9 +28506,9 @@ function styleInject$9(css, ref) {
   }
 }
 
-var css_248z$g = "\n.p-paginator-default {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-paginator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-paginator-left-content {\n    margin-right: auto;\n}\n.p-paginator-right-content {\n    margin-left: auto;\n}\n.p-paginator-page,\n.p-paginator-next,\n.p-paginator-last,\n.p-paginator-first,\n.p-paginator-prev,\n.p-paginator-current {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    line-height: 1;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-paginator-element:focus {\n    z-index: 1;\n    position: relative;\n}\n";
-styleInject$9(css_248z$g);
-script$H.render = render$c;
+var css_248z$l = "\n.p-paginator-default {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-paginator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-paginator-left-content {\n    margin-right: auto;\n}\n.p-paginator-right-content {\n    margin-left: auto;\n}\n.p-paginator-page,\n.p-paginator-next,\n.p-paginator-last,\n.p-paginator-first,\n.p-paginator-prev,\n.p-paginator-current {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    line-height: 1;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-paginator-element:focus {\n    z-index: 1;\n    position: relative;\n}\n";
+styleInject$d(css_248z$l);
+script$R.render = render$h;
 
 var script$a$1 = {
   name: 'RowRadioButton',
@@ -32143,9 +30686,9 @@ var script$3$1 = {
 
   },
   components: {
-    CFDropdown: script$I,
-    CFButton: script$1v,
-    Portal: script$1x
+    CFDropdown: script$S,
+    CFButton: script$1z,
+    Portal: script$1s
   }
 };
 const _hoisted_1$3$1 = {
@@ -32160,33 +30703,33 @@ const _hoisted_3$3$1 = /*#__PURE__*/createElementVNode("span", {
 
 const _hoisted_4$2$1 = [_hoisted_3$3$1];
 
-const _hoisted_5$1$1 = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_5$1$2 = /*#__PURE__*/createElementVNode("span", {
   class: "pi pi-filter-slash"
 }, null, -1);
 
-const _hoisted_6$1$1 = [_hoisted_5$1$1];
-const _hoisted_7$3 = {
+const _hoisted_6$1$1 = [_hoisted_5$1$2];
+const _hoisted_7$5 = {
   key: 0,
   class: "p-column-filter-row-items"
 };
-const _hoisted_8$3 = ["onClick", "onKeydown", "tabindex"];
+const _hoisted_8$4 = ["onClick", "onKeydown", "tabindex"];
 
-const _hoisted_9$2 = /*#__PURE__*/createElementVNode("li", {
+const _hoisted_9$3 = /*#__PURE__*/createElementVNode("li", {
   class: "p-column-filter-separator"
 }, null, -1);
 
-const _hoisted_10$2 = {
+const _hoisted_10$3 = {
   key: 0,
   class: "p-column-filter-operator"
 };
-const _hoisted_11$2 = {
+const _hoisted_11$3 = {
   class: "p-column-filter-constraints"
 };
-const _hoisted_12$2 = {
+const _hoisted_12$3 = {
   key: 1,
   class: "p-column-filter-add-rule"
 };
-const _hoisted_13$2 = {
+const _hoisted_13$3 = {
   class: "p-column-filter-buttonbar"
 };
 
@@ -32240,7 +30783,7 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
         field: $props.field,
         filterModel: $props.filters[$props.field],
         filterCallback: $options.filterCallback
-      }, null, 8, ["field", "filterModel", "filterCallback"])), $props.display === 'row' ? (openBlock(), createElementBlock("ul", _hoisted_7$3, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.matchModes, (matchMode, i) => {
+      }, null, 8, ["field", "filterModel", "filterCallback"])), $props.display === 'row' ? (openBlock(), createElementBlock("ul", _hoisted_7$5, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.matchModes, (matchMode, i) => {
         return openBlock(), createElementBlock("li", {
           key: matchMode.label,
           class: normalizeClass(["p-column-filter-row-item", {
@@ -32249,21 +30792,21 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
           onClick: $event => $options.onRowMatchModeChange(matchMode.value),
           onKeydown: [_cache[3] || (_cache[3] = $event => $options.onRowMatchModeKeyDown($event)), withKeys(withModifiers($event => $options.onRowMatchModeChange(matchMode.value), ["prevent"]), ["enter"])],
           tabindex: i === 0 ? '0' : null
-        }, toDisplayString$1(matchMode.label), 43, _hoisted_8$3);
-      }), 128)), _hoisted_9$2, createElementVNode("li", {
+        }, toDisplayString$1(matchMode.label), 43, _hoisted_8$4);
+      }), 128)), _hoisted_9$3, createElementVNode("li", {
         class: "p-column-filter-row-item",
         onClick: _cache[4] || (_cache[4] = $event => $options.clearFilter()),
         onKeydown: [_cache[5] || (_cache[5] = $event => $options.onRowMatchModeKeyDown($event)), _cache[6] || (_cache[6] = withKeys($event => _ctx.onRowClearItemClick(), ["enter"]))]
       }, toDisplayString$1($options.noFilterLabel), 33)])) : (openBlock(), createElementBlock(Fragment, {
         key: 1
-      }, [$options.isShowOperator ? (openBlock(), createElementBlock("div", _hoisted_10$2, [createVNode(_component_CFDropdown, {
+      }, [$options.isShowOperator ? (openBlock(), createElementBlock("div", _hoisted_10$3, [createVNode(_component_CFDropdown, {
         options: $options.operatorOptions,
         modelValue: $options.operator,
         "onUpdate:modelValue": _cache[7] || (_cache[7] = $event => $options.onOperatorChange($event)),
         class: "p-column-filter-operator-dropdown",
         optionLabel: "label",
         optionValue: "value"
-      }, null, 8, ["options", "modelValue"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_11$2, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.fieldConstraints, (fieldConstraint, i) => {
+      }, null, 8, ["options", "modelValue"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_11$3, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.fieldConstraints, (fieldConstraint, i) => {
         return openBlock(), createElementBlock("div", {
           key: i,
           class: "p-column-filter-constraint"
@@ -32288,13 +30831,13 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
           onClick: $event => $options.removeConstraint(i),
           label: $options.removeRuleButtonLabel
         }, null, 8, ["onClick", "label"])) : createCommentVNode("", true)])]);
-      }), 128))]), $options.isShowAddConstraint ? (openBlock(), createElementBlock("div", _hoisted_12$2, [createVNode(_component_CFButton, {
+      }), 128))]), $options.isShowAddConstraint ? (openBlock(), createElementBlock("div", _hoisted_12$3, [createVNode(_component_CFButton, {
         type: "button",
         label: $options.addRuleButtonLabel,
         icon: "pi pi-plus",
         class: "p-column-filter-add-button p-button-text p-button-sm",
         onClick: _cache[8] || (_cache[8] = $event => $options.addConstraint())
-      }, null, 8, ["label"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_13$2, [!$props.filterClearTemplate && $props.showClearButton ? (openBlock(), createBlock(_component_CFButton, {
+      }, null, 8, ["label"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_13$3, [!$props.filterClearTemplate && $props.showClearButton ? (openBlock(), createBlock(_component_CFButton, {
         key: 0,
         type: "button",
         class: "p-button-outlined p-button-sm",
@@ -32582,7 +31125,7 @@ const _hoisted_3$2$1 = {
   key: 1,
   class: "p-column-title"
 };
-const _hoisted_4$1$1 = {
+const _hoisted_4$1$2 = {
   key: 3,
   class: "p-sortable-column-badge"
 };
@@ -32617,7 +31160,7 @@ function render$2$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["column"])) : createCommentVNode("", true), $options.columnProp('header') ? (openBlock(), createElementBlock("span", _hoisted_3$2$1, toDisplayString$1($options.columnProp('header')), 1)) : createCommentVNode("", true), $options.columnProp('sortable') ? (openBlock(), createElementBlock("span", {
     key: 2,
     class: normalizeClass($options.sortableColumnIcon)
-  }, null, 2)) : createCommentVNode("", true), $options.isMultiSorted() ? (openBlock(), createElementBlock("span", _hoisted_4$1$1, toDisplayString$1($options.getBadgeValue()), 1)) : createCommentVNode("", true), $options.columnProp('selectionMode') === 'multiple' && $props.filterDisplay !== 'row' ? (openBlock(), createBlock(_component_DTHeaderCheckbox, {
+  }, null, 2)) : createCommentVNode("", true), $options.isMultiSorted() ? (openBlock(), createElementBlock("span", _hoisted_4$1$2, toDisplayString$1($options.getBadgeValue()), 1)) : createCommentVNode("", true), $options.columnProp('selectionMode') === 'multiple' && $props.filterDisplay !== 'row' ? (openBlock(), createBlock(_component_DTHeaderCheckbox, {
     key: 4,
     checked: $props.allRowsSelected,
     onChange: $options.onHeaderCheckboxChange,
@@ -32655,7 +31198,7 @@ function render$2$1(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$2$1.render = render$2$1;
-var script$1$2 = {
+var script$1$4 = {
   name: 'TableHeader',
   emits: ['column-click', 'column-mousedown', 'column-dragstart', 'column-dragover', 'column-dragleave', 'column-drop', 'column-resizestart', 'checkbox-change', 'filter-change', 'filter-apply', 'operator-change', 'matchmode-change', 'constraint-add', 'constraint-remove', 'filter-clear', 'apply-click'],
   props: {
@@ -32774,28 +31317,28 @@ var script$1$2 = {
     DTColumnFilter: script$3$1
   }
 };
-const _hoisted_1$1$2 = {
+const _hoisted_1$1$4 = {
   class: "p-datatable-thead",
   role: "rowgroup"
 };
-const _hoisted_2$1$2 = {
+const _hoisted_2$1$4 = {
   role: "row"
 };
-const _hoisted_3$1$2 = {
+const _hoisted_3$1$4 = {
   key: 0,
   role: "row"
 };
 
-function render$1$2(_ctx, _cache, $props, $setup, $data, $options) {
+function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTHeaderCell = resolveComponent("DTHeaderCell");
 
   const _component_DTHeaderCheckbox = resolveComponent("DTHeaderCheckbox");
 
   const _component_DTColumnFilter = resolveComponent("DTColumnFilter");
 
-  return openBlock(), createElementBlock("thead", _hoisted_1$1$2, [!$props.columnGroup ? (openBlock(), createElementBlock(Fragment, {
+  return openBlock(), createElementBlock("thead", _hoisted_1$1$4, [!$props.columnGroup ? (openBlock(), createElementBlock(Fragment, {
     key: 0
-  }, [createElementVNode("tr", _hoisted_2$1$2, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.columns, (col, i) => {
+  }, [createElementVNode("tr", _hoisted_2$1$4, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.columns, (col, i) => {
     return openBlock(), createElementBlock(Fragment, {
       key: $options.columnProp(col, 'columnKey') || $options.columnProp(col, 'field') || i
     }, [!$options.columnProp(col, 'hidden') && ($props.rowGroupMode !== 'subheader' || $props.groupRowsBy !== $options.columnProp(col, 'field')) ? (openBlock(), createBlock(_component_DTHeaderCell, {
@@ -32830,7 +31373,7 @@ function render$1$2(_ctx, _cache, $props, $setup, $data, $options) {
       onConstraintRemove: _cache[13] || (_cache[13] = $event => _ctx.$emit('constraint-remove', $event)),
       onApplyClick: _cache[14] || (_cache[14] = $event => _ctx.$emit('apply-click', $event))
     }, null, 8, ["column", "groupRowsBy", "groupRowSortField", "reorderableColumns", "resizableColumns", "sortMode", "sortField", "sortOrder", "multiSortMeta", "allRowsSelected", "empty", "filters", "filterDisplay", "filtersStore"])) : createCommentVNode("", true)], 64);
-  }), 128))]), $props.filterDisplay === 'row' ? (openBlock(), createElementBlock("tr", _hoisted_3$1$2, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.columns, (col, i) => {
+  }), 128))]), $props.filterDisplay === 'row' ? (openBlock(), createElementBlock("tr", _hoisted_3$1$4, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.columns, (col, i) => {
     return openBlock(), createElementBlock(Fragment, {
       key: $options.columnProp(col, 'columnKey') || $options.columnProp(col, 'field') || i
     }, [!$options.columnProp(col, 'hidden') && ($props.rowGroupMode !== 'subheader' || $props.groupRowsBy !== $options.columnProp(col, 'field')) ? (openBlock(), createElementBlock("th", {
@@ -32910,8 +31453,8 @@ function render$1$2(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128))]);
 }
 
-script$1$2.render = render$1$2;
-var script$G = {
+script$1$4.render = render$1$4;
+var script$Q = {
   name: 'DataTable',
   emits: ['value-change', 'update:first', 'update:rows', 'page', 'update:sortField', 'update:sortOrder', 'update:multiSortMeta', 'sort', 'filter', 'row-click', 'row-dblclick', 'update:selection', 'row-select', 'row-unselect', 'update:contextMenuSelection', 'row-contextmenu', 'row-unselect-all', 'row-select-all', 'select-all-change', 'column-resize-end', 'column-reorder', 'row-reorder', 'update:expandedRows', 'row-collapse', 'row-expand', 'update:expandedRowGroups', 'rowgroup-collapse', 'rowgroup-expand', 'update:filters', 'state-restore', 'state-save', 'cell-edit-init', 'cell-edit-complete', 'cell-edit-cancel', 'update:editingRows', 'row-edit-init', 'row-edit-save', 'row-edit-cancel'],
   props: {
@@ -34905,33 +33448,33 @@ var script$G = {
 
   },
   components: {
-    DTPaginator: script$H,
-    DTTableHeader: script$1$2,
+    DTPaginator: script$R,
+    DTTableHeader: script$1$4,
     DTTableBody: script$7$1,
     DTTableFooter: script$5$1,
-    DTVirtualScroller: script$1c
+    DTVirtualScroller: script$1o
   }
 };
-const _hoisted_1$j = {
+const _hoisted_1$o = {
   key: 0,
   class: "p-datatable-loading-overlay p-component-overlay"
 };
-const _hoisted_2$f = {
+const _hoisted_2$j = {
   key: 1,
   class: "p-datatable-header"
 };
-const _hoisted_3$f = {
+const _hoisted_3$i = {
   key: 4,
   class: "p-datatable-footer"
 };
-const _hoisted_4$e = {
+const _hoisted_4$h = {
   ref: "resizeHelper",
   class: "p-column-resizer-helper",
   style: {
     "display": "none"
   }
 };
-const _hoisted_5$8 = {
+const _hoisted_5$a = {
   key: 5,
   ref: "reorderIndicatorUp",
   class: "pi pi-arrow-down p-datatable-reorder-indicator-up",
@@ -34940,7 +33483,7 @@ const _hoisted_5$8 = {
     "display": "none"
   }
 };
-const _hoisted_6$6 = {
+const _hoisted_6$8 = {
   key: 6,
   ref: "reorderIndicatorDown",
   class: "pi pi-arrow-up p-datatable-reorder-indicator-down",
@@ -34950,7 +33493,7 @@ const _hoisted_6$6 = {
   }
 };
 
-function render$b(_ctx, _cache, $props, $setup, $data, $options) {
+function render$g(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTPaginator = resolveComponent("DTPaginator");
 
   const _component_DTTableHeader = resolveComponent("DTTableHeader");
@@ -34964,12 +33507,12 @@ function render$b(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass),
     "data-scrollselectors": ".p-datatable-wrapper"
-  }, [renderSlot(_ctx.$slots, "default"), $props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$j, [_ctx.$slots.loading ? renderSlot(_ctx.$slots, "loading", {
+  }, [renderSlot(_ctx.$slots, "default"), $props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$o, [_ctx.$slots.loading ? renderSlot(_ctx.$slots, "loading", {
     key: 0
   }) : (openBlock(), createElementBlock("i", {
     key: 1,
     class: normalizeClass($options.loadingIconClass)
-  }, null, 2))])) : createCommentVNode("", true), _ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$f, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DTPaginator, {
+  }, null, 2))])) : createCommentVNode("", true), _ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$j, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DTPaginator, {
     key: 2,
     rows: $data.d_rows,
     first: $data.d_first,
@@ -35175,10 +33718,10 @@ function render$b(_ctx, _cache, $props, $setup, $data, $options) {
     name: "end",
     fn: withCtx(() => [renderSlot(_ctx.$slots, "paginatorend")]),
     key: "1"
-  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_3$f, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$e, null, 512), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_5$8, null, 512)) : createCommentVNode("", true), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_6$6, null, 512)) : createCommentVNode("", true)], 2);
+  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_3$i, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$h, null, 512), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_5$a, null, 512)) : createCommentVNode("", true), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_6$8, null, 512)) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$8(css, ref) {
+function styleInject$c(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -35207,11 +33750,11 @@ function styleInject$8(css, ref) {
   }
 }
 
-var css_248z$f = "\n.p-datatable {\n    position: relative;\n}\n.p-datatable table {\n    border-collapse: collapse;\n    min-width: 100%;\n    table-layout: fixed;\n}\n.p-datatable .p-sortable-column {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-datatable .p-sortable-column .p-column-title,\n.p-datatable .p-sortable-column .p-sortable-column-icon,\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    vertical-align: middle;\n}\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper > table,\n.p-datatable-auto-layout > .p-datatable-wrapper > table {\n    table-layout: auto;\n}\n.p-datatable-hoverable-rows .p-selectable-row {\n    cursor: pointer;\n}\n\n/* Scrollable */\n.p-datatable-scrollable .p-datatable-wrapper {\n    position: relative;\n    overflow: auto;\n}\n.p-datatable-scrollable .p-datatable-thead,\n.p-datatable-scrollable .p-datatable-tbody,\n.p-datatable-scrollable .p-datatable-tfoot {\n    display: block;\n}\n.p-datatable-scrollable .p-datatable-thead > tr,\n.p-datatable-scrollable .p-datatable-tbody > tr,\n.p-datatable-scrollable .p-datatable-tfoot > tr {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n    width: 100%;\n}\n.p-datatable-scrollable .p-datatable-thead > tr > th,\n.p-datatable-scrollable .p-datatable-tbody > tr > td,\n.p-datatable-scrollable .p-datatable-tfoot > tr > td {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 0px;\n            flex: 1 1 0;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable-scrollable .p-datatable-thead {\n    position: sticky;\n    top: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-frozen-tbody {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-tfoot {\n    position: sticky;\n    bottom: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-frozen-column {\n    position: sticky;\n    background: inherit;\n}\n.p-datatable-scrollable th.p-frozen-column {\n    z-index: 1;\n}\n.p-datatable-scrollable-both .p-datatable-thead > tr > th,\n.p-datatable-scrollable-both .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-both .p-datatable-tfoot > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-thead > tr > th .p-datatable-scrollable-horizontal .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-tfoot > tr > td {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 0 auto;\n            flex: 1 0 auto;\n}\n.p-datatable-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    height: 100%;\n}\n.p-datatable-flex-scrollable .p-datatable-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n}\n.p-datatable-scrollable .p-rowgroup-header {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot {\n    display: table;\n    border-collapse: collapse;\n    width: 100%;\n    table-layout: fixed;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr {\n    display: table-row;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr > th,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr > td {\n    display: table-cell;\n}\n.p-datatable-scrollable .p-virtualscroller > .p-datatable-table {\n    display: inline-block; /* For Safari */\n}\n\n/* Resizable */\n.p-datatable-resizable > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-resizable .p-datatable-thead > tr > th,\n.p-datatable-resizable .p-datatable-tfoot > tr > td,\n.p-datatable-resizable .p-datatable-tbody > tr > td {\n    overflow: hidden;\n    white-space: nowrap;\n}\n.p-datatable-resizable .p-resizable-column:not(.p-frozen-column) {\n    background-clip: padding-box;\n    position: relative;\n}\n.p-datatable-resizable-fit .p-resizable-column:last-child .p-column-resizer {\n    display: none;\n}\n.p-datatable .p-column-resizer {\n    display: block;\n    position: absolute !important;\n    top: 0;\n    right: 0;\n    margin: 0;\n    width: 0.5rem;\n    height: 100%;\n    padding: 0px;\n    cursor: col-resize;\n    border: 1px solid transparent;\n}\n.p-datatable .p-column-header-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable .p-column-resizer-helper {\n    width: 1px;\n    position: absolute;\n    z-index: 10;\n    display: none;\n}\n.p-datatable .p-row-editor-init,\n.p-datatable .p-row-editor-save,\n.p-datatable .p-row-editor-cancel {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Expand */\n.p-datatable .p-row-toggler {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Reorder */\n.p-datatable-reorder-indicator-up,\n.p-datatable-reorder-indicator-down {\n    position: absolute;\n    display: none;\n}\n.p-reorderable-column,\n.p-datatable-reorderablerow-handle {\n    cursor: move;\n}\n\n/* Loader */\n.p-datatable .p-datatable-loading-overlay {\n    position: absolute;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    z-index: 2;\n}\n\n/* Filter */\n.p-column-filter-row {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    width: 100%;\n}\n.p-column-filter-menu {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    margin-left: auto;\n}\n.p-column-filter-row .p-column-filter-element {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-column-filter-menu-button,\n.p-column-filter-clear-button {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-column-filter-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-column-filter-row-items {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-column-filter-row-item {\n    cursor: pointer;\n}\n.p-column-filter-add-button,\n.p-column-filter-remove-button {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-column-filter-add-button .p-button-label,\n.p-column-filter-remove-button .p-button-label {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n}\n.p-column-filter-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-column-filter-buttonbar .p-button:not(.p-button-icon-only) {\n    width: auto;\n}\n\n/* Responsive */\n.p-datatable .p-datatable-tbody > tr > td > .p-column-title {\n    display: none;\n}\n\n/* VirtualScroller */\n.p-datatable .p-virtualscroller-loading {\n    -webkit-transform: none !important;\n            transform: none !important;\n    min-height: 0;\n    position: sticky;\n    top: 0;\n    left: 0;\n}\n";
-styleInject$8(css_248z$f);
-script$G.render = render$b;
+var css_248z$k = "\n.p-datatable {\n    position: relative;\n}\n.p-datatable table {\n    border-collapse: collapse;\n    min-width: 100%;\n    table-layout: fixed;\n}\n.p-datatable .p-sortable-column {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-datatable .p-sortable-column .p-column-title,\n.p-datatable .p-sortable-column .p-sortable-column-icon,\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    vertical-align: middle;\n}\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper > table,\n.p-datatable-auto-layout > .p-datatable-wrapper > table {\n    table-layout: auto;\n}\n.p-datatable-hoverable-rows .p-selectable-row {\n    cursor: pointer;\n}\n\n/* Scrollable */\n.p-datatable-scrollable .p-datatable-wrapper {\n    position: relative;\n    overflow: auto;\n}\n.p-datatable-scrollable .p-datatable-thead,\n.p-datatable-scrollable .p-datatable-tbody,\n.p-datatable-scrollable .p-datatable-tfoot {\n    display: block;\n}\n.p-datatable-scrollable .p-datatable-thead > tr,\n.p-datatable-scrollable .p-datatable-tbody > tr,\n.p-datatable-scrollable .p-datatable-tfoot > tr {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n    width: 100%;\n}\n.p-datatable-scrollable .p-datatable-thead > tr > th,\n.p-datatable-scrollable .p-datatable-tbody > tr > td,\n.p-datatable-scrollable .p-datatable-tfoot > tr > td {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 0px;\n            flex: 1 1 0;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable-scrollable .p-datatable-thead {\n    position: sticky;\n    top: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-frozen-tbody {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-tfoot {\n    position: sticky;\n    bottom: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-frozen-column {\n    position: sticky;\n    background: inherit;\n}\n.p-datatable-scrollable th.p-frozen-column {\n    z-index: 1;\n}\n.p-datatable-scrollable-both .p-datatable-thead > tr > th,\n.p-datatable-scrollable-both .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-both .p-datatable-tfoot > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-thead > tr > th .p-datatable-scrollable-horizontal .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-tfoot > tr > td {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 0 auto;\n            flex: 1 0 auto;\n}\n.p-datatable-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    height: 100%;\n}\n.p-datatable-flex-scrollable .p-datatable-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n}\n.p-datatable-scrollable .p-rowgroup-header {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot {\n    display: table;\n    border-collapse: collapse;\n    width: 100%;\n    table-layout: fixed;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr {\n    display: table-row;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr > th,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr > td {\n    display: table-cell;\n}\n.p-datatable-scrollable .p-virtualscroller > .p-datatable-table {\n    display: inline-block; /* For Safari */\n}\n\n/* Resizable */\n.p-datatable-resizable > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-resizable .p-datatable-thead > tr > th,\n.p-datatable-resizable .p-datatable-tfoot > tr > td,\n.p-datatable-resizable .p-datatable-tbody > tr > td {\n    overflow: hidden;\n    white-space: nowrap;\n}\n.p-datatable-resizable .p-resizable-column:not(.p-frozen-column) {\n    background-clip: padding-box;\n    position: relative;\n}\n.p-datatable-resizable-fit .p-resizable-column:last-child .p-column-resizer {\n    display: none;\n}\n.p-datatable .p-column-resizer {\n    display: block;\n    position: absolute !important;\n    top: 0;\n    right: 0;\n    margin: 0;\n    width: 0.5rem;\n    height: 100%;\n    padding: 0px;\n    cursor: col-resize;\n    border: 1px solid transparent;\n}\n.p-datatable .p-column-header-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable .p-column-resizer-helper {\n    width: 1px;\n    position: absolute;\n    z-index: 10;\n    display: none;\n}\n.p-datatable .p-row-editor-init,\n.p-datatable .p-row-editor-save,\n.p-datatable .p-row-editor-cancel {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Expand */\n.p-datatable .p-row-toggler {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Reorder */\n.p-datatable-reorder-indicator-up,\n.p-datatable-reorder-indicator-down {\n    position: absolute;\n    display: none;\n}\n.p-reorderable-column,\n.p-datatable-reorderablerow-handle {\n    cursor: move;\n}\n\n/* Loader */\n.p-datatable .p-datatable-loading-overlay {\n    position: absolute;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    z-index: 2;\n}\n\n/* Filter */\n.p-column-filter-row {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    width: 100%;\n}\n.p-column-filter-menu {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    margin-left: auto;\n}\n.p-column-filter-row .p-column-filter-element {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-column-filter-menu-button,\n.p-column-filter-clear-button {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-column-filter-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-column-filter-row-items {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-column-filter-row-item {\n    cursor: pointer;\n}\n.p-column-filter-add-button,\n.p-column-filter-remove-button {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-column-filter-add-button .p-button-label,\n.p-column-filter-remove-button .p-button-label {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n}\n.p-column-filter-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-column-filter-buttonbar .p-button:not(.p-button-icon-only) {\n    width: auto;\n}\n\n/* Responsive */\n.p-datatable .p-datatable-tbody > tr > td > .p-column-title {\n    display: none;\n}\n\n/* VirtualScroller */\n.p-datatable .p-virtualscroller-loading {\n    -webkit-transform: none !important;\n            transform: none !important;\n    min-height: 0;\n    position: sticky;\n    top: 0;\n    left: 0;\n}\n";
+styleInject$c(css_248z$k);
+script$Q.render = render$g;
 
-var script$F = {
+var script$P = {
   name: 'OverlayPanel',
   inheritAttrs: false,
   emits: ['show', 'hide'],
@@ -35529,19 +34072,19 @@ var script$F = {
     ripple: Ripple
   },
   components: {
-    Portal: script$1x
+    Portal: script$1s
   }
 };
-const _hoisted_1$i = ["aria-modal"];
-const _hoisted_2$e = ["aria-label"];
+const _hoisted_1$n = ["aria-modal"];
+const _hoisted_2$i = ["aria-label"];
 
-const _hoisted_3$e = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_3$h = /*#__PURE__*/createElementVNode("span", {
   class: "p-overlaypanel-close-icon pi pi-times"
 }, null, -1);
 
-const _hoisted_4$d = [_hoisted_3$e];
+const _hoisted_4$g = [_hoisted_3$h];
 
-function render$a(_ctx, _cache, $props, $setup, $data, $options) {
+function render$f(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Portal = resolveComponent("Portal");
 
   const _directive_ripple = resolveDirective("ripple");
@@ -35577,14 +34120,14 @@ function render$a(_ctx, _cache, $props, $setup, $data, $options) {
         autofocus: "",
         onClick: _cache[3] || (_cache[3] = (...args) => $options.hide && $options.hide(...args)),
         onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onButtonKeydown && $options.onButtonKeydown(...args))
-      }, _hoisted_4$d, 40, _hoisted_2$e)), [[_directive_ripple]]) : createCommentVNode("", true)], 16, _hoisted_1$i)), [[_directive_focustrap]]) : createCommentVNode("", true)]),
+      }, _hoisted_4$g, 40, _hoisted_2$i)), [[_directive_ripple]]) : createCommentVNode("", true)], 16, _hoisted_1$n)), [[_directive_focustrap]]) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo"]);
 }
 
-function styleInject$7(css, ref) {
+function styleInject$b(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -35613,17 +34156,17 @@ function styleInject$7(css, ref) {
   }
 }
 
-var css_248z$e = "\n.p-overlaypanel {\n    position: absolute;\n    margin-top: 10px;\n    top: 0;\n    left: 0;\n}\n.p-overlaypanel-flipped {\n    margin-top: 0;\n    margin-bottom: 10px;\n}\n.p-overlaypanel-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Animation */\n.p-overlaypanel-enter-from {\n    opacity: 0;\n    -webkit-transform: scaleY(0.8);\n            transform: scaleY(0.8);\n}\n.p-overlaypanel-leave-to {\n    opacity: 0;\n}\n.p-overlaypanel-enter-active {\n    -webkit-transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n}\n.p-overlaypanel-leave-active {\n    -webkit-transition: opacity 0.1s linear;\n    transition: opacity 0.1s linear;\n}\n.p-overlaypanel:after,\n.p-overlaypanel:before {\n    bottom: 100%;\n    left: calc(var(--overlayArrowLeft, 0) + 1.25rem);\n    content: ' ';\n    height: 0;\n    width: 0;\n    position: absolute;\n    pointer-events: none;\n}\n.p-overlaypanel:after {\n    border-width: 8px;\n    margin-left: -8px;\n}\n.p-overlaypanel:before {\n    border-width: 10px;\n    margin-left: -10px;\n}\n.p-overlaypanel-flipped:after,\n.p-overlaypanel-flipped:before {\n    bottom: auto;\n    top: 100%;\n}\n.p-overlaypanel.p-overlaypanel-flipped:after {\n    border-bottom-color: transparent;\n}\n.p-overlaypanel.p-overlaypanel-flipped:before {\n    border-bottom-color: transparent;\n}\n";
-styleInject$7(css_248z$e);
-script$F.render = render$a;
+var css_248z$j = "\n.p-overlaypanel {\n    position: absolute;\n    margin-top: 10px;\n    top: 0;\n    left: 0;\n}\n.p-overlaypanel-flipped {\n    margin-top: 0;\n    margin-bottom: 10px;\n}\n.p-overlaypanel-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Animation */\n.p-overlaypanel-enter-from {\n    opacity: 0;\n    -webkit-transform: scaleY(0.8);\n            transform: scaleY(0.8);\n}\n.p-overlaypanel-leave-to {\n    opacity: 0;\n}\n.p-overlaypanel-enter-active {\n    -webkit-transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n}\n.p-overlaypanel-leave-active {\n    -webkit-transition: opacity 0.1s linear;\n    transition: opacity 0.1s linear;\n}\n.p-overlaypanel:after,\n.p-overlaypanel:before {\n    bottom: 100%;\n    left: calc(var(--overlayArrowLeft, 0) + 1.25rem);\n    content: ' ';\n    height: 0;\n    width: 0;\n    position: absolute;\n    pointer-events: none;\n}\n.p-overlaypanel:after {\n    border-width: 8px;\n    margin-left: -8px;\n}\n.p-overlaypanel:before {\n    border-width: 10px;\n    margin-left: -10px;\n}\n.p-overlaypanel-flipped:after,\n.p-overlaypanel-flipped:before {\n    bottom: auto;\n    top: 100%;\n}\n.p-overlaypanel.p-overlaypanel-flipped:after {\n    border-bottom-color: transparent;\n}\n.p-overlaypanel.p-overlaypanel-flipped:before {\n    border-bottom-color: transparent;\n}\n";
+styleInject$b(css_248z$j);
+script$P.render = render$f;
 
-const _hoisted_1$h = { class: "p-inputgroup" };
-const _hoisted_2$d = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "min", -1 /* HOISTED */);
-const _hoisted_3$d = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, " - ", -1 /* HOISTED */);
-const _hoisted_4$c = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "max", -1 /* HOISTED */);
+const _hoisted_1$m = { class: "p-inputgroup" };
+const _hoisted_2$h = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "min", -1 /* HOISTED */);
+const _hoisted_3$g = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, " - ", -1 /* HOISTED */);
+const _hoisted_4$f = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "max", -1 /* HOISTED */);
 
 
-var script$E = {
+var script$O = {
   props: {
     modelValue : [Object],
     field : Object
@@ -35685,25 +34228,25 @@ const atts = computed(() => {
 });
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", _hoisted_1$h, [
-    _hoisted_2$d,
-    createVNode(unref(script$1i), mergeProps({
+  return (openBlock(), createElementBlock("div", _hoisted_1$m, [
+    _hoisted_2$h,
+    createVNode(unref(script$1x), mergeProps({
       name: __props.field.name,
       modelValue: unref(min),
       "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(min) ? (min).value = $event : null))
     }, unref(atts), {
       onBlur: _cache[1] || (_cache[1] = $event => (__props.field.validateon = true))
     }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
-    _hoisted_3$d,
-    createVNode(unref(script$1i), mergeProps({
+    _hoisted_3$g,
+    createVNode(unref(script$1x), mergeProps({
       name: __props.field.name,
       modelValue: unref(max),
       "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(max) ? (max).value = $event : null))
     }, unref(atts), {
       onBlur: _cache[3] || (_cache[3] = $event => (__props.field.validateon = true))
     }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
-    _hoisted_4$c,
-    createVNode(unref(script$1v), {
+    _hoisted_4$f,
+    createVNode(unref(script$1z), {
       label: "clear",
       onClick: clear
     })
@@ -35713,9 +34256,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$E.__file = "presstojam/src/components/filter/number-filter.vue";
+script$O.__file = "presstojam/src/components/filter/number-filter.vue";
 
-var script$D = {
+var script$N = {
   props: {
     modelValue : [Number, Boolean],
     field : Object
@@ -35747,7 +34290,7 @@ const value = computed({
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$I), {
+  return (openBlock(), createBlock(unref(script$S), {
     name: __props.field.name,
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -35763,9 +34306,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$D.__file = "presstojam/src/components/filter/flag-filter.vue";
+script$N.__file = "presstojam/src/components/filter/flag-filter.vue";
 
-var script$C = {
+var script$M = {
   name: 'MultiSelect',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter', 'selectall-change'],
   props: {
@@ -36848,73 +35391,73 @@ var script$C = {
     ripple: Ripple
   },
   components: {
-    VirtualScroller: script$1c,
-    Portal: script$1x
+    VirtualScroller: script$1o,
+    Portal: script$1s
   }
 };
-const _hoisted_1$g = {
+const _hoisted_1$l = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$c = ["id", "disabled", "placeholder", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_3$c = {
+const _hoisted_2$g = ["id", "disabled", "placeholder", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_3$f = {
   class: "p-multiselect-label-container"
 };
-const _hoisted_4$b = {
+const _hoisted_4$e = {
   class: "p-multiselect-token-label"
 };
-const _hoisted_5$7 = ["onClick"];
-const _hoisted_6$5 = {
+const _hoisted_5$9 = ["onClick"];
+const _hoisted_6$7 = {
   class: "p-multiselect-trigger"
 };
-const _hoisted_7$2 = {
+const _hoisted_7$4 = {
   key: 0,
   class: "p-multiselect-header"
 };
-const _hoisted_8$2 = {
+const _hoisted_8$3 = {
   class: "p-hidden-accessible"
 };
-const _hoisted_9$1 = ["checked", "aria-label"];
-const _hoisted_10$1 = {
+const _hoisted_9$2 = ["checked", "aria-label"];
+const _hoisted_10$2 = {
   key: 1,
   class: "p-multiselect-filter-container"
 };
-const _hoisted_11$1 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
-const _hoisted_12$1 = {
+const _hoisted_11$2 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
+const _hoisted_12$2 = {
   key: 2,
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
-const _hoisted_13$1 = ["aria-label"];
-const _hoisted_14$1 = ["id"];
-const _hoisted_15 = ["id"];
-const _hoisted_16 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
-const _hoisted_17 = {
+const _hoisted_13$2 = ["aria-label"];
+const _hoisted_14$2 = ["id"];
+const _hoisted_15$1 = ["id"];
+const _hoisted_16$1 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
+const _hoisted_17$1 = {
   class: "p-checkbox p-component"
 };
-const _hoisted_18 = {
+const _hoisted_18$1 = {
   key: 0,
   class: "p-multiselect-empty-message",
   role: "option"
 };
-const _hoisted_19 = {
+const _hoisted_19$1 = {
   key: 1,
   class: "p-multiselect-empty-message",
   role: "option"
 };
-const _hoisted_20 = {
+const _hoisted_20$1 = {
   key: 0,
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
-const _hoisted_21 = {
+const _hoisted_21$1 = {
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
 
-function render$9(_ctx, _cache, $props, $setup, $data, $options) {
+function render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
 
   const _component_Portal = resolveComponent("Portal");
@@ -36925,7 +35468,7 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
     ref: "container",
     class: normalizeClass($options.containerClass),
     onClick: _cache[15] || (_cache[15] = (...args) => $options.onContainerClick && $options.onContainerClick(...args))
-  }, [createElementVNode("div", _hoisted_1$g, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$l, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
     type: "text",
@@ -36943,7 +35486,7 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[0] || (_cache[0] = (...args) => $options.onFocus && $options.onFocus(...args)),
     onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$c)]), createElementVNode("div", _hoisted_3$c, [createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$g)]), createElementVNode("div", _hoisted_3$f, [createElementVNode("div", {
     class: normalizeClass($options.labelClass)
   }, [renderSlot(_ctx.$slots, "value", {
     value: $props.modelValue,
@@ -36958,14 +35501,14 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
       class: "p-multiselect-token"
     }, [renderSlot(_ctx.$slots, "chip", {
       value: item
-    }, () => [createElementVNode("span", _hoisted_4$b, toDisplayString$1($options.getLabelByValue(item)), 1)]), !$props.disabled ? (openBlock(), createElementBlock("span", {
+    }, () => [createElementVNode("span", _hoisted_4$e, toDisplayString$1($options.getLabelByValue(item)), 1)]), !$props.disabled ? (openBlock(), createElementBlock("span", {
       key: 0,
       class: normalizeClass(['p-multiselect-token-icon', $props.removeTokenIcon]),
       onClick: $event => $options.removeOption($event, item)
-    }, null, 10, _hoisted_5$7)) : createCommentVNode("", true)]);
+    }, null, 10, _hoisted_5$9)) : createCommentVNode("", true)]);
   }), 128)), !$props.modelValue || $props.modelValue.length === 0 ? (openBlock(), createElementBlock(Fragment, {
     key: 0
-  }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", _hoisted_6$5, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
+  }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", _hoisted_6$7, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
     class: normalizeClass($options.dropdownIconClass),
     "aria-hidden": "true"
   }, null, 2)])]), createVNode(_component_Portal, {
@@ -36995,18 +35538,18 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
       }, null, 544), renderSlot(_ctx.$slots, "header", {
         value: $props.modelValue,
         options: $options.visibleOptions
-      }), $props.showToggleAll && $props.selectionLimit == null || $props.filter ? (openBlock(), createElementBlock("div", _hoisted_7$2, [$props.showToggleAll && $props.selectionLimit == null ? (openBlock(), createElementBlock("div", {
+      }), $props.showToggleAll && $props.selectionLimit == null || $props.filter ? (openBlock(), createElementBlock("div", _hoisted_7$4, [$props.showToggleAll && $props.selectionLimit == null ? (openBlock(), createElementBlock("div", {
         key: 0,
         class: normalizeClass($options.headerCheckboxClass),
         onClick: _cache[6] || (_cache[6] = (...args) => $options.onToggleAll && $options.onToggleAll(...args))
-      }, [createElementVNode("div", _hoisted_8$2, [createElementVNode("input", {
+      }, [createElementVNode("div", _hoisted_8$3, [createElementVNode("input", {
         type: "checkbox",
         readonly: "",
         checked: $options.allSelected,
         "aria-label": $options.toggleAllAriaLabel,
         onFocus: _cache[4] || (_cache[4] = (...args) => $options.onHeaderCheckboxFocus && $options.onHeaderCheckboxFocus(...args)),
         onBlur: _cache[5] || (_cache[5] = (...args) => $options.onHeaderCheckboxBlur && $options.onHeaderCheckboxBlur(...args))
-      }, null, 40, _hoisted_9$1)]), createElementVNode("div", {
+      }, null, 40, _hoisted_9$2)]), createElementVNode("div", {
         class: normalizeClass(['p-checkbox-box', {
           'p-highlight': $options.allSelected,
           'p-focus': $data.headerCheckboxFocused
@@ -37015,7 +35558,7 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
         class: normalizeClass(['p-checkbox-icon', {
           [$props.checkboxIcon]: $options.allSelected
         }])
-      }, null, 2)], 2)], 2)) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_10$1, [createElementVNode("input", mergeProps({
+      }, null, 2)], 2)], 2)) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_10$2, [createElementVNode("input", mergeProps({
         ref: "filterInput",
         type: "text",
         value: $data.filterValue,
@@ -37029,16 +35572,16 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
         onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onFilterKeyDown && $options.onFilterKeyDown(...args)),
         onBlur: _cache[9] || (_cache[9] = (...args) => $options.onFilterBlur && $options.onFilterBlur(...args)),
         onInput: _cache[10] || (_cache[10] = (...args) => $options.onFilterChange && $options.onFilterChange(...args))
-      }, $props.filterInputProps), null, 16, _hoisted_11$1), createElementVNode("span", {
+      }, $props.filterInputProps), null, 16, _hoisted_11$2), createElementVNode("span", {
         class: normalizeClass(['p-multiselect-filter-icon', $props.filterIcon])
-      }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("span", _hoisted_12$1, toDisplayString$1($options.filterResultMessageText), 1)) : createCommentVNode("", true), withDirectives((openBlock(), createElementBlock("button", mergeProps({
+      }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("span", _hoisted_12$2, toDisplayString$1($options.filterResultMessageText), 1)) : createCommentVNode("", true), withDirectives((openBlock(), createElementBlock("button", mergeProps({
         class: "p-multiselect-close p-link",
         "aria-label": $options.closeAriaLabel,
         onClick: _cache[11] || (_cache[11] = (...args) => $options.onCloseClick && $options.onCloseClick(...args)),
         type: "button"
       }, $props.closeButtonProps), [createElementVNode("span", {
         class: normalizeClass(['p-multiselect-close-icon', $props.closeIcon])
-      }, null, 2)], 16, _hoisted_13$1)), [[_directive_ripple]])])) : createCommentVNode("", true), createElementVNode("div", {
+      }, null, 2)], 16, _hoisted_13$2)), [[_directive_ripple]])])) : createCommentVNode("", true), createElementVNode("div", {
         class: "p-multiselect-items-wrapper",
         style: normalizeStyle({
           'max-height': $options.virtualScrollerDisabled ? $props.scrollHeight : ''
@@ -37081,7 +35624,7 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
           }, [renderSlot(_ctx.$slots, "optiongroup", {
             option: option.optionGroup,
             index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_15)) : withDirectives((openBlock(), createElementBlock("li", {
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_15$1)) : withDirectives((openBlock(), createElementBlock("li", {
             key: 1,
             id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
             style: normalizeStyle({
@@ -37100,7 +35643,7 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
             "aria-posinset": $options.getAriaPosInset($options.getOptionIndex(i, getItemOptions)),
             onClick: $event => $options.onOptionSelect($event, option, $options.getOptionIndex(i, getItemOptions), true),
             onMousemove: $event => $options.onOptionMouseMove($event, $options.getOptionIndex(i, getItemOptions))
-          }, [createElementVNode("div", _hoisted_17, [createElementVNode("div", {
+          }, [createElementVNode("div", _hoisted_17$1, [createElementVNode("div", {
             class: normalizeClass(['p-checkbox-box', {
               'p-highlight': $options.isSelected(option)
             }])
@@ -37111,8 +35654,8 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
           }, null, 2)], 2)]), renderSlot(_ctx.$slots, "option", {
             option: option,
             index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createElementVNode("span", null, toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_16)), [[_directive_ripple]])], 64);
-        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_18, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_19, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_14$1), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_20, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_21, toDisplayString$1($options.selectedMessageText), 1)]),
+          }, () => [createElementVNode("span", null, toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_16$1)), [[_directive_ripple]])], 64);
+        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_18$1, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_19$1, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_14$2), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_20$1, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_21$1, toDisplayString$1($options.selectedMessageText), 1)]),
         _: 2
       }, [_ctx.$slots.loader ? {
         name: "loader",
@@ -37139,7 +35682,7 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$6(css, ref) {
+function styleInject$a(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -37168,11 +35711,11 @@ function styleInject$6(css, ref) {
   }
 }
 
-var css_248z$d = "\n.p-multiselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-multiselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-multiselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-multiselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-multiselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-multiselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-multiselect-token-icon {\n    cursor: pointer;\n}\n.p-multiselect .p-multiselect-panel {\n    min-width: 100%;\n}\n.p-multiselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-multiselect-items-wrapper {\n    overflow: auto;\n}\n.p-multiselect-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-multiselect-item {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-multiselect-item-group {\n    cursor: auto;\n}\n.p-multiselect-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-multiselect-filter-container {\n    position: relative;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-multiselect-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-multiselect-filter-container .p-inputtext {\n    width: 100%;\n}\n.p-multiselect-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    overflow: hidden;\n    position: relative;\n    margin-left: auto;\n}\n.p-fluid .p-multiselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$6(css_248z$d);
-script$C.render = render$9;
+var css_248z$i = "\n.p-multiselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-multiselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-multiselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-multiselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-multiselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-multiselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-multiselect-token-icon {\n    cursor: pointer;\n}\n.p-multiselect .p-multiselect-panel {\n    min-width: 100%;\n}\n.p-multiselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-multiselect-items-wrapper {\n    overflow: auto;\n}\n.p-multiselect-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-multiselect-item {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-multiselect-item-group {\n    cursor: auto;\n}\n.p-multiselect-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-multiselect-filter-container {\n    position: relative;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-multiselect-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-multiselect-filter-container .p-inputtext {\n    width: 100%;\n}\n.p-multiselect-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    overflow: hidden;\n    position: relative;\n    margin-left: auto;\n}\n.p-fluid .p-multiselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$a(css_248z$i);
+script$M.render = render$e;
 
-var script$B = {
+var script$L = {
   name: 'Chips',
   emits: ['update:modelValue', 'add', 'remove', 'focus', 'blur'],
   props: {
@@ -37440,19 +35983,19 @@ var script$B = {
 
   }
 };
-const _hoisted_1$f = ["aria-labelledby", "aria-label", "aria-activedescendant"];
-const _hoisted_2$b = ["id", "aria-label", "aria-setsize", "aria-posinset"];
-const _hoisted_3$b = {
+const _hoisted_1$k = ["aria-labelledby", "aria-label", "aria-activedescendant"];
+const _hoisted_2$f = ["id", "aria-label", "aria-setsize", "aria-posinset"];
+const _hoisted_3$e = {
   class: "p-chips-token-label"
 };
-const _hoisted_4$a = ["onClick"];
-const _hoisted_5$6 = {
+const _hoisted_4$d = ["onClick"];
+const _hoisted_5$8 = {
   class: "p-chips-input-token",
   role: "option"
 };
-const _hoisted_6$4 = ["id", "disabled", "placeholder"];
+const _hoisted_6$6 = ["id", "disabled", "placeholder"];
 
-function render$8(_ctx, _cache, $props, $setup, $data, $options) {
+function render$d(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
   }, [createElementVNode("ul", {
@@ -37482,12 +36025,12 @@ function render$8(_ctx, _cache, $props, $setup, $data, $options) {
       "aria-posinset": i + 1
     }, [renderSlot(_ctx.$slots, "chip", {
       value: val
-    }, () => [createElementVNode("span", _hoisted_3$b, toDisplayString$1(val), 1)]), createElementVNode("span", {
+    }, () => [createElementVNode("span", _hoisted_3$e, toDisplayString$1(val), 1)]), createElementVNode("span", {
       class: normalizeClass(['p-chips-token-icon', $props.removeTokenIcon]),
       onClick: $event => $options.removeItem($event, i),
       "aria-hidden": "true"
-    }, null, 10, _hoisted_4$a)], 10, _hoisted_2$b);
-  }), 128)), createElementVNode("li", _hoisted_5$6, [createElementVNode("input", mergeProps({
+    }, null, 10, _hoisted_4$d)], 10, _hoisted_2$f);
+  }), 128)), createElementVNode("li", _hoisted_5$8, [createElementVNode("input", mergeProps({
     ref: "input",
     id: $props.inputId,
     type: "text",
@@ -37500,10 +36043,10 @@ function render$8(_ctx, _cache, $props, $setup, $data, $options) {
     onInput: _cache[2] || (_cache[2] = (...args) => $options.onInput && $options.onInput(...args)),
     onKeydown: _cache[3] || (_cache[3] = $event => $options.onKeyDown($event)),
     onPaste: _cache[4] || (_cache[4] = $event => $options.onPaste($event))
-  }, $props.inputProps), null, 16, _hoisted_6$4)])], 40, _hoisted_1$f)], 2);
+  }, $props.inputProps), null, 16, _hoisted_6$6)])], 40, _hoisted_1$k)], 2);
 }
 
-function styleInject$5(css, ref) {
+function styleInject$9(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -37532,11 +36075,11 @@ function styleInject$5(css, ref) {
   }
 }
 
-var css_248z$c = "\n.p-chips {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-chips-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-chips-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-token-icon {\n    cursor: pointer;\n}\n.p-chips-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-chips {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$5(css_248z$c);
-script$B.render = render$8;
+var css_248z$h = "\n.p-chips {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-chips-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-chips-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-token-icon {\n    cursor: pointer;\n}\n.p-chips-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-chips {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$9(css_248z$h);
+script$L.render = render$d;
 
-var script$A = {
+var script$K = {
   props: {
     modelValue : [Array],
     field : Object
@@ -37587,7 +36130,7 @@ if (props.field.reference || props.field.recursive) {
 
 return (_ctx, _cache) => {
   return (__props.field.reference || __props.field.name =='--id')
-    ? (openBlock(), createBlock(unref(script$C), {
+    ? (openBlock(), createBlock(unref(script$M), {
         key: 0,
         placeholder: "Please Select",
         field: __props.field,
@@ -37597,7 +36140,7 @@ return (_ctx, _cache) => {
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null))
       }, null, 8 /* PROPS */, ["field", "options", "modelValue"]))
-    : (openBlock(), createBlock(unref(script$B), {
+    : (openBlock(), createBlock(unref(script$L), {
         key: 1,
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
@@ -37607,9 +36150,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$A.__file = "presstojam/src/components/filter/id-filter.vue";
+script$K.__file = "presstojam/src/components/filter/id-filter.vue";
 
-var script$z = {
+var script$J = {
   props: {
     modelValue : [Object],
     field : Object
@@ -37651,7 +36194,7 @@ const value = computed({
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$18), {
+  return (openBlock(), createBlock(unref(script$1k), {
     id: "range",
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -37664,9 +36207,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$z.__file = "presstojam/src/components/filter/time-filter.vue";
+script$J.__file = "presstojam/src/components/filter/time-filter.vue";
 
-var script$y = {
+var script$I = {
   props: {
     modelValue : [Array],
     field : Object
@@ -37722,7 +36265,7 @@ if (props.field.isEnum()) {
 
 return (_ctx, _cache) => {
   return (unref(tag)=='select')
-    ? (openBlock(), createBlock(unref(script$C), {
+    ? (openBlock(), createBlock(unref(script$M), {
         key: 0,
         display: "chip",
         placeholder: "Please Select",
@@ -37733,7 +36276,7 @@ return (_ctx, _cache) => {
         optionValue: "value"
       }, null, 8 /* PROPS */, ["modelValue", "options"]))
     : (unref(tag)=='input')
-      ? (openBlock(), createBlock(unref(script$B), {
+      ? (openBlock(), createBlock(unref(script$L), {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
@@ -37744,9 +36287,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$y.__file = "presstojam/src/components/filter/string-filter.vue";
+script$I.__file = "presstojam/src/components/filter/string-filter.vue";
 
-var script$x = {
+var script$H = {
   props: {
     field : Object,
     modelValue : [String, Number, Boolean, null, Array, Object]
@@ -37773,35 +36316,35 @@ const value = computed({
 
 return (_ctx, _cache) => {
   return (__props.field.type=='number')
-    ? (openBlock(), createBlock(script$E, {
+    ? (openBlock(), createBlock(script$O, {
         key: 0,
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
         field: __props.field
       }, null, 8 /* PROPS */, ["modelValue", "field"]))
     : (__props.field.type=='flag')
-      ? (openBlock(), createBlock(script$D, {
+      ? (openBlock(), createBlock(script$N, {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null)),
           field: __props.field
         }, null, 8 /* PROPS */, ["modelValue", "field"]))
       : (__props.field.type=='id')
-        ? (openBlock(), createBlock(script$A, {
+        ? (openBlock(), createBlock(script$K, {
             key: 2,
             modelValue: unref(value),
             "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
             field: __props.field
           }, null, 8 /* PROPS */, ["modelValue", "field"]))
         : (__props.field.type=='time')
-          ? (openBlock(), createBlock(script$z, {
+          ? (openBlock(), createBlock(script$J, {
               key: 3,
               modelValue: unref(value),
               "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => (isRef(value) ? (value).value = $event : null)),
               field: __props.field
             }, null, 8 /* PROPS */, ["modelValue", "field"]))
           : (__props.field.type=='string')
-            ? (openBlock(), createBlock(script$y, {
+            ? (openBlock(), createBlock(script$I, {
                 key: 4,
                 modelValue: unref(value),
                 "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -37813,12 +36356,12 @@ return (_ctx, _cache) => {
 
 };
 
-script$x.__file = "presstojam/src/components/filter/filter-field.vue";
+script$H.__file = "presstojam/src/components/filter/filter-field.vue";
 
-const _hoisted_1$e = { class: "ptj-filter" };
+const _hoisted_1$j = { class: "ptj-filter" };
    
    
-var script$w = {
+var script$G = {
   props: {
     field : {
         type : Object,
@@ -37881,8 +36424,8 @@ const props = __props;
    
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", _hoisted_1$e, [
-    createVNode(unref(script$1v), {
+  return (openBlock(), createElementBlock("div", _hoisted_1$j, [
+    createVNode(unref(script$1z), {
       type: "button",
       label: _ctx.$t('models.' + __props.field.model + '.fields.' + __props.field.name + '.filterlabel'),
       onClick: toggle,
@@ -37891,7 +36434,7 @@ return (_ctx, _cache) => {
       badge: unref(badge),
       class: "p-button-secondary"
     }, null, 8 /* PROPS */, ["label", "badge"]),
-    createVNode(unref(script$F), {
+    createVNode(unref(script$P), {
       ref_key: "overlay",
       ref: overlay,
       appendTo: "body",
@@ -37902,7 +36445,7 @@ return (_ctx, _cache) => {
     }, {
       default: withCtx(() => [
         createElementVNode("div", null, [
-          createVNode(script$x, {
+          createVNode(script$H, {
             field: __props.field,
             modelValue: unref(val),
             "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(val) ? (val).value = $event : null))
@@ -37917,20 +36460,20 @@ return (_ctx, _cache) => {
 
 };
 
-script$w.__file = "presstojam/src/components/filter/filter.vue";
+script$G.__file = "presstojam/src/components/filter/filter.vue";
 
 var filter = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$w
+    'default': script$G
 });
 
-const _hoisted_1$d = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
-const _hoisted_2$a = /*#__PURE__*/createTextVNode(" Filters ");
-const _hoisted_3$a = { class: "p-buttonset" };
-const _hoisted_4$9 = { style: {"text-align":"right"} };
+const _hoisted_1$i = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
+const _hoisted_2$e = /*#__PURE__*/createTextVNode(" Filters ");
+const _hoisted_3$d = { class: "p-buttonset" };
+const _hoisted_4$c = { style: {"text-align":"right"} };
 
 
-var script$v = {
+var script$F = {
   props: {
     store : Object
 },
@@ -37959,26 +36502,26 @@ function submit() {
 }
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$_), {
+  return (openBlock(), createBlock(unref(script$1a), {
     toggleable: true,
     collapsed: true
   }, {
     legend: withCtx(() => [
-      _hoisted_1$d,
-      _hoisted_2$a
+      _hoisted_1$i,
+      _hoisted_2$e
     ]),
     default: withCtx(() => [
-      createElementVNode("span", _hoisted_3$a, [
+      createElementVNode("span", _hoisted_3$d, [
         (openBlock(true), createElementBlock(Fragment, null, renderList(unref(filtercells), (field) => {
-          return (openBlock(), createBlock(script$w, {
+          return (openBlock(), createBlock(script$G, {
             class: "ptj-filter",
             field: field,
             key: field.name
           }, null, 8 /* PROPS */, ["field"]))
         }), 128 /* KEYED_FRAGMENT */))
       ]),
-      createElementVNode("p", _hoisted_4$9, [
-        createVNode(unref(script$1v), {
+      createElementVNode("p", _hoisted_4$c, [
+        createVNode(unref(script$1z), {
           label: _ctx.$t('btns.filter'),
           onClick: submit
         }, null, 8 /* PROPS */, ["label"])
@@ -37991,80 +36534,7 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$b = "\n.filter-form-vue-vue-type-style-index-0-id-46638ba7-lang_ptj-filter__24-2N { \r\n    display : inline-block;\n}\r\n";
-styleInject$r(css_248z$b);
-
-script$v.__file = "presstojam/src/components/filter/filter-form.vue";
-
-var script$u = {
-  props: {
-    pagination : Object
-},
-  emits: ["reload"],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-computed(() => {
-    return ceil(props.pagination.count / props.pagination.rows_per_page);
-});
-
-
-
-function onPage(event) {
-    emits("reload", event.first);
-}
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$H), {
-    rows: __props.pagination.rows_per_page,
-    totalRecords: parseInt(__props.pagination.count),
-    paginatorTemplate: "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown",
-    currentPageReportTemplate: "Showing {first} to {last} of {totalRecords}",
-    onPage: _cache[0] || (_cache[0] = $event => (onPage($event)))
-  }, null, 8 /* PROPS */, ["rows", "totalRecords"]))
-}
-}
-
-};
-
-script$u.__file = "presstojam/src/components/paginator/pagination.vue";
-
-var pagination = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': script$u
-});
-
-var script$t = {
-  name: 'Toolbar',
-  props: {
-    'aria-labelledby': {
-      type: String,
-      default: null
-    }
-  }
-};
-const _hoisted_1$c = ["aria-labelledby"];
-const _hoisted_2$9 = {
-  class: "p-toolbar-group-left"
-};
-const _hoisted_3$9 = {
-  class: "p-toolbar-group-right"
-};
-
-function render$7(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: "p-toolbar p-component",
-    role: "toolbar",
-    "aria-labelledby": _ctx.ariaLabelledby
-  }, [createElementVNode("div", _hoisted_2$9, [renderSlot(_ctx.$slots, "start")]), createElementVNode("div", _hoisted_3$9, [renderSlot(_ctx.$slots, "end")])], 8, _hoisted_1$c);
-}
-
-function styleInject$4(css, ref) {
+function styleInject$8(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -38093,11 +36563,113 @@ function styleInject$4(css, ref) {
   }
 }
 
-var css_248z$a = "\n.p-toolbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-toolbar-group-left,\n.p-toolbar-group-right {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
-styleInject$4(css_248z$a);
-script$t.render = render$7;
+var css_248z$g = "\n.filter-form-vue-vue-type-style-index-0-id-46638ba7-lang_ptj-filter__24-2N { \r\n    display : inline-block;\n}\r\n";
+styleInject$8(css_248z$g);
 
-var script$s = {
+script$F.__file = "presstojam/src/components/filter/filter-form.vue";
+
+var script$E = {
+  props: {
+    pagination : Object
+},
+  emits: ["reload"],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+computed(() => {
+    return ceil(props.pagination.count / props.pagination.rows_per_page);
+});
+
+
+
+function onPage(event) {
+    emits("reload", event.first);
+}
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$R), {
+    rows: __props.pagination.rows_per_page,
+    totalRecords: parseInt(__props.pagination.count),
+    paginatorTemplate: "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown",
+    currentPageReportTemplate: "Showing {first} to {last} of {totalRecords}",
+    onPage: _cache[0] || (_cache[0] = $event => (onPage($event)))
+  }, null, 8 /* PROPS */, ["rows", "totalRecords"]))
+}
+}
+
+};
+
+script$E.__file = "presstojam/src/components/paginator/pagination.vue";
+
+var pagination = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    'default': script$E
+});
+
+var script$D = {
+  name: 'Toolbar',
+  props: {
+    'aria-labelledby': {
+      type: String,
+      default: null
+    }
+  }
+};
+const _hoisted_1$h = ["aria-labelledby"];
+const _hoisted_2$d = {
+  class: "p-toolbar-group-left"
+};
+const _hoisted_3$c = {
+  class: "p-toolbar-group-right"
+};
+
+function render$c(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: "p-toolbar p-component",
+    role: "toolbar",
+    "aria-labelledby": _ctx.ariaLabelledby
+  }, [createElementVNode("div", _hoisted_2$d, [renderSlot(_ctx.$slots, "start")]), createElementVNode("div", _hoisted_3$c, [renderSlot(_ctx.$slots, "end")])], 8, _hoisted_1$h);
+}
+
+function styleInject$7(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$f = "\n.p-toolbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-toolbar-group-left,\n.p-toolbar-group-right {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
+styleInject$7(css_248z$f);
+script$D.render = render$c;
+
+var script$C = {
   props: {
     name : String
 },
@@ -38310,7 +36882,7 @@ function download(data, strFileName, strMimeType) {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1v), {
+  return (openBlock(), createBlock(unref(script$1z), {
     label: "Export",
     icon: "pi pi-external-link",
     class: "p-button-help mr-2",
@@ -38321,9 +36893,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$s.__file = "presstojam/src/components/actions/export-action.vue";
+script$C.__file = "presstojam/src/components/actions/export-action.vue";
 
-var script$r = {
+var script$B = {
   props: {
        name : String,
        parentlabel : String
@@ -38370,13 +36942,13 @@ const props = __props;
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1v), {
+    createVNode(unref(script$1z), {
       label: "New",
       icon: "pi pi-plus",
       class: "p-button-success mr-2",
       onClick: createRow
     }),
-    createVNode(unref(script$1j), {
+    createVNode(unref(script$1p), {
       visible: dialog.value,
       "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
       header: unref(header),
@@ -38384,7 +36956,7 @@ return (_ctx, _cache) => {
       class: "p-fluid"
     }, {
       default: withCtx(() => [
-        createVNode(script$T, {
+        createVNode(script$13, {
           schema: unref(store).route.schema,
           model: unref(store).model,
           data: data,
@@ -38400,143 +36972,23 @@ return (_ctx, _cache) => {
 
 };
 
-script$r.__file = "presstojam/src/components/actions/create-action.vue";
-
-const _hoisted_1$b = /*#__PURE__*/createElementVNode("p", null, "Are you sure you want to delete:", -1 /* HOISTED */);
-const _hoisted_2$8 = /*#__PURE__*/createTextVNode("Type ");
-const _hoisted_3$8 = /*#__PURE__*/createTextVNode(" in the box below");
-const _hoisted_4$8 = { class: "p-inputgroup" };
-const _hoisted_5$5 = /*#__PURE__*/createTextVNode("Delete");
-
-    
-var script$q = {
-  props: {
-        name : String,
-        single : false
-    },
-  emits: [
-        "onDel"
-    ],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-    const client = inject("client");
-
-    
-
-    
-
-    const repo = getStore(props.name);
-    const check_str = "delete";
-
-    const dialog = ref(false);
-
-    function delRow() {
-        dialog.value =true;
-        delval.value = "";
-    }
-
-
-    let delval = ref("");
-
-    const disabled = computed(() => {
-        return (delval.value == check_str) ? false : true;
-    });
-
-
-    function del() {
-        let params = {};
-        const keys = [];
-        for(const row of repo.selected.value) {
-            keys.push(row['--id']);
-        }
-        params["--id"] = keys;
-        
-        client.delete("/data/" +repo.store.model, params)
-        .then(() => {
-            dialog.value = false;
-            repo.selected.value = [];
-            emits("onDel");
-        })
-        .catch(e => console.log(e));
-    }
-    
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1v), {
-      label: "Delete",
-      icon: "pi pi-trash",
-      class: "p-button-danger",
-      disabled: !unref(repo).selected.value.length,
-      onClick: delRow
-    }, null, 8 /* PROPS */, ["disabled"]),
-    createVNode(unref(script$1j), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
-      header: 'Delete ' + _ctx.$t('models.' + unref(repo).store.model + '.title', (__props.single) ? 1 : 2),
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        _hoisted_1$b,
-        createElementVNode("ul", null, [
-          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(repo).selected.value, (item) => {
-            return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).store.route.schema, item)), 1 /* TEXT */))
-          }), 256 /* UNKEYED_FRAGMENT */))
-        ]),
-        createElementVNode("p", null, [
-          _hoisted_2$8,
-          createElementVNode("i", null, toDisplayString$1(check_str)),
-          _hoisted_3$8
-        ]),
-        createElementVNode("div", _hoisted_4$8, [
-          createVNode(unref(script$1u), {
-            placeholder: check_str,
-            modelValue: unref(delval),
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(delval) ? (delval).value = $event : delval = $event))
-          }, null, 8 /* PROPS */, ["modelValue"]),
-          createVNode(unref(script$1v), {
-            label: "Delete",
-            disabled: unref(disabled),
-            icon: "pi pi-trash",
-            onClick: del,
-            class: "p-button-danger"
-          }, {
-            default: withCtx(() => [
-              _hoisted_5$5
-            ]),
-            _: 1 /* STABLE */
-          }, 8 /* PROPS */, ["disabled"])
-        ])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible", "header"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$q.__file = "presstojam/src/components/actions/delete-action.vue";
+script$B.__file = "presstojam/src/components/actions/create-action.vue";
 
 const _withScopeId$1 = n => (pushScopeId("data-v-29f6384d"),n=n(),popScopeId(),n);
-const _hoisted_1$a = /*#__PURE__*/createTextVNode("New row created");
-const _hoisted_2$7 = /*#__PURE__*/createTextVNode("Rows removed");
-const _hoisted_3$7 = {
+const _hoisted_1$g = /*#__PURE__*/createTextVNode("New row created");
+const _hoisted_2$c = /*#__PURE__*/createTextVNode("Rows removed");
+const _hoisted_3$b = {
   key: 0,
   class: "p-input-icon-left mr-2"
 };
-const _hoisted_4$7 = /*#__PURE__*/ _withScopeId$1(() => /*#__PURE__*/createElementVNode("i", { class: "pi pi-search" }, null, -1 /* HOISTED */));
-const _hoisted_5$4 = { key: 3 };
+const _hoisted_4$b = /*#__PURE__*/ _withScopeId$1(() => /*#__PURE__*/createElementVNode("i", { class: "pi pi-search" }, null, -1 /* HOISTED */));
+const _hoisted_5$7 = { key: 3 };
 
 
 
 
 
-var script$p = {
+var script$A = {
   props: {
     name : {
       type : String,
@@ -38624,39 +37076,39 @@ function onDel() {
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
     (unref(repo).pagination && !unref(store).route.settings.nofilter)
-      ? (openBlock(), createBlock(script$v, {
+      ? (openBlock(), createBlock(script$F, {
           key: 0,
           store: unref(store)
         }, null, 8 /* PROPS */, ["store"]))
       : createCommentVNode("v-if", true),
     (newrow.value)
-      ? (openBlock(), createBlock(unref(script$13), {
+      ? (openBlock(), createBlock(unref(script$1f), {
           key: 1,
           severity: "success"
         }, {
           default: withCtx(() => [
-            _hoisted_1$a
+            _hoisted_1$g
           ]),
           _: 1 /* STABLE */
         }))
       : createCommentVNode("v-if", true),
     (delrow.value)
-      ? (openBlock(), createBlock(unref(script$13), {
+      ? (openBlock(), createBlock(unref(script$1f), {
           key: 2,
           severity: "success"
         }, {
           default: withCtx(() => [
-            _hoisted_2$7
+            _hoisted_2$c
           ]),
           _: 1 /* STABLE */
         }))
       : createCommentVNode("v-if", true),
-    createVNode(unref(script$t), { class: "mb-4" }, {
+    createVNode(unref(script$D), { class: "mb-4" }, {
       start: withCtx(() => [
         (!unref(repo).pagination)
-          ? (openBlock(), createElementBlock("span", _hoisted_3$7, [
-              _hoisted_4$7,
-              createVNode(unref(script$1u), {
+          ? (openBlock(), createElementBlock("span", _hoisted_3$b, [
+              _hoisted_4$b,
+              createVNode(unref(script$1y), {
                 modelValue: search.value,
                 "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((search).value = $event)),
                 placeholder: "Keyword Search"
@@ -38664,7 +37116,7 @@ return (_ctx, _cache) => {
             ]))
           : createCommentVNode("v-if", true),
         (unref(col_expandable))
-          ? (openBlock(), createBlock(unref(script$C), {
+          ? (openBlock(), createBlock(unref(script$M), {
               key: 1,
               modelValue: active_options.value,
               "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((active_options).value = $event)),
@@ -38676,20 +37128,20 @@ return (_ctx, _cache) => {
       ]),
       end: withCtx(() => [
         (unref(has_export))
-          ? (openBlock(), createBlock(script$s, {
+          ? (openBlock(), createBlock(script$C, {
               key: 0,
               name: __props.name
             }, null, 8 /* PROPS */, ["name"]))
           : createCommentVNode("v-if", true),
         (unref(store).route.perms.includes('post'))
-          ? (openBlock(), createBlock(script$r, {
+          ? (openBlock(), createBlock(script$B, {
               key: 1,
               name: __props.name,
               onOnSave: onSave
             }, null, 8 /* PROPS */, ["name"]))
           : createCommentVNode("v-if", true),
         (unref(store).route.perms.includes('delete'))
-          ? (openBlock(), createBlock(script$q, {
+          ? (openBlock(), createBlock(script$12, {
               key: 2,
               name: __props.name,
               onOnDel: onDel
@@ -38699,9 +37151,9 @@ return (_ctx, _cache) => {
       _: 1 /* STABLE */
     }),
     (unref(repo).pagination)
-      ? (openBlock(), createElementBlock("p", _hoisted_5$4, "Total Rows: " + toDisplayString$1(unref(repo).pagination.count), 1 /* TEXT */))
+      ? (openBlock(), createElementBlock("p", _hoisted_5$7, "Total Rows: " + toDisplayString$1(unref(repo).pagination.count), 1 /* TEXT */))
       : createCommentVNode("v-if", true),
-    createVNode(script$n, {
+    createVNode(script$y, {
       ref_key: "dt",
       ref: dt,
       name: __props.name,
@@ -38710,7 +37162,7 @@ return (_ctx, _cache) => {
       onReorder: onRowReorder
     }, null, 8 /* PROPS */, ["name", "fields", "search"]),
     (unref(repo).pagination)
-      ? (openBlock(), createBlock(script$u, {
+      ? (openBlock(), createBlock(script$E, {
           key: 4,
           pagination: unref(repo).pagination,
           onReload: reloadPage
@@ -38722,18 +37174,18 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$9 = "\ntable[data-v-29f6384d], thead[data-v-29f6384d], tbody[data-v-29f6384d], tr[data-v-29f6384d] {\r\n    width : 100%;\n}\n.table-display-vue-vue-type-style-index-0-id-29f6384d-scoped-true-lang_ptj-table-wrapper__fKjz7[data-v-29f6384d] {\r\n    position : relative;\n}\r\n\r\n\r\n";
-styleInject$r(css_248z$9);
+var css_248z$e = "\ntable[data-v-29f6384d], thead[data-v-29f6384d], tbody[data-v-29f6384d], tr[data-v-29f6384d] {\r\n    width : 100%;\n}\n.table-display-vue-vue-type-style-index-0-id-29f6384d-scoped-true-lang_ptj-table-wrapper__fKjz7[data-v-29f6384d] {\r\n    position : relative;\n}\r\n\r\n\r\n";
+styleInject$8(css_248z$e);
 
-script$p.__scopeId = "data-v-29f6384d";
-script$p.__file = "presstojam/src/components/table/table-display.vue";
+script$A.__scopeId = "data-v-29f6384d";
+script$A.__file = "presstojam/src/components/table/table-display.vue";
 
 var tableDisplay = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$p
+    'default': script$A
 });
 
-var script$o = {
+var script$z = {
   props: {
     name : String,
     parent_id : Number
@@ -38768,7 +37220,7 @@ loadChild(props.parent_id, 0);
 
 return (_ctx, _cache) => {
   return (unref(model))
-    ? (openBlock(), createBlock(script$p, {
+    ? (openBlock(), createBlock(script$A, {
         key: 0,
         name: unref(model)
       }, null, 8 /* PROPS */, ["name"]))
@@ -38778,9 +37230,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$o.__file = "presstojam/src/components/table/child-table.vue";
+script$z.__file = "presstojam/src/components/table/child-table.vue";
 
-var script$n = {
+var script$y = {
   props: {
     name : String,
     fields : Object,
@@ -38930,7 +37382,7 @@ return (_ctx, _cache) => {
     ref_key: "group",
     ref: group
   }, [
-    createVNode(unref(script$G), mergeProps({
+    createVNode(unref(script$Q), mergeProps({
       value: unref(repo).data.value,
       selection: unref(repo).selected.value,
       "onUpdate:selection": _cache[0] || (_cache[0] = $event => ((unref(repo).selected.value) = $event)),
@@ -38948,12 +37400,12 @@ return (_ctx, _cache) => {
       filters: unref(filters)
     }, atts), createSlots({
       expansion: withCtx((slotProps) => [
-        createVNode(unref(script$1t), null, {
+        createVNode(unref(script$10), null, {
           title: withCtx(() => [
             createTextVNode(toDisplayString$1(_ctx.$t("models." + unref(store).route.children[0] + ".title")), 1 /* TEXT */)
           ]),
           content: withCtx(() => [
-            (openBlock(), createBlock(script$o, {
+            (openBlock(), createBlock(script$z, {
               name: unref(store).route.children[0],
               parent_id: slotProps.data['--id'],
               key: slotProps.data['--id']
@@ -38964,14 +37416,14 @@ return (_ctx, _cache) => {
       ]),
       default: withCtx(() => [
         (unref(has_expandable))
-          ? (openBlock(), createBlock(unref(script$1k), {
+          ? (openBlock(), createBlock(unref(script$11), {
               key: 0,
               expander: true,
               headerStyle: "width: 3rem"
             }))
           : createCommentVNode("v-if", true),
         (unref(has_sort))
-          ? (openBlock(), createBlock(unref(script$1k), {
+          ? (openBlock(), createBlock(unref(script$11), {
               key: 1,
               rowReorder: true,
               headerStyle: "width: 3rem",
@@ -38979,7 +37431,7 @@ return (_ctx, _cache) => {
             }))
           : createCommentVNode("v-if", true),
         (unref(store).route.perms.includes('delete'))
-          ? (openBlock(), createBlock(unref(script$1k), {
+          ? (openBlock(), createBlock(unref(script$11), {
               key: 2,
               selectionMode: "multiple",
               style: {"width":"3rem"},
@@ -38987,14 +37439,14 @@ return (_ctx, _cache) => {
             }))
           : createCommentVNode("v-if", true),
         (openBlock(true), createElementBlock(Fragment, null, renderList(__props.fields, (cell) => {
-          return (openBlock(), createBlock(unref(script$1k), {
+          return (openBlock(), createBlock(unref(script$11), {
             field: cell.name,
             sortable: unref(sortable),
             header: _ctx.$t('models.' + cell.model + '.fields.' + cell.name + '.label'),
             key: cell.name
           }, {
             body: withCtx((slotProps) => [
-              createVNode(script$J, {
+              createVNode(script$T, {
                 row: slotProps.data,
                 field: cell
               }, null, 8 /* PROPS */, ["row", "field"])
@@ -39002,20 +37454,20 @@ return (_ctx, _cache) => {
             _: 2 /* DYNAMIC */
           }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["field", "sortable", "header"]))
         }), 128 /* KEYED_FRAGMENT */)),
-        createVNode(unref(script$1k), {
+        createVNode(unref(script$11), {
           exportable: false,
           style: {"min-width":"8rem"}
         }, {
           body: withCtx((slotProps) => [
             (unref(has_primary))
-              ? (openBlock(), createBlock(script$S, {
+              ? (openBlock(), createBlock(script$$, {
                   key: 0,
                   model: unref(store).model,
                   id: slotProps.data['--id']
                 }, null, 8 /* PROPS */, ["model", "id"]))
               : createCommentVNode("v-if", true),
             (unref(store).route.perms.includes('put'))
-              ? (openBlock(), createBlock(unref(script$1v), {
+              ? (openBlock(), createBlock(unref(script$1z), {
                   key: 1,
                   icon: "pi pi-pencil",
                   class: "p-button-rounded p-button-success mr-2",
@@ -39023,7 +37475,7 @@ return (_ctx, _cache) => {
                 }, null, 8 /* PROPS */, ["onClick"]))
               : createCommentVNode("v-if", true),
             (unref(store).route.audit)
-              ? (openBlock(), createBlock(unref(script$1v), {
+              ? (openBlock(), createBlock(unref(script$1z), {
                   key: 2,
                   icon: "pi pi-history",
                   class: "mr-2 p-button-rounded p-button-success",
@@ -39049,7 +37501,7 @@ return (_ctx, _cache) => {
               createElementVNode("div", {
                 class: normalizeClass(["ptj-group", slotProps.data[unref(groupcell).name]])
               }, [
-                createVNode(script$J, {
+                createVNode(script$T, {
                   row: slotProps.data,
                   field: unref(groupcell)
                 }, null, 8 /* PROPS */, ["row", "field"])
@@ -39059,7 +37511,7 @@ return (_ctx, _cache) => {
         : undefined
     ]), 1040 /* FULL_PROPS, DYNAMIC_SLOTS */, ["value", "selection", "loading", "expandedRows", "filters"]),
     (unref(store).route.audit)
-      ? (openBlock(), createBlock(unref(script$1j), {
+      ? (openBlock(), createBlock(unref(script$1p), {
           key: 0,
           visible: show_audit.value,
           "onUpdate:visible": _cache[2] || (_cache[2] = $event => ((show_audit).value = $event)),
@@ -39068,7 +37520,7 @@ return (_ctx, _cache) => {
           class: "p-fluid"
         }, {
           default: withCtx(() => [
-            createVNode(script$R, {
+            createVNode(script$x, {
               repo: unref(repo),
               id: unref(repo).active.value['--id']
             }, null, 8 /* PROPS */, ["repo", "id"])
@@ -39077,7 +37529,7 @@ return (_ctx, _cache) => {
         }, 8 /* PROPS */, ["visible"]))
       : createCommentVNode("v-if", true),
     (unref(store).route.perms.includes('put'))
-      ? (openBlock(), createBlock(unref(script$1j), {
+      ? (openBlock(), createBlock(unref(script$1p), {
           key: 1,
           visible: show_edit.value,
           "onUpdate:visible": _cache[4] || (_cache[4] = $event => ((show_edit).value = $event)),
@@ -39086,7 +37538,7 @@ return (_ctx, _cache) => {
           class: "p-fluid"
         }, {
           default: withCtx(() => [
-            createVNode(script$T, {
+            createVNode(script$13, {
               schema: unref(store).route.schema,
               data: unref(repo).active.value,
               model: unref(store).model,
@@ -39104,485 +37556,168 @@ return (_ctx, _cache) => {
 
 };
 
-script$n.__file = "presstojam/src/components/table/table.vue";
+script$y.__file = "presstojam/src/components/table/table.vue";
 
-const _hoisted_1$9 = { key: 0 };
-    
-    
-var script$m = {
+var script$x = {
   props: {
-        name : {
-            type : String,
-            required : true
-        }
+    repo : {
+        type : Object,
+        required : true
     },
-  emits: ['onMove'],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-    const client = inject("client");
-
-    
-
-    
-
-    const repo = getStore(props.name);
-    const store = repo.store;
-    
-    provide("model", store.model);
-
-   
-    const bind = createBind(store.route.schema['--recursive'], 0);
-
-
-    function submit() {
-        let promise = [];
-        for(const row of repo.selected.value) {
-            const obj = {"--id" : row['--id'], "--recursive" : bind.value.value };
-            promise.push(client.put("/data/" + store.model, obj));
-        }
-        return Promise.all(promise)
-        .then(() => {
-            emits("onMove");
-        })
-        .catch(e => console.log(e));
-    }
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    (unref(bind))
-      ? (openBlock(), createElementBlock("div", _hoisted_1$9, [
-          createVNode(script$19, { bind: unref(bind) }, null, 8 /* PROPS */, ["bind"])
-        ]))
-      : createCommentVNode("v-if", true),
-    createVNode(unref(script$1v), {
-      label: _ctx.$t('btns.save'),
-      onClick: submit
-    }, null, 8 /* PROPS */, ["label"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$m.__file = "presstojam/src/components/effects/move-action.vue";
-
-const _hoisted_1$8 = /*#__PURE__*/createElementVNode("p", null, "Moving", -1 /* HOISTED */);
-
-    
-var script$l = {
-  props: {
-        name : {
-            type : String,
-            required : true
-        }
-    },
-  emits: ['onMove'],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-    
-
-    
-
-    const repo = getStore(props.name);
-    const store = repo.store;
-
-    
-    const dialog = ref(false);
-
-    function moveRow() {
-        dialog.value =true;
-    }
-
-    function onMove() {
-        dialog.value = false;
-        emits("onMove");
-    }
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1v), {
-      icon: "pi pi-pencil",
-      class: "p-button-success mr-2",
-      label: "move",
-      onClick: moveRow,
-      disabled: !unref(repo).selected.value.length
-    }, null, 8 /* PROPS */, ["disabled"]),
-    createVNode(unref(script$1j), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
-      header: 'Move ' + _ctx.$t('models.' + unref(store).model + '.title', 2),
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        _hoisted_1$8,
-        createElementVNode("ul", null, [
-          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(repo).selected.value, (item) => {
-            return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).store.route.schema, item)), 1 /* TEXT */))
-          }), 256 /* UNKEYED_FRAGMENT */))
-        ]),
-        createVNode(script$m, {
-          name: __props.name,
-          onOnMove: _cache[0] || (_cache[0] = $event => (onMove()))
-        }, null, 8 /* PROPS */, ["name"])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible", "header"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$l.__file = "presstojam/src/components/actions/move-action.vue";
-
-const _hoisted_1$7 = ["schema", "data", "model"];
-
-    
-var script$k = {
-  props: {
-        store : Object,
-        data : Object
-    },
-  emits: [
-        'onSave'
-    ],
-  setup(__props, { emit: emits }) {
-
-    
-
-    
-
-    const dialog = ref(false);
-
-    function editRow() {
-        dialog.value =true;
-    }
-
-    function onSave() {
-        dialog.value = false;
-        emits('onSave');
-    }
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1v), {
-      icon: "pi pi-pencil",
-      class: "p-button-rounded p-button-success mr-2",
-      onClick: editRow
-    }),
-    createVNode(unref(script$1j), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
-      header: 'Edit ' + _ctx.$t('models.' + __props.store.model + '.title', 1),
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        createElementVNode("form", {
-          schema: __props.store.route.schema,
-          data: __props.data,
-          model: __props.store.model,
-          onSaved: onSave,
-          method: "put"
-        }, null, 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$7)
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible", "header"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$k.__file = "presstojam/src/components/actions/edit-action.vue";
-
-const _hoisted_1$6 = {
-  class: "wrapper",
-  style: {"display":"grid"}
-};
-const _hoisted_2$6 = /*#__PURE__*/createTextVNode("New row created");
-const _hoisted_3$6 = /*#__PURE__*/createTextVNode("Rows removed");
-const _hoisted_4$6 = { style: {"overflow-x":"scroll"} };
-
-
-
-
-
-var script$j = {
-  props: {
-    name : {
-      type : String,
-      required : true
+    id : {
+        type : Number,
+        required : true
     }
 },
-  emits: ["onMove"],
-  setup(__props, { emit: emits }) {
+  setup(__props) {
 
 const props = __props;
 
 
 
+const client = inject("client");
+
+const audit = createDataStore(client, "audit");
+audit.route.schema['user-login-id'].custom_fields = ["name"];
+
+const fields = {};
+fields.action = audit.route.schema.action;
+fields['user-login-id'] = audit.route.schema['user-login-id'];
+fields["log"] = audit.route.schema["log"];
+fields["--created"] = audit.route.schema["--created"];
 
 
-const repo = getStore(props.name);
-const store = repo.store;
+const audit_repo = createRepoStore(audit);
+regStore("audit_repo", audit_repo);
 
-
-const has_primary = (store.route.children.length > 1) ? true : false;
-const expanded = ref(false);
-//const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
-const delrow = ref(false);
-const newrow = ref(false);
-const childRepo = createRepoStore(store);
-regStore(props.name + "_selected", childRepo);
-childRepo.parent_id = repo.parent_id;
-ref([]);
-
-
-const nodes = computed(() => {
-  const data= toTree(repo.data.value, store.route.schema);
-  return data;
+onMounted(() => {
+    audit.filters = {"model" : props.repo.store.model, "model-id" : props.id };
+    audit_repo.reload();
 });
 
-
-let fields = computed(() => {
-    return getForegroundCells(store.route.schema);
-});
-
-
-function reorderRows(rows) {
-  childRepo.data.value = rows;
-  saveOrder(store.model, rows);
-}
-
-repo.load()
-.then(response => {
-  childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-});
-
-
-repo.active.value['--recursive'] = 0;
-
-const expandedKeys = ref({});
-const selectedKey = ref();
-
-const collapseAll = () => {
-    expandedKeys.value = {};
-    expanded.value = false;
-};
-
-const expandAll = () => {
-    for (let node of nodes.value) {
-        expandNode(node);
-    }
-    expandedKeys.value = {...expandedKeys.value};
-    expanded.value = true;
-};
-
-const expandNode = (node) => {
-    if (node.children && node.children.length) {
-      expandedKeys.value[node.key] = true;
-      for (let child of node.children) {
-          expandNode(child);
-      }
-    }
-};
-
-function onDel() {
-    repo.reload()
-    .then(() => {
-      childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-    });
-    delrow.value = true;
-}
-
-const label = computed(() => {
-  return getLabel(store.route.schema, repo.active.value);
-});
-
-const onNodeSelect = (node) => {
-   repo.active.value = node.data;
-   childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == node.key);
-};
-
-const onNodeClear = (node) => {
-  repo.active.value = {};
-  childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-};
-
-
-
-function reload() {
-  repo.reload()
-  .then(() => {
-    childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-  });
-  newrow.value = true;
-}
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1m), null, {
-    default: withCtx(() => [
-      createVNode(unref(script$1l), {
-        size: 20,
-        style: {"padding":"10px"}
-      }, {
-        default: withCtx(() => [
-          createVNode(unref(script$t), { class: "mb-4" }, {
-            start: withCtx(() => [
-              (expanded.value)
-                ? (openBlock(), createBlock(unref(script$1v), {
-                    key: 0,
-                    type: "button",
-                    icon: "pi pi-minus",
-                    label: "Collapse All",
-                    onClick: collapseAll
-                  }))
-                : (openBlock(), createBlock(unref(script$1v), {
-                    key: 1,
-                    type: "button",
-                    icon: "pi pi-plus",
-                    label: "Expand All",
-                    onClick: expandAll
-                  }))
-            ]),
-            _: 1 /* STABLE */
-          }),
-          createVNode(unref(script$1n), {
-            value: unref(nodes),
-            filter: true,
-            filterMode: "lenient",
-            selectionMode: "single",
-            expandedKeys: expandedKeys.value,
-            onNodeSelect: onNodeSelect,
-            selectionKeys: selectedKey.value,
-            "onUpdate:selectionKeys": _cache[0] || (_cache[0] = $event => ((selectedKey).value = $event))
-          }, null, 8 /* PROPS */, ["value", "expandedKeys", "selectionKeys"])
-        ]),
-        _: 1 /* STABLE */
-      }),
-      createVNode(unref(script$1l), {
-        size: 80,
-        style: {"padding":"10px"}
-      }, {
-        default: withCtx(() => [
-          createElementVNode("div", _hoisted_1$6, [
-            (newrow.value)
-              ? (openBlock(), createBlock(unref(script$13), {
-                  key: 0,
-                  severity: "success"
-                }, {
-                  default: withCtx(() => [
-                    _hoisted_2$6
-                  ]),
-                  _: 1 /* STABLE */
-                }))
-              : createCommentVNode("v-if", true),
-            (delrow.value)
-              ? (openBlock(), createBlock(unref(script$13), {
-                  key: 1,
-                  severity: "success"
-                }, {
-                  default: withCtx(() => [
-                    _hoisted_3$6
-                  ]),
-                  _: 1 /* STABLE */
-                }))
-              : createCommentVNode("v-if", true),
-            createVNode(unref(script$t), null, {
-              start: withCtx(() => [
-                (unref(repo).active.value['--id'])
-                  ? (openBlock(), createBlock(unref(script$1v), {
-                      key: 0,
-                      icon: "pi pi-times",
-                      class: "p-button-rounded p-button-success",
-                      onClick: onNodeClear
-                    }))
-                  : createCommentVNode("v-if", true),
-                (unref(has_primary) && unref(repo).active.value['--id'])
-                  ? (openBlock(), createBlock(script$S, {
-                      key: 1,
-                      model: unref(store).model,
-                      id: unref(repo).active.value['--id']
-                    }, null, 8 /* PROPS */, ["model", "id"]))
-                  : createCommentVNode("v-if", true),
-                (unref(repo).active.value['--id'])
-                  ? (openBlock(), createBlock(script$k, {
-                      key: 2,
-                      store: unref(store),
-                      data: unref(repo).active.value
-                    }, null, 8 /* PROPS */, ["store", "data"]))
-                  : createCommentVNode("v-if", true),
-                createTextVNode(" " + toDisplayString$1(unref(label)), 1 /* TEXT */)
-              ]),
-              end: withCtx(() => [
-                (unref(store).route.perms.includes('put'))
-                  ? (openBlock(), createBlock(script$l, {
-                      key: 0,
-                      name: __props.name + '_selected',
-                      onOnMove: reload
-                    }, null, 8 /* PROPS */, ["name"]))
-                  : createCommentVNode("v-if", true),
-                (unref(store).route.perms.includes('post'))
-                  ? (openBlock(), createBlock(script$r, {
-                      key: 1,
-                      name: __props.name,
-                      onOnSave: reload
-                    }, null, 8 /* PROPS */, ["name"]))
-                  : createCommentVNode("v-if", true),
-                (unref(store).route.perms.includes('delete'))
-                  ? (openBlock(), createBlock(script$q, {
-                      key: 2,
-                      name: __props.name + '_selected',
-                      onOnDel: onDel
-                    }, null, 8 /* PROPS */, ["name"]))
-                  : createCommentVNode("v-if", true)
-              ]),
-              _: 1 /* STABLE */
-            }),
-            createElementVNode("div", _hoisted_4$6, [
-              createVNode(script$n, {
-                name: __props.name + '_selected',
-                fields: unref(fields),
-                onReorder: reorderRows
-              }, null, 8 /* PROPS */, ["name", "fields"])
-            ])
-          ])
-        ]),
-        _: 1 /* STABLE */
-      })
-    ]),
-    _: 1 /* STABLE */
+  return (openBlock(), createBlock(script$y, {
+    nosort: true,
+    name: "audit_repo",
+    fields: fields
   }))
 }
 }
 
 };
 
-var css_248z$8 = "\n.tree-vue-vue-type-style-index-0-id-49a3d7ba-scoped-true-lang_wrapper__KEFQt[data-v-49a3d7ba] {\r\n  display : grid;\r\n  margin-left : 0;\r\n  margin-right : 0;\r\n  box-sizing : content-box;\n}\r\n\r\n";
-styleInject$r(css_248z$8);
+script$x.__file = "presstojam/src/components/effects/audit.vue";
 
-script$j.__scopeId = "data-v-49a3d7ba";
-script$j.__file = "presstojam/src/components/tree/tree.vue";
+var script$w = {
+  props: {
+    repo : Object
+},
+  setup(__props) {
 
-var tree = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': script$j
-});
 
-var script$1$1 = {
+
+const dialog = ref(false);
+
+
+function showAudit() {
+    dialog.value = true;
+}
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    createVNode(unref(script$1z), {
+      label: "Audit",
+      icon: "pi pi-history",
+      class: "mr-2 p-button-help",
+      onClick: showAudit
+    }),
+    createVNode(unref(script$1p), {
+      visible: dialog.value,
+      "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
+      header: "Audit",
+      modal: true,
+      class: "p-fluid"
+    }, {
+      default: withCtx(() => [
+        createVNode(script$x, {
+          repo: __props.repo,
+          id: __props.repo.active_id
+        }, null, 8 /* PROPS */, ["repo", "id"])
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["visible"])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$w.__file = "presstojam/src/components/actions/show-audit.vue";
+
+var script$v = {
+  props: {
+    name : {
+      type : String,
+      required : true
+    }
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const repo = getStore(props.name);
+const store = repo.store;
+repo.selected.value = [{ key : repo.data.value['--id'], label : repo.label }];
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1A), {
+    header: _ctx.$t('models.' + unref(store).model + '.title')
+  }, {
+    icons: withCtx(() => [
+      (unref(store).route.audit)
+        ? (openBlock(), createBlock(script$w, {
+            key: 0,
+            repo: unref(repo)
+          }, null, 8 /* PROPS */, ["repo"]))
+        : createCommentVNode("v-if", true),
+      createVNode(script$12, {
+        name: __props.name,
+        single: true
+      }, null, 8 /* PROPS */, ["name"]),
+      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).route.settings.actions, (component) => {
+        return (openBlock(), createBlock(resolveDynamicComponent(component), {
+          data: unref(repo).data.value
+        }, null, 8 /* PROPS */, ["data"]))
+      }), 256 /* UNKEYED_FRAGMENT */))
+    ]),
+    default: withCtx(() => [
+      (unref(repo).data.value['--id'])
+        ? (openBlock(), createBlock(script$13, {
+            key: 0,
+            schema: unref(store).route.schema,
+            model: unref(store).model,
+            data: unref(repo).data.value,
+            method: "put"
+          }, null, 8 /* PROPS */, ["schema", "model", "data"]))
+        : createCommentVNode("v-if", true)
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["header"]))
+}
+}
+
+};
+
+script$v.__file = "presstojam/src/components/display.vue";
+
+var script$1$3 = {
   name: 'BreadcrumbItem',
   props: {
     item: null,
@@ -39645,18 +37780,18 @@ var script$1$1 = {
 
   }
 };
-const _hoisted_1$1$1 = ["href", "aria-current", "onClick"];
-const _hoisted_2$1$1 = {
+const _hoisted_1$1$3 = ["href", "aria-current", "onClick"];
+const _hoisted_2$1$3 = {
   key: 1,
   class: "p-menuitem-text"
 };
-const _hoisted_3$1$1 = ["href", "target", "aria-current"];
-const _hoisted_4$5 = {
+const _hoisted_3$1$3 = ["href", "target", "aria-current"];
+const _hoisted_4$a = {
   key: 1,
   class: "p-menuitem-text"
 };
 
-function render$1$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$1$3(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_router_link = resolveComponent("router-link");
 
   return $options.visible() ? (openBlock(), createElementBlock("li", {
@@ -39685,7 +37820,7 @@ function render$1$1(_ctx, _cache, $props, $setup, $data, $options) {
     }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
       key: 0,
       class: normalizeClass($options.iconClass)
-    }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_2$1$1, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_1$1$1)]),
+    }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_2$1$3, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_1$1$3)]),
     _: 1
   }, 8, ["to"])) : (openBlock(), createElementBlock("a", {
     key: 1,
@@ -39697,14 +37832,14 @@ function render$1$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
     key: 0,
     class: normalizeClass($options.iconClass)
-  }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_4$5, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_3$1$1))], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
+  }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_4$a, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_3$1$3))], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
     key: 1,
     item: $props.item
   }, null, 8, ["item"]))], 2)) : createCommentVNode("", true);
 }
 
-script$1$1.render = render$1$1;
-var script$i = {
+script$1$3.render = render$1$3;
+var script$u = {
   name: 'Breadcrumb',
   props: {
     model: {
@@ -39721,27 +37856,27 @@ var script$i = {
     }
   },
   components: {
-    BreadcrumbItem: script$1$1
+    BreadcrumbItem: script$1$3
   }
 };
-const _hoisted_1$5 = {
+const _hoisted_1$f = {
   class: "p-breadcrumb p-component"
 };
-const _hoisted_2$5 = {
+const _hoisted_2$b = {
   class: "p-breadcrumb-list"
 };
 
-const _hoisted_3$5 = /*#__PURE__*/createElementVNode("li", {
+const _hoisted_3$a = /*#__PURE__*/createElementVNode("li", {
   class: "p-menuitem-separator"
 }, [/*#__PURE__*/createElementVNode("span", {
   class: "pi pi-chevron-right",
   "aria-hidden": "true"
 })], -1);
 
-function render$6(_ctx, _cache, $props, $setup, $data, $options) {
+function render$b(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_BreadcrumbItem = resolveComponent("BreadcrumbItem");
 
-  return openBlock(), createElementBlock("nav", _hoisted_1$5, [createElementVNode("ol", _hoisted_2$5, [$props.home ? (openBlock(), createBlock(_component_BreadcrumbItem, {
+  return openBlock(), createElementBlock("nav", _hoisted_1$f, [createElementVNode("ol", _hoisted_2$b, [$props.home ? (openBlock(), createBlock(_component_BreadcrumbItem, {
     key: 0,
     item: $props.home,
     class: "p-breadcrumb-home",
@@ -39750,7 +37885,7 @@ function render$6(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["item", "template", "exact"])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList($props.model, item => {
     return openBlock(), createElementBlock(Fragment, {
       key: item.label
-    }, [_hoisted_3$5, createVNode(_component_BreadcrumbItem, {
+    }, [_hoisted_3$a, createVNode(_component_BreadcrumbItem, {
       item: item,
       template: _ctx.$slots.item,
       exact: $props.exact
@@ -39758,7 +37893,7 @@ function render$6(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128))])]);
 }
 
-function styleInject$3(css, ref) {
+function styleInject$6(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -39787,17 +37922,17 @@ function styleInject$3(css, ref) {
   }
 }
 
-var css_248z$7 = "\n.p-breadcrumb {\n    overflow-x: auto;\n}\n.p-breadcrumb .p-breadcrumb-list {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-breadcrumb .p-menuitem-text {\n    line-height: 1;\n}\n.p-breadcrumb .p-menuitem-link {\n    text-decoration: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb .p-menuitem-separator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb::-webkit-scrollbar {\n    display: none;\n}\n";
-styleInject$3(css_248z$7);
-script$i.render = render$6;
+var css_248z$d = "\n.p-breadcrumb {\n    overflow-x: auto;\n}\n.p-breadcrumb .p-breadcrumb-list {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-breadcrumb .p-menuitem-text {\n    line-height: 1;\n}\n.p-breadcrumb .p-menuitem-link {\n    text-decoration: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb .p-menuitem-separator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb::-webkit-scrollbar {\n    display: none;\n}\n";
+styleInject$6(css_248z$d);
+script$u.render = render$b;
 
-const _hoisted_1$4 = ["href", "onClick"];
-const _hoisted_2$4 = { class: "p-menuitem-text" };
-const _hoisted_3$4 = { class: "row" };
-const _hoisted_4$4 = /*#__PURE__*/createTextVNode();
+const _hoisted_1$e = ["href", "onClick"];
+const _hoisted_2$a = { class: "p-menuitem-text" };
+const _hoisted_3$9 = { class: "row" };
+const _hoisted_4$9 = /*#__PURE__*/createTextVNode();
 
 
-var script$h = {
+var script$t = {
   props: {
     item : Object
 },
@@ -39837,13 +37972,13 @@ return (_ctx, _cache) => {
                 class: normalizeClass(["pi", __props.item.icon])
               }, null, 2 /* CLASS */))
             : createCommentVNode("v-if", true),
-          createElementVNode("span", _hoisted_2$4, toDisplayString$1(__props.item.label), 1 /* TEXT */)
-        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$4)
+          createElementVNode("span", _hoisted_2$a, toDisplayString$1(__props.item.label), 1 /* TEXT */)
+        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$e)
       ]),
       _: 1 /* STABLE */
     }, 8 /* PROPS */, ["to"]),
     (__props.item.info)
-      ? (openBlock(), createBlock(unref(script$F), {
+      ? (openBlock(), createBlock(unref(script$P), {
           key: 0,
           ref_key: "info",
           ref: info,
@@ -39852,9 +37987,9 @@ return (_ctx, _cache) => {
           default: withCtx(() => [
             (openBlock(true), createElementBlock(Fragment, null, renderList(__props.item.info, (row) => {
               return (openBlock(), createElementBlock("dl", null, [
-                createElementVNode("div", _hoisted_3$4, [
+                createElementVNode("div", _hoisted_3$9, [
                   createElementVNode("dt", null, toDisplayString$1(row.label), 1 /* TEXT */),
-                  _hoisted_4$4,
+                  _hoisted_4$9,
                   createElementVNode("dd", null, toDisplayString$1(row.value), 1 /* TEXT */)
                 ])
               ]))
@@ -39869,13 +38004,13 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$6 = "\ndl[data-v-0b46fb32] {\r\n        position : relative;\r\n        display: flex;\r\n        flex-direction: column;\n}\ndt[data-v-0b46fb32] {\r\n        float : left;\r\n        font-weight : 700;\r\n        width : 50%\n}\ndd[data-v-0b46fb32] {\r\n        position : relative;\r\n        margin-left : 50%;\r\n        padding : 2px;\n}\ndl > div[data-v-0b46fb32] {\r\n        position : relative;\r\n        clear : both;\r\n        display : block;\n}\r\n";
-styleInject$r(css_248z$6);
+var css_248z$c = "\ndl[data-v-0b46fb32] {\r\n        position : relative;\r\n        display: flex;\r\n        flex-direction: column;\n}\ndt[data-v-0b46fb32] {\r\n        float : left;\r\n        font-weight : 700;\r\n        width : 50%\n}\ndd[data-v-0b46fb32] {\r\n        position : relative;\r\n        margin-left : 50%;\r\n        padding : 2px;\n}\ndl > div[data-v-0b46fb32] {\r\n        position : relative;\r\n        clear : both;\r\n        display : block;\n}\r\n";
+styleInject$8(css_248z$c);
 
-script$h.__scopeId = "data-v-0b46fb32";
-script$h.__file = "presstojam/src/components/slugtrail/crumb.vue";
+script$t.__scopeId = "data-v-0b46fb32";
+script$t.__file = "presstojam/src/components/slugtrail/crumb.vue";
 
-var script$g = {
+var script$s = {
   props: {
     name : String
 },
@@ -39968,12 +38103,12 @@ let crumbs = computed(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$i), {
+  return (openBlock(), createBlock(unref(script$u), {
     home: home,
     model: unref(crumbs)
   }, {
     item: withCtx(({item}) => [
-      createVNode(script$h, { item: item }, null, 8 /* PROPS */, ["item"])
+      createVNode(script$t, { item: item }, null, 8 /* PROPS */, ["item"])
     ]),
     _: 1 /* STABLE */
   }, 8 /* PROPS */, ["model"]))
@@ -39982,22 +38117,3265 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$5 = "\n.slug-trail-vue-vue-type-style-index-0-id-027b103d-scoped-true-lang_p-breadcrumb__D8PaD[data-v-027b103d] {\r\n    background: #ffffff;\r\n    border: 1px solid #dee2e6;\r\n    border-radius: 6px;\r\n    padding: 1rem;\n}\r\n";
-styleInject$r(css_248z$5);
+var css_248z$b = "\n.slug-trail-vue-vue-type-style-index-0-id-027b103d-scoped-true-lang_p-breadcrumb__D8PaD[data-v-027b103d] {\r\n    background: #ffffff;\r\n    border: 1px solid #dee2e6;\r\n    border-radius: 6px;\r\n    padding: 1rem;\n}\r\n";
+styleInject$8(css_248z$b);
 
-script$g.__scopeId = "data-v-027b103d";
-script$g.__file = "presstojam/src/components/slugtrail/slug-trail.vue";
+script$s.__scopeId = "data-v-027b103d";
+script$s.__file = "presstojam/src/components/slugtrail/slug-trail.vue";
 
 var slugTrail = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$g
+    'default': script$s
+});
+
+var script$r = {
+  props: {
+    model : String,
+    base : String
+},
+  setup(__props) {
+
+const props = __props;
+
+const i18n = inject("i18n");
+const t = i18n.t;
+
+
+
+/*
+<TabPanel v-for="child in store.route.children" :header="child">
+            <PtjChildPanel :parent="store.active['--id']" :model="child" />
+        </TabPanel>
+*/
+
+
+
+const store = getStoreById(props.model);
+
+const repo = createFirstStore(store);
+regStore(props.model, repo);
+repo.load()
+.catch(e => console.log(e));
+
+
+const label = computed(() => {
+    return t('models.' + props.model + '.title') + ': ' + repo.label.value;
+});
+
+if (store.route && store.route.settings.active && store.route.settings.active.mounted) {
+    onMounted(() => {
+        store.route.settings.active.mounted(store);
+    });
+}
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    createVNode(script$s, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$1A), { header: unref(label) }, {
+      default: withCtx(() => [
+        createVNode(script$v, {
+          name: props.model
+        }, null, 8 /* PROPS */, ["name"])
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["header"])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$r.__file = "presstojam/src/components/active/single.vue";
+
+const _hoisted_1$d = /*#__PURE__*/createTextVNode(" Login ");
+const _hoisted_2$9 = { class: "ptj-login" };
+const _hoisted_3$8 = { class: "field row" };
+const _hoisted_4$8 = { class: "p-float-label" };
+const _hoisted_5$6 = /*#__PURE__*/createElementVNode("label", { for: "lusername" }, "Username", -1 /* HOISTED */);
+const _hoisted_6$5 = { class: "field row" };
+const _hoisted_7$3 = { class: "p-float-label" };
+const _hoisted_8$2 = /*#__PURE__*/createElementVNode("label", { for: "lpassword" }, "Password", -1 /* HOISTED */);
+const _hoisted_9$1 = { class: "row" };
+const _hoisted_10$1 = { class: "ptj-register" };
+const _hoisted_11$1 = { class: "row" };
+const _hoisted_12$1 = { class: "p-float-label" };
+const _hoisted_13$1 = /*#__PURE__*/createElementVNode("label", { for: "cusername" }, "Username", -1 /* HOISTED */);
+const _hoisted_14$1 = { class: "row" };
+const _hoisted_15 = { class: "p-float-label" };
+const _hoisted_16 = /*#__PURE__*/createElementVNode("label", { for: "cpassword" }, "Password", -1 /* HOISTED */);
+const _hoisted_17 = { class: "row" };
+const _hoisted_18 = { class: "p-float-label" };
+const _hoisted_19 = /*#__PURE__*/createElementVNode("label", { for: "cconfirm_password" }, "Confirm Password", -1 /* HOISTED */);
+const _hoisted_20 = { class: "row" };
+const _hoisted_21 = { class: "ptj-register" };
+const _hoisted_22 = { class: "row" };
+const _hoisted_23 = { class: "p-float-label" };
+const _hoisted_24 = /*#__PURE__*/createElementVNode("label", { for: "fusername" }, "Username", -1 /* HOISTED */);
+const _hoisted_25 = { class: "row" };
+const _hoisted_26 = { class: "row" };
+const _hoisted_27 = /*#__PURE__*/createTextVNode(" | ");
+const _hoisted_28 = /*#__PURE__*/createTextVNode(" | ");
+
+
+
+var script$q = {
+  props: {
+    actions : []
+},
+  setup(__props) {
+
+const Client = inject("client");
+const expected_user = configs.get("profile");
+const i18n = inject("i18n");
+const t = i18n.t;
+const base = configs.get("base");
+
+
+
+
+const store = reactive({
+    state : 'login',
+    active : true,
+    email : "",
+    password : "",
+    confirm_password : "",
+    globalerror : ''
+});
+
+function toggleState(state) {
+    store.state = state;
+}
+
+
+function login(username, password) {
+    const formData = new FormData();
+    formData.append("email", username);
+    formData.append("password", password);
+    return Client.post("/user/login/" + expected_user, formData)
+}
+
+
+
+function forgotPassword(username) {
+    const formData = new FormData();
+    formData.append("email", username);
+    return Client.post("/user/login/" + expected_user + "/forgotpassword", formData );
+}
+
+
+function createUser(name, username, password) {
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", username);
+    formData.append("password", password);
+    return Client.post("/user/login/" + expected_user, formData)
+}
+
+
+
+
+function submit() {
+    store.active = false;
+    store.globalerror = "";
+    if (store.state == "login") {
+        login(store.email, store.password)
+        .then(() => {
+            location.href = base + "/";
+        })
+        .catch(e => {
+            store.globalerror = "Incorrect username / password";
+        });
+    } else if (store.state == "forgotpassword") {
+        forgotPassword(store.username)
+        .catch(e => {
+            store.globalerror = "This user doesn't exist";
+        });
+    } else {
+        createUser(store.username, store.password)
+        .catch(e => {
+            store.applyErrors(e);
+        });
+    }
+} 
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$10), null, {
+    title: withCtx(() => [
+      _hoisted_1$d
+    ]),
+    content: withCtx(() => [
+      createElementVNode("div", _hoisted_2$9, [
+        withDirectives(createElementVNode("form", null, [
+          withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(unref(store).globalerror), 513 /* TEXT, NEED_PATCH */), [
+            [vShow, unref(store).globalerror]
+          ]),
+          createElementVNode("div", _hoisted_3$8, [
+            createElementVNode("span", _hoisted_4$8, [
+              createVNode(unref(script$1y), {
+                id: "lusername",
+                type: "text",
+                modelValue: unref(store).email,
+                "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((unref(store).email) = $event))
+              }, null, 8 /* PROPS */, ["modelValue"]),
+              _hoisted_5$6
+            ])
+          ]),
+          createElementVNode("div", _hoisted_6$5, [
+            createElementVNode("span", _hoisted_7$3, [
+              createVNode(unref(script$1y), {
+                id: "lpassword",
+                type: "password",
+                modelValue: unref(store).password,
+                "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((unref(store).password) = $event))
+              }, null, 8 /* PROPS */, ["modelValue"]),
+              _hoisted_8$2
+            ])
+          ]),
+          createElementVNode("div", _hoisted_9$1, [
+            createVNode(unref(script$1z), {
+              label: unref(t)('btns.login'),
+              onClick: submit
+            }, null, 8 /* PROPS */, ["label"])
+          ])
+        ], 512 /* NEED_PATCH */), [
+          [vShow, unref(store).state=='login']
+        ]),
+        withDirectives(createElementVNode("form", _hoisted_10$1, [
+          withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(unref(store).globalerror), 513 /* TEXT, NEED_PATCH */), [
+            [vShow, unref(store).globalerror]
+          ]),
+          createElementVNode("div", _hoisted_11$1, [
+            createElementVNode("span", _hoisted_12$1, [
+              createVNode(unref(script$1y), {
+                id: "cusername",
+                type: "text",
+                modelValue: unref(store).username,
+                "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => ((unref(store).username) = $event))
+              }, null, 8 /* PROPS */, ["modelValue"]),
+              _hoisted_13$1
+            ])
+          ]),
+          createElementVNode("div", _hoisted_14$1, [
+            createElementVNode("span", _hoisted_15, [
+              createVNode(unref(script$1y), {
+                id: "cpassword",
+                type: "password",
+                modelValue: unref(store).password,
+                "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => ((unref(store).password) = $event))
+              }, null, 8 /* PROPS */, ["modelValue"]),
+              _hoisted_16
+            ])
+          ]),
+          createElementVNode("div", _hoisted_17, [
+            createElementVNode("span", _hoisted_18, [
+              createVNode(unref(script$1y), {
+                id: "cconfirm_password",
+                type: "password",
+                modelValue: unref(store).confirm_password,
+                "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => ((unref(store).confirm_password) = $event))
+              }, null, 8 /* PROPS */, ["modelValue"]),
+              _hoisted_19
+            ])
+          ]),
+          createElementVNode("div", _hoisted_20, [
+            createVNode(unref(script$1z), {
+              label: unref(t)('btns.create'),
+              onClick: submit
+            }, null, 8 /* PROPS */, ["label"])
+          ])
+        ], 512 /* NEED_PATCH */), [
+          [vShow, unref(store).state=='create']
+        ]),
+        withDirectives(createElementVNode("form", _hoisted_21, [
+          withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(unref(store).globalerror), 513 /* TEXT, NEED_PATCH */), [
+            [vShow, unref(store).globalerror]
+          ]),
+          createElementVNode("div", _hoisted_22, [
+            createElementVNode("span", _hoisted_23, [
+              createVNode(unref(script$1y), {
+                id: "fusername",
+                type: "text",
+                modelValue: unref(store).username,
+                "onUpdate:modelValue": _cache[5] || (_cache[5] = $event => ((unref(store).username) = $event))
+              }, null, 8 /* PROPS */, ["modelValue"]),
+              _hoisted_24
+            ])
+          ]),
+          createElementVNode("div", _hoisted_25, [
+            createVNode(unref(script$1z), {
+              label: unref(t)('btns.forgot'),
+              onClick: submit
+            }, null, 8 /* PROPS */, ["label"])
+          ])
+        ], 512 /* NEED_PATCH */), [
+          [vShow, unref(store).state=='forgotpassword']
+        ]),
+        createElementVNode("div", _hoisted_26, [
+          createElementVNode("a", {
+            onClick: _cache[6] || (_cache[6] = $event => (toggleState('login')))
+          }, "Login"),
+          _hoisted_27,
+          createElementVNode("a", {
+            onClick: _cache[7] || (_cache[7] = $event => (toggleState('create')))
+          }, "Register"),
+          _hoisted_28,
+          createElementVNode("a", {
+            onClick: _cache[8] || (_cache[8] = $event => (toggleState('forgotpassword')))
+          }, "Forgotten password?")
+        ])
+      ])
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+var css_248z$a = "\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v {\r\n        width : 450px;\r\n        margin-left : auto;\r\n        margin-right : auto;\n}\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v > form > div {\r\n        margin-bottom :28px;\n}\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v input {\r\n        width : 100%;\n}\r\n";
+styleInject$8(css_248z$a);
+
+script$q.__file = "presstojam/src/components/login/login.vue";
+
+var login = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    'default': script$q
+});
+
+function render$a(_ctx, _cache) {
+  const _component_router_view = resolveComponent("router-view");
+
+  return (openBlock(), createBlock(_component_router_view, null, {
+    default: withCtx(({ Component, route }) => [
+      createVNode(Transition, {
+        name: "fade",
+        mode: "out-in"
+      }, {
+        default: withCtx(() => [
+          (openBlock(), createBlock(resolveDynamicComponent(Component), {
+            atts: route.params,
+            key: route.model + route.id
+          }, null, 8 /* PROPS */, ["atts"]))
+        ]),
+        _: 2 /* DYNAMIC */
+      }, 1024 /* DYNAMIC_SLOTS */)
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+
+var css_248z$9 = "\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  transition-property: opacity;\r\n  transition-duration: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs {\r\n  transition-delay: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter__T5pru, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  opacity: 0\n}\r\n";
+styleInject$8(css_248z$9);
+
+const script$p = {};
+
+script$p.render = render$a;
+script$p.__file = "presstojam/src/components/routes.vue";
+
+var script$1$2 = {
+  name: 'MenubarSub',
+  emits: ['item-mouseenter', 'item-click'],
+  props: {
+    items: {
+      type: Array,
+      default: null
+    },
+    root: {
+      type: Boolean,
+      default: false
+    },
+    popup: {
+      type: Boolean,
+      default: false
+    },
+    mobileActive: {
+      type: Boolean,
+      default: false
+    },
+    template: {
+      type: Function,
+      default: null
+    },
+    exact: {
+      type: Boolean,
+      default: true
+    },
+    level: {
+      type: Number,
+      default: 0
+    },
+    menuId: {
+      type: String,
+      default: null
+    },
+    focusedItemId: {
+      type: String,
+      default: null
+    },
+    activeItemPath: {
+      type: Object,
+      default: null
+    }
+  },
+  list: null,
+  methods: {
+    getItemId(processedItem) {
+      return `${this.menuId}_${processedItem.key}`;
+    },
+
+    getItemKey(processedItem) {
+      return this.getItemId(processedItem);
+    },
+
+    getItemProp(processedItem, name) {
+      return processedItem && processedItem.item ? ObjectUtils.getItemValue(processedItem.item[name]) : undefined;
+    },
+
+    getItemLabel(processedItem) {
+      return this.getItemProp(processedItem, 'label');
+    },
+
+    isItemActive(processedItem) {
+      return this.activeItemPath.some(path => path.key === processedItem.key);
+    },
+
+    isItemVisible(processedItem) {
+      return this.getItemProp(processedItem, 'visible') !== false;
+    },
+
+    isItemDisabled(processedItem) {
+      return this.getItemProp(processedItem, 'disabled');
+    },
+
+    isItemFocused(processedItem) {
+      return this.focusedItemId === this.getItemId(processedItem);
+    },
+
+    isItemGroup(processedItem) {
+      return ObjectUtils.isNotEmpty(processedItem.items);
+    },
+
+    onItemClick(event, processedItem) {
+      const command = this.getItemProp(processedItem, 'command');
+      command && command({
+        originalEvent: event,
+        item: processedItem.item
+      });
+      this.$emit('item-click', {
+        originalEvent: event,
+        processedItem,
+        isFocus: true
+      });
+    },
+
+    onItemMouseEnter(event, processedItem) {
+      this.$emit('item-mouseenter', {
+        originalEvent: event,
+        processedItem
+      });
+    },
+
+    onItemActionClick(event, navigate) {
+      navigate && navigate(event);
+    },
+
+    getAriaSetSize() {
+      return this.items.filter(processedItem => this.isItemVisible(processedItem) && !this.getItemProp(processedItem, 'separator')).length;
+    },
+
+    getAriaPosInset(index) {
+      return index - this.items.slice(0, index).filter(processedItem => this.isItemVisible(processedItem) && this.getItemProp(processedItem, 'separator')).length + 1;
+    },
+
+    getItemClass(processedItem) {
+      return ['p-menuitem', this.getItemProp(processedItem, 'class'), {
+        'p-menuitem-active p-highlight': this.isItemActive(processedItem),
+        'p-focus': this.isItemFocused(processedItem),
+        'p-disabled': this.isItemDisabled(processedItem)
+      }];
+    },
+
+    getItemActionClass(processedItem, routerProps) {
+      return ['p-menuitem-link', {
+        'router-link-active': routerProps && routerProps.isActive,
+        'router-link-active-exact': this.exact && routerProps && routerProps.isExactActive
+      }];
+    },
+
+    getItemIconClass(processedItem) {
+      return ['p-menuitem-icon', this.getItemProp(processedItem, 'icon')];
+    },
+
+    getSeparatorItemClass(processedItem) {
+      return ['p-menuitem-separator', this.getItemProp(processedItem, 'class')];
+    },
+
+    getSubmenuIcon() {
+      return ['p-submenu-icon pi', {
+        'pi-angle-right': !this.root,
+        'pi-angle-down': this.root
+      }];
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return {
+        'p-submenu-list': !this.root,
+        'p-menubar-root-list': this.root
+      };
+    }
+
+  },
+  directives: {
+    ripple: Ripple
+  }
+};
+const _hoisted_1$1$2 = ["id", "aria-label", "aria-disabled", "aria-expanded", "aria-haspopup", "aria-level", "aria-setsize", "aria-posinset"];
+const _hoisted_2$1$2 = ["onClick", "onMouseenter"];
+const _hoisted_3$1$2 = ["href", "onClick"];
+const _hoisted_4$1$1 = {
+  class: "p-menuitem-text"
+};
+const _hoisted_5$1$1 = ["href", "target"];
+const _hoisted_6$4 = {
+  class: "p-menuitem-text"
+};
+const _hoisted_7$2 = ["id"];
+
+function render$1$2(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_router_link = resolveComponent("router-link");
+
+  const _component_MenubarSub = resolveComponent("MenubarSub", true);
+
+  const _directive_ripple = resolveDirective("ripple");
+
+  return openBlock(), createElementBlock("ul", null, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.items, (processedItem, index) => {
+    return openBlock(), createElementBlock(Fragment, {
+      key: $options.getItemKey(processedItem)
+    }, [$options.isItemVisible(processedItem) && !$options.getItemProp(processedItem, 'separator') ? (openBlock(), createElementBlock("li", {
+      key: 0,
+      id: $options.getItemId(processedItem),
+      style: normalizeStyle($options.getItemProp(processedItem, 'style')),
+      class: normalizeClass($options.getItemClass(processedItem)),
+      role: "menuitem",
+      "aria-label": $options.getItemLabel(processedItem),
+      "aria-disabled": $options.isItemDisabled(processedItem) || undefined,
+      "aria-expanded": $options.isItemGroup(processedItem) ? $options.isItemActive(processedItem) : undefined,
+      "aria-haspopup": $options.isItemGroup(processedItem) && !$options.getItemProp(processedItem, 'to') ? 'menu' : undefined,
+      "aria-level": $props.level + 1,
+      "aria-setsize": $options.getAriaSetSize(),
+      "aria-posinset": $options.getAriaPosInset(index)
+    }, [createElementVNode("div", {
+      class: "p-menuitem-content",
+      onClick: $event => $options.onItemClick($event, processedItem),
+      onMouseenter: $event => $options.onItemMouseEnter($event, processedItem)
+    }, [!$props.template ? (openBlock(), createElementBlock(Fragment, {
+      key: 0
+    }, [$options.getItemProp(processedItem, 'to') && !$options.isItemDisabled(processedItem) ? (openBlock(), createBlock(_component_router_link, {
+      key: 0,
+      to: $options.getItemProp(processedItem, 'to'),
+      custom: ""
+    }, {
+      default: withCtx(({
+        navigate,
+        href,
+        isActive,
+        isExactActive
+      }) => [withDirectives((openBlock(), createElementBlock("a", {
+        href: href,
+        class: normalizeClass($options.getItemActionClass(processedItem, {
+          isActive,
+          isExactActive
+        })),
+        tabindex: "-1",
+        "aria-hidden": "true",
+        onClick: $event => $options.onItemActionClick($event, navigate)
+      }, [$options.getItemProp(processedItem, 'icon') ? (openBlock(), createElementBlock("span", {
+        key: 0,
+        class: normalizeClass($options.getItemIconClass(processedItem))
+      }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_4$1$1, toDisplayString$1($options.getItemLabel(processedItem)), 1)], 10, _hoisted_3$1$2)), [[_directive_ripple]])]),
+      _: 2
+    }, 1032, ["to"])) : withDirectives((openBlock(), createElementBlock("a", {
+      key: 1,
+      href: $options.getItemProp(processedItem, 'url'),
+      class: normalizeClass($options.getItemActionClass(processedItem)),
+      target: $options.getItemProp(processedItem, 'target'),
+      tabindex: "-1",
+      "aria-hidden": "true"
+    }, [$options.getItemProp(processedItem, 'icon') ? (openBlock(), createElementBlock("span", {
+      key: 0,
+      class: normalizeClass($options.getItemIconClass(processedItem))
+    }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_6$4, toDisplayString$1($options.getItemLabel(processedItem)), 1), $options.getItemProp(processedItem, 'items') ? (openBlock(), createElementBlock("span", {
+      key: 1,
+      class: normalizeClass($options.getSubmenuIcon())
+    }, null, 2)) : createCommentVNode("", true)], 10, _hoisted_5$1$1)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
+      key: 1,
+      item: processedItem.item
+    }, null, 8, ["item"]))], 40, _hoisted_2$1$2), $options.isItemVisible(processedItem) && $options.isItemGroup(processedItem) ? (openBlock(), createBlock(_component_MenubarSub, {
+      key: 0,
+      menuId: $props.menuId,
+      role: "menu",
+      class: "p-submenu-list",
+      focusedItemId: $props.focusedItemId,
+      items: processedItem.items,
+      mobileActive: $props.mobileActive,
+      activeItemPath: $props.activeItemPath,
+      template: $props.template,
+      exact: $props.exact,
+      level: $props.level + 1,
+      onItemClick: _cache[0] || (_cache[0] = $event => _ctx.$emit('item-click', $event)),
+      onItemMouseenter: _cache[1] || (_cache[1] = $event => _ctx.$emit('item-mouseenter', $event))
+    }, null, 8, ["menuId", "focusedItemId", "items", "mobileActive", "activeItemPath", "template", "exact", "level"])) : createCommentVNode("", true)], 14, _hoisted_1$1$2)) : createCommentVNode("", true), $options.isItemVisible(processedItem) && $options.getItemProp(processedItem, 'separator') ? (openBlock(), createElementBlock("li", {
+      key: 1,
+      id: $options.getItemId(processedItem),
+      style: normalizeStyle($options.getItemProp(processedItem, 'style')),
+      class: normalizeClass($options.getSeparatorItemClass(processedItem)),
+      role: "separator"
+    }, null, 14, _hoisted_7$2)) : createCommentVNode("", true)], 64);
+  }), 128))]);
+}
+
+script$1$2.render = render$1$2;
+var script$o = {
+  name: 'Menubar',
+  emits: ['focus', 'blur'],
+  props: {
+    model: {
+      type: Array,
+      default: null
+    },
+    exact: {
+      type: Boolean,
+      default: true
+    },
+    buttonProps: {
+      type: null,
+      default: null
+    },
+    'aria-labelledby': {
+      type: String,
+      default: null
+    },
+    'aria-label': {
+      type: String,
+      default: null
+    }
+  },
+
+  data() {
+    return {
+      mobileActive: false,
+      focused: false,
+      focusedItemInfo: {
+        index: -1,
+        level: 0,
+        parentKey: ''
+      },
+      activeItemPath: [],
+      dirty: false
+    };
+  },
+
+  watch: {
+    activeItemPath(newPath) {
+      if (ObjectUtils.isNotEmpty(newPath)) {
+        this.bindOutsideClickListener();
+        this.bindResizeListener();
+      } else {
+        this.unbindOutsideClickListener();
+        this.unbindResizeListener();
+      }
+    }
+
+  },
+  outsideClickListener: null,
+  container: null,
+  menubar: null,
+
+  beforeUnmount() {
+    this.mobileActive = false;
+    this.unbindOutsideClickListener();
+    this.unbindResizeListener();
+
+    if (this.container) {
+      ZIndexUtils.clear(this.container);
+    }
+
+    this.container = null;
+  },
+
+  methods: {
+    getItemProp(item, name) {
+      return item ? ObjectUtils.getItemValue(item[name]) : undefined;
+    },
+
+    getItemLabel(item) {
+      return this.getItemProp(item, 'label');
+    },
+
+    isItemDisabled(item) {
+      return this.getItemProp(item, 'disabled');
+    },
+
+    isItemGroup(item) {
+      return ObjectUtils.isNotEmpty(this.getItemProp(item, 'items'));
+    },
+
+    isItemSeparator(item) {
+      return this.getItemProp(item, 'separator');
+    },
+
+    getProccessedItemLabel(processedItem) {
+      return processedItem ? this.getItemLabel(processedItem.item) : undefined;
+    },
+
+    isProccessedItemGroup(processedItem) {
+      return processedItem && ObjectUtils.isNotEmpty(processedItem.items);
+    },
+
+    toggle(event) {
+      if (this.mobileActive) {
+        this.mobileActive = false;
+        ZIndexUtils.clear(this.menubar);
+        this.hide();
+      } else {
+        this.mobileActive = true;
+        ZIndexUtils.set('menu', this.menubar, this.$primevue.config.zIndex.menu);
+        setTimeout(() => {
+          this.show();
+        }, 0);
+      }
+
+      this.bindOutsideClickListener();
+      event.preventDefault();
+    },
+
+    show() {
+      this.focusedItemInfo = {
+        index: this.findFirstFocusedItemIndex(),
+        level: 0,
+        parentKey: ''
+      };
+      DomHandler.focus(this.menubar);
+    },
+
+    hide(event, isFocus) {
+      if (this.mobileActive) {
+        setTimeout(() => {
+          DomHandler.focus(this.$refs.menubutton);
+        }, 0);
+      }
+
+      this.activeItemPath = [];
+      this.focusedItemInfo = {
+        index: -1,
+        level: 0,
+        parentKey: ''
+      };
+      isFocus && DomHandler.focus(this.menubar);
+      this.dirty = false;
+    },
+
+    onFocus(event) {
+      this.focused = true;
+      this.focusedItemInfo = this.focusedItemInfo.index !== -1 ? this.focusedItemInfo : {
+        index: this.findFirstFocusedItemIndex(),
+        level: 0,
+        parentKey: ''
+      };
+      this.$emit('focus', event);
+    },
+
+    onBlur(event) {
+      this.focused = false;
+      this.focusedItemInfo = {
+        index: -1,
+        level: 0,
+        parentKey: ''
+      };
+      this.searchValue = '';
+      this.dirty = false;
+      this.$emit('blur', event);
+    },
+
+    onKeyDown(event) {
+      const metaKey = event.metaKey || event.ctrlKey;
+
+      switch (event.code) {
+        case 'ArrowDown':
+          this.onArrowDownKey(event);
+          break;
+
+        case 'ArrowUp':
+          this.onArrowUpKey(event);
+          break;
+
+        case 'ArrowLeft':
+          this.onArrowLeftKey(event);
+          break;
+
+        case 'ArrowRight':
+          this.onArrowRightKey(event);
+          break;
+
+        case 'Home':
+          this.onHomeKey(event);
+          break;
+
+        case 'End':
+          this.onEndKey(event);
+          break;
+
+        case 'Space':
+          this.onSpaceKey(event);
+          break;
+
+        case 'Enter':
+          this.onEnterKey(event);
+          break;
+
+        case 'Escape':
+          this.onEscapeKey(event);
+          break;
+
+        case 'Tab':
+          this.onTabKey(event);
+          break;
+
+        case 'PageDown':
+        case 'PageUp':
+        case 'Backspace':
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          //NOOP
+          break;
+
+        default:
+          if (!metaKey && ObjectUtils.isPrintableCharacter(event.key)) {
+            this.searchItems(event, event.key);
+          }
+
+          break;
+      }
+    },
+
+    onItemChange(event) {
+      const {
+        processedItem,
+        isFocus
+      } = event;
+      if (ObjectUtils.isEmpty(processedItem)) return;
+      const {
+        index,
+        key,
+        level,
+        parentKey,
+        items
+      } = processedItem;
+      const grouped = ObjectUtils.isNotEmpty(items);
+      const activeItemPath = this.activeItemPath.filter(p => p.parentKey !== parentKey && p.parentKey !== key);
+      grouped && activeItemPath.push(processedItem);
+      this.focusedItemInfo = {
+        index,
+        level,
+        parentKey
+      };
+      this.activeItemPath = activeItemPath;
+      grouped && (this.dirty = true);
+      isFocus && DomHandler.focus(this.menubar);
+    },
+
+    onItemClick(event) {
+      const {
+        originalEvent,
+        processedItem
+      } = event;
+      const grouped = this.isProccessedItemGroup(processedItem);
+      const root = ObjectUtils.isEmpty(processedItem.parent);
+      const selected = this.isSelected(processedItem);
+
+      if (selected) {
+        const {
+          index,
+          key,
+          level,
+          parentKey
+        } = processedItem;
+        this.activeItemPath = this.activeItemPath.filter(p => key !== p.key && key.startsWith(p.key));
+        this.focusedItemInfo = {
+          index,
+          level,
+          parentKey
+        };
+        this.dirty = !root;
+        DomHandler.focus(this.menubar);
+      } else {
+        if (grouped) {
+          this.onItemChange(event);
+        } else {
+          this.hide(originalEvent, true);
+          this.mobileActive = false;
+        }
+      }
+    },
+
+    onItemMouseEnter(event) {
+      if (!this.mobileActive && this.dirty) {
+        this.onItemChange(event);
+      }
+    },
+
+    menuButtonClick(event) {
+      this.toggle(event);
+    },
+
+    menuButtonKeydown(event) {
+      (event.code === 'Enter' || event.code === 'Space') && this.menuButtonClick(event);
+    },
+
+    onArrowDownKey(event) {
+      const processedItem = this.visibleItems[this.focusedItemInfo.index];
+      const root = processedItem ? ObjectUtils.isEmpty(processedItem.parent) : null;
+
+      if (root) {
+        const grouped = this.isProccessedItemGroup(processedItem);
+
+        if (grouped) {
+          this.onItemChange({
+            originalEvent: event,
+            processedItem
+          });
+          this.focusedItemInfo = {
+            index: -1,
+            parentKey: processedItem.key
+          };
+          this.onArrowRightKey(event);
+        }
+      } else {
+        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findNextItemIndex(this.focusedItemInfo.index) : this.findFirstFocusedItemIndex();
+        this.changeFocusedItemIndex(event, itemIndex);
+        event.preventDefault();
+      }
+    },
+
+    onArrowUpKey(event) {
+      const processedItem = this.visibleItems[this.focusedItemInfo.index];
+      const root = ObjectUtils.isEmpty(processedItem.parent);
+
+      if (root) {
+        const grouped = this.isProccessedItemGroup(processedItem);
+
+        if (grouped) {
+          this.onItemChange({
+            originalEvent: event,
+            processedItem
+          });
+          this.focusedItemInfo = {
+            index: -1,
+            parentKey: processedItem.key
+          };
+          const itemIndex = this.findLastItemIndex();
+          this.changeFocusedItemIndex(event, itemIndex);
+        }
+      } else {
+        const parentItem = this.activeItemPath.find(p => p.key === processedItem.parentKey);
+
+        if (this.focusedItemInfo.index === 0) {
+          this.focusedItemInfo = {
+            index: -1,
+            parentKey: parentItem ? parentItem.parentKey : ''
+          };
+          this.searchValue = '';
+          this.onArrowLeftKey(event);
+          this.activeItemPath = this.activeItemPath.filter(p => p.parentKey !== this.focusedItemInfo.parentKey);
+        } else {
+          const itemIndex = this.focusedItemInfo.index !== -1 ? this.findPrevItemIndex(this.focusedItemInfo.index) : this.findLastFocusedItemIndex();
+          this.changeFocusedItemIndex(event, itemIndex);
+        }
+      }
+
+      event.preventDefault();
+    },
+
+    onArrowLeftKey(event) {
+      const processedItem = this.visibleItems[this.focusedItemInfo.index];
+      const parentItem = processedItem ? this.activeItemPath.find(p => p.key === processedItem.parentKey) : null;
+
+      if (parentItem) {
+        this.onItemChange({
+          originalEvent: event,
+          processedItem: parentItem
+        });
+        this.activeItemPath = this.activeItemPath.filter(p => p.parentKey !== this.focusedItemInfo.parentKey);
+        event.preventDefault();
+      } else {
+        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findPrevItemIndex(this.focusedItemInfo.index) : this.findLastFocusedItemIndex();
+        this.changeFocusedItemIndex(event, itemIndex);
+        event.preventDefault();
+      }
+    },
+
+    onArrowRightKey(event) {
+      const processedItem = this.visibleItems[this.focusedItemInfo.index];
+      const parentItem = processedItem ? this.activeItemPath.find(p => p.key === processedItem.parentKey) : null;
+
+      if (parentItem) {
+        const grouped = this.isProccessedItemGroup(processedItem);
+
+        if (grouped) {
+          this.onItemChange({
+            originalEvent: event,
+            processedItem
+          });
+          this.focusedItemInfo = {
+            index: -1,
+            parentKey: processedItem.key
+          };
+          this.onArrowDownKey(event);
+        }
+      } else {
+        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findNextItemIndex(this.focusedItemInfo.index) : this.findFirstFocusedItemIndex();
+        this.changeFocusedItemIndex(event, itemIndex);
+        event.preventDefault();
+      }
+    },
+
+    onHomeKey(event) {
+      this.changeFocusedItemIndex(event, this.findFirstItemIndex());
+      event.preventDefault();
+    },
+
+    onEndKey(event) {
+      this.changeFocusedItemIndex(event, this.findLastItemIndex());
+      event.preventDefault();
+    },
+
+    onEnterKey(event) {
+      if (this.focusedItemInfo.index !== -1) {
+        const element = DomHandler.findSingle(this.menubar, `li[id="${`${this.focusedItemId}`}"]`);
+        const anchorElement = element && DomHandler.findSingle(element, '.p-menuitem-link');
+        anchorElement ? anchorElement.click() : element && element.click();
+        const processedItem = this.visibleItems[this.focusedItemInfo.index];
+        const grouped = this.isProccessedItemGroup(processedItem);
+        !grouped && (this.focusedItemInfo.index = this.findFirstFocusedItemIndex());
+      }
+
+      event.preventDefault();
+    },
+
+    onSpaceKey(event) {
+      this.onEnterKey(event);
+    },
+
+    onEscapeKey(event) {
+      this.hide(event, true);
+      this.focusedItemInfo.index = this.findFirstFocusedItemIndex();
+      event.preventDefault();
+    },
+
+    onTabKey(event) {
+      if (this.focusedItemInfo.index !== -1) {
+        const processedItem = this.visibleItems[this.focusedItemInfo.index];
+        const grouped = this.isProccessedItemGroup(processedItem);
+        !grouped && this.onItemChange({
+          originalEvent: event,
+          processedItem
+        });
+      }
+
+      this.hide();
+    },
+
+    bindOutsideClickListener() {
+      if (!this.outsideClickListener) {
+        this.outsideClickListener = event => {
+          const isOutsideContainer = this.menubar !== event.target && !this.menubar.contains(event.target);
+          const isOutsideMenuButton = this.mobileActive && this.$refs.menubutton !== event.target && !this.$refs.menubutton.contains(event.target);
+
+          if (isOutsideContainer) {
+            isOutsideMenuButton ? this.mobileActive = false : this.hide();
+          }
+        };
+
+        document.addEventListener('click', this.outsideClickListener);
+      }
+    },
+
+    unbindOutsideClickListener() {
+      if (this.outsideClickListener) {
+        document.removeEventListener('click', this.outsideClickListener);
+        this.outsideClickListener = null;
+      }
+    },
+
+    bindResizeListener() {
+      if (!this.resizeListener) {
+        this.resizeListener = event => {
+          if (!DomHandler.isTouchDevice()) {
+            this.hide(event, true);
+          }
+
+          this.mobileActive = false;
+        };
+
+        window.addEventListener('resize', this.resizeListener);
+      }
+    },
+
+    unbindResizeListener() {
+      if (this.resizeListener) {
+        window.removeEventListener('resize', this.resizeListener);
+        this.resizeListener = null;
+      }
+    },
+
+    isItemMatched(processedItem) {
+      return this.isValidItem(processedItem) && this.getProccessedItemLabel(processedItem).toLocaleLowerCase().startsWith(this.searchValue.toLocaleLowerCase());
+    },
+
+    isValidItem(processedItem) {
+      return !!processedItem && !this.isItemDisabled(processedItem.item) && !this.isItemSeparator(processedItem.item);
+    },
+
+    isValidSelectedItem(processedItem) {
+      return this.isValidItem(processedItem) && this.isSelected(processedItem);
+    },
+
+    isSelected(processedItem) {
+      return this.activeItemPath.some(p => p.key === processedItem.key);
+    },
+
+    findFirstItemIndex() {
+      return this.visibleItems.findIndex(processedItem => this.isValidItem(processedItem));
+    },
+
+    findLastItemIndex() {
+      return ObjectUtils.findLastIndex(this.visibleItems, processedItem => this.isValidItem(processedItem));
+    },
+
+    findNextItemIndex(index) {
+      const matchedItemIndex = index < this.visibleItems.length - 1 ? this.visibleItems.slice(index + 1).findIndex(processedItem => this.isValidItem(processedItem)) : -1;
+      return matchedItemIndex > -1 ? matchedItemIndex + index + 1 : index;
+    },
+
+    findPrevItemIndex(index) {
+      const matchedItemIndex = index > 0 ? ObjectUtils.findLastIndex(this.visibleItems.slice(0, index), processedItem => this.isValidItem(processedItem)) : -1;
+      return matchedItemIndex > -1 ? matchedItemIndex : index;
+    },
+
+    findSelectedItemIndex() {
+      return this.visibleItems.findIndex(processedItem => this.isValidSelectedItem(processedItem));
+    },
+
+    findFirstFocusedItemIndex() {
+      const selectedIndex = this.findSelectedItemIndex();
+      return selectedIndex < 0 ? this.findFirstItemIndex() : selectedIndex;
+    },
+
+    findLastFocusedItemIndex() {
+      const selectedIndex = this.findSelectedItemIndex();
+      return selectedIndex < 0 ? this.findLastItemIndex() : selectedIndex;
+    },
+
+    searchItems(event, char) {
+      this.searchValue = (this.searchValue || '') + char;
+      let itemIndex = -1;
+      let matched = false;
+
+      if (this.focusedItemInfo.index !== -1) {
+        itemIndex = this.visibleItems.slice(this.focusedItemInfo.index).findIndex(processedItem => this.isItemMatched(processedItem));
+        itemIndex = itemIndex === -1 ? this.visibleItems.slice(0, this.focusedItemInfo.index).findIndex(processedItem => this.isItemMatched(processedItem)) : itemIndex + this.focusedItemInfo.index;
+      } else {
+        itemIndex = this.visibleItems.findIndex(processedItem => this.isItemMatched(processedItem));
+      }
+
+      if (itemIndex !== -1) {
+        matched = true;
+      }
+
+      if (itemIndex === -1 && this.focusedItemInfo.index === -1) {
+        itemIndex = this.findFirstFocusedItemIndex();
+      }
+
+      if (itemIndex !== -1) {
+        this.changeFocusedItemIndex(event, itemIndex);
+      }
+
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+
+      this.searchTimeout = setTimeout(() => {
+        this.searchValue = '';
+        this.searchTimeout = null;
+      }, 500);
+      return matched;
+    },
+
+    changeFocusedItemIndex(event, index) {
+      if (this.focusedItemInfo.index !== index) {
+        this.focusedItemInfo.index = index;
+        this.scrollInView();
+      }
+    },
+
+    scrollInView(index = -1) {
+      const id = index !== -1 ? `${this.id}_${index}` : this.focusedItemId;
+      const element = DomHandler.findSingle(this.menubar, `li[id="${id}"]`);
+
+      if (element) {
+        element.scrollIntoView && element.scrollIntoView({
+          block: 'nearest',
+          inline: 'start'
+        });
+      }
+    },
+
+    createProcessedItems(items, level = 0, parent = {}, parentKey = '') {
+      const processedItems = [];
+      items && items.forEach((item, index) => {
+        const key = (parentKey !== '' ? parentKey + '_' : '') + index;
+        const newItem = {
+          item,
+          index,
+          level,
+          key,
+          parent,
+          parentKey
+        };
+        newItem['items'] = this.createProcessedItems(item.items, level + 1, newItem, key);
+        processedItems.push(newItem);
+      });
+      return processedItems;
+    },
+
+    containerRef(el) {
+      this.container = el;
+    },
+
+    menubarRef(el) {
+      this.menubar = el ? el.$el : undefined;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-menubar p-component', {
+        'p-menubar-mobile-active': this.mobileActive
+      }];
+    },
+
+    processedItems() {
+      return this.createProcessedItems(this.model || []);
+    },
+
+    visibleItems() {
+      const processedItem = this.activeItemPath.find(p => p.key === this.focusedItemInfo.parentKey);
+      return processedItem ? processedItem.items : this.processedItems;
+    },
+
+    id() {
+      return this.$attrs.id || UniqueComponentId();
+    },
+
+    focusedItemId() {
+      return this.focusedItemInfo.index !== -1 ? `${this.id}${ObjectUtils.isNotEmpty(this.focusedItemInfo.parentKey) ? '_' + this.focusedItemInfo.parentKey : ''}_${this.focusedItemInfo.index}` : null;
+    }
+
+  },
+  components: {
+    MenubarSub: script$1$2
+  }
+};
+const _hoisted_1$c = {
+  key: 0,
+  class: "p-menubar-start"
+};
+const _hoisted_2$8 = ["aria-haspopup", "aria-expanded", "aria-controls", "aria-label"];
+
+const _hoisted_3$7 = /*#__PURE__*/createElementVNode("i", {
+  class: "pi pi-bars"
+}, null, -1);
+
+const _hoisted_4$7 = [_hoisted_3$7];
+const _hoisted_5$5 = {
+  key: 2,
+  class: "p-menubar-end"
+};
+
+function render$9(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_MenubarSub = resolveComponent("MenubarSub");
+
+  return openBlock(), createElementBlock("div", {
+    ref: $options.containerRef,
+    class: normalizeClass($options.containerClass)
+  }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_1$c, [renderSlot(_ctx.$slots, "start")])) : createCommentVNode("", true), $props.model.length > 0 ? (openBlock(), createElementBlock("a", mergeProps({
+    key: 1,
+    ref: "menubutton",
+    role: "button",
+    tabindex: "0",
+    class: "p-menubar-button",
+    "aria-haspopup": $props.model.length && $props.model.length > 0 ? true : false,
+    "aria-expanded": $data.mobileActive,
+    "aria-controls": $options.id,
+    "aria-label": _ctx.$primevue.config.locale.aria.navigation,
+    onClick: _cache[0] || (_cache[0] = $event => $options.menuButtonClick($event)),
+    onKeydown: _cache[1] || (_cache[1] = $event => $options.menuButtonKeydown($event))
+  }, $props.buttonProps), _hoisted_4$7, 16, _hoisted_2$8)) : createCommentVNode("", true), createVNode(_component_MenubarSub, {
+    ref: $options.menubarRef,
+    id: $options.id,
+    class: "p-menubar-root-list",
+    role: "menubar",
+    items: $options.processedItems,
+    template: _ctx.$slots.item,
+    root: true,
+    mobileActive: $data.mobileActive,
+    tabindex: "0",
+    "aria-activedescendant": $data.focused ? $options.focusedItemId : undefined,
+    menuId: $options.id,
+    focusedItemId: $data.focused ? $options.focusedItemId : undefined,
+    activeItemPath: $data.activeItemPath,
+    exact: $props.exact,
+    level: 0,
+    "aria-labelledby": _ctx.ariaLabelledby,
+    "aria-label": _ctx.ariaLabel,
+    onFocus: $options.onFocus,
+    onBlur: $options.onBlur,
+    onKeydown: $options.onKeyDown,
+    onItemClick: $options.onItemClick,
+    onItemMouseenter: $options.onItemMouseEnter
+  }, null, 8, ["id", "items", "template", "mobileActive", "aria-activedescendant", "menuId", "focusedItemId", "activeItemPath", "exact", "aria-labelledby", "aria-label", "onFocus", "onBlur", "onKeydown", "onItemClick", "onItemMouseenter"]), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_5$5, [renderSlot(_ctx.$slots, "end")])) : createCommentVNode("", true)], 2);
+}
+
+function styleInject$5(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$8 = "\n.p-menubar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-menubar ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menubar .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menubar .p-menuitem-text {\n    line-height: 1;\n}\n.p-menubar .p-menuitem {\n    position: relative;\n}\n.p-menubar-root-list {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-menubar-root-list > li ul {\n    display: none;\n    z-index: 1;\n}\n.p-menubar-root-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n}\n.p-menubar .p-submenu-list {\n    display: none;\n    position: absolute;\n    z-index: 1;\n}\n.p-menubar .p-submenu-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n    left: 100%;\n    top: 0;\n}\n.p-menubar .p-submenu-list .p-menuitem .p-menuitem-content .p-menuitem-link .p-submenu-icon {\n    margin-left: auto;\n}\n.p-menubar .p-menubar-end {\n    margin-left: auto;\n    -ms-flex-item-align: center;\n        align-self: center;\n}\n.p-menubar-button {\n    display: none;\n    cursor: pointer;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    text-decoration: none;\n}\n";
+styleInject$5(css_248z$8);
+script$o.render = render$9;
+
+var script$1$1 = {
+  name: 'Menuitem',
+  inheritAttrs: false,
+  emits: ['item-click'],
+  props: {
+    item: null,
+    template: null,
+    exact: null,
+    id: null,
+    focusedOptionId: null
+  },
+  methods: {
+    getItemProp(processedItem, name) {
+      return processedItem && processedItem.item ? ObjectUtils.getItemValue(processedItem.item[name]) : undefined;
+    },
+
+    onItemActionClick(event, navigate) {
+      navigate && navigate(event);
+    },
+
+    onItemClick(event) {
+      const command = this.getItemProp(this.item, 'command');
+      command && command({
+        originalEvent: event,
+        item: this.item.item
+      });
+      this.$emit('item-click', {
+        originalEvent: event,
+        item: this.item,
+        id: this.id
+      });
+    },
+
+    containerClass() {
+      return ['p-menuitem', this.item.class, {
+        'p-focus': this.id === this.focusedOptionId,
+        'p-disabled': this.disabled()
+      }];
+    },
+
+    linkClass(routerProps) {
+      return ['p-menuitem-link', {
+        'router-link-active': routerProps && routerProps.isActive,
+        'router-link-active-exact': this.exact && routerProps && routerProps.isExactActive
+      }];
+    },
+
+    visible() {
+      return typeof this.item.visible === 'function' ? this.item.visible() : this.item.visible !== false;
+    },
+
+    disabled() {
+      return typeof this.item.disabled === 'function' ? this.item.disabled() : this.item.disabled;
+    },
+
+    label() {
+      return typeof this.item.label === 'function' ? this.item.label() : this.item.label;
+    }
+
+  },
+  directives: {
+    ripple: Ripple
+  }
+};
+const _hoisted_1$1$1 = ["id", "aria-label", "aria-disabled"];
+const _hoisted_2$1$1 = ["href", "onClick"];
+const _hoisted_3$1$1 = {
+  class: "p-menuitem-text"
+};
+const _hoisted_4$6 = ["href", "target"];
+const _hoisted_5$4 = {
+  class: "p-menuitem-text"
+};
+
+function render$1$1(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_router_link = resolveComponent("router-link");
+
+  const _directive_ripple = resolveDirective("ripple");
+
+  return $options.visible() ? (openBlock(), createElementBlock("li", {
+    key: 0,
+    id: $props.id,
+    class: normalizeClass($options.containerClass()),
+    role: "menuitem",
+    style: normalizeStyle($props.item.style),
+    "aria-label": $options.label(),
+    "aria-disabled": $options.disabled()
+  }, [createElementVNode("div", {
+    class: "p-menuitem-content",
+    onClick: _cache[0] || (_cache[0] = $event => $options.onItemClick($event))
+  }, [!$props.template ? (openBlock(), createElementBlock(Fragment, {
+    key: 0
+  }, [$props.item.to && !$options.disabled() ? (openBlock(), createBlock(_component_router_link, {
+    key: 0,
+    to: $props.item.to,
+    custom: ""
+  }, {
+    default: withCtx(({
+      navigate,
+      href,
+      isActive,
+      isExactActive
+    }) => [withDirectives((openBlock(), createElementBlock("a", {
+      href: href,
+      class: normalizeClass($options.linkClass({
+        isActive,
+        isExactActive
+      })),
+      tabindex: "-1",
+      "aria-hidden": "true",
+      onClick: $event => $options.onItemActionClick($event, navigate)
+    }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
+      key: 0,
+      class: normalizeClass(['p-menuitem-icon', $props.item.icon])
+    }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_3$1$1, toDisplayString$1($options.label()), 1)], 10, _hoisted_2$1$1)), [[_directive_ripple]])]),
+    _: 1
+  }, 8, ["to"])) : withDirectives((openBlock(), createElementBlock("a", {
+    key: 1,
+    href: $props.item.url,
+    class: normalizeClass($options.linkClass()),
+    target: $props.item.target,
+    tabindex: "-1",
+    "aria-hidden": "true"
+  }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
+    key: 0,
+    class: normalizeClass(['p-menuitem-icon', $props.item.icon])
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_5$4, toDisplayString$1($options.label()), 1)], 10, _hoisted_4$6)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
+    key: 1,
+    item: $props.item
+  }, null, 8, ["item"]))])], 14, _hoisted_1$1$1)) : createCommentVNode("", true);
+}
+
+script$1$1.render = render$1$1;
+var script$n = {
+  name: 'Menu',
+  inheritAttrs: false,
+  emits: ['show', 'hide', 'focus', 'blur'],
+  props: {
+    popup: {
+      type: Boolean,
+      default: false
+    },
+    model: {
+      type: Array,
+      default: null
+    },
+    appendTo: {
+      type: String,
+      default: 'body'
+    },
+    autoZIndex: {
+      type: Boolean,
+      default: true
+    },
+    baseZIndex: {
+      type: Number,
+      default: 0
+    },
+    exact: {
+      type: Boolean,
+      default: true
+    },
+    tabindex: {
+      type: Number,
+      default: 0
+    },
+    'aria-label': {
+      type: String,
+      default: null
+    },
+    'aria-labelledby': {
+      type: String,
+      default: null
+    }
+  },
+
+  data() {
+    return {
+      overlayVisible: false,
+      focused: false,
+      focusedOptionIndex: -1,
+      selectedOptionIndex: -1
+    };
+  },
+
+  target: null,
+  outsideClickListener: null,
+  scrollHandler: null,
+  resizeListener: null,
+  container: null,
+  list: null,
+
+  mounted() {
+    if (!this.popup) {
+      this.bindResizeListener();
+      this.bindOutsideClickListener();
+    }
+  },
+
+  beforeUnmount() {
+    this.unbindResizeListener();
+    this.unbindOutsideClickListener();
+
+    if (this.scrollHandler) {
+      this.scrollHandler.destroy();
+      this.scrollHandler = null;
+    }
+
+    this.target = null;
+
+    if (this.container && this.autoZIndex) {
+      ZIndexUtils.clear(this.container);
+    }
+
+    this.container = null;
+  },
+
+  methods: {
+    itemClick(event) {
+      const item = event.item;
+
+      if (this.disabled(item)) {
+        return;
+      }
+
+      if (item.command) {
+        item.command(event);
+      }
+
+      if (item.to && event.navigate) {
+        event.navigate(event.originalEvent);
+      }
+
+      if (this.overlayVisible) this.hide();
+
+      if (!this.popup && this.focusedOptionIndex !== event.id) {
+        this.focusedOptionIndex = event.id;
+      }
+    },
+
+    onListFocus(event) {
+      this.focused = true;
+
+      if (!this.popup) {
+        if (this.selectedOptionIndex !== -1) {
+          this.changeFocusedOptionIndex(this.selectedOptionIndex);
+          this.selectedOptionIndex = -1;
+        } else this.changeFocusedOptionIndex(0);
+      }
+
+      this.$emit('focus', event);
+    },
+
+    onListBlur(event) {
+      this.focused = false;
+      this.focusedOptionIndex = -1;
+      this.$emit('blur', event);
+    },
+
+    onListKeyDown(event) {
+      switch (event.code) {
+        case 'ArrowDown':
+          this.onArrowDownKey(event);
+          break;
+
+        case 'ArrowUp':
+          this.onArrowUpKey(event);
+          break;
+
+        case 'Home':
+          this.onHomeKey(event);
+          break;
+
+        case 'End':
+          this.onEndKey(event);
+          break;
+
+        case 'Enter':
+          this.onEnterKey(event);
+          break;
+
+        case 'Space':
+          this.onSpaceKey(event);
+          break;
+
+        case 'Tab':
+          this.overlayVisible && this.hide();
+          break;
+      }
+    },
+
+    onArrowDownKey(event) {
+      const optionIndex = this.findNextOptionIndex(this.focusedOptionIndex);
+      this.changeFocusedOptionIndex(optionIndex);
+      event.preventDefault();
+    },
+
+    onArrowUpKey(event) {
+      if (event.altKey && this.popup) {
+        DomHandler.focus(this.target);
+        this.hide();
+        event.preventDefault();
+      } else {
+        const optionIndex = this.findPrevOptionIndex(this.focusedOptionIndex);
+        this.changeFocusedOptionIndex(optionIndex);
+        event.preventDefault();
+      }
+    },
+
+    onHomeKey(event) {
+      this.changeFocusedOptionIndex(0);
+      event.preventDefault();
+    },
+
+    onEndKey(event) {
+      this.changeFocusedOptionIndex(DomHandler.find(this.container, 'li.p-menuitem:not(.p-disabled)').length - 1);
+      event.preventDefault();
+    },
+
+    onEnterKey(event) {
+      const element = DomHandler.findSingle(this.list, `li[id="${`${this.focusedOptionIndex}`}"]`);
+      const anchorElement = element && DomHandler.findSingle(element, '.p-menuitem-link');
+      this.popup && DomHandler.focus(this.target);
+      anchorElement ? anchorElement.click() : element && element.click();
+      event.preventDefault();
+    },
+
+    onSpaceKey(event) {
+      this.onEnterKey(event);
+    },
+
+    findNextOptionIndex(index) {
+      const links = DomHandler.find(this.container, 'li.p-menuitem:not(.p-disabled)');
+      const matchedOptionIndex = [...links].findIndex(link => link.id === index);
+      return matchedOptionIndex > -1 ? matchedOptionIndex + 1 : 0;
+    },
+
+    findPrevOptionIndex(index) {
+      const links = DomHandler.find(this.container, 'li.p-menuitem:not(.p-disabled)');
+      const matchedOptionIndex = [...links].findIndex(link => link.id === index);
+      return matchedOptionIndex > -1 ? matchedOptionIndex - 1 : 0;
+    },
+
+    changeFocusedOptionIndex(index) {
+      const links = DomHandler.find(this.container, 'li.p-menuitem:not(.p-disabled)');
+      let order = index > links.length ? links.length - 1 : index < 0 ? 0 : index;
+      order > -1 && links.length > 0 && (this.focusedOptionIndex = links[order].getAttribute('id'));
+    },
+
+    toggle(event) {
+      if (this.overlayVisible) this.hide();else this.show(event);
+    },
+
+    show(event) {
+      this.overlayVisible = true;
+      this.target = event.currentTarget;
+    },
+
+    hide() {
+      this.overlayVisible = false;
+      this.target = null;
+    },
+
+    onEnter(el) {
+      this.alignOverlay();
+      this.bindOutsideClickListener();
+      this.bindResizeListener();
+      this.bindScrollListener();
+
+      if (this.autoZIndex) {
+        ZIndexUtils.set('menu', el, this.baseZIndex + this.$primevue.config.zIndex.menu);
+      }
+
+      if (this.popup) {
+        DomHandler.focus(this.list);
+        this.changeFocusedOptionIndex(0);
+      }
+
+      this.$emit('show');
+    },
+
+    onLeave() {
+      this.unbindOutsideClickListener();
+      this.unbindResizeListener();
+      this.unbindScrollListener();
+      this.$emit('hide');
+    },
+
+    onAfterLeave(el) {
+      if (this.autoZIndex) {
+        ZIndexUtils.clear(el);
+      }
+    },
+
+    alignOverlay() {
+      DomHandler.absolutePosition(this.container, this.target);
+      this.container.style.minWidth = DomHandler.getOuterWidth(this.target) + 'px';
+    },
+
+    bindOutsideClickListener() {
+      if (!this.outsideClickListener) {
+        this.outsideClickListener = event => {
+          const isOutsideContainer = this.container && !this.container.contains(event.target);
+          const isOutsideTarget = !(this.target && (this.target === event.target || this.target.contains(event.target)));
+
+          if (this.overlayVisible && isOutsideContainer && isOutsideTarget) {
+            this.hide();
+          } else if (!this.popup && isOutsideContainer && isOutsideTarget) {
+            this.focusedOptionIndex = -1;
+          }
+        };
+
+        document.addEventListener('click', this.outsideClickListener);
+      }
+    },
+
+    unbindOutsideClickListener() {
+      if (this.outsideClickListener) {
+        document.removeEventListener('click', this.outsideClickListener);
+        this.outsideClickListener = null;
+      }
+    },
+
+    bindScrollListener() {
+      if (!this.scrollHandler) {
+        this.scrollHandler = new ConnectedOverlayScrollHandler(this.target, () => {
+          if (this.overlayVisible) {
+            this.hide();
+          }
+        });
+      }
+
+      this.scrollHandler.bindScrollListener();
+    },
+
+    unbindScrollListener() {
+      if (this.scrollHandler) {
+        this.scrollHandler.unbindScrollListener();
+      }
+    },
+
+    bindResizeListener() {
+      if (!this.resizeListener) {
+        this.resizeListener = () => {
+          if (this.overlayVisible && !DomHandler.isTouchDevice()) {
+            this.hide();
+          }
+        };
+
+        window.addEventListener('resize', this.resizeListener);
+      }
+    },
+
+    unbindResizeListener() {
+      if (this.resizeListener) {
+        window.removeEventListener('resize', this.resizeListener);
+        this.resizeListener = null;
+      }
+    },
+
+    visible(item) {
+      return typeof item.visible === 'function' ? item.visible() : item.visible !== false;
+    },
+
+    disabled(item) {
+      return typeof item.disabled === 'function' ? item.disabled() : item.disabled;
+    },
+
+    label(item) {
+      return typeof item.label === 'function' ? item.label() : item.label;
+    },
+
+    separatorClass(item) {
+      return ['p-menuitem-separator', item.class];
+    },
+
+    onOverlayClick(event) {
+      OverlayEventBus.emit('overlay-click', {
+        originalEvent: event,
+        target: this.target
+      });
+    },
+
+    containerRef(el) {
+      this.container = el;
+    },
+
+    listRef(el) {
+      this.list = el;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-menu p-component', {
+        'p-menu-overlay': this.popup,
+        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
+        'p-ripple-disabled': this.$primevue.config.ripple === false
+      }];
+    },
+
+    id() {
+      return this.$attrs.id || UniqueComponentId();
+    },
+
+    focusedOptionId() {
+      return this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : null;
+    }
+
+  },
+  components: {
+    PVMenuitem: script$1$1,
+    Portal: script$1s
+  }
+};
+const _hoisted_1$b = ["id"];
+const _hoisted_2$7 = ["id", "tabindex", "aria-activedescendant", "aria-label", "aria-labelledby"];
+const _hoisted_3$6 = ["id"];
+
+function render$8(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_PVMenuitem = resolveComponent("PVMenuitem");
+
+  const _component_Portal = resolveComponent("Portal");
+
+  return openBlock(), createBlock(_component_Portal, {
+    appendTo: $props.appendTo,
+    disabled: !$props.popup
+  }, {
+    default: withCtx(() => [createVNode(Transition, {
+      name: "p-connected-overlay",
+      onEnter: $options.onEnter,
+      onLeave: $options.onLeave,
+      onAfterLeave: $options.onAfterLeave
+    }, {
+      default: withCtx(() => [($props.popup ? $data.overlayVisible : true) ? (openBlock(), createElementBlock("div", mergeProps({
+        key: 0,
+        ref: $options.containerRef,
+        id: $options.id,
+        class: $options.containerClass
+      }, _ctx.$attrs, {
+        onClick: _cache[3] || (_cache[3] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args))
+      }), [createElementVNode("ul", {
+        ref: $options.listRef,
+        id: $options.id + '_list',
+        class: "p-menu-list p-reset",
+        role: "menu",
+        tabindex: $props.tabindex,
+        "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
+        "aria-label": _ctx.ariaLabel,
+        "aria-labelledby": _ctx.ariaLabelledby,
+        onFocus: _cache[0] || (_cache[0] = (...args) => $options.onListFocus && $options.onListFocus(...args)),
+        onBlur: _cache[1] || (_cache[1] = (...args) => $options.onListBlur && $options.onListBlur(...args)),
+        onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onListKeyDown && $options.onListKeyDown(...args))
+      }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.model, (item, i) => {
+        return openBlock(), createElementBlock(Fragment, {
+          key: $options.label(item) + i.toString()
+        }, [item.items && $options.visible(item) && !item.separator ? (openBlock(), createElementBlock(Fragment, {
+          key: 0
+        }, [item.items ? (openBlock(), createElementBlock("li", {
+          key: 0,
+          id: $options.id + '_' + i,
+          class: "p-submenu-header",
+          role: "none"
+        }, [renderSlot(_ctx.$slots, "item", {
+          item: item
+        }, () => [createTextVNode(toDisplayString$1($options.label(item)), 1)])], 8, _hoisted_3$6)) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(item.items, (child, j) => {
+          return openBlock(), createElementBlock(Fragment, {
+            key: child.label + i + '_' + j
+          }, [$options.visible(child) && !child.separator ? (openBlock(), createBlock(_component_PVMenuitem, {
+            key: 0,
+            id: $options.id + '_' + i + '_' + j,
+            item: child,
+            template: _ctx.$slots.item,
+            exact: $props.exact,
+            focusedOptionId: $options.focusedOptionId,
+            onItemClick: $options.itemClick
+          }, null, 8, ["id", "item", "template", "exact", "focusedOptionId", "onItemClick"])) : $options.visible(child) && child.separator ? (openBlock(), createElementBlock("li", {
+            key: 'separator' + i + j,
+            class: normalizeClass($options.separatorClass(item)),
+            style: normalizeStyle(child.style),
+            role: "separator"
+          }, null, 6)) : createCommentVNode("", true)], 64);
+        }), 128))], 64)) : $options.visible(item) && item.separator ? (openBlock(), createElementBlock("li", {
+          key: 'separator' + i.toString(),
+          class: normalizeClass($options.separatorClass(item)),
+          style: normalizeStyle(item.style),
+          role: "separator"
+        }, null, 6)) : (openBlock(), createBlock(_component_PVMenuitem, {
+          key: $options.label(item) + i.toString(),
+          id: $options.id + '_' + i,
+          item: item,
+          template: _ctx.$slots.item,
+          exact: $props.exact,
+          focusedOptionId: $options.focusedOptionId,
+          onItemClick: $options.itemClick
+        }, null, 8, ["id", "item", "template", "exact", "focusedOptionId", "onItemClick"]))], 64);
+      }), 128))], 40, _hoisted_2$7)], 16, _hoisted_1$b)) : createCommentVNode("", true)]),
+      _: 3
+    }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
+    _: 3
+  }, 8, ["appendTo", "disabled"]);
+}
+
+function styleInject$4(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$7 = "\n.p-menu-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-menu ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menu .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menu .p-menuitem-text {\n    line-height: 1;\n}\n";
+styleInject$4(css_248z$7);
+script$n.render = render$8;
+
+const _hoisted_1$a = ["href", "onClick"];
+const _hoisted_2$6 = ["onClick"];
+const _hoisted_3$5 = { key: 1 };
+const _hoisted_4$5 = ["onClick"];
+
+
+var script$m = {
+  props: {
+    name : [String, Object]
+},
+  setup(__props) {
+
+
+
+const _profile = configs.get("profile");
+const client = inject("client");
+
+const items = ref([]);
+const account_items = ref([]);
+const menu = ref();
+
+let routes = getRoutes();
+
+let arr = [];
+let carr = [];
+
+for(const i in routes) {
+    const route = routes[i];
+    if (!route.parent) {
+        if (route.min_rows == 1 && route.max_rows == 1 && route.schema['--owner'] && route.schema['--owner'].reference == _profile) {
+            carr.push({
+                label : route.name,
+                model : i
+            });
+            
+            for(const x of route.schema['--id'].reference) {
+                const croute = routes[x];
+                arr.push({
+                    label : croute.name,
+                    model : x
+                });
+            }
+        } else {
+            arr.push({
+                label : route.name,
+                model : i
+            });
+        }
+    }
+}
+
+items.value = arr;
+
+carr.push({
+    label : 'Logout',
+    command() {
+        logout();
+    }
+});
+
+account_items.value = carr;
+/*
+        items.value.push({
+            label : 'Logout',
+            command() {
+                logout();
+            }
+        })
+*/
+
+function logout()  {
+    return client.post("/user/logout", {'x-force-auth-cookies' : 1})
+    .then(() => {
+        location.href = configs.get("base") + "/";
+    });
+}
+
+const toggle = (event) => {
+    menu.value.toggle(event);
+};
+
+return (_ctx, _cache) => {
+  const _component_router_link = resolveComponent("router-link");
+
+  return (openBlock(), createBlock(unref(script$o), { model: items.value }, {
+    item: withCtx(({item}) => [
+      createVNode(_component_router_link, {
+        to: { name : 'repo', params : { 'model' : item.model }}
+      }, {
+        default: withCtx(({href, route, navigate, isActive, isExactActive}) => [
+          createElementVNode("a", {
+            href: href,
+            onClick: navigate,
+            class: normalizeClass(["p-menuitem-link p-menuitem-content", {'active-link': isActive, 'active-link-exact': isExactActive}])
+          }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_1$a)
+        ]),
+        _: 2 /* DYNAMIC */
+      }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"])
+    ]),
+    end: withCtx(() => [
+      createVNode(unref(script$1z), {
+        type: "button",
+        label: "Toggle",
+        onClick: toggle,
+        "aria-haspopup": "true",
+        "aria-controls": "overlay_menu"
+      }, {
+        default: withCtx(() => [
+          createTextVNode(toDisplayString$1(__props.name), 1 /* TEXT */)
+        ]),
+        _: 1 /* STABLE */
+      }),
+      createVNode(unref(script$n), {
+        id: "overlay_menu",
+        ref_key: "menu",
+        ref: menu,
+        model: account_items.value,
+        popup: true
+      }, {
+        item: withCtx(({item}) => [
+          (item.model)
+            ? (openBlock(), createBlock(_component_router_link, {
+                key: 0,
+                to: { name : 'single', params : { 'model' : item.model }}
+              }, {
+                default: withCtx(({href, route, navigate, isActive, isExactActive}) => [
+                  createElementVNode("a", {
+                    onClick: navigate,
+                    class: normalizeClass(["p-menuitem-link p-menuitem-content", {'active-link': isActive, 'active-link-exact': isExactActive}])
+                  }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_2$6)
+                ]),
+                _: 2 /* DYNAMIC */
+              }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"]))
+            : (openBlock(), createElementBlock("div", _hoisted_3$5, [
+                createElementVNode("a", {
+                  onClick: item.command,
+                  class: "p-menuitem-link p-menuitem-content"
+                }, toDisplayString$1(item.label), 9 /* TEXT, PROPS */, _hoisted_4$5)
+              ]))
+        ]),
+        _: 1 /* STABLE */
+      }, 8 /* PROPS */, ["model"])
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["model"]))
+}
+}
+
+};
+
+script$m.__file = "presstojam/src/components/nav/nav.vue";
+
+const _hoisted_1$9 = { key: 1 };
+
+
+
+var script$l = {
+  async setup(__props) {
+
+let __temp, __restore;
+
+
+const _profile = configs.get("profile");
+
+const name = ref("");
+
+
+const client = inject("client");
+const i18n = inject("i18n");
+const router = inject("router");
+
+const require_login = ref(false);
+
+const no_nav = configs.get("no_nav", false);
+
+
+
+function loadRoutes() {
+    const base = configs.get("base");
+
+    return client.get("/user/site-map")
+    .then(response => {
+        return loadSiteMap(response);
+    })
+    .then(routes => {
+        let def = false;
+
+        for(const i in routes) {
+            if (!def && !routes[i].parent) def = { path : base + "/" , name : 'home', redirect : base + "/data/" + i};
+        }
+
+        if (def) {
+            router.addRoute(def);
+        }
+    })
+    .then(() => {
+        
+    })
+}
+
+
+function loadDictionary() {
+    client.get("/user/dictionary")
+    .then(response => {
+        for(let i in response) {
+            i18n.setLocaleMessage(i, response[i]);
+        }
+    });
+}
+
+function loadUser() {
+    client.get("/user/details")
+    .then(response => {
+        name.value = (response.name) ? response.name : response.email;
+    });  
+}
+(
+  ([__temp,__restore] = withAsyncContext(() => client.get("/user/check-user")
+.then(response => {
+    if (response.name != _profile) {
+        require_login.value = true;
+        return loadDictionary();
+    } else {
+        let promises = [];
+        promises.push(loadUser());
+        promises.push(loadDictionary());
+        promises.push(loadRoutes());
+        return Promise.all(promises);
+    }    
+}))),
+  await __temp,
+  __restore()
+);
+
+
+
+return (_ctx, _cache) => {
+  return (require_login.value)
+    ? (openBlock(), createBlock(script$q, { key: 0 }))
+    : (openBlock(), createElementBlock("div", _hoisted_1$9, [
+        (unref(no_nav) == false)
+          ? (openBlock(), createBlock(script$m, {
+              key: 0,
+              name: name.value
+            }, null, 8 /* PROPS */, ["name"]))
+          : createCommentVNode("v-if", true),
+        createVNode(script$p)
+      ]))
+}
+}
+
+};
+
+script$l.__file = "presstojam/src/components/user.vue";
+
+var script$k = {
+  setup(__props) {
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(Suspense, null, {
+    default: withCtx(() => [
+      createVNode(script$l)
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+script$k.__file = "presstojam/src/components/controller.vue";
+
+var script$j = {
+  name: 'Splitter',
+  emits: ['resizestart', 'resizeend'],
+  props: {
+    layout: {
+      type: String,
+      default: 'horizontal'
+    },
+    gutterSize: {
+      type: Number,
+      default: 4
+    },
+    stateKey: {
+      type: String,
+      default: null
+    },
+    stateStorage: {
+      type: String,
+      default: 'session'
+    },
+    step: {
+      type: Number,
+      default: 5
+    }
+  },
+  dragging: false,
+  mouseMoveListener: null,
+  mouseUpListener: null,
+  touchMoveListener: null,
+  touchEndListener: null,
+  size: null,
+  gutterElement: null,
+  startPos: null,
+  prevPanelElement: null,
+  nextPanelElement: null,
+  nextPanelSize: null,
+  prevPanelSize: null,
+  panelSizes: null,
+  prevPanelIndex: null,
+  timer: null,
+
+  data() {
+    return {
+      prevSize: null
+    };
+  },
+
+  mounted() {
+    if (this.panels && this.panels.length) {
+      let initialized = false;
+
+      if (this.isStateful()) {
+        initialized = this.restoreState();
+      }
+
+      if (!initialized) {
+        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
+        let _panelSizes = [];
+        this.panels.map((panel, i) => {
+          let panelInitialSize = panel.props && panel.props.size ? panel.props.size : null;
+          let panelSize = panelInitialSize || 100 / this.panels.length;
+          _panelSizes[i] = panelSize;
+          children[i].style.flexBasis = 'calc(' + panelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        });
+        this.panelSizes = _panelSizes;
+        this.prevSize = parseFloat(_panelSizes[0]).toFixed(4);
+      }
+    }
+  },
+
+  beforeUnmount() {
+    this.clear();
+    this.unbindMouseListeners();
+  },
+
+  methods: {
+    isSplitterPanel(child) {
+      return child.type.name === 'SplitterPanel';
+    },
+
+    onResizeStart(event, index, isKeyDown) {
+      this.gutterElement = event.currentTarget || event.target.parentElement;
+      this.size = this.horizontal ? DomHandler.getWidth(this.$el) : DomHandler.getHeight(this.$el);
+
+      if (!isKeyDown) {
+        this.dragging = true;
+        this.startPos = this.layout === 'horizontal' ? event.pageX || event.changedTouches[0].pageX : event.pageY || event.changedTouches[0].pageY;
+      }
+
+      this.prevPanelElement = this.gutterElement.previousElementSibling;
+      this.nextPanelElement = this.gutterElement.nextElementSibling;
+
+      if (isKeyDown) {
+        this.prevPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true);
+        this.nextPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true);
+      } else {
+        this.prevPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true)) / this.size;
+        this.nextPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true)) / this.size;
+      }
+
+      this.prevPanelIndex = index;
+      this.$emit('resizestart', {
+        originalEvent: event,
+        sizes: this.panelSizes
+      });
+      DomHandler.addClass(this.gutterElement, 'p-splitter-gutter-resizing');
+      DomHandler.addClass(this.$el, 'p-splitter-resizing');
+    },
+
+    onResize(event, step, isKeyDown) {
+      let newPos, newPrevPanelSize, newNextPanelSize;
+
+      if (isKeyDown) {
+        if (this.horizontal) {
+          newPrevPanelSize = 100 * (this.prevPanelSize + step) / this.size;
+          newNextPanelSize = 100 * (this.nextPanelSize - step) / this.size;
+        } else {
+          newPrevPanelSize = 100 * (this.prevPanelSize - step) / this.size;
+          newNextPanelSize = 100 * (this.nextPanelSize + step) / this.size;
+        }
+      } else {
+        if (this.horizontal) newPos = event.pageX * 100 / this.size - this.startPos * 100 / this.size;else newPos = event.pageY * 100 / this.size - this.startPos * 100 / this.size;
+        newPrevPanelSize = this.prevPanelSize + newPos;
+        newNextPanelSize = this.nextPanelSize - newPos;
+      }
+
+      this.prevSize = parseFloat(newPrevPanelSize).toFixed(4);
+
+      if (this.validateResize(newPrevPanelSize, newNextPanelSize)) {
+        this.prevPanelElement.style.flexBasis = 'calc(' + newPrevPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        this.nextPanelElement.style.flexBasis = 'calc(' + newNextPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        this.panelSizes[this.prevPanelIndex] = newPrevPanelSize;
+        this.panelSizes[this.prevPanelIndex + 1] = newNextPanelSize;
+      }
+    },
+
+    onResizeEnd(event) {
+      if (this.isStateful()) {
+        this.saveState();
+      }
+
+      this.$emit('resizeend', {
+        originalEvent: event,
+        sizes: this.panelSizes
+      });
+      DomHandler.removeClass(this.gutterElement, 'p-splitter-gutter-resizing');
+      DomHandler.removeClass(this.$el, 'p-splitter-resizing');
+      this.clear();
+    },
+
+    repeat(event, index, step) {
+      this.onResizeStart(event, index, true);
+      this.onResize(event, step, true);
+    },
+
+    setTimer(event, index, step) {
+      this.clearTimer();
+      this.timer = setTimeout(() => {
+        this.repeat(event, index, step);
+      }, 40);
+    },
+
+    clearTimer() {
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
+    },
+
+    onGutterKeyUp() {
+      this.clearTimer();
+      this.onResizeEnd();
+    },
+
+    onGutterKeyDown(event, index) {
+      switch (event.code) {
+        case 'ArrowLeft':
+          {
+            if (this.layout === 'horizontal') {
+              this.setTimer(event, index, this.step * -1);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowRight':
+          {
+            if (this.layout === 'horizontal') {
+              this.setTimer(event, index, this.step);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowDown':
+          {
+            if (this.layout === 'vertical') {
+              this.setTimer(event, index, this.step * -1);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowUp':
+          {
+            if (this.layout === 'vertical') {
+              this.setTimer(event, index, this.step);
+            }
+
+            event.preventDefault();
+            break;
+          }
+      }
+    },
+
+    onGutterMouseDown(event, index) {
+      this.onResizeStart(event, index);
+      this.bindMouseListeners();
+    },
+
+    onGutterTouchStart(event, index) {
+      this.onResizeStart(event, index);
+      this.bindTouchListeners();
+      event.preventDefault();
+    },
+
+    onGutterTouchMove(event) {
+      this.onResize(event);
+      event.preventDefault();
+    },
+
+    onGutterTouchEnd(event) {
+      this.onResizeEnd(event);
+      this.unbindTouchListeners();
+      event.preventDefault();
+    },
+
+    bindMouseListeners() {
+      if (!this.mouseMoveListener) {
+        this.mouseMoveListener = event => this.onResize(event);
+
+        document.addEventListener('mousemove', this.mouseMoveListener);
+      }
+
+      if (!this.mouseUpListener) {
+        this.mouseUpListener = event => {
+          this.onResizeEnd(event);
+          this.unbindMouseListeners();
+        };
+
+        document.addEventListener('mouseup', this.mouseUpListener);
+      }
+    },
+
+    bindTouchListeners() {
+      if (!this.touchMoveListener) {
+        this.touchMoveListener = event => this.onResize(event.changedTouches[0]);
+
+        document.addEventListener('touchmove', this.touchMoveListener);
+      }
+
+      if (!this.touchEndListener) {
+        this.touchEndListener = event => {
+          this.resizeEnd(event);
+          this.unbindTouchListeners();
+        };
+
+        document.addEventListener('touchend', this.touchEndListener);
+      }
+    },
+
+    validateResize(newPrevPanelSize, newNextPanelSize) {
+      let prevPanelMinSize = ObjectUtils.getVNodeProp(this.panels[0], 'minSize');
+
+      if (this.panels[0].props && prevPanelMinSize && prevPanelMinSize > newPrevPanelSize) {
+        return false;
+      }
+
+      let newPanelMinSize = ObjectUtils.getVNodeProp(this.panels[1], 'minSize');
+
+      if (this.panels[1].props && newPanelMinSize && newPanelMinSize > newNextPanelSize) {
+        return false;
+      }
+
+      return true;
+    },
+
+    unbindMouseListeners() {
+      if (this.mouseMoveListener) {
+        document.removeEventListener('mousemove', this.mouseMoveListener);
+        this.mouseMoveListener = null;
+      }
+
+      if (this.mouseUpListener) {
+        document.removeEventListener('mouseup', this.mouseUpListener);
+        this.mouseUpListener = null;
+      }
+    },
+
+    unbindTouchListeners() {
+      if (this.touchMoveListener) {
+        document.removeEventListener('touchmove', this.touchMoveListener);
+        this.touchMoveListener = null;
+      }
+
+      if (this.touchEndListener) {
+        document.removeEventListener('touchend', this.touchEndListener);
+        this.touchEndListener = null;
+      }
+    },
+
+    clear() {
+      this.dragging = false;
+      this.size = null;
+      this.startPos = null;
+      this.prevPanelElement = null;
+      this.nextPanelElement = null;
+      this.prevPanelSize = null;
+      this.nextPanelSize = null;
+      this.gutterElement = null;
+      this.prevPanelIndex = null;
+    },
+
+    isStateful() {
+      return this.stateKey != null;
+    },
+
+    getStorage() {
+      switch (this.stateStorage) {
+        case 'local':
+          return window.localStorage;
+
+        case 'session':
+          return window.sessionStorage;
+
+        default:
+          throw new Error(this.stateStorage + ' is not a valid value for the state storage, supported values are "local" and "session".');
+      }
+    },
+
+    saveState() {
+      this.getStorage().setItem(this.stateKey, JSON.stringify(this.panelSizes));
+    },
+
+    restoreState() {
+      const storage = this.getStorage();
+      const stateString = storage.getItem(this.stateKey);
+
+      if (stateString) {
+        this.panelSizes = JSON.parse(stateString);
+        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
+        children.forEach((child, i) => {
+          child.style.flexBasis = 'calc(' + this.panelSizes[i] + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        });
+        return true;
+      }
+
+      return false;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-splitter p-component', 'p-splitter-' + this.layout];
+    },
+
+    panels() {
+      const panels = [];
+      this.$slots.default().forEach(child => {
+        if (this.isSplitterPanel(child)) {
+          panels.push(child);
+        } else if (child.children instanceof Array) {
+          child.children.forEach(nestedChild => {
+            if (this.isSplitterPanel(nestedChild)) {
+              panels.push(nestedChild);
+            }
+          });
+        }
+      });
+      return panels;
+    },
+
+    gutterStyle() {
+      if (this.horizontal) return {
+        width: this.gutterSize + 'px'
+      };else return {
+        height: this.gutterSize + 'px'
+      };
+    },
+
+    horizontal() {
+      return this.layout === 'horizontal';
+    }
+
+  }
+};
+const _hoisted_1$8 = ["onMousedown", "onTouchstart", "onTouchmove", "onTouchend"];
+const _hoisted_2$5 = ["aria-orientation", "aria-valuenow", "onKeydown"];
+
+function render$7(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: normalizeClass($options.containerClass)
+  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.panels, (panel, i) => {
+    return openBlock(), createElementBlock(Fragment, {
+      key: i
+    }, [(openBlock(), createBlock(resolveDynamicComponent(panel), {
+      tabindex: "-1"
+    })), i !== $options.panels.length - 1 ? (openBlock(), createElementBlock("div", {
+      key: 0,
+      class: "p-splitter-gutter",
+      role: "separator",
+      tabindex: "-1",
+      onMousedown: $event => $options.onGutterMouseDown($event, i),
+      onTouchstart: $event => $options.onGutterTouchStart($event, i),
+      onTouchmove: $event => $options.onGutterTouchMove($event, i),
+      onTouchend: $event => $options.onGutterTouchEnd($event, i)
+    }, [createElementVNode("div", {
+      class: "p-splitter-gutter-handle",
+      tabindex: "0",
+      style: normalizeStyle($options.gutterStyle),
+      "aria-orientation": $props.layout,
+      "aria-valuenow": $data.prevSize,
+      onKeyup: _cache[0] || (_cache[0] = (...args) => $options.onGutterKeyUp && $options.onGutterKeyUp(...args)),
+      onKeydown: $event => $options.onGutterKeyDown($event, i)
+    }, null, 44, _hoisted_2$5)], 40, _hoisted_1$8)) : createCommentVNode("", true)], 64);
+  }), 128))], 2);
+}
+
+function styleInject$3(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$6 = "\n.p-splitter {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-splitter-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-splitter-panel {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n.p-splitter-panel-nested {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-splitter-panel .p-splitter {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n    border: 0 none;\n}\n.p-splitter-gutter {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: col-resize;\n}\n.p-splitter-horizontal.p-splitter-resizing {\n    cursor: col-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-horizontal > .p-splitter-gutter > .p-splitter-gutter-handle {\n    height: 24px;\n    width: 100%;\n}\n.p-splitter-horizontal > .p-splitter-gutter {\n    cursor: col-resize;\n}\n.p-splitter-vertical.p-splitter-resizing {\n    cursor: row-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-vertical > .p-splitter-gutter {\n    cursor: row-resize;\n}\n.p-splitter-vertical > .p-splitter-gutter > .p-splitter-gutter-handle {\n    width: 24px;\n    height: 100%;\n}\n";
+styleInject$3(css_248z$6);
+script$j.render = render$7;
+
+var script$i = {
+  name: 'SplitterPanel',
+  props: {
+    size: {
+      type: Number,
+      default: null
+    },
+    minSize: {
+      type: Number,
+      default: null
+    }
+  },
+  computed: {
+    containerClass() {
+      return ['p-splitter-panel', {
+        'p-splitter-panel-nested': this.isNested
+      }];
+    },
+
+    isNested() {
+      return this.$slots.default().some(child => {
+        return child.type.name === 'Splitter';
+      });
+    }
+
+  }
+};
+
+function render$6(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    ref: "container",
+    class: normalizeClass($options.containerClass)
+  }, [renderSlot(_ctx.$slots, "default")], 2);
+}
+
+script$i.render = render$6;
+
+const _hoisted_1$7 = { key: 0 };
+    
+    
+var script$h = {
+  props: {
+        name : {
+            type : String,
+            required : true
+        }
+    },
+  emits: ['onMove'],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+    const client = inject("client");
+
+    
+
+    
+
+    const repo = getStore(props.name);
+    const store = repo.store;
+    
+    provide("model", store.model);
+
+   
+    const bind = createBind(store.route.schema['--recursive'], 0);
+
+
+    function submit() {
+        let promise = [];
+        for(const row of repo.selected.value) {
+            const obj = {"--id" : row['--id'], "--recursive" : bind.value.value };
+            promise.push(client.put("/data/" + store.model, obj));
+        }
+
+        return Promise.all(promise)
+        .then(() => {
+            emits("onMove");
+        })
+        .catch(e => console.log(e));
+    }
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    (unref(bind))
+      ? (openBlock(), createElementBlock("div", _hoisted_1$7, [
+          createVNode(script$1l, { bind: unref(bind) }, null, 8 /* PROPS */, ["bind"])
+        ]))
+      : createCommentVNode("v-if", true),
+    createVNode(unref(script$1z), {
+      label: _ctx.$t('btns.save'),
+      onClick: submit
+    }, null, 8 /* PROPS */, ["label"])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$h.__file = "presstojam/src/components/effects/move-action.vue";
+
+const _hoisted_1$6 = /*#__PURE__*/createElementVNode("p", null, "Moving", -1 /* HOISTED */);
+
+    
+var script$g = {
+  props: {
+        name : {
+            type : String,
+            required : true
+        }
+    },
+  emits: ['onMove'],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+    
+
+    
+
+    const repo = getStore(props.name);
+    const store = repo.store;
+
+    
+    const dialog = ref(false);
+
+    function moveRow() {
+        dialog.value =true;
+    }
+
+    function onMove() {
+        dialog.value = false;
+        emits("onMove");
+    }
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    createVNode(unref(script$1z), {
+      icon: "pi pi-pencil",
+      class: "p-button-success mr-2",
+      label: "move",
+      onClick: moveRow,
+      disabled: !unref(repo).selected.value.length
+    }, null, 8 /* PROPS */, ["disabled"]),
+    createVNode(unref(script$1p), {
+      visible: dialog.value,
+      "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
+      header: 'Move ' + _ctx.$t('models.' + unref(store).model + '.title', 2),
+      modal: true,
+      class: "p-fluid"
+    }, {
+      default: withCtx(() => [
+        _hoisted_1$6,
+        createElementVNode("ul", null, [
+          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(repo).selected.value, (item) => {
+            return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).store.route.schema, item)), 1 /* TEXT */))
+          }), 256 /* UNKEYED_FRAGMENT */))
+        ]),
+        createVNode(script$h, {
+          name: __props.name,
+          onOnMove: _cache[0] || (_cache[0] = $event => (onMove()))
+        }, null, 8 /* PROPS */, ["name"])
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["visible", "header"])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$g.__file = "presstojam/src/components/actions/move-action.vue";
+
+const _hoisted_1$5 = ["schema", "data", "model"];
+
+    
+var script$f = {
+  props: {
+        store : Object,
+        data : Object
+    },
+  emits: [
+        'onSave'
+    ],
+  setup(__props, { emit: emits }) {
+
+    
+
+    
+
+    const dialog = ref(false);
+
+    function editRow() {
+        dialog.value =true;
+    }
+
+    function onSave() {
+        dialog.value = false;
+        emits('onSave');
+    }
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    createVNode(unref(script$1z), {
+      icon: "pi pi-pencil",
+      class: "p-button-rounded p-button-success mr-2",
+      onClick: editRow
+    }),
+    createVNode(unref(script$1p), {
+      visible: dialog.value,
+      "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
+      header: 'Edit ' + _ctx.$t('models.' + __props.store.model + '.title', 1),
+      modal: true,
+      class: "p-fluid"
+    }, {
+      default: withCtx(() => [
+        createElementVNode("form", {
+          schema: __props.store.route.schema,
+          data: __props.data,
+          model: __props.store.model,
+          onSaved: onSave,
+          method: "put"
+        }, null, 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$5)
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["visible", "header"])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$f.__file = "presstojam/src/components/actions/edit-action.vue";
+
+const _hoisted_1$4 = {
+  class: "wrapper",
+  style: {"display":"grid"}
+};
+const _hoisted_2$4 = /*#__PURE__*/createTextVNode("New row created");
+const _hoisted_3$4 = /*#__PURE__*/createTextVNode("Rows removed");
+const _hoisted_4$4 = { style: {"overflow-x":"scroll"} };
+
+
+
+
+
+var script$e = {
+  props: {
+    name : {
+      type : String,
+      required : true
+    }
+},
+  emits: ["onMove"],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+
+const repo = getStore(props.name);
+const store = repo.store;
+
+const client = inject("client");
+
+
+const has_primary = (store.route.children.length > 1) ? true : false;
+const expanded = ref(false);
+//const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
+const delrow = ref(false);
+const newrow = ref(false);
+const childRepo = createRepoStore(store);
+regStore(props.name + "_selected", childRepo);
+childRepo.parent_id = repo.parent_id;
+ref([]);
+
+
+const nodes = computed(() => {
+  const data= toTree(repo.data.value, store.route.schema);
+  return data;
+});
+
+
+let fields = computed(() => {
+    return getForegroundCells(store.route.schema);
+});
+
+
+function reorderRows(rows) {
+  childRepo.data.value = rows;
+  saveOrder(store.model, rows, client);
+}
+
+repo.load()
+.then(response => {
+  childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
+});
+
+
+repo.active.value['--recursive'] = 0;
+
+const expandedKeys = ref({});
+const selectedKey = ref();
+
+const collapseAll = () => {
+    expandedKeys.value = {};
+    expanded.value = false;
+};
+
+const expandAll = () => {
+    for (let node of nodes.value) {
+        expandNode(node);
+    }
+    expandedKeys.value = {...expandedKeys.value};
+    expanded.value = true;
+};
+
+const expandNode = (node) => {
+    if (node.children && node.children.length) {
+      expandedKeys.value[node.key] = true;
+      for (let child of node.children) {
+          expandNode(child);
+      }
+    }
+};
+
+function onDel() {
+    repo.reload()
+    .then(() => {
+      childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
+    });
+    delrow.value = true;
+}
+
+const label = computed(() => {
+  return getLabel(store.route.schema, repo.active.value);
+});
+
+const onNodeSelect = (node) => {
+   repo.active.value = node.data;
+   childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == node.key);
+};
+
+const onNodeClear = (node) => {
+  repo.active.value = {};
+  childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
+};
+
+
+
+function reload() {
+  repo.selected.value = [];
+  repo.reload()
+  .then(() => {
+    childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
+  });
+  newrow.value = true;
+}
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$j), null, {
+    default: withCtx(() => [
+      createVNode(unref(script$i), {
+        size: 20,
+        style: {"padding":"10px"}
+      }, {
+        default: withCtx(() => [
+          createVNode(unref(script$D), { class: "mb-4" }, {
+            start: withCtx(() => [
+              (expanded.value)
+                ? (openBlock(), createBlock(unref(script$1z), {
+                    key: 0,
+                    type: "button",
+                    icon: "pi pi-minus",
+                    label: "Collapse All",
+                    onClick: collapseAll
+                  }))
+                : (openBlock(), createBlock(unref(script$1z), {
+                    key: 1,
+                    type: "button",
+                    icon: "pi pi-plus",
+                    label: "Expand All",
+                    onClick: expandAll
+                  }))
+            ]),
+            _: 1 /* STABLE */
+          }),
+          createVNode(unref(script$1t), {
+            value: unref(nodes),
+            filter: true,
+            filterMode: "lenient",
+            selectionMode: "single",
+            expandedKeys: expandedKeys.value,
+            onNodeSelect: onNodeSelect,
+            selectionKeys: selectedKey.value,
+            "onUpdate:selectionKeys": _cache[0] || (_cache[0] = $event => ((selectedKey).value = $event))
+          }, null, 8 /* PROPS */, ["value", "expandedKeys", "selectionKeys"])
+        ]),
+        _: 1 /* STABLE */
+      }),
+      createVNode(unref(script$i), {
+        size: 80,
+        style: {"padding":"10px"}
+      }, {
+        default: withCtx(() => [
+          createElementVNode("div", _hoisted_1$4, [
+            (newrow.value)
+              ? (openBlock(), createBlock(unref(script$1f), {
+                  key: 0,
+                  severity: "success"
+                }, {
+                  default: withCtx(() => [
+                    _hoisted_2$4
+                  ]),
+                  _: 1 /* STABLE */
+                }))
+              : createCommentVNode("v-if", true),
+            (delrow.value)
+              ? (openBlock(), createBlock(unref(script$1f), {
+                  key: 1,
+                  severity: "success"
+                }, {
+                  default: withCtx(() => [
+                    _hoisted_3$4
+                  ]),
+                  _: 1 /* STABLE */
+                }))
+              : createCommentVNode("v-if", true),
+            createVNode(unref(script$D), null, {
+              start: withCtx(() => [
+                (unref(repo).active.value['--id'])
+                  ? (openBlock(), createBlock(unref(script$1z), {
+                      key: 0,
+                      icon: "pi pi-times",
+                      class: "p-button-rounded p-button-success",
+                      onClick: onNodeClear
+                    }))
+                  : createCommentVNode("v-if", true),
+                (unref(has_primary) && unref(repo).active.value['--id'])
+                  ? (openBlock(), createBlock(script$$, {
+                      key: 1,
+                      model: unref(store).model,
+                      id: unref(repo).active.value['--id']
+                    }, null, 8 /* PROPS */, ["model", "id"]))
+                  : createCommentVNode("v-if", true),
+                (unref(repo).active.value['--id'])
+                  ? (openBlock(), createBlock(script$f, {
+                      key: 2,
+                      store: unref(store),
+                      data: unref(repo).active.value
+                    }, null, 8 /* PROPS */, ["store", "data"]))
+                  : createCommentVNode("v-if", true),
+                createTextVNode(" " + toDisplayString$1(unref(label)), 1 /* TEXT */)
+              ]),
+              end: withCtx(() => [
+                (unref(store).route.perms.includes('put'))
+                  ? (openBlock(), createBlock(script$g, {
+                      key: 0,
+                      name: __props.name + '_selected',
+                      onOnMove: reload
+                    }, null, 8 /* PROPS */, ["name"]))
+                  : createCommentVNode("v-if", true),
+                (unref(store).route.perms.includes('post'))
+                  ? (openBlock(), createBlock(script$B, {
+                      key: 1,
+                      name: __props.name,
+                      onOnSave: reload
+                    }, null, 8 /* PROPS */, ["name"]))
+                  : createCommentVNode("v-if", true),
+                (unref(store).route.perms.includes('delete'))
+                  ? (openBlock(), createBlock(script$12, {
+                      key: 2,
+                      name: __props.name + '_selected',
+                      onOnDel: onDel
+                    }, null, 8 /* PROPS */, ["name"]))
+                  : createCommentVNode("v-if", true)
+              ]),
+              _: 1 /* STABLE */
+            }),
+            createElementVNode("div", _hoisted_4$4, [
+              createVNode(script$y, {
+                name: __props.name + '_selected',
+                fields: unref(fields),
+                onReorder: reorderRows
+              }, null, 8 /* PROPS */, ["name", "fields"])
+            ])
+          ])
+        ]),
+        _: 1 /* STABLE */
+      })
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+var css_248z$5 = "\n.tree-vue-vue-type-style-index-0-id-49a3d7ba-scoped-true-lang_wrapper__KEFQt[data-v-49a3d7ba] {\r\n  display : grid;\r\n  margin-left : 0;\r\n  margin-right : 0;\r\n  box-sizing : content-box;\n}\r\n\r\n";
+styleInject$8(css_248z$5);
+
+script$e.__scopeId = "data-v-49a3d7ba";
+script$e.__file = "presstojam/src/components/tree/tree.vue";
+
+var tree = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    'default': script$e
 });
 
 /*
 
 */
 
-var script$f = {
+var script$d = {
   props: {
     model : String,
     base : String
@@ -40032,18 +41410,18 @@ if (store.route && store.route.settings.repo && store.route.settings.repo.mounte
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$g, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$1o), {
+    createVNode(script$s, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$1A), {
       header: unref(store).route.title,
       class: normalizeClass(["gc-repo", __props.model])
     }, {
       default: withCtx(() => [
         (unref(recursive))
-          ? (openBlock(), createBlock(script$j, {
+          ? (openBlock(), createBlock(script$e, {
               key: 0,
               name: __props.model
             }, null, 8 /* PROPS */, ["name"]))
-          : (openBlock(), createBlock(script$p, {
+          : (openBlock(), createBlock(script$A, {
               key: 1,
               name: __props.model
             }, null, 8 /* PROPS */, ["name"]))
@@ -40057,117 +41435,10 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$4 = "\ntable[data-v-e5ad478c], thead[data-v-e5ad478c], tbody[data-v-e5ad478c], tr[data-v-e5ad478c] {\r\n    width : 100%;\n}\n.repo-vue-vue-type-style-index-0-id-e5ad478c-scoped-true-lang_ptj-table-wrapper__8hxfO[data-v-e5ad478c] {\r\n    position : relative;\n}\r\n\r\n";
-styleInject$r(css_248z$4);
+styleInject$8(css_248z$4);
 
-script$f.__scopeId = "data-v-e5ad478c";
-script$f.__file = "presstojam/src/components/repo/repo.vue";
-
-var script$e = {
-  props: {
-    repo : Object
-},
-  setup(__props) {
-
-
-
-const dialog = ref(false);
-
-
-function showAudit() {
-    dialog.value = true;
-}
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1v), {
-      label: "Audit",
-      icon: "pi pi-history",
-      class: "mr-2 p-button-help",
-      onClick: showAudit
-    }),
-    createVNode(unref(script$1j), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
-      header: "Audit",
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        createVNode(script$R, {
-          repo: __props.repo,
-          id: __props.repo.active_id
-        }, null, 8 /* PROPS */, ["repo", "id"])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$e.__file = "presstojam/src/components/actions/show-audit.vue";
-
-var script$d = {
-  props: {
-    name : {
-      type : String,
-      required : true
-    }
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const repo = getStore(props.name);
-const store = repo.store;
-repo.selected.value = [{ key : repo.data.value['--id'], label : repo.label }];
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1o), {
-    header: _ctx.$t('models.' + unref(store).model + '.title')
-  }, {
-    icons: withCtx(() => [
-      (unref(store).route.audit)
-        ? (openBlock(), createBlock(script$e, {
-            key: 0,
-            repo: unref(repo)
-          }, null, 8 /* PROPS */, ["repo"]))
-        : createCommentVNode("v-if", true),
-      createVNode(script$q, {
-        name: __props.name,
-        single: true
-      }, null, 8 /* PROPS */, ["name"]),
-      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).route.settings.actions, (component) => {
-        return (openBlock(), createBlock(resolveDynamicComponent(component), {
-          data: unref(repo).data.value
-        }, null, 8 /* PROPS */, ["data"]))
-      }), 256 /* UNKEYED_FRAGMENT */))
-    ]),
-    default: withCtx(() => [
-      (unref(repo).data.value['--id'])
-        ? (openBlock(), createBlock(script$T, {
-            key: 0,
-            schema: unref(store).route.schema,
-            model: unref(store).model,
-            data: unref(repo).data.value,
-            method: "put"
-          }, null, 8 /* PROPS */, ["schema", "model", "data"]))
-        : createCommentVNode("v-if", true)
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["header"]))
-}
-}
-
-};
-
-script$d.__file = "presstojam/src/components/display.vue";
+script$d.__scopeId = "data-v-e5ad478c";
+script$d.__file = "presstojam/src/components/repo/repo.vue";
 
 var script$c = {
   props: {
@@ -40199,19 +41470,19 @@ function reload() {
 }
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1o), {
+  return (openBlock(), createBlock(unref(script$1A), {
     header: _ctx.$t('models.' + __props.model + '.title', 2),
     class: normalizeClass(["gc-child", __props.model])
   }, {
     default: withCtx(() => [
       (unref(component) == 'recursive')
-        ? (openBlock(), createBlock(script$j, {
+        ? (openBlock(), createBlock(script$e, {
             key: 0,
             name: props.model,
             onOnMove: reload
           }, null, 8 /* PROPS */, ["name"]))
         : (unref(component) == 'table')
-          ? (openBlock(), createBlock(script$p, {
+          ? (openBlock(), createBlock(script$A, {
               key: 1,
               name: props.model
             }, null, 8 /* PROPS */, ["name"]))
@@ -40743,8 +42014,8 @@ if (store.route && store.route.settings.active && store.route.settings.active.mo
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$g, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$1o), { header: unref(label) }, {
+    createVNode(script$s, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$1A), { header: unref(label) }, {
       default: withCtx(() => [
         createVNode(unref(script$b), null, {
           default: withCtx(() => [
@@ -40752,7 +42023,7 @@ return (_ctx, _cache) => {
               header: unref(repo).label.value
             }, {
               default: withCtx(() => [
-                createVNode(script$d, {
+                createVNode(script$v, {
                   name: props.model
                 }, null, 8 /* PROPS */, ["name"])
               ]),
@@ -40801,7 +42072,7 @@ const props = __props;
  
 
 const component = computed(() => {
-    return (props.is_active) ? script$9 : script$f;
+    return (props.is_active) ? script$9 : script$d;
 });
 
 
@@ -41240,7 +42511,7 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$1 = "\nth[data-v-70986bd9] { text-align : left;}\r\n";
-styleInject$r(css_248z$1);
+styleInject$8(css_248z$1);
 
 script$5.__scopeId = "data-v-70986bd9";
 script$5.__file = "presstojam/src/components/dev/sitemap-node.vue";
@@ -41252,7 +42523,7 @@ const routes = getRoutes();
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1o), { header: "Routes" }, {
+  return (openBlock(), createBlock(unref(script$1A), { header: "Routes" }, {
     default: withCtx(() => [
       createVNode(unref(script$7), null, {
         default: withCtx(() => [
@@ -41636,7 +42907,7 @@ var index = {
 
     croutes.push({
       path: base + "/user-login",
-      component: script$1s,
+      component: script$q,
       name: 'login',
       props: {}
     });
@@ -41657,6 +42928,15 @@ var index = {
         model: route.params.model,
         is_active: true,
         id: route.params.id
+      })
+    });
+    croutes.push({
+      path: base + "/data/single/:model/:id?",
+      component: script$r,
+      name: 'single',
+      props: route => ({
+        model: route.params.model,
+        base: base + "/"
       })
     }); //croutes.push({ path : base + "/flow/:flow/:position?", component : PtjFlow.vue, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position) })});
 
@@ -41713,8 +42993,8 @@ var index = {
     app.use(PrimeVue);
     let client = createClient();
     app.provide("client", client);
-    app.component("Controller", script$1p);
+    app.component("Controller", script$k);
   }
 };
 
-export { script$1p as Controller, dispatchResponse as Dispatch, filter as Filter, flow as Flow, form as Form, login as Login, pagination as Paginator, tableDisplay as Table, tree as Tree, viewField as ViewField, createClient, index as default, initConfigs, slugTrail as slugtrail };
+export { script$k as Controller, dispatchResponse as Dispatch, filter as Filter, flow as Flow, form as Form, login as Login, pagination as Paginator, tableDisplay as Table, tree as Tree, viewField as ViewField, createClient, index as default, initConfigs, slugTrail as slugtrail };
