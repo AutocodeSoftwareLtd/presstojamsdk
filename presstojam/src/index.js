@@ -4,6 +4,7 @@ import PrimeVue from 'primevue/config';
 import { createClient } from "./js/client.js"
 import { registerFlow } from "./js/flows.js"
 import PtjSingle from "./components/active/single.vue"
+import PtjReport from "./components/reports/report.vue"
 import { initConfigs } from "./js/configs.js"
 import Controller from "./components/controller.vue"
 import Model from "./components/model.vue"
@@ -33,6 +34,7 @@ export default {
       croutes.push({ path : base + "/data/:model/:id?", component : Model, name : 'repo', props : route => ({ model : route.params.model, id : route.params.id })});
       croutes.push({ path : base + "/data/active/:model/:id", component : Model, name : 'primary', props : route => ({ model : route.params.model, is_active : true, id : route.params.id }) });
       croutes.push({ path : base + "/data/single/:model/:id?", component : PtjSingle, name : 'single', props : route => ({ model : route.params.model, base : base + "/" }) });
+      croutes.push({ path : base + "/reports/:model/:id?", component : PtjReport, name : 'report', props : route => ({ model : route.params.model, id : route.params.id }) });
       //croutes.push({ path : base + "/flow/:flow/:position?", component : PtjFlow.vue, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position) })});
       croutes.push({ path : base + "/dev/site-map", component : SiteMap, name : 'sitemap'});
       croutes.push({ path : base + "/", component : SetDefault, name : 'default'});
@@ -108,5 +110,6 @@ export * as Tree from "./components/tree/tree.vue"
 export * as Table from "./components/table/table-display.vue"
 export * as Paginator from "./components/paginator/pagination.vue"
 export * as Flow from "./components/flow/flow.vue"
+export * as Report from "./components/reports/report.vue"
 
 

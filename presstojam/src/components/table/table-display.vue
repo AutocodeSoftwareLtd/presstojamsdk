@@ -61,7 +61,7 @@ const store = repo.store;
 
 const max_cols = (!store.route.settings.max_cols) ? 10 : store.route.settings.max_cols;
 const has_export =store.route.export;
-const has_import = true;//store.route.import;
+const has_import = store.route.import;//store.route.import;
 
 //const has_export = true;
 const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;

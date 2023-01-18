@@ -104,11 +104,10 @@ export class Client {
 
     post(url, data, headers = null) {
         if (!(data instanceof FormData)) {
-            data = JSON.stringify(data);
             if (!headers) headers = {};
+            data = JSON.stringify(data);
             headers["Content-Type"] = "application/json";
-        }
-        
+        }        
         return this.save(url, "POST", data, headers);
     }
 

@@ -15,7 +15,7 @@
         </tr>
     </table>
     <div>
-        <file-upload name="file" mode="basic" @customUpload="true" @uploader="importCSV" :auto="true"  />
+        <FileUpload name="file" mode="basic" :customUpload="true" @uploader="importCSV" :auto="true"  />
     </div>
     </div>
     <div v-else>
@@ -53,11 +53,14 @@ for(let i in store.route.schema) {
 }
 
 
-function importCSV( event ){
+
+function importCSV( evt ){
     const formData = new FormData();
-    formData.append("headers", headers);
-    formData.append("csv-file", event.target.files);
-    return client.post("/bulk/" + props.model, data)
+    for(const key in oheaders) {
+        formData.append("headers[" + oheaders[key] + "]", headers[key]);
+    }
+    formData.append("upload-csv", evt.files[0]);
+    return client.post("/bulk/" + props.name, formData)
     .then(response => {
         is_passed.value = true;
         success.value = response.success;

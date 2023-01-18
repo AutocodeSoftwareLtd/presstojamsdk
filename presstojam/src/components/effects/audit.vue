@@ -1,11 +1,21 @@
 <template>
-   <ptj-table :nosort="true" name="audit_repo" :fields="fields" />
+    <DataTable :value="data">
+        <Column field="user-login-id/name" header="User" />
+        <Column field="action" header="Type" />
+        <Column field="log" header="Values">
+            <template #body="slotProps">
+                <ul>
+                    <li v-for="(log, key) in slotProps.data.log">{{ key  }}: {{ log }}</li>
+                </ul>
+            </template>
+        </Column>
+        <Column field="--created" header="Date" />
+    </DataTable>
 </template>
 <script setup>
-import { onMounted, inject } from "vue"
-import { createDataStore } from "./../../js/datastore.js"
-import { createRepoStore, regStore } from "./../../js/reactivestores.js"
-import PtjTable from "../table/table.vue"
+import { ref, inject } from "vue"
+import DataTable from "primevue/DataTable"
+import Column from 'primevue/column';
 
 const props = defineProps({
     repo : {
@@ -19,24 +29,25 @@ const props = defineProps({
 });
 
 const client = inject("client");
+const data = ref([]);
+client.get("/audit/" + props.repo.store.model + "/" + props.id)
+.then(response => {
+    for(const obj of response) {
+        if (obj.action == "POST") obj.action = "Created";
+        else if (obj.action == "PUT") obj.action = "Updated";
+        else if (obj.action == "DELETE") obj.action = "Deleted";
+        //obj['--created'] = (!obj['--created']) ? obj['--created'] : obj['--created'].toLocaleDateString("en-UK");
+    }
+    data.value = response;
+});
 
-const audit = createDataStore(client, "audit");
-audit.route.schema['user-login-id'].custom_fields = ["name"];
-
+/*
 const fields = {};
 fields.action = audit.route.schema.action;
 fields['user-login-id'] = audit.route.schema['user-login-id'];
 fields["log"] = audit.route.schema["log"];
 fields["--created"] = audit.route.schema["--created"];
-
-
-const audit_repo = createRepoStore(audit);
-regStore("audit_repo", audit_repo);
-
-onMounted(() => {
-    audit.filters = {"model" : props.repo.store.model, "model-id" : props.id };
-    audit_repo.reload();
-});
+*/
 
 
 </script>

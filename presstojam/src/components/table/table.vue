@@ -20,7 +20,7 @@
                 <ptj-primary-action v-if="has_primary" :model="store.model" :id="slotProps.data['--id']" />
                 <Button v-if="store.route.perms.includes('put')" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="showEdit(slotProps.data)" />
                 <Button v-if="store.route.audit" icon="pi pi-history" class="mr-2 p-button-rounded p-button-success" @click="showAudit(slotProps.data)" />
-                <component v-for="component in store.route.settings.actions" :is="component" :data="slotProps.data" :short="true" />
+                <component v-for="component in store.route.settings.actions" :is="component.component" :atts="component.atts" :data="slotProps.data" :short="true" />
             </template>
         </Column>
         <template v-if="atts.groupRowsBy" #groupheader="slotProps">

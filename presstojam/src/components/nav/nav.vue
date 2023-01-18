@@ -1,9 +1,20 @@
 <template>
     <Menubar :model="items">
         <template #item="{item}">
-            <router-link :to="{ name : 'repo', params : { 'model' : item.model }}" v-slot="{href, route, navigate, isActive, isExactActive}">
+            <router-link v-if="item.is_report == false" :to="{ name : 'repo', params : { 'model' : item.model }}" v-slot="{href, route, navigate, isActive, isExactActive}">
                 <a :href="href" @click="navigate" class="p-menuitem-link p-menuitem-content" :class="{'active-link': isActive, 'active-link-exact': isExactActive}">{{item.label}}</a>
             </router-link>
+            <div v-else>
+                <a class="p-menuitem-link p-menuitem-content" @click="toggleReports">Reports</a>
+                <Menu id="report_menu" ref="report_menu" :model="report_items" :popup="true">
+                    <template #item="{item}">
+                        <router-link :to="{ name : 'report', params : { 'model' : item.model }}" v-slot="{href, route, navigate, isActive, isExactActive}">
+                            <a :href="href" @click="navigate" class="p-menuitem-link p-menuitem-content" :class="{'active-link': isActive, 'active-link-exact': isExactActive}">{{item.label}}</a>
+                        </router-link>
+                    </template>
+                </Menu>
+            </div>
+            
         </template>
         <template #end>
             <Button type="button" label="Toggle" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu">{{ name }}</Button>
@@ -37,7 +48,9 @@ const client = inject("client");
 
 const items = ref([]);
 const account_items = ref([]);
+const report_items = ref([]);
 const menu = ref();
+const report_menu = ref();
 
 let routes = getRoutes();
 
@@ -50,24 +63,39 @@ for(const i in routes) {
         if (route.min_rows == 1 && route.max_rows == 1 && route.schema['--owner'] && route.schema['--owner'].reference == _profile) {
             carr.push({
                 label : route.name,
-                model : i
+                model : i,
+                is_report : false
             });
             
             for(const x of route.schema['--id'].reference) {
                 const croute = routes[x];
                 arr.push({
                     label : croute.name,
-                    model : x
+                    model : x,
+                    is_report : false
                 });
             }
         } else {
             arr.push({
                 label : route.name,
-                model : i
+                model : i,
+                is_report : false
             });
         }
+
+        report_items.value.push({
+            label : route.name,
+            model : i
+        });
     }
+    
 }
+
+arr.push({
+    'label' : 'Reports',
+    reports : report_items,
+    is_report : true
+});
 
 items.value = arr;
 
@@ -97,5 +125,10 @@ function logout()  {
 
 const toggle = (event) => {
     menu.value.toggle(event);
+};
+
+
+const toggleReports = (event) => {
+    report_menu.value.toggle(event);
 };
 </script>
