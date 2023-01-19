@@ -18,7 +18,7 @@
 import { inject, ref, onMounted, computed } from "vue"
 import InputNumber from "primevue/inputnumber"
 import TreeSelect from 'primevue/treeselect';
-import { getStoreById } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import { getStore } from "../../js/reactivestores.js"
 import PtjReferenceCreate from "../actions/reference-create.vue"
 import Dialog from 'primevue/dialog'
@@ -34,7 +34,7 @@ const props = defineProps({
 
 
 const model = inject("model");
-const store = getStoreById(model);
+const store = getModel(model);
 const client = inject("client");
 
 const dialog = ref(false);

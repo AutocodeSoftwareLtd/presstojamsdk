@@ -11,7 +11,7 @@
 <script setup>
 import Panel from 'primevue/panel'
 import { computed, onMounted } from "vue"
-import { getStoreById } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import { createRepoStore, regStore } from "../../js/reactivestores.js"
 import PtjTree from "../tree/tree.vue"
 import PtjTableDisplay from '../table/table-display.vue'
@@ -27,7 +27,7 @@ const props = defineProps({
 
 
 
-const store = getStoreById(props.model);
+const store = getModel(props.model);
 const repo = createRepoStore(store);
 regStore(props.model, repo);
 repo.load();

@@ -7,7 +7,7 @@
 import { inject, ref,  } from "vue"
 
 import TreeSelect from 'primevue/treeselect';
-import { createTemporaryStore } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import { getRouteStructure } from "../../js/routes.js"
 
 
@@ -28,7 +28,7 @@ const struc = getRouteStructure(props.model);
 
 const models = [];
 
-const store = createTemporaryStore(client, props.model);
+const store = getModel(props.model);
 const params = { to : props.common_parent };
 params[props.common_parent + "/--id"] = props.common_id; 
 store.setParams({ to : props.common_parent });

@@ -6,7 +6,7 @@
 </template>
 <script setup>
 import { computed } from "vue"
-import { ReferenceTypes } from "../../js/meta/id.js";
+import { ReferenceTypes } from "../../js/entity/id.js";
 import { getRoute, hasRoute } from "../../js/routes.js"
 
 const props = defineProps({

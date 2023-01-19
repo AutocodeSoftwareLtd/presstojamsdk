@@ -111,5 +111,6 @@ export * as Table from "./components/table/table-display.vue"
 export * as Paginator from "./components/paginator/pagination.vue"
 export * as Flow from "./components/flow/flow.vue"
 export * as Report from "./components/reports/report.vue"
+export { download } from "./js/download.js"
 
 

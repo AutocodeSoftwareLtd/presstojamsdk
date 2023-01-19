@@ -4,7 +4,7 @@
     <SummaryReport :group="group" />   
 </template>
 <script setup>
-import { getStoreById } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import NumericReport from "./numeric-report.vue"
 import SummaryReport from "./summary-report.vue"
 import { inject } from "vue"
@@ -16,7 +16,7 @@ const props = defineProps({
 
 const model = inject("model");
 
-const store = getStoreById(model);
+const store = getModel(model);
 const schema = store.route.schema;
 
 const numeric_reports = [];

@@ -6,7 +6,7 @@
 </template>
 <script setup>
 import Panel from 'primevue/panel';
-import { getStoreById } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import { computed } from "vue"
 import { createRepoStore, regStore } from "../../js/reactivestores.js"
 import PtjTableDisplay from "./../table/table-display.vue"
@@ -16,7 +16,7 @@ const props = defineProps({
     model : String
 });
 
-const store = getStoreById(props.model);
+const store = getModel(props.model);
 
 const repo = createRepoStore(store);
 regStore(props.model, repo);

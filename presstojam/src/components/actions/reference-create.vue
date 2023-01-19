@@ -4,8 +4,8 @@
  <script setup>
     
     import { inject } from "vue"
-    import { ReferenceTypes } from "../../js/meta/id.js"
-    import { createTemporaryStore } from "../../js/datastore.js"
+    import { ReferenceTypes } from "../../js/entity/id.js"
+    import { getModel } from "../../js/models/modelstore.js"
     import PtjForm from "../form/form.vue"
 
  
@@ -23,7 +23,7 @@
 
     
     
-    const referencestore = createTemporaryStore(client, props.cell.reference);
+    const referencestore = getModel(props.cell.reference);
     let parent = false;
     let common_parent = "";
     let common_parent_id = 0;

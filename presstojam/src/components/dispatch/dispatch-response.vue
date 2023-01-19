@@ -28,7 +28,7 @@ function chkProgress() {
     .then(response => {
         if (response.progress == "FAILED") {
             emits('failed', response);
-        } else if (response.progress == "PROCESSED") {
+        } else if (response.progress == "PROCESSED" || !response.progress) {
             emits('complete');
         } else {
             status.value = response.progress;

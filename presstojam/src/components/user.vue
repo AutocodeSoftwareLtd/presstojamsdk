@@ -11,7 +11,7 @@
 import { ref, inject } from 'vue';
 import configs from "../js/configs.js"
 
-import { loadSiteMap } from "../js/routes.js"
+import { loadSiteMap } from "../js/entity/entitystore.js"
 
 import PtjAccountHandler from "./login/login.vue"
 import PtjRoutes from './routes.vue'
@@ -79,6 +79,7 @@ function loadUser() {
 await client.get("/user/check-user")
 .then(response => {
     if (response.name != _profile) {
+        console.log("Name is", response.name, _profile);
         require_login.value = true;
         return loadDictionary();
     } else {

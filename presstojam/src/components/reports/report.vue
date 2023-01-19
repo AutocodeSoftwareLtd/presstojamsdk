@@ -3,10 +3,10 @@
     <ReportGroup v-for="group in groups" :key="group" :group="group" />
 </template>
 <script setup>
-import { createDataStore, clearDataCache } from "../../js/datastore.js"
+import { getModel, clearModelCache } from "../../js/models/modelstore.js"
 import ReportGroup from "./report-group.vue"
 import { provide, inject } from "vue"
-import { ReferenceTypes } from "../../js/meta/id";
+import { ReferenceTypes } from "../../js/entity/id";
 
 const props = defineProps({
     model : String,
@@ -16,17 +16,16 @@ const props = defineProps({
 
 provide("model", props.model);
 
-const client = inject("client");
 
-clearDataCache();
-const store = createDataStore(client, props.model);
-const schema = store.route.schema;
+clearModelCache();
+const store = getModel(props.model);
 
 const groups = [];
-for(const field in schema) {
-    if (schema[field].type == "id" && schema[field].reference_type == ReferenceTypes.REFERENCE) {
+for(const field_name in store.fields) {
+    const field = store.fields[field_name];
+    if (field.type == "id" && field.reference_type == ReferenceTypes.REFERENCE) {
         groups.push(field);
-    } else if (schema[field].type == "string" && schema[field].isEnum()) {
+    } else if (field.type == "string" && field.isEnum()) {
         groups.push(field);
     }
 }

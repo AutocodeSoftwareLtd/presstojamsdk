@@ -1,6 +1,8 @@
-import { createView } from "./routes.js"
+import { createView } from "../routes.js"
+import { Model } from "./model.js"
 
-class DataStore {
+/*
+class ModelStore {
 
     constructor(client, model) {
         this._client = client;
@@ -118,63 +120,25 @@ class DataStore {
     }
 
     
-    buildParams() {
-        let params = this._filters;
-        if (this._active_id) params["--id"] = this._active_id;
-        else if (this._parent_id) params["--parent"] = this._parent_id;
-        if (this._limit) {
-            params.__offset = this._page_offset;
-            params.__limit = this._limit;
-        }
-        const settings = ["to", "order"];
-        for(const setting of settings) {
-            if (this._route.settings[setting]) params['__' + setting] = this._route.settings[setting];
-            else if (params[setting]) params['__' + setting] = params[setting];
-        }
     
-        if (this._route.settings.fields) {
-            params["__fields"] = this._route.settings.fields;//createCustomStructure(store.route);
-        }
-        return params;
-    }
 }
-
-
-
-export function createDataStore(client, model_name) {
-
-    const model = new DataStore(client, model_name);
-    cache[model_name] = model;
-    return cache[model_name];
-}
-
-export function createTemporaryStore(client, model) {
-    return new DataStore(client, model);
-}
-
-
-
-
-
-
-
+*/
 
 let cache = {};
 
-
-//need to add in search params and data settings
-
-export function getStoreById(id) {
-    if (!cache[id]) {
-        throw "Error, can't access " + id + " from the cache, doesn't exist";
+export function getModel(model_name) {
+    if (!cache[model_name]) {
+        cache[model_name] = new Model(model_name);
     }
-    return cache[id];
+    return cache[model_name];
 }
 
-export function clearDataCache() {
+
+
+export function clearModelCache() {
     cache = {};
 }
 
-export function hasStore(id) {
+export function hasModel(id) {
     return (cache[id]) ? true : false;
 }

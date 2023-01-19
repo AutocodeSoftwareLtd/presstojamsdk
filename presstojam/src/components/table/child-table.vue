@@ -4,7 +4,7 @@
 <script setup>
 import { watch, ref, inject } from 'vue';
 import TableDisplay from "./table-display.vue"
-import {  createDataStore } from "../../js/datastore.js"
+import {  getModel } from "../../js/models/modelstore.js"
 import { createRepoStore, regStore } from "../../js/reactivestores.js"
 
 
@@ -13,18 +13,17 @@ const props = defineProps({
     parent_id : Number
 });
 
-const client = inject("client");
 
 let childrepo = null;
-const childstore = createDataStore(client, props.name);
+const childstore = getModel(props.name);
 let model = ref(null);
 
 function loadChild(new_val, old_val) {
     if (new_val == old_val) return;
     childrepo = null;
     let key = childstore.model + "-" + props.parent_id;
-    childstore.parent_id = props.parent_id;
     childrepo = createRepoStore(childstore);
+    childrepo.parent_id = props.parent_id;
     regStore(key, childrepo);
     childrepo.reload();
     model.value = key;

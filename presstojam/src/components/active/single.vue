@@ -7,7 +7,7 @@
 
 <script setup>
 import { computed, onMounted, inject } from "vue"
-import { getStoreById } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import { createFirstStore, regStore } from "../../js/reactivestores.js"
 import Display from "../display.vue"
 import PtjSlugTrail from "../slugtrail/slug-trail.vue"
@@ -29,7 +29,7 @@ const props = defineProps({
 });
 
 
-const store = getStoreById(props.model);
+const store = getModel(props.model);
 
 const repo = createFirstStore(store);
 regStore(props.model, repo);

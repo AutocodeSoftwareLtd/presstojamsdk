@@ -14,7 +14,7 @@
 <script setup>
 
 import { inject } from "vue"
-import { getStoreById } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import { createRepoStore } from "../../js/reactivestores.js"
 import Overlays from "./overlays.vue"
 import Scales from "./scales.vue"
@@ -30,7 +30,7 @@ const props = defineProps({
 
 const model = inject("model");
 
-const store = getStoreById(model);
+const store = getModel(model);
 const repo = createRepoStore(store);
 
 const schema = store.route.schema;

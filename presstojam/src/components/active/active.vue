@@ -15,7 +15,7 @@
 
 <script setup>
 import { computed, onMounted, inject } from "vue"
-import { getStoreById } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import { createActiveStore, regStore } from "../../js/reactivestores.js"
 import Display from "../display.vue"
 import PtjChildPanel from  "./child-panel.vue"
@@ -40,7 +40,7 @@ const props = defineProps({
 });
 
 
-const store = getStoreById(props.model);
+const store = getModel(props.model);
 
 const repo = createActiveStore(store);
 regStore(props.model, repo);

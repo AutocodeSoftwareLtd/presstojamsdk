@@ -5,7 +5,7 @@
 <script setup>
 import DataTable from "primevue/DataTable"
 import { inject } from "vue"
-import { getStoreById } from "../../js/datastore.js"
+import { getModel } from "../../js/models/modelstore.js"
 import { createRepoStore } from "../../js/reactivestores.js"
 
 const props = defineProps({
@@ -14,7 +14,7 @@ const props = defineProps({
 
 const model = inject("model");
 
-const store = getStoreById(model);
+const store = getModel(model);
 const repo = createRepoStore(store);
 
 </script>

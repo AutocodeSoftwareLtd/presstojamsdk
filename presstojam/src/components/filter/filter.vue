@@ -28,7 +28,7 @@
    import { inject, ref, computed, reactive} from "vue" 
    import Button from 'primevue/button'
    import OverlayPanel from 'primevue/overlaypanel'
-   import { getStoreById } from "../../js/datastore.js"
+   import { getModel } from "../../js/models/modelstore.js"
    import PtjFilterField from "./filter-field.vue"
    
    const props = defineProps({
@@ -41,7 +41,7 @@
    let overlay = new ref();
 
    const model = inject("model");
-   const store = getStoreById(model);
+   const store = getModel(model);
 
    const errors = reactive({});
 
