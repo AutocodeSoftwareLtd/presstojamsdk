@@ -128,7 +128,11 @@ let cache = {};
 
 export function getModel(model_name) {
     if (!cache[model_name]) {
-        cache[model_name] = new Model(model_name);
+        try {
+            cache[model_name] = new Model(model_name);
+        } catch (err) {
+            console.error("Error", err);
+        }
     }
     return cache[model_name];
 }

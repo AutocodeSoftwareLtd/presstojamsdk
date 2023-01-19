@@ -30,7 +30,7 @@ const props = defineProps({
 
 const client = inject("client");
 const data = ref([]);
-client.get("/audit/" + props.repo.store.model + "/" + props.id)
+client.get("/audit/" + props.repo.store.name + "/" + props.id)
 .then(response => {
     for(const obj of response) {
         if (obj.action == "POST") obj.action = "Created";
@@ -41,13 +41,6 @@ client.get("/audit/" + props.repo.store.model + "/" + props.id)
     data.value = response;
 });
 
-/*
-const fields = {};
-fields.action = audit.route.schema.action;
-fields['user-login-id'] = audit.route.schema['user-login-id'];
-fields["log"] = audit.route.schema["log"];
-fields["--created"] = audit.route.schema["--created"];
-*/
 
 
 </script>

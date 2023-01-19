@@ -35,7 +35,6 @@ const value = computed({
     },
     set(val) {
         cvalue.value = val;
-        console.log("Oval is ", val);
         if (!val || typeof val != 'object') return;
         props.bind.setValue(val.value);
     }

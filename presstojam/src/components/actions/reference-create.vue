@@ -5,7 +5,7 @@
     
     import { inject } from "vue"
     import { ReferenceTypes } from "../../js/entity/id.js"
-    import { getModel } from "../../js/models/modelstore.js"
+    import { getModel } from "../../js/models/modelmanager.js"
     import PtjForm from "../form/form.vue"
 
  
@@ -37,7 +37,7 @@
  
     function createReference() {
         referencestore.active.value = {};
-        if (!parent && referencestore.route.parent) {
+        if (!parent && referencestore.parent) {
             referencestore.active.value['--parent'] = common_parent_id;
         }
         dialog.value =true;

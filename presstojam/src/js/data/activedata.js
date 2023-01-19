@@ -8,30 +8,33 @@ export class ActiveData extends Data {
         this._active_id = active_id;
     }
 
+    get type() {
+        return "active";
+    }
 
     load() {
-        if (!this.load_promise) {
-            this.is_loading.value = true;
-            this.load_promise = this._model.load({"--id" : this._active_id});
+        if (!this._load_promise) {
+            this._is_loading.value = true;
+            this._load_promise = this._model.loadActive({"--id" : this._active_id});
         }
             
-        this.load_promise.then(response => {
-            this.is_loading.value = false;
+        this._load_promise.then(response => {
+            this._is_loading.value = false;
             return response;
         })
         .catch(e => {
             console.log(e);
-            this.is_loading.value = false;
+            this._is_loading.value = false;
             throw e;
         });
     
-        return this.load_promise;
+        return this._load_promise;
     }
 
 
     reload() {
         this._active.value = {};
-        this.load_promise = null;
+        this._load_promise = null;
         return this.load();
     }
 

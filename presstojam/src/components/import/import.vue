@@ -26,7 +26,7 @@
 </template>
 <script setup>
 import { ref, inject } from "vue"
-import { getStore } from "../../js/reactivestores.js"
+import { getStore } from "../../js/data/storemanager.js"
 import FileUpload from 'primevue/FileUpload'
 
 const props = defineProps({
@@ -45,8 +45,8 @@ const failed = ref(0);
 
 let headers = [];
 const oheaders = [];
-for(let i in store.route.schema) {
-    if (!store.route.schema[i].system) {
+for(let i in store.fields) {
+    if (!store.fields[i].system) {
         headers.push(i);
         oheaders.push(i);
     }

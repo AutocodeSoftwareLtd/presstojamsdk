@@ -1,13 +1,13 @@
 <template>
     <div ref="group">
-    <DataTable :value="repo.data.value" v-model:selection="repo.selected.value" dataKey="--id" :rowClass="rowClass"
+    <DataTable :value="data" v-model:selection="repo.selected.value" dataKey="--id" :rowClass="rowClass"
                 responsiveLayout="stack" :loading="repo.is_loading.value" :rowHover="true" @rowReorder="onRowReorder" 
                 @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" 
                 v-model:expandedRows="expandedRows" :globalFilterFields="global_filter_fields"
                 :filters="filters" v-bind="atts">
         <Column v-if="has_expandable" :expander="true" headerStyle="width: 3rem" />
         <Column v-if="has_sort" :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false" />
-        <Column v-if="store.route.perms.includes('delete')" selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+        <Column v-if="store.perms.includes('delete')" selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
         <Column v-for="cell in fields" :field="cell.name" :sortable="sortable"
                     :header="$t('models.' + cell.model + '.fields.' + cell.name + '.label')"
                     :key="cell.name">
@@ -17,10 +17,10 @@
         </Column>
         <Column :exportable="false" style="min-width:8rem">
             <template #body="slotProps">
-                <ptj-primary-action v-if="has_primary" :model="store.model" :id="slotProps.data['--id']" />
-                <Button v-if="store.route.perms.includes('put')" icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="showEdit(slotProps.data)" />
-                <Button v-if="store.route.audit" icon="pi pi-history" class="mr-2 p-button-rounded p-button-success" @click="showAudit(slotProps.data)" />
-                <component v-for="component in store.route.settings.actions" :is="component.component" v-bind="component.atts" :data="slotProps.data" :short="true" />
+                <ptj-primary-action v-if="has_primary" :model="store.name" :id="slotProps.data['--id']" />
+                <edit-action v-if="store.perms.includes('put')" :data="slotProps.data" :model="store" />
+                <audit-action v-if="store.audit" :data="slotProps.data" :model="store" />
+                <component v-for="component in store.actions" :is="component.component" v-bind="component.atts" :data="slotProps.data" :short="true" />
             </template>
         </Column>
         <template v-if="atts.groupRowsBy" #groupheader="slotProps">
@@ -29,20 +29,14 @@
         <template #expansion="slotProps">
             <Card>
                 <template #title>
-                    {{ $t("models." + store.route.children[0] + ".title") }}
+                    {{ $t("models." + store.children_models[0] + ".title") }}
                 </template>
                 <template #content>
-                    <ChildTable :name="store.route.children[0]" :parent_id="slotProps.data['--id']" :key="slotProps.data['--id']" />
+                    <ChildTable :name="store.children_models[0]" :parent_id="slotProps.data['--id']" :key="slotProps.data['--id']" />
                 </template>
             </Card>
         </template>
     </DataTable>
-    <Dialog v-if="store.route.audit" v-model:visible="show_audit" header="Audit" :modal="true" class="p-fluid">
-        <audit :repo="repo" :id="repo.active.value['--id']"/>
-    </Dialog>
-    <Dialog v-if="store.route.perms.includes('put')" v-model:visible="show_edit" :header="'Edit ' + $t('models.' + store.model + '.title', 1)" :modal="true" class="p-fluid">
-        <ptj-form :schema="store.route.schema" :data="repo.active.value" :model="store.model" @saved="hideEdit()" @dataChanged="updated" method="put"/>
-    </Dialog>
     </div>
 </template>
 
@@ -52,14 +46,12 @@ import Column from 'primevue/column';
 import { ref, computed, onMounted } from "vue"
 import Card from 'primevue/card';
 import { FilterMatchMode } from 'primevue/api';
-import { getStore } from "../../js/reactivestores.js"
-import Button from "primevue/button"
-import Dialog from 'primevue/dialog'
+import { getStore } from "../../js/data/storemanager.js"
+import EditAction from "../actions/edit-action.vue"
+import AuditAction from "../actions/audit-action.vue"
 
-
-import PtjForm from "../form/form.vue"
 import PtjPrimaryAction from "../actions/primary-action.vue"
-import Audit from "../effects/audit.vue"
+
 import PtjViewField from "../view/view-field.vue"
 import DataTable from "primevue/DataTable"
 import ChildTable from "./child-table.vue"
@@ -93,11 +85,18 @@ function editRow(row) {
     emits('edit', row);
 }
 
+const data = ref([]);
 
-const children = (store.route.schema['--id']) ? store.route.schema['--id'].reference : [];
+repo.load()
+.then(rows => {
+    data.value = rows;
+});
+
+
+const children = (store.fields['--id']) ? store.fields['--id'].reference : [];
 const has_primary = (children.length > 1) ? true : false;
 const has_expandable = (children.length == 1) ? true : false;
-const has_sort = store.route.schema['--sort'];
+const has_sort = store.fields['--sort'];
 const sortable = (!props.nosort && !repo.pagination && !has_sort) ? true : false;
 const global_filter_fields = [];
 if (!repo.pagination) {
@@ -108,20 +107,17 @@ if (!repo.pagination) {
 
 const atts = {};
 let groupcell;
-if (store.route.settings.group) {
+if (store.group) {
     atts.rowGroupMode = "subheader";
-    atts.groupRowsBy=store.route.settings.group;
-   // atts.sortMode="single";
-   // atts.sortField = store.route.settings.group;
-   // atts.sortOrder=1;
-} else if (store.route.settings.distinguish) {
-    let id = store.route.settings.distinguish;
+    atts.groupRowsBy=store.group;
+} else if (store.distinguish) {
+    let id = store.distinguish;
     atts.rowClass = function(data) {
         return id + "-" + data[id];
     }
 }
 
-groupcell = props.fields[store.route.settings.group];
+groupcell = props.fields[store.group];
 
 const filters = computed(() => {
     if (!props.search) return {};
@@ -150,18 +146,15 @@ function showEdit(data) {
 }
 
 
-function showAudit(data) {
-    repo.active.value = data;
-    show_audit.value = (show_audit.value) ? false : true;
-}
+
 
 
 
 
 function rowClass(data) {
     let classes = [];
-    if (store.route.settings.classes) {
-        for(let cls of store.route.settings.classes) {
+    if (store.classes) {
+        for(let cls of store.classes) {
             if (data[cls.att] == cls.value) classes.push(cls.class);
         }
     }
@@ -186,7 +179,7 @@ const onRowCollapse = (event) => {
 
 
 onMounted (() => {
-    const groupclasses = store.route.settings.groupclasses
+    const groupclasses = store.groupclasses
     if (groupclasses) {
         for(const cls in groupclasses) {
             const val = groupclasses[cls]

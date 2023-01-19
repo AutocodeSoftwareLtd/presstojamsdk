@@ -4,8 +4,8 @@
 <script setup>
 import Button from "primevue/button"
 import { useI18n } from 'vue-i18n';
-import { getModel } from "../../js/models/modelstore.js"
-import { getStore, createRepoStore } from "../../js/reactivestores.js"
+import { getModel } from "../../js/models/modelmanager.js"
+import { getStore, createRepoStore } from "../../js/data/storemanager.js"
 import { inject } from "vue"
 import { download } from "../../js/download.js"
 
@@ -20,10 +20,7 @@ const props = defineProps({
 const repo = getStore(props.name);
 const store = repo.store;
 
-
-const data = repo.data.value;
-const cells = store.route.schema;
-const settings = store.route.settings;
+const cells = store.fields;
 
 
 function buildData(data, headers) {
@@ -44,20 +41,20 @@ function exportCSV() {
 
 
     const headers = [];
-    if (settings.export_fields) {
-        if (Array.isArray(settings.export_fields)) {
-            for(const index in settings.export_fields){
-                headers.push({ key : settings.export_fields[index], label :  t("models." + store.model +  ".fields." +settings.export_fields[index] + ".label") });
+    if (store.export_fields) {
+        if (Array.isArray(store.export_fields)) {
+            for(const index in store.export_fields){
+                headers.push({ key : store.export_fields[index], label :  t("models." + store.name +  ".fields." +store.export_fields[index] + ".label") });
             }
         } else {
-            for(const key in settings.export_fields){
-                headers.push({ key : key, label :  settings.export_fields[key] });
+            for(const key in store.export_fields){
+                headers.push({ key : key, label :  store.export_fields[key] });
             }
         }
     } else {
         for(const key in cells) {
             if (key == "--owner" || key == "--parent") continue;
-            headers.push({ key : key, label : t("models." + store.model +  ".fields." + headers[key] + ".label") });
+            headers.push({ key : key, label : t("models." + store.name +  ".fields." + headers[key] + ".label") });
         }
     }
 
@@ -70,18 +67,20 @@ function exportCSV() {
 
 	if (repo.pagination.count) {
 		//need to load all data
-		let tstore = getModel(store.model);
-		let temp_repo = createRepoStore(tstore);
-        temp_repo.parent_id = store.parent_id;
-		store.loadAll()
+		repo.loadAll()
 		.then(data => {
 			value += buildData(data, headers);
-			download(value, store.model + '.csv');
+			download(value, store.name + '.csv');
 		})
 		.catch(e => console.log(e));
 	} else {
-		value += buildData(data, headers);
-		download(value, store.model + '.csv');
+        repo.load()
+        .then(data => {
+            value += buildData(data, headers);
+            download(value, store.name + '.csv');
+        });
+		
+		
 	}
 }
 

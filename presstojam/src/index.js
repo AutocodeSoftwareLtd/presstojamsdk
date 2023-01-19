@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router"
 import { createI18n } from 'vue-i18n'
 import PrimeVue from 'primevue/config';
-import { createClient } from "./js/client.js"
 import { registerFlow } from "./js/flows.js"
+import { getClient } from "./js/client.js"
 import PtjSingle from "./components/active/single.vue"
 import PtjReport from "./components/reports/report.vue"
 import { initConfigs } from "./js/configs.js"
@@ -15,7 +15,6 @@ import SetDefault from "./components/setdefault.vue"
 
 export default {
     install : (app, options) => {
-  
       initConfigs(options);
 
       const base = options.base;
@@ -85,7 +84,7 @@ export default {
 
         app.use(PrimeVue);
 
-        let client = createClient();
+        let client = getClient();
         app.provide("client", client);
 
         app.component("Controller", Controller);
@@ -96,7 +95,7 @@ export default {
 
 export {
   Controller,
-  createClient,
+  getClient,
   initConfigs
 }
 

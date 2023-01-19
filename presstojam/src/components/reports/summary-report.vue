@@ -5,8 +5,8 @@
 <script setup>
 import DataTable from "primevue/DataTable"
 import { inject } from "vue"
-import { getModel } from "../../js/models/modelstore.js"
-import { createRepoStore } from "../../js/reactivestores.js"
+import { getModel } from "../../js/models/modelmanager.js"
+import { createRepoStore } from "../../js/data/storemanager.js"
 
 const props = defineProps({
     group : String

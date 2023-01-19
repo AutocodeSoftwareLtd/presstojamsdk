@@ -7,9 +7,9 @@
 </template>
 <script setup>
 import { ref, computed, inject } from "vue";
-import { getRouteStructure} from "../../js/routes.js"
 import { rowToTree } from "../../js/helperfunctions.js"
-import { getStore } from "../../js/reactivestores.js"
+import { getStore } from "../../js/data/storemanager.js"
+import { getEntity } from "../../js/entity/entitymanager.js"
 import configs from "../../js/configs.js"
 
 import Breadcrumb from "primevue/breadcrumb"
@@ -30,25 +30,36 @@ const repo = getStore(props.name);
 const store = repo.store;
 const home = {icon: 'pi pi-home', to: configs.get("base")};
 
-const routes = ref(getRouteStructure(store.model));
+function getRoutes() {
+    let entity = getEntity(store.name);
+    let items = [];
+    while(entity.parent) {
+        const parent = getEntity(entity.parent);
+        items.push(parent);
+        entity = parent;
+    }
+    return items.reverse();
+}
+
+const routes = ref(getRoutes());
 
 const slug_trail = ref(null);
 
 
-if (store.route.parent) { 
+if (store.parent) { 
     if (repo.active_id) {
         repo.load()
-        .then(() => {
-            const id = repo.data.value['--parent'];
-            return Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
+        .then(data => {
+            const id = data['--parent'];
+            return Client.get("/data/" + store.parent + "/active?__to=*&--id=" + id)
         }).then(response => {
-            slug_trail.value = rowToTree(response, store.route.parent);
+            slug_trail.value = rowToTree(response, store.parent);
         }).catch(e => console.log(e));
     } else {
         const id = repo.parent_id;
-        Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
+        Client.get("/data/" + store.parent + "/active?__to=*&--id=" + id)
         .then(response => {
-            slug_trail.value = rowToTree(response, store.route.parent);
+            slug_trail.value = rowToTree(response, store.parent);
         }).catch(e => console.log(e));
     }
 } 

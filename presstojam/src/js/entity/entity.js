@@ -8,6 +8,9 @@ export class Entity {
         this._parent = null;
         this._children = null;
         this._sort = null;
+        this._min_rows = null;
+        this._max_rows = null;
+        this._perms = [];
 
 
         const keys = Object.keys(this);

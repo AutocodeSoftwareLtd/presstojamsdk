@@ -1,7 +1,7 @@
 <template>
     <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editRow" />
-    <Dialog v-model:visible="dialog" :header="'Edit ' + $t('models.' + store.model + '.title', 1)" :modal="true" class="p-fluid">
-        <form :schema="store.route.schema" :data="data" :model="store.model" @saved="onSave" method="put"/>
+    <Dialog v-model:visible="dialog" :header="'Edit ' + $t('models.' + model.name + '.title', 1)" :modal="true" class="p-fluid">
+        <ptj-form :model="model" :data="data" @saved="onSave" method="put" key="edit" />
     </Dialog>
 
 </template>
@@ -9,16 +9,18 @@
     import { ref } from "vue"
     import Dialog from 'primevue/dialog'
     import Button from "primevue/button"
-    import Form from "./../form/form.vue"
+    import PtjForm from "./../form/form.vue"
 
     const props = defineProps({
-        store : Object,
+        model : Object,
         data : Object
     });
 
+
+
     const emits = defineEmits([
         'onSave'
-    ])
+    ]);
 
     const dialog = ref(false);
 

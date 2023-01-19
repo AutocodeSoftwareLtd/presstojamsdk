@@ -7,7 +7,7 @@
 import { inject, ref,  } from "vue"
 
 import TreeSelect from 'primevue/treeselect';
-import { getModel } from "../../js/models/modelstore.js"
+import { getModel } from "../../js/models/modelmanager.js"
 import { getRouteStructure } from "../../js/routes.js"
 
 
@@ -49,7 +49,7 @@ function getOptions() {
         for (const row of response) {
             
         }
-       // toTree(response, store.route.schema
+       // toTree(response, store.fields
     });
 }
 

@@ -1,9 +1,7 @@
 import configs from "./../configs.js"
-import { getEntity } from "./../entity/entitystore.js"
+import { getEntity } from "../entity/entitymanager.js"
 import { ReferenceTypes } from "./../entity/id.js"
 import { getClient } from "./../client.js"
-
-const client = getClient();
 
 export class Model {
 
@@ -11,7 +9,10 @@ export class Model {
         this._name = name;
         this._fields = {};
         this._perms = [];
-        this._parent = null;
+        this._import = false;
+        this._export = false;
+        this._max_cols = 8;
+        this._no_filter = false;
         this._children = null;
         this._sort = null;
         this._to;
@@ -21,6 +22,13 @@ export class Model {
         this._limited_fields = null;
         this._export_fields;
         this._distinguish;
+        this._audit;
+        this._actions = [];
+        this._editable_fields = [];
+        this._classes;
+        this._group_classes;
+        this._events = {};
+        
 
 
         const keys = Object.keys(this);
@@ -38,10 +46,15 @@ export class Model {
           }
         });
 
-        this.loadEntity();
+        const entity = this.loadEntity();
         this.loadSettings();
-        this.loadFields();
+        this.loadFields(entity);
         this.loadParentFields();
+    }
+
+
+    get children_models() {
+        return this._fields["--id"].reference;
     }
 
     getSettings() {
@@ -64,6 +77,13 @@ export class Model {
             if (settings.limit) this._limit = settings.limit;
             if (settings.export_fields) this._export_fields = settings.export_fields;
             if (settings.distinguish) this._distinguish = settings.distinguish;
+            if (settings.actions) this._actions = settings.actions;
+            if (settings.editable) this._editable_fields = settings.editable;
+            if (settings.no_filter) this._no_filter = settings.no_filter;
+            if (settings.max_cols) this._max_cols = settings.max_cols;
+            if (settings.classes) this._classes = settings.classes;
+            if (settings.group_classes) this._group_classes = settings.group_classes;
+            if (settings.events) this._events = settings.events;
         }
     }
 
@@ -72,13 +92,18 @@ export class Model {
         if (!entity) {
             throw "Can't create model from entity that doesn't exist ", this._name;
         } 
-        this._perms = entity.perms;
-        this._parent = entity.parent;
-        this._sort = entity.sort;
+        
+        if (entity.perms) this._perms = entity.perms;
+        if (entity.sort) this._sort = entity.sort;
+        if (entity.audit) this._audit = entity.audit;
+        if (entity.import) this._import = entity.import;
+        if (entity.export) this._export = entity.export;
+
+        return entity;
     }
 
 
-    loadFields(entity, slug) {
+    loadFields(entity, slug = "") {
         const fields = entity.cells;
         for(let i in fields) {
             if (!this._limited_fields || this._limited_fields.includes(slug + i)) {
@@ -102,9 +127,10 @@ export class Model {
         }
     }
 
-    loadCount() {
+    loadCount(filters) {
         if (this._limit) {
-            return client.get("/count/" + this._name, this.buildParams())
+            const client = getClient();
+            return client.get("/count/" + this._name, this.buildParams(filters))
             .then(response => {
                 return parseInt(response.count);
             });
@@ -113,16 +139,19 @@ export class Model {
         }
     }
 
-
-    loadAll(filters, page) {
+    load(filters, page) {
+        const client = getClient();
         return client.get("/data/" + this._name, this.buildParams(filters, page));
     }
 
+
     loadActive(filters) {
+        const client = getClient();
         return client.get("/data/" + this._name + "/active", this.buildParams(filters));
     }
 
     loadFirst(filters) {
+        const client = getClient();
         return client.get("/data/" + this._name + "/first", this.buildParams(filters))
     }
 
@@ -141,7 +170,12 @@ export class Model {
         for(let i in filters) {
             params[i] = filters[i];
         }
-        
         return params;
+    }
+
+    trigger(key, data) {
+        if (this._events[key]) {
+            this._events[key](data);
+        }
     }
 }

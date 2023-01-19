@@ -7,7 +7,8 @@
 <script setup>
 import { computed } from "vue"
 import { ReferenceTypes } from "../../js/entity/id.js";
-import { getRoute, hasRoute } from "../../js/routes.js"
+import { hasEntity } from "./../../js/entity/entitymanager.js"
+import { getModel } from "../../js/models/modelmanager.js"
 
 const props = defineProps({
     value : [Number, String ],
@@ -17,7 +18,7 @@ const props = defineProps({
 
 
 let show_route = false;
-if (props.field.reference_type == ReferenceTypes.REFERENCE && hasRoute(props.field.reference) && props.value) {
+if (props.field.reference_type == ReferenceTypes.REFERENCE && hasEntity(props.field.reference) && props.value) {
     show_route = true;
 }
 
@@ -33,7 +34,7 @@ let display = computed(() => {
             }
         } else {
             
-            const ref_route = getRoute(props.field.reference);
+            const ref_route = getModel(props.field.reference);
             
             for(const i in ref_route.schema) {
                 if (ref_route.schema[i].summary) {

@@ -6,9 +6,8 @@
 </template>
 <script setup>
 import Panel from 'primevue/panel';
-import { getModel } from "../../js/models/modelstore.js"
 import { computed } from "vue"
-import { createRepoStore, regStore } from "../../js/reactivestores.js"
+import { getStore } from "../../js/data/storemanager.js"
 import PtjTableDisplay from "./../table/table-display.vue"
 import PtjTree from "./../tree/tree.vue"
 
@@ -16,20 +15,17 @@ const props = defineProps({
     model : String
 });
 
-const store = getModel(props.model);
 
-const repo = createRepoStore(store);
-regStore(props.model, repo);
+const repo = getStore(props.model);
+const store =repo.store;
 repo.load();
 
 const component = computed(() => {
     if (!store) return "";
-    else if (!store.route) return "";
-    else if (store.route.schema["--recursive"]) return "recursive";
-    else if (store.route.singleton) return "form";
+    else if (store.fields["--recursive"]) return "recursive";
+    else if (store.singleton) return "form";
     else return "table";
 });
-
 
 function reload() {
     store.value.reload();

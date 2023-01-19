@@ -4,8 +4,8 @@
     <Message severity="success" v-if="saved">Saved</Message>
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
     <div v-if="parent" class="form-group">
-        <label>{{ $t("models." + store.route.parent + ".title")}}</label>
-        <ptj-parent-select v-model="proxy_values['--parent']" :model="store.route.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
+        <label>{{ $t("models." + store.parent + ".title")}}</label>
+        <ptj-parent-select v-model="proxy_values['--parent']" :model="store.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
     </div>
     <ptj-edit-field :bind="bind" v-for="bind in binds" :key="bind.cell.name"/>
     <Button :label="$t('btns.save')" @click="submit" />
@@ -28,19 +28,16 @@ import { createBind, createBindGroup } from "../../js/binds.js"
 import PtjDispatch from "../dispatch/dispatch-response.vue"
 import Dialog from 'primevue/dialog'
 
-
-
 const Client = inject("client");
 
 const props = defineProps({
-    schema : Object,
     data : Object,
-    model : String,
-    parent : Boolean,
+    model : Object,
     method : {
         type : String,
         default : 'post'
-    }
+    },
+    parent : Boolean
 });
 
 const emits = defineEmits([
@@ -52,24 +49,24 @@ const global_error = ref("");
 const dispatch = ref(false);
 const dispatchid=ref(0);
 
-provide("model", props.model);
+provide("model", props.model.name);
 
 
 let cells;
-if (props.stype == 'put') cells = getMutableCells(props.schema);
-else cells = getImmutableCells(props.schema);
+if (props.stype == 'put') cells = getMutableCells(props.model.fields);
+else cells = getImmutableCells(props.model.fields);
 
 
 const bindGroup = createBindGroup();
 
 
 if (props.parent) {
-    bindGroup.addBind("--parent", createBind(props.schema["--parent"], props.data["--parent"]));
+    bindGroup.addBind("--parent", createBind(props.model.fields["--parent"], props.data["--parent"]));
 }
 
 
 for(const field in cells) {
-    bindGroup.addBind(field, createBind(props.schema[field], props.data[field]));
+    bindGroup.addBind(field, createBind(props.model.fields[field], props.data[field]));
 }
 
 

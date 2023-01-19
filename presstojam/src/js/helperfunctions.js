@@ -70,6 +70,7 @@ export function getSummaryCells(schema) {
 
 
 export function getMutableCells(schema) {
+    console.log(schema);
     let cells = {};
     for(let i in schema) {
         if (schema[i].type == "json") {
@@ -84,6 +85,7 @@ export function getMutableCells(schema) {
 
 export function getImmutableCells(schema) {
     let cells = {};
+    console.log(schema);
     for(let i in schema) {
         if (schema[i].type == "json") {
             schema[i].cells = getImmutableCells(schema[i].fields);

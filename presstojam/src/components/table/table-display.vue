@@ -1,5 +1,5 @@
 <template>
-    <ptj-filter-form v-if="repo.pagination && !store.route.settings.nofilter"  :store="store" />
+    <ptj-filter-form v-if="repo.pagination && !store.nofilter"  :store="repo" />
     <Message severity="success" v-if="newrow">New row created</Message>
     <Message severity="success" v-if="delrow">Rows removed</Message>
     <Toolbar class="mb-4">
@@ -17,15 +17,15 @@
                 </template>
 
                 <template #end>
-                    <ptj-import-action v-if="has_import" :name="name" />
-                    <ptj-export-action v-if="has_export" :name="name" />
-                    <ptj-create-action v-if="store.route.perms.includes('post')" :name="name" @onSave="onSave" /> 
-                    <ptj-delete-action v-if="store.route.perms.includes('delete')" :name="name" @onDel="onDel"/>
+                    <ptj-import-action v-if="store.import" :name="name" />
+                    <ptj-export-action v-if="store.export" :name="name" />
+                    <ptj-create-action v-if="store.perms.includes('post')" :name="name" @onSave="onSave" /> 
+                    <ptj-delete-action v-if="store.perms.includes('delete')" :name="name" @onDel="onDel"/>
                 </template>
     </Toolbar>
-    <p v-if="repo.pagination">Total Rows: {{ repo.pagination.count }}</p>
+    <p v-if="repo.pagination.rows_per_page">Total Rows: {{ repo.pagination.count }}</p>
     <ptj-table ref="dt" :name="name" :fields="fields" :search="search" @reorder="onRowReorder" />
-    <ptj-pagination v-if="repo.pagination" :pagination="repo.pagination" @reload="reloadPage" />
+    <ptj-pagination v-if="repo.pagination.rows_per_page" :pagination="repo.pagination" @reload="reloadPage" />
 </template>
 
 <script setup>
@@ -39,7 +39,7 @@ import PtjTable from "./table.vue"
 import Message from 'primevue/message';
 import  {saveOrder } from "../../js/helperfunctions.js" 
 import InputText from 'primevue/inputtext'
-import { getStore } from "../../js/reactivestores.js"
+import { getStore } from "../../js/data/storemanager.js"
 import PtjExportAction from '../actions/export-action.vue'
 import PtjCreateAction from '../actions/create-action.vue'
 import PtjDeleteAction from '../actions/delete-action.vue'
@@ -58,13 +58,11 @@ const props = defineProps({
 const repo = getStore(props.name);
 const store = repo.store;
 
+const max_cols = (!store.max_cols) ? 10 : store.max_cols;
 
-const max_cols = (!store.route.settings.max_cols) ? 10 : store.route.settings.max_cols;
-const has_export =store.route.export;
-const has_import = store.route.import;//store.route.import;
 
 //const has_export = true;
-const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
+const col_expandable = (Object.keys(store.fields).length > max_cols) ? true : false;
 const fixed_fields = [];
 const optional_fields = [];
 
@@ -81,12 +79,12 @@ const delrow = ref(false);
 const fields = computed(() => {
     const cells = {};
     for(let i of fixed_fields) {
-        cells[i] = store.route.schema[i];
+        cells[i] = store.fields[i];
     }
 
     if (active_options.value) {
         for(let i of active_options.value) {
-            cells[i] = store.route.schema[i];
+            cells[i] = store.fields[i];
         }
     }
 
@@ -94,8 +92,8 @@ const fields = computed(() => {
 });
 
 
-for(let i in store.route.schema) {
-    if (store.route.schema[i].background) continue;
+for(let i in store.fields) {
+    if (store.fields[i].background) continue;
     if (!col_expandable || fixed_fields.length < max_cols)  
         fixed_fields.push(i);
     else if (col_expandable) 
@@ -111,7 +109,7 @@ function reloadPage(offset) {
 
 function onRowReorder(rows) {
     repo.data.value =rows;
-    saveOrder(store.model, rows);
+    saveOrder(store.name, rows);
 }
 
 

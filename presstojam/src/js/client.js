@@ -142,14 +142,7 @@ export class Client {
     
 }
 
-let client;
-
-export function createClient() {
-
-    client = new Client(configs.get("url"), configs.get("client.custom_headers", {}));
-    return client;
-}
 
 export function getClient() {
-    return client;
+    return new Client(configs.get("url"), configs.get("client.custom_headers", {}));
 }

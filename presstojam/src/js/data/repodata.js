@@ -1,4 +1,6 @@
 import { Data } from "./data.js"
+import { reactive } from "vue"
+
 
 export class RepoData extends Data {
 
@@ -11,26 +13,51 @@ export class RepoData extends Data {
             offset : 0 
         });
 
-        this._selected = ref([]);
-
+        this._parent_id = null;
         this._order = {};
-        this._filters = reactive({});
+        this._filters = {};
     }
 
 
+    get pagination() {
+        return this._pagination;
+    }
+
+    get filters() {
+        return this._filters;
+    }
+
+    get type() {
+        return "repo";
+    }
+
+    get parent_id() {
+        return this._parent_id;
+    }
+
+    set parent_id(id) {
+        this._parent_id = id;
+    }
+
+    buildParams() {
+        let filters = {... this._filters};
+        if (this._parent_id) filters["--parent"] = this._parent_id;
+        return filters;
+    }
 
     load() {
-        if (!this.load_promise) {
-            this.is_loading.value = true;
-            this.load_promise = this._model.loadCount(this._filters)
+        if (!this._load_promise) {
+            this._is_loading.value = true;
+            let params = this._filt
+            this._load_promise = this._model.loadCount(this.buildParams())
             .then(count => {
-                this.pagination.count = count;
-                return this._model.load(this._filters, this._pagination.offset);
+                this._pagination.count = count;
+                return this._model.load(this.buildParams(), this._pagination.offset);
             });
         }
             
-        this.load_promise.then(response => {
-            this.is_loading.value = false;
+        this._load_promise.then(response => {
+            this._is_loading.value = false;
             return response;
         })
         .catch(e => {
@@ -39,13 +66,13 @@ export class RepoData extends Data {
             throw e;
         });
     
-        return this.load_promise;
+        return this._load_promise;
     }
 
     loadAll() {
         let ocount = this._model.limit;
         this._model.limit = 0;
-        const promise = this._model.load(this._filters);
+        const promise = this._model.load(this.buildParams());
         this._model.limit = ocount; //reset original limit
         return promise;
     }

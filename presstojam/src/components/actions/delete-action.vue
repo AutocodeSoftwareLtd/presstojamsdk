@@ -1,10 +1,10 @@
 <template>
     <Button label="Delete" icon="pi pi-trash" class="p-button-danger"
                         :disabled="!repo.selected.value.length" @click="delRow" />
-    <Dialog v-model:visible="dialog" :header="'Delete ' + $t('models.' + repo.store.model + '.title', (single) ? 1 : 2)" :modal="true" class="p-fluid">
+    <Dialog v-model:visible="dialog" :header="'Delete ' + $t('models.' + repo.store.name + '.title', (single) ? 1 : 2)" :modal="true" class="p-fluid">
         <p>Are you sure you want to delete:</p>
         <ul>
-            <li v-for="item in repo.selected.value">{{ getLabel(repo.store.route.schema, item) }}</li>
+            <li v-for="item in repo.selected.value">{{ getLabel(repo.fields, item) }}</li>
         </ul>
         <p>Type <i>{{ check_str }}</i> in the box below</p>
         <div class="p-inputgroup">
@@ -18,7 +18,7 @@
     import { ref, computed, inject } from "vue"
     import Dialog from 'primevue/dialog'
     import Button from "primevue/button"
-    import { getStore } from "../../js/reactivestores.js"
+    import { getStore } from "../../js/data/storemanager.js"
     import InputText from 'primevue/inputtext';
     import { getLabel } from "../../js/helperfunctions.js"
 
@@ -59,7 +59,7 @@
         }
         params["--id"] = keys;
         
-        client.delete("/data/" +repo.store.model, params)
+        client.delete("/data/" +repo.store.name, params)
         .then(() => {
             dialog.value = false;
             repo.selected.value = [];

@@ -18,8 +18,7 @@
 import { inject, ref, onMounted, computed } from "vue"
 import InputNumber from "primevue/inputnumber"
 import TreeSelect from 'primevue/treeselect';
-import { getModel } from "../../js/models/modelstore.js"
-import { getStore } from "../../js/reactivestores.js"
+import { getStore } from "../../js/data/storemanager.js"
 import PtjReferenceCreate from "../actions/reference-create.vue"
 import Dialog from 'primevue/dialog'
 import AutocompleteSelect from "./autocomplete-select.vue"
@@ -32,9 +31,12 @@ const props = defineProps({
     }
 });
 
-
 const model = inject("model");
-const store = getModel(model);
+
+const repo = getStore(model);
+
+const store = repo.store;
+
 const client = inject("client");
 
 const dialog = ref(false);
@@ -45,12 +47,20 @@ const options = ref([]);
 let value;
 let id = 0;
 
-if (store.active_id) {
-    const repo = getStore(model);
-    id = repo.data.value['--parent'];
-} else if (store.parent_id) {
+const parent_id = 0;
+if (repo.type == "active") {
+    (async() => {
+        await repo.load()
+        .then(response => {
+            if (response['--parent']) {
+                id = response['--parent'];
+            }
+        });
+    });
+} else {
     id = store.parent_id;
 }
+
 
 const cell = props.bind.cell;
 
@@ -76,7 +86,7 @@ if (cell.isReferenceType()) {
 
 } else if (cell.recursive) {
     onMounted(() => {
-       cell.getRecursiveOptions(client, model, id, store.route.schema)
+       cell.getRecursiveOptions(client, model, id, store.fields)
        .then(response => {
         let arr = [...response];
         arr.unshift({key : "0", label : 'None' , "--recursive" : 0});
@@ -92,7 +102,6 @@ if (cell.isReferenceType()) {
             return obj;
         },
         set(val) {
-            console.log("Setting value to ", val);
             const keys = Object.keys(val);
             props.bind.setValue(keys[0]);
         }

@@ -9,7 +9,7 @@
     import Button from "primevue/button"
     import { createBind } from "./../../js/binds.js"
     import PtjIdEdit from "../form/id-edit.vue"
-    import {getStore } from "./../../js/reactivestores.js"
+    import {getStore } from "../../js/data/storemanager.js"
     
     const client = inject("client");
 
@@ -25,17 +25,17 @@
     const repo = getStore(props.name);
     const store = repo.store;
     
-    provide("model", store.model);
+    provide("model", store.name);
 
    
-    const bind = createBind(store.route.schema['--recursive'], 0);
+    const bind = createBind(store.fields['--recursive'], 0);
 
 
     function submit() {
         let promise = [];
         for(const row of repo.selected.value) {
             const obj = {"--id" : row['--id'], "--recursive" : bind.value.value };
-            promise.push(client.put("/data/" + store.model, obj));
+            promise.push(client.put("/data/" + store.name, obj));
         }
 
         return Promise.all(promise)

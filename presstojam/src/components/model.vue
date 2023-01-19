@@ -5,9 +5,9 @@
 </template>
 <script setup>
 
-import { getModel, clearModelCache } from "../js/models/modelstore.js"
-import { clearStores } from "../js/reactivestores.js";
-import { inject, computed } from "vue"
+import { getModel, clearModelCache } from "../js/models/modelmanager.js"
+import { clearStores, regStore, createActiveStore, createRepoStore } from "../js/data/storemanager.js";
+import { computed } from "vue"
 import PtjRepo from "./repo/repo.vue"
 import PtjActive from "./active/active.vue"
 
@@ -28,26 +28,28 @@ const component = computed(() => {
 });
 
 
-const client = inject("client");
-
 function setupModel() {
 
     clearModelCache();
     clearStores();
 
-    const store = getModel(client, props.model);
+    const store = getModel(props.model);
 
 
     if (props.is_active) {
-        for(const child of store.route.schema["--id"].reference) {
-            const child_store = getModel(client, child);
-            child_store.parent_id = props.id;
+        const active = createActiveStore(store, props.id);
+        regStore(props.model, active);
+
+        for(const child of store.fields["--id"].reference) {
+            const child_store = getModel(child);
+            const repo = createRepoStore(child_store);
+            repo.parent_id = props.id;
+            regStore(child, repo);
         }
-                    
-        store.active_id = props.id;
-    
     } else {
-        store.parent_id = props.id;
+        const repo = createRepoStore(store);
+        repo.parent_id = props.id;
+        regStore(props.model, repo);
     }
 }
 

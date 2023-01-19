@@ -11,7 +11,7 @@
 import { ref, inject } from 'vue';
 import configs from "../js/configs.js"
 
-import { loadSiteMap } from "../js/entity/entitystore.js"
+import { loadSiteMap } from "../js/entity/entitymanager.js"
 
 import PtjAccountHandler from "./login/login.vue"
 import PtjRoutes from './routes.vue'
@@ -58,7 +58,7 @@ function loadRoutes() {
 
 
 function loadDictionary() {
-    client.get("/user/dictionary")
+    return client.get("/user/dictionary")
     .then(response => {
         for(let i in response) {
             i18n.setLocaleMessage(i, response[i]);
@@ -67,7 +67,7 @@ function loadDictionary() {
 }
 
 function loadUser() {
-    client.get("/user/details")
+    return client.get("/user/details")
     .then(response => {
         name.value = (response.name) ? response.name : response.email;
     });  
@@ -79,7 +79,6 @@ function loadUser() {
 await client.get("/user/check-user")
 .then(response => {
     if (response.name != _profile) {
-        console.log("Name is", response.name, _profile);
         require_login.value = true;
         return loadDictionary();
     } else {

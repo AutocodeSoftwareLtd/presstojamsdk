@@ -1,7 +1,7 @@
 <template>
     <Button label="New" icon="pi pi-plus" class="p-button-success mr-2" @click="createRow" />
     <Dialog v-model:visible="dialog" :header="header" :modal="true" class="p-fluid">
-        <ptj-form :schema="store.route.schema" :model="store.model" :data="data" @saved="onSave" @dataChanged="dataChanged"/>
+        <ptj-form :schema="store.fields" :model="store.name" :data="data" @saved="onSave" @dataChanged="dataChanged"/>
     </Dialog>
 
 </template>
@@ -9,7 +9,7 @@
     import { ref, inject } from "vue"
     import Dialog from 'primevue/dialog'
     import Button from "primevue/button"
-    import { getStore } from "../../js/reactivestores.js"
+    import { getStore } from "../../js/data/storemanager.js"
     import PtjForm from "../form/form.vue"
   
     const i18n = inject("i18n");
@@ -33,8 +33,8 @@
     if (store.parent_id) data["--parent"] = store.parent_id;
 
     const header = (store.parent_store) 
-        ? "Add " + t("models." + store.model + ".title", 1) + " to " + props.parentlabel  
-        : "Create " + t("models." + store.model + ".title", 1);
+        ? "Add " + t("models." + store.name + ".title", 1) + " to " + props.parentlabel  
+        : "Create " + t("models." + store.name + ".title", 1);
 
     function createRow() {
         dialog.value =true;

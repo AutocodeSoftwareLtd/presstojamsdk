@@ -3,7 +3,7 @@
     <ReportGroup v-for="group in groups" :key="group" :group="group" />
 </template>
 <script setup>
-import { getModel, clearModelCache } from "../../js/models/modelstore.js"
+import { getModel, clearModelCache } from "../../js/models/modelmanager.js"
 import ReportGroup from "./report-group.vue"
 import { provide, inject } from "vue"
 import { ReferenceTypes } from "../../js/entity/id";
