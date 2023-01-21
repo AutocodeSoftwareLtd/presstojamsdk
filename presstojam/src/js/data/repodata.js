@@ -16,6 +16,7 @@ export class RepoData extends Data {
         this._parent_id = null;
         this._order = {};
         this._filters = {};
+        this._count_promise = null;
     }
 
 
@@ -42,16 +43,33 @@ export class RepoData extends Data {
     buildParams() {
         let filters = {... this._filters};
         if (this._parent_id) filters["--parent"] = this._parent_id;
+        if (this._pagination.rows_per_page) {
+            filters.__offset = this._pagination.offset;
+        }
         return filters;
+    }
+
+    setPagination(offset) {
+        this._pagination.offset = offset;
+        return this.reload();
+    }
+
+    hasPagination() {
+        return (this._pagination.rows_per_page) ? true : false;
     }
 
     load() {
         if (!this._load_promise) {
             this._is_loading.value = true;
-            let params = this._filt
-            this._load_promise = this._model.loadCount(this.buildParams())
-            .then(count => {
-                this._pagination.count = count;
+            if (!this._count_promise) {
+                this._count_promise = this._model.loadCount(this.buildParams())
+                .then(count => {
+                    this._pagination.count = count;
+                });
+            }
+
+            this._load_promise = this._count_promise
+            .then(() => {
                 return this._model.load(this.buildParams(), this._pagination.offset);
             });
         }
@@ -79,20 +97,41 @@ export class RepoData extends Data {
 
 
     reload(params) {
-        this._selected.value = [];
-        this._active.value = {};
-        this.load_promise = null;
+        this._load_promise = null;
         return this.load(params);
     }
 
     overwrite(obj) {
-        for(let row of this.data.value) {
-            if (row['--id'] == obj['--id']) {
-                for(let x in obj) {
-                    row[x] = obj[x];
+        this._load_promise = this._load_promise
+        .then(response => {
+            for(const row of response) {
+                if (row['--id'] == obj['--id']) {
+                    for(let x in obj) {
+                        row[x] = obj[x];
+                    }
                 }
-            }       
-        }
-    }    
+            }      
+            return response; 
+        });
+    }
+    
+    remove(ids) {
+        this._load_promise = this._load_promise
+        .then(response => {
+            response.filter(function(item) {
+                return !ids.include(item['--id']);
+            });
+            return response;
+        });
+    }
+
+
+    append(obj) {
+        this._load_promise = this._load_promise
+        .then(response => {
+            response.push(obj);
+            return response;
+        });
+    }
 
 }

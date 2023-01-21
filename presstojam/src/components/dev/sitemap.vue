@@ -13,8 +13,8 @@ import AccordionTab from 'primevue/accordiontab';
 import Panel from 'primevue/panel';
 
 import SitemapNode from "./sitemap-node.vue"
-import { getRoutes } from "../../js/routes.js"
+import { getEntities } from "../../js/entity/entitymanager.js"
 
-const routes = getRoutes();
+const routes = getEntities();
 
 </script>

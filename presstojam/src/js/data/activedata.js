@@ -12,6 +12,10 @@ export class ActiveData extends Data {
         return "active";
     }
 
+    get active_id() {
+        return this._active_id;
+    }
+    
     load() {
         if (!this._load_promise) {
             this._is_loading.value = true;
@@ -39,9 +43,13 @@ export class ActiveData extends Data {
     }
 
     overwrite(obj) {
-        for(let x in obj) {
-            this.data.value[x] = obj[x];  
-        }
+        this._load_promise = this._load_promise
+        .then(response => {
+            for(let x in obj) {
+                response[x] = obj[x];  
+            }
+            return response;
+        });        
     }    
 
 }

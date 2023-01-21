@@ -24,7 +24,7 @@ const props = defineProps({
 
 const value = computed({
     get() {
-        return props.bind.value.value;
+        return props.bind.value;
     },
     set(val) {
         props.bind.setValue(val);
@@ -34,7 +34,7 @@ const value = computed({
 const disabled = (props.bind.cell.system) ? true : false;
 
 const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+    return (props.bind.active_validation && props.bind.error) ? "p-invalid" : "";
 });
 
 </script>

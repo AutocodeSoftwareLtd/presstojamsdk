@@ -1,14 +1,17 @@
 <template>
     <div ref="group">
-    <DataTable :value="data" v-model:selection="repo.selected.value" dataKey="--id" :rowClass="rowClass"
-                responsiveLayout="stack" :loading="repo.is_loading.value" :rowHover="true" @rowReorder="onRowReorder" 
+    <DataTable :value="data" v-model:selection="repo.selected.value" 
+                dataKey="--id" :rowClass="rowClass"
+                responsiveLayout="stack" :loading="repo.is_loading.value" 
+                :rowHover="true" @rowReorder="onRowReorder" 
                 @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" 
-                v-model:expandedRows="expandedRows" :globalFilterFields="global_filter_fields"
-                :filters="filters" v-bind="atts">
+                v-model:expandedRows="expandedRows" 
+                :globalFilterFields="global_filter_fields"
+                :filters="filters" v-bind="atts" v-on="events">
         <Column v-if="has_expandable" :expander="true" headerStyle="width: 3rem" />
         <Column v-if="has_sort" :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false" />
         <Column v-if="store.perms.includes('delete')" selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-        <Column v-for="cell in fields" :field="cell.name" :sortable="sortable"
+        <Column v-for="cell in fields" :field="cell.slug" :sortable="sortable"
                     :header="$t('models.' + cell.model + '.fields.' + cell.name + '.label')"
                     :key="cell.name">
             <template #body="slotProps">
@@ -78,8 +81,6 @@ const repo = getStore(props.name);
 const store = repo.store;
 
 const group = ref();
-const show_edit = ref(false);
-const show_audit = ref(false);
 
 function editRow(row) {
     emits('edit', row);
@@ -97,15 +98,16 @@ const children = (store.fields['--id']) ? store.fields['--id'].reference : [];
 const has_primary = (children.length > 1) ? true : false;
 const has_expandable = (children.length == 1) ? true : false;
 const has_sort = store.fields['--sort'];
-const sortable = (!props.nosort && !repo.pagination && !has_sort) ? true : false;
+const sortable = (!props.nosort && !repo.hasPagination() && !has_sort) ? true : false;
 const global_filter_fields = [];
-if (!repo.pagination) {
+if (!repo.hasPagination()) {
     for(let field in props.fields) {
         global_filter_fields.push(field);
     }
 }
 
 const atts = {};
+const events = {};
 let groupcell;
 if (store.group) {
     atts.rowGroupMode = "subheader";
@@ -117,6 +119,18 @@ if (store.group) {
     }
 }
 
+
+if (repo.hasPagination()) {
+    atts.lazy = true;
+    atts.totalRecords = repo.pagination.count;
+    atts.rows = repo.pagination.rows_per_page;
+    events.onPage = function(page) {
+        repo.setPagination(page)
+        .then(response => {
+            data.value = response;
+        });
+    }
+}
 groupcell = props.fields[store.group];
 
 const filters = computed(() => {

@@ -15,6 +15,10 @@ export function getEntity(i) {
 }
 
 
+export function getEntities() {
+    return _entities;
+}
+
 export function loadSiteMap(response) {
     
     for(let i in response) {
@@ -51,4 +55,10 @@ export function loadSiteMap(response) {
 
 export function hasEntity(name) {
     return (_entities[name]) ? true : false;
+}
+
+export function defaultEntity() {
+    for(const name in _entities) {
+        return name;
+    }
 }

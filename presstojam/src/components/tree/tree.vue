@@ -1,71 +1,57 @@
 <template >
-  <Message severity="success" v-if="newrow">New row created</Message>
-        <Message severity="success" v-if="delrow">Rows removed</Message>
-    <Toolbar class="mb-4">
+    <Splitter>
+     <SplitterPanel>
+      <Message severity="success" v-if="newrow">New row created</Message>
+    <Message severity="success" v-if="delrow">Rows removed</Message>
+      <Toolbar class="mb-4">
       <template #start>
         <Button type="button" v-if="expanded" icon="pi pi-minus" label="Collapse All" @click="collapseAll" />
         <Button type="button" v-else icon="pi pi-plus" label="Expand All" @click="expandAll" />
                   
       </template>
       <template #end> 
-        <Toolbar>
-                <template #start>
-                  <Button v-if="repo.active.value['--id']" icon="pi pi-times" class="p-button-rounded p-button-success" @click="onNodeClear" />
-                  <ptj-primary-action v-if="has_primary && repo.active.value['--id']"  :model="store.name" :id="repo.active.value['--id']"/>
-                  <ptj-edit-action v-if="repo.active.value['--id']"  :store="store" :data="repo.active.value" />
-                  {{ label }}
-                </template>
-
-                <template #end>
-                    <ptj-move-action :name="name" @onMove="reload" v-if="store.perms.includes('put')"/>
-                    <ptj-create-action :name="name" @onSave="reload" v-if="store.perms.includes('post')"/> 
-                    <ptj-delete-action :name="name" @onDel="onDel" v-if="store.perms.includes('delete')"/>
-                </template>
-          </Toolbar>
-        </template>
+          <ptj-create-action :name="name" @onSave="reload" v-if="store.perms.includes('post')"/> 
+      </template>
     </Toolbar>
-    <TreeTable :value="data" :expandedKeys="expandedKeys">
-        <Column :expander="true" headerStyle="width: 3rem" />
-        <Column v-if="has_sort" :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false" />
-        <Column v-if="store.perms.includes('delete')" selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-        <Column v-for="cell in store.fields" :field="cell.name"
-                    :header="$t('models.' + store.name + '.fields.' + cell.name + '.label')"
-                    :key="cell.name">
-            <template #body="slotProps">
-
-                <ptj-view-field :row="slotProps.node.data" :field="cell" />
+          <Tree :value="data" selectionMode="single" @node-select="setActive" :filter="true" filterMode="lenient" v-model:selectionKeys="selected" :expandedKeys="expandedKeys">
+            <template #default="slotProps">
+                <ptj-view-field v-for="cell in cells" :row="slotProps.node.data" :field="cell" />
+              </template>
+        </Tree>
+    </SplitterPanel>
+    <SplitterPanel>
+      <Panel v-if="active['--id']" :header="$t('models.' +store.name + '.title')" :key="active['--id']">
+            <template #icons>
+                <audit-action v-if="store.audit" :model="store" :data="active" :long="true" />
+                <ptj-delete-action :name="name" :data="active" v-if="store.perms.includes('delete')"/>
+                <ptj-primary-action :model="store.name" :id="active['--id']" />
+                <component v-for="component in store.actions" :is="component.component" :data="active" v-bind="component.atts"/>
             </template>
-        </Column>
-        <Column :exportable="false" style="min-width:8rem">
-            <template #body="slotProps">
-                <ptj-primary-action v-if="has_primary" :model="store.name" :id="slotProps.node.data['--id']" />
-                <edit-action v-if="store.perms.includes('put')" :data="slotProps.node.data" :model="store" />
-                <audit-action v-if="store.audit" :data="slotProps.node.data" :model="store" />
-                <component v-for="component in store.actions" :is="component.component" v-bind="component.atts" :data="slotProps.node.data" :short="true" />
-            </template>
-        </Column>
-    </TreeTable>
+            <Message severity="success" v-if="saved">Saved</Message>
+            <edit-effect v-if="active['--id']" :model="store" :data="active" />
+            </Panel>
+    </SplitterPanel>
+  </Splitter>
 </template>
 
 <script setup>
 import Button from "primevue/button"
-import TreeTable from 'primevue/treetable';
-import { computed, ref } from "vue"
+import Tree from 'primevue/tree';
+import { computed, ref, onBeforeUnmount } from "vue"
 import Toolbar from 'primevue/Toolbar'
-import { toTree, getForegroundCells, getLabel, saveOrder } from "../../js/helperfunctions.js" 
+import { toTree } from "../../js/helperfunctions.js" 
+import Splitter from 'primevue/splitter';
+import SplitterPanel from 'primevue/splitterpanel';
 import PtjPrimaryAction from "../actions/primary-action.vue"
 import Message from 'primevue/message';
 import { getStore } from "../../js/data/storemanager.js"
-import Column from 'primevue/column';
 import PtjViewField from "../view/view-field.vue"
-import PtjMoveAction from "../actions/move-action.vue"
 import PtjCreateAction from "../actions/create-action.vue"
 import PtjDeleteAction from "../actions/delete-action.vue"
-import EditAction from "../actions/edit-action.vue"
+import EditEffect from "../effects/edit-effect.vue"
 import AuditAction from "../actions/audit-action.vue"
-
-
-
+import Panel from "primevue/panel"
+import { subscribe, unsubscribe } from "./../../js/bus/bus.js"
 
 const props = defineProps({
     name : {
@@ -74,31 +60,31 @@ const props = defineProps({
     }
 });
 
-const emits = defineEmits(["onMove"]);
-
 const repo = getStore(props.name);
 const store = repo.store;
 
+console.log("Audit is", store.audit, store);
 
-
-const has_primary = (store.fields['--id'].reference.length > 1) ? true : false;
 const expanded = ref(false);
 const delrow = ref(false);
 const newrow = ref(false);
 const has_sort = store.fields['--sort'];
+const saved = ref(false);
 
-const selected = ref([]);
+
+store.setTableCells();
+const cells = store.getEnabledSummaryCells();
+
+const selected = ref(null);
 
 const data = ref([]);
+const active = ref({});
 
-let fields = computed(() => {
-    return getForegroundCells(store.fields);
-});
 
 
 function reorderRows(rows) {
   data.value = rows;
-  saveOrder(store.name, rows);
+  store.saveOrder(rows);
 }
 
 repo.load()
@@ -141,11 +127,13 @@ function onDel() {
     delrow.value = true;
 }
 
-const label = computed(() => {
-  return getLabel(store.fields, repo.active.value);
-})
 
 
+function setActive(node) {
+  console.log("Data is", data);
+  active.value = node.data;
+  saved.value = false;
+}
 
 function reload() {
   repo.selected.value = [];
@@ -155,6 +143,15 @@ function reload() {
   });
   newrow.value = true;
 }
+
+
+subscribe("form_edit", "tree", response => {
+  saved.value = true;
+});
+
+onBeforeUnmount(() => {
+  unsubscribe("form_edit", "tree");
+});
 
 </script>
 <style scoped>

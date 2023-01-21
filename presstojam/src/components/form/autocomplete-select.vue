@@ -11,7 +11,7 @@
         :class="errClass"
         :multiple="bind.cell.multiple"
         @complete="searchOptions($event)"
-         @blur="bind.active_validation.value = true"
+         @blur="bind.active_validation = true"
         />
 </template>
 <script setup>
@@ -26,22 +26,21 @@ const props = defineProps({
 
 const filtered_options = ref([]);
 
-let cvalue = ref({ value : props.bind.value.value, label : "" });
 
+let cvalue = ref(props.bind.value);
 
 const value = computed({
     get() {
         return cvalue.value;
     },
     set(val) {
-        cvalue.value = val;
-        if (!val || typeof val != 'object') return;
+        cvalue.value = val.value;
         props.bind.setValue(val.value);
     }
 });
 
 function searchOptions(e) {
-    const active = props.options.filter(opt => opt.value == cvalue.value.value);
+    const active = props.options.filter(opt => opt.value == cvalue.value);
     if (active.length > 0) cvalue.value = active[0];
     let vl = (!e || !e.query) ? "" : e.query.trim().toLowerCase();
     filtered_options.value = props.options.filter((opt) => {
@@ -55,6 +54,6 @@ watch(() => props.options, () => {
 });
 
 const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+    return (props.bind.active_validation && props.bind.error) ? "p-invalid" : "";
 });
 </script>

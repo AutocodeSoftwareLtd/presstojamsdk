@@ -5,11 +5,11 @@ export class Entity {
         this._cells = {};
         this._min_rows = null;
         this._max_rows = null;
-        this._parent = null;
         this._children = null;
         this._sort = null;
         this._min_rows = null;
         this._max_rows = null;
+        this._parent = null;
         this._perms = [];
 
 
@@ -28,6 +28,7 @@ export class Entity {
           }
         });
     }
+
 
     addCell(cell) {
         this._cells[cell.name] = cell;

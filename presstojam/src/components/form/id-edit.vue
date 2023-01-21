@@ -58,7 +58,7 @@ if (repo.type == "active") {
         });
     });
 } else {
-    id = store.parent_id;
+    id = repo.parent_id;
 }
 
 
@@ -77,7 +77,7 @@ if (cell.isReferenceType()) {
 
     value = computed({
         get() {
-            return props.bind.value.value;
+            return props.bind.value;
         },
         set(val) {
             props.bind.setValue(val);
@@ -98,7 +98,7 @@ if (cell.isReferenceType()) {
     value = computed({
         get() {
             let obj = {};
-            obj[props.bind.value.value] = true;
+            obj[props.bind.value] = true;
             return obj;
         },
         set(val) {

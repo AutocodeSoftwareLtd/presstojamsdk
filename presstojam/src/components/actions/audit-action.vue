@@ -1,29 +1,26 @@
 <template>
-    <Button icon="pi pi-history" class="p-button-rounded p-button-success mr-2" @click="showAudit(slotProps.data)" />
-    <Dialog v-model:visible="dialog" :header="'Audit ' + $t('models.' + store.name + '.title', 1)" :modal="true" class="p-fluid">
-        <audit :repo="repo" :id="repo.active.value['--id']"/>
-    </Dialog>
-
+    <Button icon="pi pi-history" 
+    class="mr-2" 
+    :class="classes"
+    :label="label"
+    @click="showAudit()" />
 </template>
 <script setup>
-    import { ref } from "vue"
-    import Dialog from 'primevue/dialog'
     import Button from "primevue/button"
-    import Audit from "../effects/audit.vue"
-
+    import { toggleDialog } from "./../../js/bus/dialog.js"
+    import AuditEffect from "./../effects/audit-effect.vue"
+  
     const props = defineProps({
-        repo : Object,
+        model : Object,
+        data : Object,
+        long : false
     });
 
-    const store = repo.store;
-
-
-    const dialog = ref(false);
-
-
-    function showAudit(data) {
-        repo.active.value = data;
-        dialog.value = (dialog.value) ? false : true;
+    function showAudit() {
+        toggleDialog(AuditEffect, {model : props.model, id : props.data['--id']}, "Audit Log");
     }
+
+    const label = (props.long) ? "Audit" : "";
+    const classes = (props.long) ? "p-button-help" : "p-button-rounded p-button-success";
 
 </script>

@@ -8,7 +8,6 @@ import { inject, ref,  } from "vue"
 
 import TreeSelect from 'primevue/treeselect';
 import { getModel } from "../../js/models/modelmanager.js"
-import { getRouteStructure } from "../../js/routes.js"
 
 
 const props = defineProps({
@@ -24,7 +23,6 @@ const emits = defineEmits([
     "update:modelValue"
 ]);
 
-const struc = getRouteStructure(props.model);
 
 const models = [];
 

@@ -18,7 +18,7 @@ import DataTable from "primevue/DataTable"
 import Column from 'primevue/column';
 
 const props = defineProps({
-    repo : {
+    model : {
         type : Object,
         required : true
     },
@@ -30,7 +30,7 @@ const props = defineProps({
 
 const client = inject("client");
 const data = ref([]);
-client.get("/audit/" + props.repo.store.name + "/" + props.id)
+client.get("/audit/" + props.model.name + "/" + props.id)
 .then(response => {
     for(const obj of response) {
         if (obj.action == "POST") obj.action = "Created";

@@ -21,7 +21,6 @@ const props = defineProps({
     }
 });
 
- 
 
 const component = computed(() => {
     return (props.is_active) ? PtjActive : PtjRepo;

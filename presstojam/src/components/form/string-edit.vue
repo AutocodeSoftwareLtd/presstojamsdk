@@ -11,7 +11,7 @@
         class="focus:border-primary form-control"
         v-model="value" 
         :class="errClass"
-        @blur="bind.active_validation.value = true" />
+        @blur="bind.active_validation = true" />
 </template>
 
 <script setup>
@@ -32,7 +32,7 @@ const props = defineProps({
 
 const value = computed({
     get() {
-        return props.bind.value.value;
+        return props.bind.value;
     },
     set(val) {
         props.bind.setValue(val);
@@ -81,6 +81,6 @@ if (cell.contains.includes("html")) {
 
 
 const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
+    return (props.bind.active_validation && props.bind.error) ? "p-invalid" : "";
 });
 </script>

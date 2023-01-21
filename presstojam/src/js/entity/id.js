@@ -37,7 +37,6 @@ export class ID extends Field {
             if (id) url += "/" + id;
             this._load_promise = client.get(url)
             .then(response => {
-                console.log("Getting options", response);
                 response.sort(sortByDictionary);
                 return response;
             });
@@ -54,7 +53,6 @@ export class ID extends Field {
             if (id) url += "/" + id;
             this._load_promise = client.get(url)
             .then(response => {
-                console.log("Getting recursive options", response);
                 return toReferenceTree(response, schema)
             });
         }

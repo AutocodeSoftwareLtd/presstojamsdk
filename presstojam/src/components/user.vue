@@ -4,6 +4,7 @@
         <Nav :name="name" v-if="no_nav == false"/>
         
         <PtjRoutes />
+        <PtjDialog />
     </div>
 </template>
 <script setup>
@@ -16,6 +17,7 @@ import { loadSiteMap } from "../js/entity/entitymanager.js"
 import PtjAccountHandler from "./login/login.vue"
 import PtjRoutes from './routes.vue'
 import Nav from "./nav/nav.vue"
+import PtjDialog from "./effects/dialog.vue"
 
 
 const _profile = configs.get("profile");

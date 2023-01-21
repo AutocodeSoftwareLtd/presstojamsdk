@@ -5,7 +5,7 @@ import { getClient } from "./../client.js"
 
 export class Model {
 
-    constructor(name) {
+    constructor(name, debug = false) {
         this._name = name;
         this._fields = {};
         this._perms = [];
@@ -15,19 +15,22 @@ export class Model {
         this._no_filter = false;
         this._children = null;
         this._sort = null;
-        this._to;
-        this._group;
-        this._order;
-        this._params;
+        this._limit = null;
+        this._to = null;
+        this._group = null;
+        this._order = null;
+        this._params = null;
         this._limited_fields = null;
-        this._export_fields;
-        this._distinguish;
-        this._audit;
+        this._export_fields = null;
+        this._distinguish = null;
+        this._audit = false;
         this._actions = [];
         this._editable_fields = [];
-        this._classes;
-        this._group_classes;
+        this._classes = null;
+        this._group_classes = null;
         this._events = {};
+        this._debug = debug;
+        this._parent = null;
         
 
 
@@ -98,6 +101,7 @@ export class Model {
         if (entity.audit) this._audit = entity.audit;
         if (entity.import) this._import = entity.import;
         if (entity.export) this._export = entity.export;
+        if (entity.parent) this._parent = entity.parent;
 
         return entity;
     }
@@ -107,7 +111,8 @@ export class Model {
         const fields = entity.cells;
         for(let i in fields) {
             if (!this._limited_fields || this._limited_fields.includes(slug + i)) {
-                this._fields[slug + i] = fields[i];
+                this._fields[slug + i] = Object.assign(Object.create(fields[i]), fields[i]);
+                this._fields[slug + i].slug = slug + i;
                 if (fields[i].type == "id" && fields[i].reference_type == ReferenceTypes.REFERENCE ) {
                     this.loadFields(getEntity(fields[i].reference), slug + i + "/");
                 }
@@ -139,9 +144,9 @@ export class Model {
         }
     }
 
-    load(filters, page) {
+    load(filters) {
         const client = getClient();
-        return client.get("/data/" + this._name, this.buildParams(filters, page));
+        return client.get("/data/" + this._name, this.buildParams(filters));
     }
 
 
@@ -156,14 +161,23 @@ export class Model {
     }
 
 
-    buildParams(filters, page = 0) {
+    saveOrder(rows) {
+        const client = getClient();
+        const vals = [];
+        for(let i in rows) {
+            vals.push({'--id' : rows[i]['--id'], '--sort' : i});
+        }
+        return client.put("/data/" + this._name + "/resort", { "_rows" : vals});
+    }
+
+
+    buildParams(filters) {
         let params = {};
         if (this._to) params.__to = this._to;
         if (this._group) params.__group = this._group;
         if (this._limited_fields) params.__fields = this._limited_fields;
      
         if (this._limit) {
-            params.__offset = page;
             params.__limit = this._limit;
         }
 
@@ -177,5 +191,109 @@ export class Model {
         if (this._events[key]) {
             this._events[key](data);
         }
+    }
+
+
+    setEditableCells(schema = null) {
+        if (!schema) schema = this._fields;
+        for(let i in schema) {
+            schema[i].disabled = false;
+
+            if (schema[i].slug != schema[i].name) {
+                schema[i].disabled = true; //continue - don't use includes or parents
+                continue;
+            }
+
+            if (schema[i].system || schema[i].immutable) {
+                schema[i].disabled = true; //continue - don't use includes or parents
+                continue;
+            }
+                //check if limited
+            if (this._editable_fields && !this._editable_fields.includes(schema[i].slug)) {
+                schema[i].disabled = true;
+                continue;
+            }
+            
+            if (schema[i].type == "json") {
+                this.setEditableCells(schema[i].fields);
+            } 
+        }
+    }
+    
+    setCreateCells(schema = null) {
+        if (!schema) schema = this._fields;
+        for(let i in schema) {
+            schema[i].disabled = false;
+
+            if (schema[i].slug != schema[i].name) {
+                schema[i].disabled = true; //continue - don't use includes or parents
+                continue;
+            }
+
+            if (schema[i].system) {
+                schema[i].disabled = true; //continue - don't use includes or parents
+                continue;
+            }
+
+            if (schema[i].type == "json") {
+                this.setCreateCells(schema[i].fields);
+            } 
+        }
+    }
+
+
+    setTableCells(schema = null) {
+        if (!schema) schema = this._fields;
+        for(let i in schema) {
+            schema[i].disabled = false;
+
+            if (schema[i].type == "id" && schema[i].reference_type == ReferenceTypes.PARENT) {
+                schema[i].disabled = true;
+                continue;
+            }
+
+            if (schema[i].slug != schema[i].name) {
+                if (this._limited_fields) {
+                    if (!this._limited_fields.includes(i)) {
+                        schema[i].disabled = true;
+                        continue;
+                    }
+                    //don't continue if exists in limited fields
+                } else {
+                    schema[i].disabled = true;
+                    continue;
+                }
+                schema[i].disabled = true; //continue - don't use includes or parents
+                continue;
+            }
+
+            if (schema[i].type == "json") {
+                this.setTableCells(schema[i].fields);
+            }
+        }
+    }
+
+
+    getEnabledCells() {
+      
+        let cells = {};
+        for(let i in this._fields) { 
+            if (!this._fields[i].disabled) {
+                cells[i] = this._fields[i];
+            }
+        }
+        return cells;
+    }
+
+
+    getEnabledSummaryCells() {
+      
+        let cells = {};
+        for(let i in this._fields) { 
+            if (!this._fields[i].disabled && this._fields[i].summary) {
+                cells[i] = this._fields[i];
+            }
+        }
+        return cells;
     }
 }

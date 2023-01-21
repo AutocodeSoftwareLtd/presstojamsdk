@@ -28,7 +28,7 @@ const props = defineProps({
 const info = ref();
 
 function toggleInfo(e) {
-    if (props.item && props.item.info) info.value.toggle(e);
+    if (props.item && props.item.info && info.value) info.value.toggle(e);
 }
 
 </script>

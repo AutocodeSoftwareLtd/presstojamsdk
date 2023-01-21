@@ -1,13 +1,12 @@
 <template>
 
  <form @submit.prevent="submit" class="card needs-validation" novalidate>
-    <Message severity="success" v-if="saved">Saved</Message>
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
     <div v-if="parent" class="form-group">
         <label>{{ $t("models." + store.parent + ".title")}}</label>
         <ptj-parent-select v-model="proxy_values['--parent']" :model="store.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
     </div>
-    <ptj-edit-field :bind="bind" v-for="bind in binds" :key="bind.cell.name"/>
+    <ptj-edit-field :bind="bindGroup.getBind(cell.name)" v-for="cell in cells" :key="cell.name"/>
     <Button :label="$t('btns.save')" @click="submit" />
   </form>
   <Dialog v-model:visible="dispatch" :modal="true" class="p-fluid" >
@@ -21,12 +20,13 @@ import { provide, ref, computed, inject } from "vue"
 import PtjEditField from "./edit-field.vue"
 import Button from 'primevue/button'
 
-import { getMutableCells, getImmutableCells } from "../../js/helperfunctions.js"
 import Message from 'primevue/message';
 import PtjParentSelect from "./parent-select.vue"
-import { createBind, createBindGroup } from "../../js/binds.js"
+import { BindGroup } from "../../js/binds/bindgroup.js"
+import { Bind } from "../../js/binds/bind.js"
 import PtjDispatch from "../dispatch/dispatch-response.vue"
 import Dialog from 'primevue/dialog'
+import { trigger } from "../../js/bus/bus.js"
 
 const Client = inject("client");
 
@@ -40,11 +40,9 @@ const props = defineProps({
     parent : Boolean
 });
 
-const emits = defineEmits([
-    "saved", "dataChanged"
-]);
 
-const saved = ref(false);
+
+
 const global_error = ref("");
 const dispatch = ref(false);
 const dispatchid=ref(0);
@@ -52,35 +50,32 @@ const dispatchid=ref(0);
 provide("model", props.model.name);
 
 
-let cells;
-if (props.stype == 'put') cells = getMutableCells(props.model.fields);
-else cells = getImmutableCells(props.model.fields);
+if (props.stype == 'put') props.model.setEditableCells();
+else props.model.setCreateCells();
 
+const cells = props.model.getEnabledCells();
 
-const bindGroup = createBindGroup();
+const bindGroup = new BindGroup();
 
 
 if (props.parent) {
-    bindGroup.addBind("--parent", createBind(props.model.fields["--parent"], props.data["--parent"]));
+    bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.data["--parent"]));
 }
 
 
 for(const field in cells) {
-    bindGroup.addBind(field, createBind(props.model.fields[field], props.data[field]));
+    bindGroup.regBind(field, new Bind(cells[field], props.data[field]));
+    if (cells[field].type == "json") {
+        for(let ocell in cells[field].fields) {
+            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (props.data[field]) ? props.data[field][ocell] : null));
+        }
+    } 
 }
 
 
 bindGroup.setInitActive();
 
-const binds = computed(() => {
-    const arr = [];
-    for(let i in bindGroup.binds) {
-        if (bindGroup.binds[i].active.value) {
-            arr.push(bindGroup.binds[i]);
-        } 
-    }
-    return arr;
-});
+
 
 function setErrors(err) {
     if (typeof err.error == "string") {
@@ -94,13 +89,13 @@ function setErrors(err) {
 
 function serializeData() {
     const formData = new FormData();
-    for(const i in bindGroup.binds) {
-        const bind = bindGroup.binds[i];
+    for(const i in cells) {
+        const bind = bindGroup.getBind(i);
         if (bind.is_dirty ) {
             const field = bind.cell;
-            if (field.type == "time") formData.append(i, bind.cell.buildString(bind.value.value));
+            if (field.type == "time") formData.append(i, bind.cell.buildString(bind.value));
             else if (field.type == "json") formData.append(i, JSON.stringify(bind.cell.buildJSON(bind)));
-            else formData.append(i, bind.value.value);
+            else formData.append(i, bind.value);
         }
     } 
     return formData;
@@ -108,8 +103,8 @@ function serializeData() {
 
 
 function submit() {
-    saved.value = false;
-    bindGroup.activateValidation();
+
+    bindGroup.setActiveValidation(true);
     if (bindGroup.hasErrors()) return;
 
     const data = serializeData();
@@ -120,13 +115,10 @@ function submit() {
     }
          
 
-    return Client[props.method]("/data/" + props.model, data)
+    return Client[props.method]("/data/" + props.model.name, data)
     .then(response => {
-        if (props.method == 'post') {
-            emits("dataChanged", response);
-        } else if (props.method == "put") {
+        if (props.method == "put") {
             response.data["--id"] = props.data["--id"];
-            emits("dataChanged", response.data);
         }
         return response;
     })
@@ -135,9 +127,13 @@ function submit() {
             dispatchid.value = response['--dispatchid'];
             dispatch.value = true;
         } else {
-            saved.value = true;
-            emits("saved");
+            if (props.method == "put") {
+                trigger("form_edited", response);
+            } else {
+                trigger("form_created", response);
+            }
         }
+        return response;
     })
     .catch(err => {
         if (err.status == 402) setErrors(err.response);
@@ -149,12 +145,17 @@ function submit() {
 function dispatchFailed(response) {
     setErrors(err.response);
     dispatch.value = false;
+    trigger("dispatch_failed", response, props.model, props.method);
 }
 
-function dispatchComplete() {
+function dispatchComplete(response) {
     dispatch.value = false;
     saved.value = true;
-    emits("saved");
+    if (props.method == "put") {
+        trigger("form_edited", response);
+    } else {
+        trigger("form_created", response);
+    }
 }
 
 

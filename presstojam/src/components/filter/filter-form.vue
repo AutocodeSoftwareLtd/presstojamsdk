@@ -20,7 +20,8 @@ import PtjFilter from "./filter.vue"
 import { computed, provide } from "vue"
 import Button from 'primevue/button'
 import Fieldset from 'primevue/fieldset';
-import { createBind } from "./../../js/binds.js"
+import { BindGroup } from "./../../js/binds/bindgroup.js"
+import { Bind } from "./../../js/binds/bind.js"
 
 const props = defineProps({
     store : Object
@@ -28,6 +29,7 @@ const props = defineProps({
 
 provide("model", props.store.model.name);
 
+const group = new BindGroup();
 
 const filtercells = computed(() => {
     let filter_cells = {};
@@ -35,7 +37,7 @@ const filtercells = computed(() => {
         const field = props.store.fields[i];
         if (field.background) continue;
         if (field.type == "asset" || field.type == "json") continue;
-        filter_cells[i] = createBind(field, props.store.filters[i]);
+        filter_cells[i] = new Bind(field, '');
     }
     return filter_cells;
 });
