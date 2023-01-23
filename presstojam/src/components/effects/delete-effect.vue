@@ -21,7 +21,7 @@
 
     const props = defineProps({
         name : String,
-        data : [Object, Array],
+        data : Array,
     });
 
 
@@ -39,21 +39,16 @@
         let params = {};
         const keys = [];
      
-        if (!Array.isArray(props.data)) {
-            keys.push(props.data.value['--id']);
-        } else {
-            for(const row of props.data.value) {
-                keys.push(row['--id']);
-            }
+        for(const row of props.data) {
+            keys.push(row['--id']);
         }
         params["--id"] = keys;
-        
+       
+
         client.delete("/data/" +repo.store.name, params)
         .then(() => {
-            dialog.value = false;
-            repo.selected.value = [];
-            trigger("deleted");
-            trigger("dialog_close");
+            repo.remove(keys);
+            trigger("effect_deleted", props.name);
         })
         .catch(e => console.log(e));
     }

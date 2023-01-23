@@ -1,5 +1,5 @@
 import { Data } from "./data.js"
-import { reactive } from "vue"
+import { ref } from "vue"
 
 
 export class RepoData extends Data {
@@ -7,11 +7,11 @@ export class RepoData extends Data {
 
     constructor(model) {
         super(model);
-        this._pagination = reactive({ 
+        this._pagination = { 
             rows_per_page : this._model.limit, 
-            count : 0, 
-            offset : 0 
-        });
+            count : ref(0), 
+            page : 0 
+        };
 
         this._parent_id = null;
         this._order = {};
@@ -40,17 +40,17 @@ export class RepoData extends Data {
         this._parent_id = id;
     }
 
-    buildParams() {
+    buildParams(all = false) {
         let filters = {... this._filters};
         if (this._parent_id) filters["--parent"] = this._parent_id;
-        if (this._pagination.rows_per_page) {
-            filters.__offset = this._pagination.offset;
+        if (this._pagination.rows_per_page && !all) {
+            filters.__offset = this._pagination.page * this._pagination.rows_per_page;
         }
         return filters;
     }
 
-    setPagination(offset) {
-        this._pagination.offset = offset;
+    setPagination(page) {
+        this._pagination.page = page;
         return this.reload();
     }
 
@@ -58,17 +58,21 @@ export class RepoData extends Data {
         return (this._pagination.rows_per_page) ? true : false;
     }
 
+    count() {
+        if (!this._count_promise) {
+            this._count_promise = this._model.loadCount(this.buildParams())
+            .then(count => {
+                this._pagination.count.value = count;
+            });
+        }
+        return this._count_promise;
+    }
+
     load() {
         if (!this._load_promise) {
             this._is_loading.value = true;
-            if (!this._count_promise) {
-                this._count_promise = this._model.loadCount(this.buildParams())
-                .then(count => {
-                    this._pagination.count = count;
-                });
-            }
 
-            this._load_promise = this._count_promise
+            this._load_promise = this.count()
             .then(() => {
                 return this._model.load(this.buildParams(), this._pagination.offset);
             });
@@ -90,7 +94,7 @@ export class RepoData extends Data {
     loadAll() {
         let ocount = this._model.limit;
         this._model.limit = 0;
-        const promise = this._model.load(this.buildParams());
+        const promise = this._model.load(this.buildParams(true));
         this._model.limit = ocount; //reset original limit
         return promise;
     }
@@ -130,6 +134,7 @@ export class RepoData extends Data {
         this._load_promise = this._load_promise
         .then(response => {
             response.push(obj);
+            ++this._pagination.count.value;
             return response;
         });
     }

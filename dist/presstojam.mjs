@@ -1,6 +1,6 @@
-/*! DS Library v3.2.42 */
+/*! DS Library v3.2.46 */
 
-import { shallowRef, unref, computed, reactive, nextTick, defineComponent, inject, h, provide, ref, watch, getCurrentInstance, watchEffect, effectScope, onMounted, onUnmounted, onBeforeMount, Fragment, isRef, createVNode, Text, resolveDirective, openBlock, createElementBlock, normalizeClass, createElementVNode, renderSlot, toDisplayString as toDisplayString$1, createCommentVNode, withDirectives, Transition, withCtx, vShow, resolveComponent, mergeProps, toHandlers, createBlock, normalizeStyle, resolveDynamicComponent, createTextVNode, renderList, vModelText, Teleport, createSlots, withKeys, withModifiers, withAsyncContext, Suspense, pushScopeId, popScopeId } from 'vue';
+import { shallowRef, unref, computed, reactive, nextTick, defineComponent, inject, h, provide, ref, watch, getCurrentInstance, watchEffect, onMounted, onUnmounted, onBeforeMount, Fragment, effectScope, isRef, createVNode, Text, resolveComponent, openBlock, createElementBlock, normalizeClass, createBlock, withCtx, createElementVNode, createCommentVNode, toDisplayString as toDisplayString$1, resolveDynamicComponent, renderList, renderSlot, Teleport, resolveDirective, Transition, withDirectives, mergeProps, createTextVNode, withAsyncContext, vShow, toHandlers, normalizeStyle, vModelText, createSlots, withKeys, withModifiers, onBeforeUnmount, normalizeProps, guardReactiveProps, Suspense, pushScopeId, popScopeId } from 'vue';
 
 function getDevtoolsGlobalHook() {
   return getTarget().__VUE_DEVTOOLS_GLOBAL_HOOK__;
@@ -9462,7 +9462,7 @@ const Translation =
       attrs
     } = context; // NOTE: avoid https://github.com/microsoft/rushstack/issues/1050
 
-    const i18n = props.i18n || useI18n({
+    const i18n = props.i18n || useI18n$1({
       useScope: props.scope,
       __useComponent: true
     });
@@ -9590,7 +9590,7 @@ const NumberFormat =
   /* eslint-enable */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setup(props, context) {
-    const i18n = props.i18n || useI18n({
+    const i18n = props.i18n || useI18n$1({
       useScope: 'parent',
       __useComponent: true
     });
@@ -9635,7 +9635,7 @@ const DatetimeFormat =
   /* eslint-enable */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setup(props, context) {
-    const i18n = props.i18n || useI18n({
+    const i18n = props.i18n || useI18n$1({
       useScope: 'parent',
       __useComponent: true
     });
@@ -10354,7 +10354,7 @@ function mergeToRoot(root, options) {
 
 const I18nInjectionKey = /* #__PURE__*/makeSymbol('global-vue-i18n'); // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
 
-function createI18n(options = {}, VueI18nLegacy) {
+function createI18n$1(options = {}, VueI18nLegacy) {
   // prettier-ignore
   const __legacyMode = __VUE_I18N_LEGACY_API__ && isBoolean(options.legacy) ? options.legacy : __VUE_I18N_LEGACY_API__; // prettier-ignore
 
@@ -10471,7 +10471,7 @@ function createI18n(options = {}, VueI18nLegacy) {
 } // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 
 
-function useI18n(options = {}) {
+function useI18n$1(options = {}) {
   const instance = getCurrentInstance();
 
   if (instance == null) {
@@ -11073,6 +11073,41 @@ if (process.env.NODE_ENV !== 'production' || __INTLIFY_PROD_DEVTOOLS__) {
 }
 
 if (process.env.NODE_ENV !== 'production') ;
+
+let i18n;
+function createI18n(options) {
+  const dateTimeFormats = {
+    'en': {
+      short: {
+        year: 'numeric',
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'GMT'
+      },
+      long: {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long',
+        hour: 'numeric',
+        minute: 'numeric',
+        timeZone: 'GMT'
+      }
+    }
+  };
+  let messages = options.i18n && options.i18n.messages ? options.i18n.messages : {};
+  i18n = createI18n$1({
+    locale: 'en',
+    messages,
+    silentTranslationWarn: true,
+    legacy: false,
+    dateTimeFormats
+  });
+  return i18n;
+}
+function useI18n() {
+  return i18n;
+}
 
 var DomHandler = {
   innerWidth(el) {
@@ -12358,6 +12393,11 @@ var PrimeVue = {
   }
 };
 
+const flows = {};
+function getFlow(key) {
+  return flows[key];
+}
+
 let _configs = {};
 function initConfigs(configs) {
   if (!configs.profile) {
@@ -12404,12 +12444,12 @@ class Client {
     }
   }
 
-  createClientException(type, detail, response) {
+  createClientException(type, detail, status, response) {
     return {
       "origin": "client",
       type,
       detail,
-      "status": response.status,
+      status,
       response
     };
   }
@@ -12465,7 +12505,9 @@ class Client {
       if (response.ok) {
         return response.json();
       } else {
-        throw this.createClientException("error", "apierror", response);
+        return response.json().then(json => {
+          throw this.createClientException("error", "apierror", response.status, json);
+        });
       }
     });
   }
@@ -12539,15 +12581,50 @@ class Client {
   }
 
 }
-let client;
-function createClient() {
-  client = new Client(configs.get("url"), configs.get("client.custom_headers", {}));
-  return client;
+function getClient() {
+  return new Client(configs.get("url"), configs.get("client.custom_headers", {}));
 }
 
-const flows = {};
-function getFlow(key) {
-  return flows[key];
+class Entity {
+  constructor() {
+    this._name = "";
+    this._cells = {};
+    this._min_rows = null;
+    this._max_rows = null;
+    this._children = null;
+    this._sort = null;
+    this._min_rows = null;
+    this._max_rows = null;
+    this._parent = null;
+    this._perms = [];
+    const keys = Object.keys(this);
+    keys.forEach(property => {
+      if (property[0] == "_") {
+        Object.defineProperty(this, property.substring(1), {
+          get: function () {
+            return this[property];
+          },
+          set: function (newValue) {
+            this[property] = newValue;
+          }
+        });
+      }
+    });
+  }
+
+  addCell(cell) {
+    this._cells[cell.name] = cell;
+    cell.entity = this;
+  }
+
+  getCell(name) {
+    if (!this._cells[cell.name]) {
+      console.warn("Cell name " + cell.name + "doesn't exist", "entity.js getCell");
+    }
+
+    return this._cells[cell.name];
+  }
+
 }
 
 const Errors = {
@@ -12572,6 +12649,9 @@ class Field {
     this._system = false;
     this._summary = false;
     this._where = null;
+    this._entity = null;
+    this._slug;
+    this._disabled = false;
   }
 
   buildGetterSetters() {
@@ -12646,21 +12726,7 @@ class Field {
 
 }
 
-class Aggregate extends Field {
-  constructor(name, obj) {
-    super(name);
-    this._ws;
-    this._fields = fields;
-    if (obj) this.apply(obj);
-    this.buildGetterSetters();
-  }
-
-  get type() {
-    return "asset";
-  }
-
-}
-
+getClient();
 function toTree(arr, schema, parent_id = 0) {
   const nodes = [];
   const items = arr.filter(obj => obj['--recursive'] == parent_id);
@@ -12705,43 +12771,6 @@ function getLabel(schema, data) {
 
   return label.join(" ");
 }
-function getForegroundCells(schema) {
-  let cells = {};
-
-  for (let i in schema) {
-    if (!schema[i].background) cells[i] = schema[i];
-  }
-
-  return cells;
-}
-function getMutableCells(schema) {
-  let cells = {};
-
-  for (let i in schema) {
-    if (schema[i].type == "json") {
-      schema[i].cells = getMutableCells(schema[i].fields);
-      cells[i] = schema[i];
-    } else {
-      if (!schema[i].system && !schema[i].immutable) cells[i] = schema[i];
-    }
-  }
-
-  return cells;
-}
-function getImmutableCells(schema) {
-  let cells = {};
-
-  for (let i in schema) {
-    if (schema[i].type == "json") {
-      schema[i].cells = getImmutableCells(schema[i].fields);
-      cells[i] = schema[i];
-    } else {
-      if (!schema[i].system) cells[i] = schema[i];
-    }
-  }
-
-  return cells;
-}
 function sortByDictionary(a, b) {
   if (a.value < b.value) {
     return -1;
@@ -12776,20 +12805,6 @@ function rowToTree(obj, parent) {
   }
 
   return nobj;
-}
-function saveOrder(model, rows, client) {
-  const vals = [];
-
-  for (let i in rows) {
-    vals.push({
-      '--id': rows[i]['--id'],
-      '--sort': i
-    });
-  }
-
-  return client.put("/data/" + model + "/resort", {
-    "_rows": vals
-  });
 }
 
 const ReferenceTypes = {
@@ -13063,25 +13078,22 @@ class JsonGroup extends Field {
     if (obj) this.apply(obj);
   }
 
-  buildJSONFromGroup(bindGroup) {
+  buildJSON(bind) {
     let obj = {};
+    const group = bind.getGroup();
 
-    for (let i in bindGroup.binds) {
-      const cbind = bindGroup.binds[i];
+    for (const i in this._fields) {
+      const cbind = group.getBind(i);
       if (!cbind.active.value) continue;
 
-      if (cbind.children) {
-        obj[i] = this.buildJSONFromGroup(cbind.children);
+      if (cbind.cell.type() == "json") {
+        obj[i] = this.cbind.cell.buildJSON(cbind);
       } else {
-        obj[i] = cbind.value.value;
+        obj[i] = cbind.value;
       }
     }
 
     return obj;
-  }
-
-  buildJSON(bind) {
-    return this.buildJSONFromGroup(bind.children);
   }
 
   clean(val) {
@@ -13113,328 +13125,805 @@ function createField(field, obj, schema_model) {
   return cell;
 }
 
-let routes = {};
-
-function setFieldSettings(field, settings) {
-  for (let i in settings) {
-    field[i] = settings[i];
-  }
+const _entities = {};
+function regEntity(i, entity) {
+  _entities[i] = entity;
 }
+function getEntity(i) {
+  if (!_entities[i]) {
+    console.warn("Trying to get entity " + i + " which isn't registerd in entity store", "entitystore.js");
+  }
 
+  return _entities[i];
+}
+function getEntities() {
+  return _entities;
+}
 function loadSiteMap(response) {
-  const settings = configs.get("models");
-
   for (let i in response) {
-    response[i].name = i;
+    const entity = new Entity();
+    entity.name = i;
+    entity.audit = response[i].audit;
+    entity.perms = response[i].perms;
+    entity.import = response[i].import;
+    entity.export = response[i].export;
+    entity.min_rows = response[i].min_rows;
+    entity.max_rows = response[i].max_rows;
     const schema = response[i].schema; //set up some shortcuts
 
     if (schema['--parent']) {
-      response[i].parent = schema['--parent'].reference;
+      entity.parent = schema['--parent'].reference;
     }
 
-    response[i].children = schema["--id"].reference;
-    response[i].sort = schema["--sort"] ? true : false;
+    entity.children = schema["--id"].reference;
+    entity.sort = schema["--sort"] ? true : false;
 
     for (let x in schema) {
-      const field = schema[x];
-
-      if (settings[i] && settings[i][x]) {
-        setFieldSettings(field, settings[i][x]);
-      }
-
-      response[i].schema[x] = createField(x, field, i);
+      //const field = schema[x];
+      //if (settings[i] && settings[i][x]) {
+      //setFieldSettings(field, settings[i][x]);
+      //}
+      entity.addCell(createField(x, schema[x], i));
     }
 
-    response[i].settings = settings[i] ? settings[i] : {};
-  }
-
-  routes = response;
-  return routes;
-}
-function getRoute(model) {
-  if (!routes[model]) throw "Trying to find model " + model + " in routes that doesn't exists";
-  return routes[model];
-}
-function getDefaultRoute() {
-  for (let i in routes) {
-    return i;
+    regEntity(i, entity);
   }
 }
-function getRouteStructure(model) {
-  let items = [];
-
-  while (model) {
-    const route = getRoute(model);
-    items.push(route);
-    model = route.parent;
-  }
-
-  return items.reverse();
+function hasEntity(name) {
+  return _entities[name] ? true : false;
 }
-function getRoutes() {
-  return routes;
-}
-function hasRoute(model) {
-  return routes[model] ? true : false;
-}
-function getField(name, schema) {
-  let pts = name.split("/");
-  let cell;
-
-  for (let x = 0, n = pts.length; x < n; ++x) {
-    cell = schema[pts[x]];
-
-    if (n > 1 && x < n - 1) {
-      schema = routes[cell.reference].schema;
-    }
-  }
-
-  return cell;
-}
-function getSchema(name, schema) {
-  let pts = name.split("/");
-  let cell;
-
-  for (let x = 0, n = pts.length; x < n; ++x) {
-    if (pts[x].indexOf("..") === 0) {
-      //this is a reverse index
-      const schema_name = pts[x].substring(2);
-
-      if (!schema["--id"].reverse_references.includes(schema_name)) {
-        throw schema_name + " does not exist as a reverse reference for: " + schema["--id"].model;
-      }
-
-      schema = routes[schema_name];
-      ++x;
-      cell = schema[pts[x]];
-    } else {
-      cell = schema[pts[x]];
-    }
-
-    if (n > 1 && x < n - 1) {
-      schema = routes[cell.reference].schema;
-    }
-  }
-
-  return schema;
-}
-function createView(model) {
-  function getFields(fields, schema) {
-    let obj = {};
-
-    for (let field of fields) {
-      if (typeof field === 'object') {
-        if (field.path) {
-          const nschema = getSchema(field.path, schema);
-          let cobj = getFields(fields, nschema);
-
-          for (let i in cobj) {
-            obj[field.path + "/" + i] = cobj[i];
-          }
-        } else if (field.type == "aggregate") {
-          obj[field.name] = new Aggregate(field);
-        }
-      } else {
-        obj[field] = getField(field, route.schema);
-      }
-    }
-
-    return obj;
-  }
-
-  let route = getRoute(model);
-
-  if (route.settings.fields) {
-    //this is a custom view,
-    const croute = { ...route
-    };
-    croute.perms = ["get"]; //if custom route, can only view
-    croute.schema = getFields(route.settings.fields, route.schema);
-    return croute;
-  } else {
-    return route;
+function defaultEntity() {
+  for (const name in _entities) {
+    return name;
   }
 }
-/*
-setStates(fields) {
-        for(let i in fields) {
-            let groups = {};
-            if (fields[i].states) {
-                for(const state of fields[i].states) {
-                    if (!groups[state.depends_on]) groups[state.depends_on] = [];
-                    groups[state.depends_on].push(state); 
-                }
-            }
-            this._state_groups[i] = groups;
-        }
-    }
-*/
 
-class DataStore {
-  constructor(client, model) {
-    this._client = client;
-    this._model = model;
-    this._count_promise = null;
-    this._load_promise = null;
-    this._first_promise = null;
-    this._params = {};
-    this._route = createView(model);
-    this._filters = {};
-    this._parent_id = 0; //set if this is a child of a parent group
-
-    this._active_id = 0;
-    this._page_offset = 0;
-    this._limit = this._route.settings.limit ? this._route.settings.limit : 0;
+class Model {
+  constructor(name, debug = false) {
+    this._name = name;
+    this._fields = {};
+    this._perms = [];
+    this._import = false;
+    this._export = false;
+    this._max_cols = 8;
+    this._no_filter = false;
+    this._children = null;
+    this._sort = null;
+    this._limit = null;
+    this._to = null;
+    this._group = null;
+    this._order = null;
+    this._params = null;
+    this._limited_fields = null;
+    this._export_fields = null;
+    this._distinguish = null;
+    this._audit = false;
+    this._actions = [];
+    this._editable_fields = [];
+    this._classes = null;
+    this._group_classes = null;
+    this._events = {};
+    this._debug = debug;
+    this._parent = null;
     const keys = Object.keys(this);
     keys.forEach(property => {
-      if (property == "_parent_id" || property == "_active_id" || property == "_limit" || property == "_page_offset" || property == "_filters") {
+      if (property[0] == "_") {
         Object.defineProperty(this, property.substring(1), {
           get: function () {
             return this[property];
           },
-          set: function (val) {
-            this[property] = val;
-          }
-        });
-      } else if (property[0] == "_") {
-        Object.defineProperty(this, property.substring(1), {
-          get: function () {
-            return this[property];
+          set: function (newValue) {
+            this[property] = newValue;
           }
         });
       }
     });
+    const entity = this.loadEntity();
+    this.loadSettings();
+    this.loadFields(entity);
+    this.loadParentFields();
   }
 
-  loadCount() {
-    if (!this._count_promise) {
-      if (!this._limit) {
-        this._count_promise = Promise.resolve(true);
-      } else {
-        this._count_promise = this._client.get("/count/" + this._model, this.buildParams()).then(response => {
-          return parseInt(response.count);
-        });
+  get children_models() {
+    return this._fields["--id"].reference;
+  }
+
+  getSettings() {
+    let settings = configs.get("models");
+
+    if (settings[this._name]) {
+      return settings[this._name];
+    }
+  }
+
+  loadSettings() {
+    const settings = this.getSettings();
+
+    if (settings) {
+      if (settings.to) this._to = settings.to;
+      if (settings.perms) this._perms = settings.perms;
+      if (settings.group) this._group = settings.group;
+      if (settings.order) this._order = settings.order;
+      if (settings.params) this._params = settings.params;
+      if (settings.children) this._children = settings.children;
+      if (settings.fields) this._limited_fields = settings.fields;
+      if (settings.limit) this._limit = settings.limit;
+      if (settings.export_fields) this._export_fields = settings.export_fields;
+      if (settings.distinguish) this._distinguish = settings.distinguish;
+      if (settings.actions) this._actions = settings.actions;
+      if (settings.editable) this._editable_fields = settings.editable;
+      if (settings.no_filter) this._no_filter = settings.no_filter;
+      if (settings.max_cols) this._max_cols = settings.max_cols;
+      if (settings.classes) this._classes = settings.classes;
+      if (settings.group_classes) this._group_classes = settings.group_classes;
+      if (settings.events) this._events = settings.events;
+    }
+  }
+
+  loadEntity() {
+    const entity = getEntity(this._name);
+
+    if (!entity) {
+      throw this._name;
+    }
+
+    if (entity.perms) this._perms = entity.perms;
+    if (entity.sort) this._sort = entity.sort;
+    if (entity.audit) this._audit = entity.audit;
+    if (entity.import) this._import = entity.import;
+    if (entity.export) this._export = entity.export;
+    if (entity.parent) this._parent = entity.parent;
+    return entity;
+  }
+
+  loadFields(entity, slug = "") {
+    const fields = entity.cells;
+
+    for (let i in fields) {
+      if (!this._limited_fields || this._limited_fields.includes(slug + i)) {
+        this._fields[slug + i] = Object.assign(Object.create(fields[i]), fields[i]);
+        this._fields[slug + i].slug = slug + i;
+        if (slug) this._fields[slug + i].summary = false; //set summary to false for anything that isn't the base
+
+        if (fields[i].type == "id" && fields[i].reference_type == ReferenceTypes.REFERENCE) {
+          this.loadFields(getEntity(fields[i].reference), slug + i + "/");
+        }
       }
     }
-
-    return this.count_promise;
   }
 
-  load() {
-    if (!this._load_promise) {
-      let url = "/data/" + this._model;
-      if (this._active_id) url += "/active";
-      this._load_promise = this._client.get(url, this.buildParams());
+  loadParentFields() {
+    if (this._to) {
+      let parent = this._parent;
+
+      while (parent) {
+        let entity = getEntity(parent);
+        this.loadFields(entity, parent + "/");
+        if (parent == this._to) break;
+        parent = entity.parent;
+      }
     }
-
-    return this.load_promise;
   }
 
-  loadFirst() {
-    if (!this._first_promise) {
-      let url = "/data/" + this._model + "/first";
-      this._first_promise = this._client.get(url, this.buildParams()).then(row => {
-        this._active_id = row['--id'];
+  loadCount(filters) {
+    if (this._limit) {
+      const client = getClient();
+      return client.get("/count/" + this._name, this.buildParams(filters)).then(response => {
+        return parseInt(response.count);
+      });
+    } else {
+      return Promise.resolve(0);
+    }
+  }
+
+  load(filters) {
+    const client = getClient();
+    return client.get("/data/" + this._name, this.buildParams(filters));
+  }
+
+  loadActive(filters) {
+    const client = getClient();
+    return client.get("/data/" + this._name + "/active", this.buildParams(filters));
+  }
+
+  loadFirst(filters) {
+    const client = getClient();
+    return client.get("/data/" + this._name + "/first", this.buildParams(filters));
+  }
+
+  saveOrder(rows) {
+    const client = getClient();
+    const vals = [];
+
+    for (let i in rows) {
+      vals.push({
+        '--id': rows[i]['--id'],
+        '--sort': i
       });
     }
 
-    return this.first_promise;
+    return client.put("/data/" + this._name + "/resort", {
+      "_rows": vals
+    });
   }
 
-  reset() {
-    this._load_promise = null;
-    this._count_promise = null;
-  }
-
-  reload() {
-    this.reset();
-    return this.load();
-  }
-
-  overwrite(obj) {
-    if (!obj['--id']) {
-      throw "Can only overwrite store if object contains --id value";
-    }
-
-    if (this._index[obj['--id']] === undefined) {
-      throw "Can't overwrite object of " + obj['--id'] + ", doesn't exist";
-    }
-
-    const index = this._index[obj['--id']];
-
-    for (let i in obj) {
-      this._data[index][i] = obj[i];
-    }
-  }
-
-  append(obj) {
-    this._index[obj['--id']];
-
-    if (this._index[obj['--id']] !== undefined) {
-      throw "Can't append row of " + obj['--id'] + ", already exists";
-    }
-
-    this._index[obj['--id']] = this._data.length;
-
-    this._data.push(obj);
-  }
-
-  remove(id) {
-    if (this._index[id] !== undefined) {
-      const pos = this._index[id];
-
-      this._data.splice(pos, 1);
-
-      delete this._index[id];
-    }
-  }
-
-  buildParams() {
-    let params = this._filters;
-    if (this._active_id) params["--id"] = this._active_id;else if (this._parent_id) params["--parent"] = this._parent_id;
+  buildParams(filters) {
+    let params = {};
+    if (this._to) params.__to = this._to;
+    if (this._group) params.__group = this._group;
+    if (this._limited_fields) params.__fields = this._limited_fields;
 
     if (this._limit) {
-      params.__offset = this._page_offset;
       params.__limit = this._limit;
     }
 
-    const settings = ["to", "order"];
-
-    for (const setting of settings) {
-      if (this._route.settings[setting]) params['__' + setting] = this._route.settings[setting];else if (params[setting]) params['__' + setting] = params[setting];
-    }
-
-    if (this._route.settings.fields) {
-      params["__fields"] = this._route.settings.fields; //createCustomStructure(store.route);
+    for (let i in filters) {
+      params[i] = filters[i];
     }
 
     return params;
   }
 
-}
-
-function createDataStore(client, model_name) {
-  const model = new DataStore(client, model_name);
-  cache[model_name] = model;
-  return cache[model_name];
-}
-function createTemporaryStore(client, model) {
-  return new DataStore(client, model);
-}
-let cache = {}; //need to add in search params and data settings
-
-function getStoreById(id) {
-  if (!cache[id]) {
-    throw "Error, can't access " + id + " from the cache, doesn't exist";
+  trigger(key, data) {
+    if (this._events[key]) {
+      this._events[key](data);
+    }
   }
 
-  return cache[id];
+  setEditableCells(schema = null) {
+    if (!schema) schema = this._fields;
+
+    for (let i in schema) {
+      schema[i].disabled = false;
+
+      if (schema[i].slug != schema[i].name) {
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      }
+
+      if (schema[i].system || schema[i].immutable) {
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      } //check if limited
+
+
+      if (this._editable_fields.length && !this._editable_fields.includes(i)) {
+        schema[i].disabled = true;
+        continue;
+      }
+
+      if (schema[i].type == "json") {
+        this.setEditableCells(schema[i].fields);
+      }
+    }
+  }
+
+  setCreateCells(schema = null) {
+    if (!schema) schema = this._fields;
+
+    for (let i in schema) {
+      schema[i].disabled = false;
+
+      if (schema[i].slug != schema[i].name) {
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      }
+
+      if (schema[i].system) {
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      }
+
+      if (schema[i].type == "json") {
+        this.setCreateCells(schema[i].fields);
+      }
+    }
+  }
+
+  setTableCells(schema = null) {
+    if (!schema) schema = this._fields;
+
+    for (let i in schema) {
+      schema[i].disabled = false;
+
+      if (schema[i].background) {
+        schema[i].disabled = true;
+        continue;
+      }
+
+      if (schema[i].type == "id" && schema[i].reference_type == ReferenceTypes.PARENT) {
+        schema[i].disabled = true;
+        continue;
+      }
+
+      if (schema[i].slug != schema[i].name) {
+        if (this._limited_fields) {
+          if (!this._limited_fields.includes(i)) {
+            schema[i].disabled = true;
+            continue;
+          } //don't continue if exists in limited fields
+
+        } else {
+          schema[i].disabled = true;
+          continue;
+        }
+
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      }
+
+      if (schema[i].type == "json") {
+        this.setTableCells(schema[i].fields);
+      }
+    }
+  }
+
+  getEnabledCells() {
+    let cells = {};
+
+    for (let i in this._fields) {
+      if (!this._fields[i].disabled) {
+        cells[i] = this._fields[i];
+      }
+    }
+
+    return cells;
+  }
+
+  getEnabledSummaryCells() {
+    let cells = {};
+
+    for (let i in this._fields) {
+      if (!this._fields[i].disabled && this._fields[i].summary) {
+        cells[i] = this._fields[i];
+      }
+    }
+
+    return cells;
+  }
+
 }
-function clearDataCache() {
+
+/*
+class ModelStore {
+
+    constructor(client, model) {
+        this._client = client;
+        this._model = model;
+        this._count_promise = null;
+        this._load_promise = null;
+        this._first_promise = null;
+        this._params = {};
+        this._route = createView(model);
+        this._filters ={};
+        this._parent_id = 0; //set if this is a child of a parent group
+        this._active_id = 0;
+        this._page_offset = 0;      
+        this._limit = (this._route.settings.limit) ? this._route.settings.limit : 0; 
+
+        const keys = Object.keys(this);
+       
+        keys.forEach(property => {
+            if (property == "_parent_id" || property == "_active_id" || property == "_limit" || property == "_page_offset" || property == "_filters") {
+                Object.defineProperty(this, property.substring(1), {
+                    get: function() { 
+                        return this[property];
+                    },
+                    set: function(val) {
+                        this[property] = val;
+                    }
+                });
+            } else if (property[0] == "_") {
+                Object.defineProperty(this, property.substring(1), {
+                    get: function() { 
+                        return this[property];
+                    }
+                });
+            }
+        });
+    }
+        
+        
+    loadCount() {
+        if (!this._count_promise) {
+            if (!this._limit) {
+                this._count_promise = Promise.resolve(true);
+            } else {
+                this._count_promise = this._client.get("/count/" + this._model, this.buildParams())
+                .then(response => {
+                    return parseInt(response.count);
+                });
+            }
+        }
+        return this.count_promise;
+    }
+        
+    load() {
+        if (!this._load_promise) {
+            let url = "/data/" + this._model;
+            if (this._active_id) url += "/active";
+            this._load_promise = this._client.get(url, this.buildParams())
+        }
+        return this.load_promise;
+    }
+
+    loadFirst() {
+        if (!this._first_promise) {
+            let url = "/data/" + this._model + "/first";
+            this._first_promise = this._client.get(url, this.buildParams())
+            .then(row => {
+                this._active_id = row['--id'];
+            });
+        }
+        return this.first_promise;
+    }
+
+    reset() {
+        this._load_promise = null;
+        this._count_promise = null;
+    }
+
+    reload() {
+        this.reset();
+        return this.load();
+    }
+
+
+    overwrite(obj) {
+        if (!obj['--id']) {
+            throw "Can only overwrite store if object contains --id value";
+        }
+            
+        if (this._index[obj['--id']] === undefined) {
+            throw "Can't overwrite object of " + obj['--id'] + ", doesn't exist";
+        }
+                
+        const index = this._index[obj['--id']];
+        for(let i in obj) {
+            this._data[index][i] = obj[i];
+        }
+    }
+        
+    append(obj) {
+        this._index[obj['--id']]
+        if (this._index[obj['--id']] !== undefined) {
+            throw "Can't append row of " + obj['--id'] + ", already exists";
+        }
+
+        this._index[obj['--id']] = this._data.length;
+        this._data.push(obj);
+    }
+        
+    remove(id) {
+        if (this._index[id] !== undefined) {
+            const pos = this._index[id];
+            this._data.splice(pos, 1);
+            delete this._index[id];
+        }
+    }
+
+    
+    
+}
+*/
+
+let cache = {};
+function getModel(model_name, debug = false) {
+  if (!cache[model_name]) {
+    try {
+      cache[model_name] = new Model(model_name, debug);
+    } catch (err) {
+      console.error("Error", err);
+    }
+  }
+
+  return cache[model_name];
+}
+function clearModelCache() {
   cache = {};
 }
 
+class Data {
+  constructor(model) {
+    this._model = model;
+    this._is_loading = ref(false);
+    this._load_promise = null;
+    this._key = new Date().getTime();
+    this._active = ref({});
+    this._selected = ref([]);
+  }
+
+  get selected() {
+    return this._selected;
+  }
+
+  get store() {
+    return this._model;
+  }
+
+  get model() {
+    return this._model;
+  }
+
+  get active() {
+    return this._active;
+  }
+
+  get fields() {
+    return this._model.fields;
+  }
+
+  get is_loading() {
+    return this._is_loading;
+  }
+
+  trigger(key) {
+    this._model.trigger(key, this);
+  }
+
+}
+
+class RepoData extends Data {
+  constructor(model) {
+    super(model);
+    this._pagination = {
+      rows_per_page: this._model.limit,
+      count: ref(0),
+      page: 0
+    };
+    this._parent_id = null;
+    this._order = {};
+    this._filters = {};
+    this._count_promise = null;
+  }
+
+  get pagination() {
+    return this._pagination;
+  }
+
+  get filters() {
+    return this._filters;
+  }
+
+  get type() {
+    return "repo";
+  }
+
+  get parent_id() {
+    return this._parent_id;
+  }
+
+  set parent_id(id) {
+    this._parent_id = id;
+  }
+
+  buildParams(all = false) {
+    let filters = { ...this._filters
+    };
+    if (this._parent_id) filters["--parent"] = this._parent_id;
+
+    if (this._pagination.rows_per_page && !all) {
+      filters.__offset = this._pagination.page * this._pagination.rows_per_page;
+    }
+
+    return filters;
+  }
+
+  setPagination(page) {
+    this._pagination.page = page;
+    return this.reload();
+  }
+
+  hasPagination() {
+    return this._pagination.rows_per_page ? true : false;
+  }
+
+  count() {
+    if (!this._count_promise) {
+      this._count_promise = this._model.loadCount(this.buildParams()).then(count => {
+        this._pagination.count.value = count;
+      });
+    }
+
+    return this._count_promise;
+  }
+
+  load() {
+    if (!this._load_promise) {
+      this._is_loading.value = true;
+      this._load_promise = this.count().then(() => {
+        return this._model.load(this.buildParams(), this._pagination.offset);
+      });
+    }
+
+    this._load_promise.then(response => {
+      this._is_loading.value = false;
+      return response;
+    }).catch(e => {
+      console.log(e);
+      this.is_loading.value = false;
+      throw e;
+    });
+
+    return this._load_promise;
+  }
+
+  loadAll() {
+    let ocount = this._model.limit;
+    this._model.limit = 0;
+
+    const promise = this._model.load(this.buildParams(true));
+
+    this._model.limit = ocount; //reset original limit
+
+    return promise;
+  }
+
+  reload(params) {
+    this._load_promise = null;
+    return this.load(params);
+  }
+
+  overwrite(obj) {
+    this._load_promise = this._load_promise.then(response => {
+      for (const row of response) {
+        if (row['--id'] == obj['--id']) {
+          for (let x in obj) {
+            row[x] = obj[x];
+          }
+        }
+      }
+
+      return response;
+    });
+  }
+
+  remove(ids) {
+    this._load_promise = this._load_promise.then(response => {
+      response.filter(function (item) {
+        return !ids.include(item['--id']);
+      });
+      return response;
+    });
+  }
+
+  append(obj) {
+    this._load_promise = this._load_promise.then(response => {
+      response.push(obj);
+      ++this._pagination.count.value;
+      return response;
+    });
+  }
+
+}
+
+class ActiveData extends Data {
+  constructor(model, active_id) {
+    super(model);
+    this._active_id = active_id;
+  }
+
+  get type() {
+    return "active";
+  }
+
+  get active_id() {
+    return this._active_id;
+  }
+
+  load() {
+    if (!this._load_promise) {
+      this._is_loading.value = true;
+      this._load_promise = this._model.loadActive({
+        "--id": this._active_id
+      });
+    }
+
+    this._load_promise.then(response => {
+      this._is_loading.value = false;
+      return response;
+    }).catch(e => {
+      console.log(e);
+      this._is_loading.value = false;
+      throw e;
+    });
+
+    return this._load_promise;
+  }
+
+  reload() {
+    this._active.value = {};
+    this._load_promise = null;
+    return this.load();
+  }
+
+  overwrite(obj) {
+    this._load_promise = this._load_promise.then(response => {
+      for (let x in obj) {
+        response[x] = obj[x];
+      }
+
+      return response;
+    });
+  }
+
+}
+
 let stores = {};
+function createRepoStore(store) {
+  return new RepoData(store);
+}
+function createActiveStore(store, active_id) {
+  return new ActiveData(store, active_id);
+  /*return {
+      parent_id : ref(0),
+      store : store,
+      active_id : store.active_id,
+      is_loading : ref(false),
+      selected : ref([]),
+      data : ref({}),
+      label : ref(''),
+      load() {
+          return store.load()
+          .then(response => {
+              this.data.value = response;
+              if (this.data.value['--parentid']) this.parent_id.value = this.data.value['--parentid'];
+              this.is_loading.value = false;
+              this.label.value = getLabel(store.route.schema, this.data.value);
+          })
+          .catch(e => {
+              console.log(e);
+              this.is_loading.value = false;
+          });
+      },
+      overwrite(obj) {
+          for(let x in obj) {
+              this.data.value[x] = obj[x];
+          }
+      } 
+  }*/
+}
+function createFirstStore(store) {
+  store.limit = 1;
+  store.order = ["--id", "ASC"];
+  return new RepoData(store);
+  /*return {
+      parent_id : ref(0),
+      store : store,
+      active_id : 0,
+      is_loading : ref(false),
+      selected : ref([]),
+      data : ref({}),
+      label : ref(''),
+      load_promise : null,
+      load() {
+          this.is_loading.value = true;
+          this.load_promise = store.loadFirst()
+          .then(() => {
+              return store.load();
+          }).then(response => {
+              this.data.value = response;
+              if (this.data.value['--parentid']) this.parent_id.value = this.data.value['--parentid'];
+              this.label.value = getLabel(store.route.schema, this.data.value);
+              this.is_loading.value = false;
+          })
+          .catch(e => {
+              console.log(e);
+              this.is_loading.value = false;
+          });
+      },
+      overwrite(obj) {
+          for(let x in obj) {
+              this.data.value[x] = obj[x];
+          }
+      } 
+  }*/
+}
 function clearStores() {
   stores = {};
 }
@@ -13448,150 +13937,348 @@ function getStore(name) {
 
   return stores[name];
 }
-function createRepoStore(store) {
-  const obj = {
-    parent_id: ref(store.parent_id),
-    store: store,
-    active: ref({}),
-    selected: ref([]),
-    is_loading: ref(false),
-    data: ref([]),
-    load_promise: null,
-    key: new Date().getTime()
-  };
+function hasStore(name) {
+  return stores[name] ? true : false;
+}
 
-  obj.serve = function (response) {
-    this.data.value = response;
-    this.is_loading.value = false;
-  };
-
-  obj.load = function () {
-    if (!this.load_promise) {
-      this.is_loading.value = true;
-      let promise;
-
-      if (store.limit) {
-        promise = this.load_promise = store.loadCount().then(count => {
-          this.pagination.count = count;
-          return store.load();
+var script$1$7 = {
+  name: 'BreadcrumbItem',
+  props: {
+    item: null,
+    template: null,
+    exact: null
+  },
+  methods: {
+    onClick(event, navigate) {
+      if (this.item.command) {
+        this.item.command({
+          originalEvent: event,
+          item: this.item
         });
-      } else {
-        promise = store.load();
       }
 
-      this.load_promise = promise.then(response => {
-        this.serve(response);
-      }).catch(e => {
-        console.log(e);
-        this.is_loading.value = false;
-        throw e;
-      });
-    }
-
-    return this.load_promise;
-  };
-
-  obj.reload = function () {
-    this.store.reset();
-    this.selected.value = [];
-    this.active.value = {};
-    this.load_promise = null;
-    return this.load();
-  };
-
-  obj.overwrite = function (obj) {
-    for (let row of this.data.value) {
-      if (row['--id'] == obj['--id']) {
-        for (let x in obj) {
-          row[x] = obj[x];
-        }
+      if (this.item.to && navigate) {
+        navigate(event);
       }
-    }
-  };
+    },
 
-  if (store.limit) {
-    obj.pagination = reactive({
-      rows_per_page: store.limit,
-      count: 0,
-      offset: 0
-    }), obj.paginate = function () {
-      this.is_loading.value = true;
-      store.page_offset = this.pagination.offset;
-      store.reload().then(response => {
-        this.serve(response);
-      }).catch(e => {
-        console.log(e);
-        this.is_loading.value = false;
-      });
-    };
+    containerClass() {
+      return ['p-menuitem', {
+        'p-disabled': this.disabled()
+      }, this.item.class];
+    },
+
+    linkClass(routerProps) {
+      return ['p-menuitem-link', {
+        'router-link-active': routerProps && routerProps.isActive,
+        'router-link-active-exact': this.exact && routerProps && routerProps.isExactActive
+      }];
+    },
+
+    visible() {
+      return typeof this.item.visible === 'function' ? this.item.visible() : this.item.visible !== false;
+    },
+
+    disabled() {
+      return typeof this.item.disabled === 'function' ? this.item.disabled() : this.item.disabled;
+    },
+
+    label() {
+      return typeof this.item.label === 'function' ? this.item.label() : this.item.label;
+    },
+
+    isCurrentUrl() {
+      const {
+        to,
+        url
+      } = this.item;
+      let lastPath = this.$router ? this.$router.currentRoute.path : '';
+      return to === lastPath || url === lastPath ? 'page' : undefined;
+    }
+
+  },
+  computed: {
+    iconClass() {
+      return ['p-menuitem-icon', this.item.icon];
+    }
+
+  }
+};
+const _hoisted_1$1$7 = ["href", "aria-current", "onClick"];
+const _hoisted_2$1$7 = {
+  key: 1,
+  class: "p-menuitem-text"
+};
+const _hoisted_3$1$6 = ["href", "target", "aria-current"];
+const _hoisted_4$w = {
+  key: 1,
+  class: "p-menuitem-text"
+};
+
+function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_router_link = resolveComponent("router-link");
+
+  return $options.visible() ? (openBlock(), createElementBlock("li", {
+    key: 0,
+    class: normalizeClass($options.containerClass())
+  }, [!$props.template ? (openBlock(), createElementBlock(Fragment, {
+    key: 0
+  }, [$props.item.to ? (openBlock(), createBlock(_component_router_link, {
+    key: 0,
+    to: $props.item.to,
+    custom: ""
+  }, {
+    default: withCtx(({
+      navigate,
+      href,
+      isActive,
+      isExactActive
+    }) => [createElementVNode("a", {
+      href: href,
+      class: normalizeClass($options.linkClass({
+        isActive,
+        isExactActive
+      })),
+      "aria-current": $options.isCurrentUrl(),
+      onClick: $event => $options.onClick($event, navigate)
+    }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
+      key: 0,
+      class: normalizeClass($options.iconClass)
+    }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_2$1$7, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_1$1$7)]),
+    _: 1
+  }, 8, ["to"])) : (openBlock(), createElementBlock("a", {
+    key: 1,
+    href: $props.item.url || '#',
+    class: normalizeClass($options.linkClass()),
+    target: $props.item.target,
+    "aria-current": $options.isCurrentUrl(),
+    onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
+  }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
+    key: 0,
+    class: normalizeClass($options.iconClass)
+  }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_4$w, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_3$1$6))], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
+    key: 1,
+    item: $props.item
+  }, null, 8, ["item"]))], 2)) : createCommentVNode("", true);
+}
+
+script$1$7.render = render$1$7;
+var script$1I = {
+  name: 'Breadcrumb',
+  props: {
+    model: {
+      type: Array,
+      default: null
+    },
+    home: {
+      type: null,
+      default: null
+    },
+    exact: {
+      type: Boolean,
+      default: true
+    }
+  },
+  components: {
+    BreadcrumbItem: script$1$7
+  }
+};
+const _hoisted_1$U = {
+  class: "p-breadcrumb p-component"
+};
+const _hoisted_2$L = {
+  class: "p-breadcrumb-list"
+};
+
+const _hoisted_3$z = /*#__PURE__*/createElementVNode("li", {
+  class: "p-menuitem-separator"
+}, [/*#__PURE__*/createElementVNode("span", {
+  class: "pi pi-chevron-right",
+  "aria-hidden": "true"
+})], -1);
+
+function render$E(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_BreadcrumbItem = resolveComponent("BreadcrumbItem");
+
+  return openBlock(), createElementBlock("nav", _hoisted_1$U, [createElementVNode("ol", _hoisted_2$L, [$props.home ? (openBlock(), createBlock(_component_BreadcrumbItem, {
+    key: 0,
+    item: $props.home,
+    class: "p-breadcrumb-home",
+    template: _ctx.$slots.item,
+    exact: $props.exact
+  }, null, 8, ["item", "template", "exact"])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList($props.model, item => {
+    return openBlock(), createElementBlock(Fragment, {
+      key: item.label
+    }, [_hoisted_3$z, createVNode(_component_BreadcrumbItem, {
+      item: item,
+      template: _ctx.$slots.item,
+      exact: $props.exact
+    }, null, 8, ["item", "template", "exact"])], 64);
+  }), 128))])]);
+}
+
+function styleInject$v(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
   }
 
-  return obj;
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
 }
-function createActiveStore(store) {
-  return {
-    parent_id: ref(0),
-    store: store,
-    active_id: store.active_id,
-    is_loading: ref(false),
-    selected: ref([]),
-    data: ref({}),
-    label: ref(''),
 
-    load() {
-      return store.load().then(response => {
-        this.data.value = response;
-        if (this.data.value['--parentid']) this.parent_id.value = this.data.value['--parentid'];
-        this.is_loading.value = false;
-        this.label.value = getLabel(store.route.schema, this.data.value);
-      }).catch(e => {
-        console.log(e);
-        this.is_loading.value = false;
-      });
-    },
+var css_248z$D = "\n.p-breadcrumb {\n    overflow-x: auto;\n}\n.p-breadcrumb .p-breadcrumb-list {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-breadcrumb .p-menuitem-text {\n    line-height: 1;\n}\n.p-breadcrumb .p-menuitem-link {\n    text-decoration: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb .p-menuitem-separator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb::-webkit-scrollbar {\n    display: none;\n}\n";
+styleInject$v(css_248z$D);
+script$1I.render = render$E;
 
-    overwrite(obj) {
-      for (let x in obj) {
-        this.data.value[x] = obj[x];
+let element,
+    firstVNode,
+    lastVNode,
+    shiftKey = false;
+
+function firstHiddenFocus() {
+  if (shiftKey) {
+    lastVNode.focus();
+  } else {
+    const firstFocusableEl = DomHandler.getFirstFocusableElement(element, ':not(.p-hidden-focusable)');
+    DomHandler.focus(firstFocusableEl);
+  }
+}
+
+function lastHiddenFocus() {
+  if (shiftKey) {
+    const lastFocusableEl = DomHandler.getLastFocusableElement(element, ':not(.p-hidden-focusable)');
+    DomHandler.focus(lastFocusableEl);
+  } else {
+    firstVNode.focus();
+  }
+}
+
+function createHiddenElement(callback) {
+  const el = document.createElement('span');
+  el.classList = 'p-hidden-accessible p-hidden-focusable';
+  el.tabIndex = '0';
+  el.setAttribute('aria-hidden', 'true');
+  el.setAttribute('role', 'presentation');
+  el.addEventListener('focus', callback);
+  return el;
+}
+
+function createHiddenElements(el) {
+  firstVNode = createHiddenElement(firstHiddenFocus);
+  lastVNode = createHiddenElement(lastHiddenFocus);
+  el.prepend(firstVNode);
+  el.append(lastVNode);
+}
+
+function bind(el) {
+  el.$_pfocustrap_keydownlistener = e => {
+    if (e.code === 'Tab') {
+      shiftKey = e.shiftKey;
+    }
+  };
+
+  el.addEventListener('keydown', el.$_pfocustrap_keydownlistener);
+}
+
+function unbind(el) {
+  if (el.$_pfocustrap_keydownlistener) {
+    el.removeEventListener('keydown', el.$_pfocustrap_keydownlistener);
+    el.$_pfocustrap_keydownlistener = null;
+  }
+}
+
+const FocusTrap = {
+  mounted(el, binding, vnode) {
+    const firstFocusableEl = DomHandler.getFirstFocusableElement(el, ':not(.p-hidden-focusable)');
+
+    if (firstFocusableEl) {
+      el.$_pfocustrapFocusTrapDisabled = false;
+
+      if (binding.value && typeof binding.value === 'object') {
+        el.$_pfocustrapFocusTrapDisabled = binding.value.focusTrapDisabled;
+      }
+
+      if (!el.$_pfocustrapFocusTrapDisabled) {
+        element = el;
+        createHiddenElements(el);
+        bind(el);
       }
     }
+  },
 
-  };
-}
-function createFirstStore(store) {
-  return {
-    parent_id: ref(0),
-    store: store,
-    active_id: 0,
-    is_loading: ref(false),
-    selected: ref([]),
-    data: ref({}),
-    label: ref(''),
-    load_promise: null,
+  unmounted(el) {
+    element = null;
+    firstVNode = null;
+    lastVNode = null;
+    shiftKey = false;
+    unbind(el);
+  }
 
-    load() {
-      this.is_loading.value = true;
-      this.load_promise = store.loadFirst().then(() => {
-        return store.load();
-      }).then(response => {
-        this.data.value = response;
-        if (this.data.value['--parentid']) this.parent_id.value = this.data.value['--parentid'];
-        this.label.value = getLabel(store.route.schema, this.data.value);
-        this.is_loading.value = false;
-      }).catch(e => {
-        console.log(e);
-        this.is_loading.value = false;
-      });
+};
+
+var OverlayEventBus = primebus();
+
+var script$1H = {
+  name: 'Portal',
+  props: {
+    appendTo: {
+      type: String,
+      default: 'body'
     },
+    disabled: {
+      type: Boolean,
+      default: false
+    }
+  },
 
-    overwrite(obj) {
-      for (let x in obj) {
-        this.data.value[x] = obj[x];
-      }
+  data() {
+    return {
+      mounted: false
+    };
+  },
+
+  mounted() {
+    this.mounted = DomHandler.isClient();
+  },
+
+  computed: {
+    inline() {
+      return this.disabled || this.appendTo === 'self';
     }
 
-  };
+  }
+};
+
+function render$D(_ctx, _cache, $props, $setup, $data, $options) {
+  return $options.inline ? renderSlot(_ctx.$slots, "default", {
+    key: 0
+  }) : $data.mounted ? (openBlock(), createBlock(Teleport, {
+    key: 1,
+    to: $props.appendTo
+  }, [renderSlot(_ctx.$slots, "default")], 8, ["to"])) : createCommentVNode("", true);
 }
+
+script$1H.render = render$D;
 
 let timeout;
 
@@ -13682,7 +14369,667 @@ const Ripple = {
 
 };
 
-var script$1K = {
+var script$1G = {
+  name: 'OverlayPanel',
+  inheritAttrs: false,
+  emits: ['show', 'hide'],
+  props: {
+    dismissable: {
+      type: Boolean,
+      default: true
+    },
+    showCloseIcon: {
+      type: Boolean,
+      default: false
+    },
+    appendTo: {
+      type: String,
+      default: 'body'
+    },
+    baseZIndex: {
+      type: Number,
+      default: 0
+    },
+    autoZIndex: {
+      type: Boolean,
+      default: true
+    },
+    ariaCloseLabel: {
+      type: String,
+      default: 'close'
+    },
+    breakpoints: {
+      type: Object,
+      default: null
+    }
+  },
+
+  data() {
+    return {
+      visible: false
+    };
+  },
+
+  watch: {
+    dismissable: {
+      immediate: true,
+
+      handler(newValue) {
+        if (newValue) {
+          this.bindOutsideClickListener();
+        } else {
+          this.unbindOutsideClickListener();
+        }
+      }
+
+    }
+  },
+  selfClick: false,
+  target: null,
+  eventTarget: null,
+  outsideClickListener: null,
+  scrollHandler: null,
+  resizeListener: null,
+  container: null,
+  styleElement: null,
+  overlayEventListener: null,
+
+  beforeUnmount() {
+    if (this.dismissable) {
+      this.unbindOutsideClickListener();
+    }
+
+    if (this.scrollHandler) {
+      this.scrollHandler.destroy();
+      this.scrollHandler = null;
+    }
+
+    this.destroyStyle();
+    this.unbindResizeListener();
+    this.target = null;
+
+    if (this.container && this.autoZIndex) {
+      ZIndexUtils.clear(this.container);
+    }
+
+    if (this.overlayEventListener) {
+      OverlayEventBus.off('overlay-click', this.overlayEventListener);
+      this.overlayEventListener = null;
+    }
+
+    this.container = null;
+  },
+
+  mounted() {
+    if (this.breakpoints) {
+      this.createStyle();
+    }
+  },
+
+  methods: {
+    toggle(event, target) {
+      if (this.visible) this.hide();else this.show(event, target);
+    },
+
+    show(event, target) {
+      this.visible = true;
+      this.eventTarget = event.currentTarget;
+      this.target = target || event.currentTarget;
+    },
+
+    hide() {
+      this.visible = false;
+      DomHandler.focus(this.target);
+    },
+
+    onContentClick() {
+      this.selfClick = true;
+    },
+
+    onEnter(el) {
+      this.container.setAttribute(this.attributeSelector, '');
+      this.alignOverlay();
+
+      if (this.dismissable) {
+        this.bindOutsideClickListener();
+      }
+
+      this.bindScrollListener();
+      this.bindResizeListener();
+
+      if (this.autoZIndex) {
+        ZIndexUtils.set('overlay', el, this.baseZIndex + this.$primevue.config.zIndex.overlay);
+      }
+
+      this.overlayEventListener = e => {
+        if (this.container.contains(e.target)) {
+          this.selfClick = true;
+        }
+      };
+
+      this.focus();
+      OverlayEventBus.on('overlay-click', this.overlayEventListener);
+      this.$emit('show');
+    },
+
+    onLeave() {
+      this.unbindOutsideClickListener();
+      this.unbindScrollListener();
+      this.unbindResizeListener();
+      OverlayEventBus.off('overlay-click', this.overlayEventListener);
+      this.overlayEventListener = null;
+      this.$emit('hide');
+    },
+
+    onAfterLeave(el) {
+      if (this.autoZIndex) {
+        ZIndexUtils.clear(el);
+      }
+    },
+
+    alignOverlay() {
+      DomHandler.absolutePosition(this.container, this.target);
+      const containerOffset = DomHandler.getOffset(this.container);
+      const targetOffset = DomHandler.getOffset(this.target);
+      let arrowLeft = 0;
+
+      if (containerOffset.left < targetOffset.left) {
+        arrowLeft = targetOffset.left - containerOffset.left;
+      }
+
+      this.container.style.setProperty('--overlayArrowLeft', `${arrowLeft}px`);
+
+      if (containerOffset.top < targetOffset.top) {
+        DomHandler.addClass(this.container, 'p-overlaypanel-flipped');
+      }
+    },
+
+    onContentKeydown(event) {
+      event.code === 'Escape' && this.hide();
+    },
+
+    onButtonKeydown(event) {
+      switch (event.code) {
+        case 'ArrowDown':
+        case 'ArrowUp':
+        case 'ArrowLeft':
+        case 'ArrowRight':
+          event.preventDefault();
+      }
+    },
+
+    focus() {
+      let focusTarget = this.container.querySelector('[autofocus]');
+
+      if (focusTarget) {
+        focusTarget.focus();
+      }
+    },
+
+    bindOutsideClickListener() {
+      if (!this.outsideClickListener && DomHandler.isClient()) {
+        this.outsideClickListener = event => {
+          if (this.visible && !this.selfClick && !this.isTargetClicked(event)) {
+            this.visible = false;
+          }
+
+          this.selfClick = false;
+        };
+
+        document.addEventListener('click', this.outsideClickListener);
+      }
+    },
+
+    unbindOutsideClickListener() {
+      if (this.outsideClickListener) {
+        document.removeEventListener('click', this.outsideClickListener);
+        this.outsideClickListener = null;
+        this.selfClick = false;
+      }
+    },
+
+    bindScrollListener() {
+      if (!this.scrollHandler) {
+        this.scrollHandler = new ConnectedOverlayScrollHandler(this.target, () => {
+          if (this.visible) {
+            this.visible = false;
+          }
+        });
+      }
+
+      this.scrollHandler.bindScrollListener();
+    },
+
+    unbindScrollListener() {
+      if (this.scrollHandler) {
+        this.scrollHandler.unbindScrollListener();
+      }
+    },
+
+    bindResizeListener() {
+      if (!this.resizeListener) {
+        this.resizeListener = () => {
+          if (this.visible && !DomHandler.isTouchDevice()) {
+            this.visible = false;
+          }
+        };
+
+        window.addEventListener('resize', this.resizeListener);
+      }
+    },
+
+    unbindResizeListener() {
+      if (this.resizeListener) {
+        window.removeEventListener('resize', this.resizeListener);
+        this.resizeListener = null;
+      }
+    },
+
+    isTargetClicked(event) {
+      return this.eventTarget && (this.eventTarget === event.target || this.eventTarget.contains(event.target));
+    },
+
+    containerRef(el) {
+      this.container = el;
+    },
+
+    createStyle() {
+      if (!this.styleElement) {
+        this.styleElement = document.createElement('style');
+        this.styleElement.type = 'text/css';
+        document.head.appendChild(this.styleElement);
+        let innerHTML = '';
+
+        for (let breakpoint in this.breakpoints) {
+          innerHTML += `
+                        @media screen and (max-width: ${breakpoint}) {
+                            .p-overlaypanel[${this.attributeSelector}] {
+                                width: ${this.breakpoints[breakpoint]} !important;
+                            }
+                        }
+                    `;
+        }
+
+        this.styleElement.innerHTML = innerHTML;
+      }
+    },
+
+    destroyStyle() {
+      if (this.styleElement) {
+        document.head.removeChild(this.styleElement);
+        this.styleElement = null;
+      }
+    },
+
+    onOverlayClick(event) {
+      OverlayEventBus.emit('overlay-click', {
+        originalEvent: event,
+        target: this.target
+      });
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-overlaypanel p-component', {
+        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
+        'p-ripple-disabled': this.$primevue.config.ripple === false
+      }];
+    },
+
+    attributeSelector() {
+      return UniqueComponentId();
+    }
+
+  },
+  directives: {
+    focustrap: FocusTrap,
+    ripple: Ripple
+  },
+  components: {
+    Portal: script$1H
+  }
+};
+const _hoisted_1$T = ["aria-modal"];
+const _hoisted_2$K = ["aria-label"];
+
+const _hoisted_3$y = /*#__PURE__*/createElementVNode("span", {
+  class: "p-overlaypanel-close-icon pi pi-times"
+}, null, -1);
+
+const _hoisted_4$v = [_hoisted_3$y];
+
+function render$C(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_Portal = resolveComponent("Portal");
+
+  const _directive_ripple = resolveDirective("ripple");
+
+  const _directive_focustrap = resolveDirective("focustrap");
+
+  return openBlock(), createBlock(_component_Portal, {
+    appendTo: $props.appendTo
+  }, {
+    default: withCtx(() => [createVNode(Transition, {
+      name: "p-overlaypanel",
+      onEnter: $options.onEnter,
+      onLeave: $options.onLeave,
+      onAfterLeave: $options.onAfterLeave
+    }, {
+      default: withCtx(() => [$data.visible ? withDirectives((openBlock(), createElementBlock("div", mergeProps({
+        key: 0,
+        ref: $options.containerRef,
+        role: "dialog",
+        class: $options.containerClass,
+        "aria-modal": $data.visible,
+        onClick: _cache[5] || (_cache[5] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args))
+      }, _ctx.$attrs), [createElementVNode("div", {
+        class: "p-overlaypanel-content",
+        onClick: _cache[0] || (_cache[0] = (...args) => $options.onContentClick && $options.onContentClick(...args)),
+        onMousedown: _cache[1] || (_cache[1] = (...args) => $options.onContentClick && $options.onContentClick(...args)),
+        onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onContentKeydown && $options.onContentKeydown(...args))
+      }, [renderSlot(_ctx.$slots, "default")], 32), $props.showCloseIcon ? withDirectives((openBlock(), createElementBlock("button", {
+        key: 0,
+        class: "p-overlaypanel-close p-link",
+        "aria-label": $props.ariaCloseLabel,
+        type: "button",
+        autofocus: "",
+        onClick: _cache[3] || (_cache[3] = (...args) => $options.hide && $options.hide(...args)),
+        onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onButtonKeydown && $options.onButtonKeydown(...args))
+      }, _hoisted_4$v, 40, _hoisted_2$K)), [[_directive_ripple]]) : createCommentVNode("", true)], 16, _hoisted_1$T)), [[_directive_focustrap]]) : createCommentVNode("", true)]),
+      _: 3
+    }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
+    _: 3
+  }, 8, ["appendTo"]);
+}
+
+function styleInject$u(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$C = "\n.p-overlaypanel {\n    position: absolute;\n    margin-top: 10px;\n    top: 0;\n    left: 0;\n}\n.p-overlaypanel-flipped {\n    margin-top: 0;\n    margin-bottom: 10px;\n}\n.p-overlaypanel-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Animation */\n.p-overlaypanel-enter-from {\n    opacity: 0;\n    -webkit-transform: scaleY(0.8);\n            transform: scaleY(0.8);\n}\n.p-overlaypanel-leave-to {\n    opacity: 0;\n}\n.p-overlaypanel-enter-active {\n    -webkit-transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n}\n.p-overlaypanel-leave-active {\n    -webkit-transition: opacity 0.1s linear;\n    transition: opacity 0.1s linear;\n}\n.p-overlaypanel:after,\n.p-overlaypanel:before {\n    bottom: 100%;\n    left: calc(var(--overlayArrowLeft, 0) + 1.25rem);\n    content: ' ';\n    height: 0;\n    width: 0;\n    position: absolute;\n    pointer-events: none;\n}\n.p-overlaypanel:after {\n    border-width: 8px;\n    margin-left: -8px;\n}\n.p-overlaypanel:before {\n    border-width: 10px;\n    margin-left: -10px;\n}\n.p-overlaypanel-flipped:after,\n.p-overlaypanel-flipped:before {\n    bottom: auto;\n    top: 100%;\n}\n.p-overlaypanel.p-overlaypanel-flipped:after {\n    border-bottom-color: transparent;\n}\n.p-overlaypanel.p-overlaypanel-flipped:before {\n    border-bottom-color: transparent;\n}\n";
+styleInject$u(css_248z$C);
+script$1G.render = render$C;
+
+const _hoisted_1$S = ["href", "onClick"];
+const _hoisted_2$J = { class: "p-menuitem-text" };
+const _hoisted_3$x = { class: "row" };
+const _hoisted_4$u = /*#__PURE__*/createTextVNode();
+
+
+var script$1F = {
+  props: {
+    item : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const info = ref();
+
+function toggleInfo(e) {
+    if (props.item && props.item.info && info.value) info.value.toggle(e);
+}
+
+
+return (_ctx, _cache) => {
+  const _component_router_link = resolveComponent("router-link");
+
+  return (openBlock(), createElementBlock(Fragment, null, [
+    createVNode(_component_router_link, {
+      to: __props.item.to,
+      custom: ""
+    }, {
+      default: withCtx(({isActive, href, navigate, isExactActive}) => [
+        createElementVNode("a", {
+          class: normalizeClass([{'active-link': isActive}, "p-menuitem-link"]),
+          href: href,
+          onClick: navigate,
+          onMouseover: toggleInfo,
+          onMouseout: toggleInfo
+        }, [
+          (__props.item.icon)
+            ? (openBlock(), createElementBlock("i", {
+                key: 0,
+                class: normalizeClass(["pi", __props.item.icon])
+              }, null, 2 /* CLASS */))
+            : createCommentVNode("v-if", true),
+          createElementVNode("span", _hoisted_2$J, toDisplayString$1(__props.item.label), 1 /* TEXT */)
+        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$S)
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["to"]),
+    (__props.item.info)
+      ? (openBlock(), createBlock(unref(script$1G), {
+          key: 0,
+          ref_key: "info",
+          ref: info,
+          appendTo: "body"
+        }, {
+          default: withCtx(() => [
+            (openBlock(true), createElementBlock(Fragment, null, renderList(__props.item.info, (row) => {
+              return (openBlock(), createElementBlock("dl", null, [
+                createElementVNode("div", _hoisted_3$x, [
+                  createElementVNode("dt", null, toDisplayString$1(row.label), 1 /* TEXT */),
+                  _hoisted_4$u,
+                  createElementVNode("dd", null, toDisplayString$1(row.value), 1 /* TEXT */)
+                ])
+              ]))
+            }), 256 /* UNKEYED_FRAGMENT */))
+          ]),
+          _: 1 /* STABLE */
+        }, 512 /* NEED_PATCH */))
+      : createCommentVNode("v-if", true)
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+function styleInject$t(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$B = "\ndl[data-v-0b46fb32] {\r\n        position : relative;\r\n        display: flex;\r\n        flex-direction: column;\n}\ndt[data-v-0b46fb32] {\r\n        float : left;\r\n        font-weight : 700;\r\n        width : 50%\n}\ndd[data-v-0b46fb32] {\r\n        position : relative;\r\n        margin-left : 50%;\r\n        padding : 2px;\n}\ndl > div[data-v-0b46fb32] {\r\n        position : relative;\r\n        clear : both;\r\n        display : block;\n}\r\n";
+styleInject$t(css_248z$B);
+
+script$1F.__scopeId = "data-v-0b46fb32";
+script$1F.__file = "presstojam/src/components/slugtrail/crumb.vue";
+
+var script$1E = {
+  props: {
+    name : String,
+    parent_id : Number
+},
+  async setup(__props) {
+
+let __temp, __restore;
+
+const props = __props;
+
+const Client = inject("client");
+const i18n = inject("i18n");
+
+const t = i18n.t;
+
+
+
+
+const repo = getStore(props.name);
+const store = repo.store;
+
+let parent_id;
+
+let entity = getEntity(store.name);
+let structure = [];
+const parent = entity.parent;
+if (repo.type == "active") {
+    structure.push(entity);
+}
+
+while(entity.parent) {
+    const parent = getEntity(entity.parent);
+    structure.push(parent);
+    entity = parent;
+}
+structure = structure.reverse();
+
+
+
+async function getData() {
+    if (parent) {
+      if (repo.type == "active") {
+        const data = await 
+        repo.load()
+        .then(response => {
+            parent_id = response["--parent"];
+            return Client.get("/data/" + parent + "/active?__to=*&--id=" + response['--parent'])
+        }).then(response => {
+            return rowToTree(response, parent)
+        });
+        return data;
+      } else {
+        const data = await Client.get("/data/" + parent + "/active?__to=*&--id=" + repo.parent_id)
+        .then(response => {
+            return rowToTree(response, parent)
+        });
+        return data;
+      }
+    } else {
+        return {};
+    }
+}
+
+const trail = (
+  ([__temp,__restore] = withAsyncContext(() => getData())),
+  __temp = await __temp,
+  __restore(),
+  __temp
+);
+
+function trailRouteInfo(trail, route) {
+    let info = [];
+    let summary = [];
+    for(let i in trail[route.name]) {
+        if (route.cells[i].background) continue;
+        if (route.cells[i].summary) summary.push(trail[route.name][i]);
+        info.push({label : t("models." + route.name + ".fields." + i + ".label"), value : trail[route.name][i]});
+    }
+    
+    const label = (summary.length > 0) ? summary.join(" ") : route.name + " - " + trail[route.name]["--id"];
+    return {
+        label,
+        info
+    }
+}
+
+let crumbs = computed(() => {
+    let arr = [];
+    for(const entity of structure) {
+        //add an entity repo route
+        //need to get the parent id
+
+        const obj = { label : entity.name, to : { name : "repo", params : { model : entity.name } } };
+        
+        if (entity.parent) {
+            if (trail[entity.name]) obj.to.params.id = trail[entity.name]["--parent"];
+            else obj.to.params.id = parent_id;
+        }
+         
+        arr.push(obj);
+        
+        //set the active route
+        if (trail[entity.name]) {
+            const { label, info } = trailRouteInfo(trail, entity);
+            const obj = {
+                label : label,
+                to : { name : "primary", params : { model : entity.name, id : trail[entity.name]["--id"]} }
+            };
+            if (info.length > 0) obj.info = info;
+            
+            arr.push(obj);
+        }
+    }
+    return arr;
+});
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1I), { model: unref(crumbs) }, {
+    item: withCtx(({item}) => [
+      createVNode(script$1F, { item: item }, null, 8 /* PROPS */, ["item"])
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["model"]))
+}
+}
+
+};
+
+var css_248z$A = "\n.slug-trail-vue-vue-type-style-index-0-id-027b103d-scoped-true-lang_p-breadcrumb__D8PaD[data-v-027b103d] {\r\n    background: #ffffff;\r\n    border: 1px solid #dee2e6;\r\n    border-radius: 6px;\r\n    padding: 1rem;\n}\r\n";
+styleInject$t(css_248z$A);
+
+script$1E.__scopeId = "data-v-027b103d";
+script$1E.__file = "presstojam/src/components/slugtrail/slug-trail.vue";
+
+var slugTrail = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    'default': script$1E
+});
+
+var script$1D = {
   name: 'Panel',
   emits: ['update:collapsed', 'toggle'],
   props: {
@@ -13738,29 +15085,29 @@ var script$1K = {
     ripple: Ripple
   }
 };
-const _hoisted_1$Y = {
+const _hoisted_1$R = {
   class: "p-panel-header"
 };
-const _hoisted_2$N = ["id"];
-const _hoisted_3$B = {
+const _hoisted_2$I = ["id"];
+const _hoisted_3$w = {
   class: "p-panel-icons"
 };
-const _hoisted_4$x = ["id", "aria-label", "aria-controls", "aria-expanded"];
-const _hoisted_5$q = ["id", "aria-labelledby"];
+const _hoisted_4$t = ["id", "aria-label", "aria-controls", "aria-expanded"];
+const _hoisted_5$p = ["id", "aria-labelledby"];
 const _hoisted_6$k = {
   class: "p-panel-content"
 };
 
-function render$E(_ctx, _cache, $props, $setup, $data, $options) {
+function render$B(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [createElementVNode("div", _hoisted_1$Y, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
+  }, [createElementVNode("div", _hoisted_1$R, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
     key: 0,
     id: $options.ariaId + '_header',
     class: "p-panel-title"
-  }, toDisplayString$1($props.header), 9, _hoisted_2$N)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$B, [renderSlot(_ctx.$slots, "icons"), $props.toggleable ? withDirectives((openBlock(), createElementBlock("button", {
+  }, toDisplayString$1($props.header), 9, _hoisted_2$I)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$w, [renderSlot(_ctx.$slots, "icons"), $props.toggleable ? withDirectives((openBlock(), createElementBlock("button", {
     key: 0,
     id: $options.ariaId + '_header',
     type: "button",
@@ -13776,7 +15123,7 @@ function render$E(_ctx, _cache, $props, $setup, $data, $options) {
       'pi pi-minus': !$data.d_collapsed,
       'pi pi-plus': $data.d_collapsed
     })
-  }, null, 2)], 40, _hoisted_4$x)), [[_directive_ripple]]) : createCommentVNode("", true)])]), createVNode(Transition, {
+  }, null, 2)], 40, _hoisted_4$t)), [[_directive_ripple]]) : createCommentVNode("", true)])]), createVNode(Transition, {
     name: "p-toggleable-content"
   }, {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
@@ -13784,12 +15131,12 @@ function render$E(_ctx, _cache, $props, $setup, $data, $options) {
       class: "p-toggleable-content",
       role: "region",
       "aria-labelledby": $options.ariaId + '_header'
-    }, [createElementVNode("div", _hoisted_6$k, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$q), [[vShow, !$data.d_collapsed]])]),
+    }, [createElementVNode("div", _hoisted_6$k, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$p), [[vShow, !$data.d_collapsed]])]),
     _: 3
   })], 2);
 }
 
-function styleInject$v(css, ref) {
+function styleInject$s(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -13818,11 +15165,11 @@ function styleInject$v(css, ref) {
   }
 }
 
-var css_248z$D = "\n.p-panel-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-panel-title {\n    line-height: 1;\n}\n.p-panel-header-icon {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n";
-styleInject$v(css_248z$D);
-script$1K.render = render$E;
+var css_248z$z = "\n.p-panel-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-panel-title {\n    line-height: 1;\n}\n.p-panel-header-icon {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n";
+styleInject$s(css_248z$z);
+script$1D.render = render$B;
 
-var script$1J = {
+var script$1C = {
   name: 'Button',
   props: {
     label: {
@@ -13898,12 +15245,12 @@ var script$1J = {
     ripple: Ripple
   }
 };
-const _hoisted_1$X = ["aria-label", "disabled"];
-const _hoisted_2$M = {
+const _hoisted_1$Q = ["aria-label", "disabled"];
+const _hoisted_2$H = {
   class: "p-button-label"
 };
 
-function render$D(_ctx, _cache, $props, $setup, $data, $options) {
+function render$A(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return withDirectives((openBlock(), createElementBlock("button", {
@@ -13917,15 +15264,15 @@ function render$D(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 2)) : createCommentVNode("", true), $props.icon ? (openBlock(), createElementBlock("span", {
     key: 1,
     class: normalizeClass($options.iconStyleClass)
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_2$M, toDisplayString$1($props.label || ' '), 1), $props.badge ? (openBlock(), createElementBlock("span", {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_2$H, toDisplayString$1($props.label || ' '), 1), $props.badge ? (openBlock(), createElementBlock("span", {
     key: 2,
     class: normalizeClass($options.badgeStyleClass)
-  }, toDisplayString$1($props.badge), 3)) : createCommentVNode("", true)])], 10, _hoisted_1$X)), [[_directive_ripple]]);
+  }, toDisplayString$1($props.badge), 3)) : createCommentVNode("", true)])], 10, _hoisted_1$Q)), [[_directive_ripple]]);
 }
 
-script$1J.render = render$D;
+script$1C.render = render$A;
 
-var script$1I = {
+var script$1B = {
   name: 'InputText',
   emits: ['update:modelValue'],
   props: {
@@ -13944,21 +15291,21 @@ var script$1I = {
 
   }
 };
-const _hoisted_1$W = ["value"];
+const _hoisted_1$P = ["value"];
 
-function render$C(_ctx, _cache, $props, $setup, $data, $options) {
+function render$z(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("input", {
     class: normalizeClass(['p-inputtext p-component', {
       'p-filled': $options.filled
     }]),
     value: $props.modelValue,
     onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
-  }, null, 42, _hoisted_1$W);
+  }, null, 42, _hoisted_1$P);
 }
 
-script$1I.render = render$C;
+script$1B.render = render$z;
 
-var script$1H = {
+var script$1A = {
   name: 'InputNumber',
   emits: ['update:modelValue', 'input', 'focus', 'blur'],
   props: {
@@ -15077,16 +16424,16 @@ var script$1H = {
 
   },
   components: {
-    INInputText: script$1I,
-    INButton: script$1J
+    INInputText: script$1B,
+    INButton: script$1C
   }
 };
-const _hoisted_1$V = {
+const _hoisted_1$O = {
   key: 0,
   class: "p-inputnumber-button-group"
 };
 
-function render$B(_ctx, _cache, $props, $setup, $data, $options) {
+function render$y(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_INInputText = resolveComponent("INInputText");
 
   const _component_INButton = resolveComponent("INButton");
@@ -15115,7 +16462,7 @@ function render$B(_ctx, _cache, $props, $setup, $data, $options) {
     onClick: $options.onInputClick,
     onFocus: $options.onInputFocus,
     onBlur: $options.onInputBlur
-  }, $props.inputProps), null, 16, ["id", "class", "style", "value", "aria-valuemin", "aria-valuemax", "aria-valuenow", "disabled", "readonly", "placeholder", "aria-labelledby", "aria-label", "onInput", "onKeydown", "onKeypress", "onPaste", "onClick", "onFocus", "onBlur"]), $props.showButtons && $props.buttonLayout === 'stacked' ? (openBlock(), createElementBlock("span", _hoisted_1$V, [createVNode(_component_INButton, mergeProps({
+  }, $props.inputProps), null, 16, ["id", "class", "style", "value", "aria-valuemin", "aria-valuemax", "aria-valuenow", "disabled", "readonly", "placeholder", "aria-labelledby", "aria-label", "onInput", "onKeydown", "onKeypress", "onPaste", "onClick", "onFocus", "onBlur"]), $props.showButtons && $props.buttonLayout === 'stacked' ? (openBlock(), createElementBlock("span", _hoisted_1$O, [createVNode(_component_INButton, mergeProps({
     class: $options.upButtonClass,
     icon: $props.incrementButtonIcon
   }, toHandlers($options.upButtonListeners), {
@@ -15148,7 +16495,7 @@ function render$B(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.decrementButtonProps), null, 16, ["class", "icon", "disabled"])) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$u(css, ref) {
+function styleInject$r(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -15177,11 +16524,11 @@ function styleInject$u(css, ref) {
   }
 }
 
-var css_248z$C = "\n.p-inputnumber {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-inputnumber-button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button .p-button-label,\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button .p-button-label {\n    display: none;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-input {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    border-bottom-left-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group .p-button.p-inputnumber-button {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-buttons-vertical .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n    text-align: center;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-fluid .p-inputnumber {\n    width: 100%;\n}\n.p-fluid .p-inputnumber .p-inputnumber-input {\n    width: 1%;\n}\n.p-fluid .p-inputnumber-buttons-vertical .p-inputnumber-input {\n    width: 100%;\n}\n";
-styleInject$u(css_248z$C);
-script$1H.render = render$B;
+var css_248z$y = "\n.p-inputnumber {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-inputnumber-button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button .p-button-label,\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button .p-button-label {\n    display: none;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-input {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    border-bottom-left-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group .p-button.p-inputnumber-button {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-buttons-vertical .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n    text-align: center;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-fluid .p-inputnumber {\n    width: 100%;\n}\n.p-fluid .p-inputnumber .p-inputnumber-input {\n    width: 1%;\n}\n.p-fluid .p-inputnumber-buttons-vertical .p-inputnumber-input {\n    width: 100%;\n}\n";
+styleInject$r(css_248z$y);
+script$1A.render = render$y;
 
-var script$1G = {
+var script$1z = {
   props: {
     bind : {
         type : Object,
@@ -15197,7 +16544,7 @@ const props = __props;
 
 const value = computed({
     get() {
-        return props.bind.value.value;
+        return props.bind.value;
     },
     set(val) {
         props.bind.setValue(val);
@@ -15218,27 +16565,23 @@ if (cell.round) {
 }
 
 
-const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
-});
-
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1H), mergeProps({
-    class: ["focus:border-primary", unref(errClass)],
+  return (openBlock(), createBlock(unref(script$1A), mergeProps({
+    class: ["focus:border-primary", __props.bind.classes],
     name: __props.bind.cell.name,
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null))
   }, atts, {
-    onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.active_validation.value = true))
+    onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.active_validation = true))
   }), null, 16 /* FULL_PROPS */, ["name", "class", "modelValue"]))
 }
 }
 
 };
 
-script$1G.__file = "presstojam/src/components/form/number-edit.vue";
+script$1z.__file = "presstojam/src/components/form/number-edit.vue";
 
-var script$1F = {
+var script$1y = {
   name: 'Checkbox',
   emits: ['click', 'update:modelValue', 'change', 'input', 'focus', 'blur'],
   props: {
@@ -15350,16 +16693,16 @@ var script$1F = {
 
   }
 };
-const _hoisted_1$U = {
+const _hoisted_1$N = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$L = ["id", "value", "name", "checked", "tabindex", "disabled", "readonly", "required", "aria-labelledby", "aria-label"];
+const _hoisted_2$G = ["id", "value", "name", "checked", "tabindex", "disabled", "readonly", "required", "aria-labelledby", "aria-label"];
 
-function render$A(_ctx, _cache, $props, $setup, $data, $options) {
+function render$x(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass),
     onClick: _cache[2] || (_cache[2] = $event => $options.onClick($event))
-  }, [createElementVNode("div", _hoisted_1$U, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$N, [createElementVNode("input", mergeProps({
     ref: "input",
     id: $props.inputId,
     type: "checkbox",
@@ -15376,7 +16719,7 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
     "aria-label": _ctx.ariaLabel,
     onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
     onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event))
-  }, $props.inputProps), null, 16, _hoisted_2$L)]), createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$G)]), createElementVNode("div", {
     ref: "box",
     class: normalizeClass(['p-checkbox-box', {
       'p-highlight': $options.checked,
@@ -15390,9 +16733,9 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 2)], 2)], 2);
 }
 
-script$1F.render = render$A;
+script$1y.render = render$x;
 
-var script$1E = {
+var script$1x = {
   props: {
     bind : {
         type : Object,
@@ -15406,38 +16749,35 @@ const props = __props;
 
 
 
+const checked = ref(props.bind.value);
+
 const value = computed({
     get() {
-        return (props.bind.value.value) ? true : false;
+        return (checked.value) ? true : false;
     },
     set(val) {
         props.bind.setValue(val);
+        checked.value = props.bind.value;
     }
-});
-
-const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
 });
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1F), {
+  return (openBlock(), createBlock(unref(script$1y), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
     binary: true,
-    class: normalizeClass(unref(errClass)),
-    onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.active_validation.value = true))
+    class: normalizeClass(__props.bind.classes),
+    onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.setShowError(true)))
   }, null, 8 /* PROPS */, ["modelValue", "class"]))
 }
 }
 
 };
 
-script$1E.__file = "presstojam/src/components/form/flag-edit.vue";
+script$1x.__file = "presstojam/src/components/form/flag-edit.vue";
 
-var OverlayEventBus = primebus();
-
-var script$1$7 = {
+var script$1$6 = {
   name: 'TreeNode',
   emits: ['node-toggle', 'node-click', 'checkbox-change'],
   props: {
@@ -15735,9 +17075,9 @@ var script$1$7 = {
     ripple: Ripple
   }
 };
-const _hoisted_1$1$7 = ["aria-label", "aria-selected", "aria-expanded", "aria-setsize", "aria-posinset", "aria-level"];
-const _hoisted_2$1$7 = ["aria-expanded"];
-const _hoisted_3$1$6 = {
+const _hoisted_1$1$6 = ["aria-label", "aria-selected", "aria-expanded", "aria-setsize", "aria-posinset", "aria-level"];
+const _hoisted_2$1$6 = ["aria-expanded"];
+const _hoisted_3$1$5 = {
   key: 0,
   class: "p-checkbox p-component"
 };
@@ -15751,7 +17091,7 @@ const _hoisted_6$j = {
   role: "group"
 };
 
-function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
+function render$1$6(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_TreeNode = resolveComponent("TreeNode", true);
 
   const _directive_ripple = resolveDirective("ripple");
@@ -15781,7 +17121,7 @@ function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
     tabindex: "-1"
   }, [createElementVNode("span", {
     class: normalizeClass($options.toggleIcon)
-  }, null, 2)])), [[_directive_ripple]]), $options.checkboxMode ? (openBlock(), createElementBlock("div", _hoisted_3$1$6, [createElementVNode("div", {
+  }, null, 2)])), [[_directive_ripple]]), $options.checkboxMode ? (openBlock(), createElementBlock("div", _hoisted_3$1$5, [createElementVNode("div", {
     class: normalizeClass($options.checkboxClass),
     role: "checkbox",
     "aria-checked": $options.checked
@@ -15794,7 +17134,7 @@ function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
     node: $props.node
   }, null, 8, ["node"])) : (openBlock(), createElementBlock(Fragment, {
     key: 1
-  }, [createTextVNode(toDisplayString$1($options.label($props.node)), 1)], 64))])], 46, _hoisted_2$1$7), $options.hasChildren && $options.expanded ? (openBlock(), createElementBlock("ul", _hoisted_6$j, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.node.children, childNode => {
+  }, [createTextVNode(toDisplayString$1($options.label($props.node)), 1)], 64))])], 46, _hoisted_2$1$6), $options.hasChildren && $options.expanded ? (openBlock(), createElementBlock("ul", _hoisted_6$j, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.node.children, childNode => {
     return openBlock(), createBlock(_component_TreeNode, {
       key: childNode.key,
       node: childNode,
@@ -15807,11 +17147,11 @@ function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
       selectionKeys: $props.selectionKeys,
       onCheckboxChange: $options.propagateUp
     }, null, 8, ["node", "templates", "level", "expandedKeys", "onNodeToggle", "onNodeClick", "selectionMode", "selectionKeys", "onCheckboxChange"]);
-  }), 128))])) : createCommentVNode("", true)], 10, _hoisted_1$1$7);
+  }), 128))])) : createCommentVNode("", true)], 10, _hoisted_1$1$6);
 }
 
-script$1$7.render = render$1$7;
-var script$1D = {
+script$1$6.render = render$1$6;
+var script$1w = {
   name: 'Tree',
   emits: ['node-expand', 'node-collapse', 'update:expandedKeys', 'update:selectionKeys', 'node-select', 'node-unselect'],
   props: {
@@ -16103,48 +17443,48 @@ var script$1D = {
 
   },
   components: {
-    TreeNode: script$1$7
+    TreeNode: script$1$6
   }
 };
-const _hoisted_1$T = {
+const _hoisted_1$M = {
   key: 0,
   class: "p-tree-loading-overlay p-component-overlay"
 };
-const _hoisted_2$K = {
+const _hoisted_2$F = {
   key: 1,
   class: "p-tree-filter-container"
 };
-const _hoisted_3$A = ["placeholder"];
+const _hoisted_3$v = ["placeholder"];
 
-const _hoisted_4$w = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_4$s = /*#__PURE__*/createElementVNode("span", {
   class: "p-tree-filter-icon pi pi-search"
 }, null, -1);
 
-const _hoisted_5$p = {
+const _hoisted_5$o = {
   class: "p-tree-container",
   role: "tree"
 };
 
-function render$z(_ctx, _cache, $props, $setup, $data, $options) {
+function render$w(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_TreeNode = resolveComponent("TreeNode");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [$props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$T, [createElementVNode("i", {
+  }, [$props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$M, [createElementVNode("i", {
     class: normalizeClass($options.loadingIconClass)
-  }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_2$K, [withDirectives(createElementVNode("input", {
+  }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_2$F, [withDirectives(createElementVNode("input", {
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => $data.filterValue = $event),
     type: "text",
     autocomplete: "off",
     class: "p-tree-filter p-inputtext p-component",
     placeholder: $props.filterPlaceholder,
     onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onFilterKeydown && $options.onFilterKeydown(...args))
-  }, null, 40, _hoisted_3$A), [[vModelText, $data.filterValue]]), _hoisted_4$w])) : createCommentVNode("", true), createElementVNode("div", {
+  }, null, 40, _hoisted_3$v), [[vModelText, $data.filterValue]]), _hoisted_4$s])) : createCommentVNode("", true), createElementVNode("div", {
     class: "p-tree-wrapper",
     style: normalizeStyle({
       maxHeight: $props.scrollHeight
     })
-  }, [createElementVNode("ul", _hoisted_5$p, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.valueToRender, (node, index) => {
+  }, [createElementVNode("ul", _hoisted_5$o, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.valueToRender, (node, index) => {
     return openBlock(), createBlock(_component_TreeNode, {
       key: node.key,
       node: node,
@@ -16161,7 +17501,7 @@ function render$z(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128))])], 4)], 2);
 }
 
-function styleInject$t(css, ref) {
+function styleInject$q(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -16190,53 +17530,11 @@ function styleInject$t(css, ref) {
   }
 }
 
-var css_248z$B = "\n.p-tree-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    overflow: auto;\n}\n.p-treenode-children {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-tree-wrapper {\n    overflow: auto;\n}\n.p-treenode-selectable {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-tree-toggler {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treenode-leaf > .p-treenode-content .p-tree-toggler {\n    visibility: hidden;\n}\n.p-treenode-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-tree-filter {\n    width: 100%;\n}\n.p-tree-filter-container {\n    position: relative;\n    display: block;\n    width: 100%;\n}\n.p-tree-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-tree-loading {\n    position: relative;\n    min-height: 4rem;\n}\n.p-tree .p-tree-loading-overlay {\n    position: absolute;\n    z-index: 1;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tree-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-tree-flex-scrollable .p-tree-wrapper {\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n}\n";
-styleInject$t(css_248z$B);
-script$1D.render = render$z;
+var css_248z$x = "\n.p-tree-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    overflow: auto;\n}\n.p-treenode-children {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-tree-wrapper {\n    overflow: auto;\n}\n.p-treenode-selectable {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-tree-toggler {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treenode-leaf > .p-treenode-content .p-tree-toggler {\n    visibility: hidden;\n}\n.p-treenode-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-tree-filter {\n    width: 100%;\n}\n.p-tree-filter-container {\n    position: relative;\n    display: block;\n    width: 100%;\n}\n.p-tree-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-tree-loading {\n    position: relative;\n    min-height: 4rem;\n}\n.p-tree .p-tree-loading-overlay {\n    position: absolute;\n    z-index: 1;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tree-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-tree-flex-scrollable .p-tree-wrapper {\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n}\n";
+styleInject$q(css_248z$x);
+script$1w.render = render$w;
 
-var script$1C = {
-  name: 'Portal',
-  props: {
-    appendTo: {
-      type: String,
-      default: 'body'
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    }
-  },
-
-  data() {
-    return {
-      mounted: false
-    };
-  },
-
-  mounted() {
-    this.mounted = DomHandler.isClient();
-  },
-
-  computed: {
-    inline() {
-      return this.disabled || this.appendTo === 'self';
-    }
-
-  }
-};
-
-function render$y(_ctx, _cache, $props, $setup, $data, $options) {
-  return $options.inline ? renderSlot(_ctx.$slots, "default", {
-    key: 0
-  }) : $data.mounted ? (openBlock(), createBlock(Teleport, {
-    key: 1,
-    to: $props.appendTo
-  }, [renderSlot(_ctx.$slots, "default")], 8, ["to"])) : createCommentVNode("", true);
-}
-
-script$1C.render = render$y;
-
-var script$1B = {
+var script$1v = {
   name: 'TreeSelect',
   emits: ['update:modelValue', 'before-show', 'before-hide', 'change', 'show', 'hide', 'node-select', 'node-unselect', 'node-expand', 'node-collapse', 'focus', 'blur'],
   props: {
@@ -16687,24 +17985,24 @@ var script$1B = {
 
   },
   components: {
-    TSTree: script$1D,
-    Portal: script$1C
+    TSTree: script$1w,
+    Portal: script$1H
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$S = {
+const _hoisted_1$L = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$J = ["id", "disabled", "tabindex", "aria-labelledby", "aria-label", "aria-expanded", "aria-controls"];
-const _hoisted_3$z = {
+const _hoisted_2$E = ["id", "disabled", "tabindex", "aria-labelledby", "aria-label", "aria-expanded", "aria-controls"];
+const _hoisted_3$u = {
   class: "p-treeselect-label-container"
 };
-const _hoisted_4$v = {
+const _hoisted_4$r = {
   class: "p-treeselect-token-label"
 };
-const _hoisted_5$o = ["aria-expanded"];
+const _hoisted_5$n = ["aria-expanded"];
 
 const _hoisted_6$i = /*#__PURE__*/createElementVNode("span", {
   class: "p-treeselect-trigger-icon pi pi-chevron-down"
@@ -16715,7 +18013,7 @@ const _hoisted_7$c = {
   class: "p-treeselect-empty-message"
 };
 
-function render$x(_ctx, _cache, $props, $setup, $data, $options) {
+function render$v(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_TSTree = resolveComponent("TSTree");
 
   const _component_Portal = resolveComponent("Portal");
@@ -16724,7 +18022,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
     ref: "container",
     class: normalizeClass($options.containerClass),
     onClick: _cache[6] || (_cache[6] = (...args) => $options.onClick && $options.onClick(...args))
-  }, [createElementVNode("div", _hoisted_1$S, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$L, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
     type: "text",
@@ -16742,7 +18040,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
     onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event)),
     onKeydown: _cache[2] || (_cache[2] = $event => $options.onKeyDown($event))
-  }, $props.inputProps), null, 16, _hoisted_2$J)]), createElementVNode("div", _hoisted_3$z, [createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$E)]), createElementVNode("div", _hoisted_3$u, [createElementVNode("div", {
     class: normalizeClass($options.labelClass)
   }, [renderSlot(_ctx.$slots, "value", {
     value: $options.selectedNodes,
@@ -16755,7 +18053,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
     return openBlock(), createElementBlock("div", {
       key: node.key,
       class: "p-treeselect-token"
-    }, [createElementVNode("span", _hoisted_4$v, toDisplayString$1(node.label), 1)]);
+    }, [createElementVNode("span", _hoisted_4$r, toDisplayString$1(node.label), 1)]);
   }), 128)), $options.emptyValue ? (openBlock(), createElementBlock(Fragment, {
     key: 0
   }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", {
@@ -16763,7 +18061,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
     role: "button",
     "aria-haspopup": "tree",
     "aria-expanded": $data.overlayVisible
-  }, [renderSlot(_ctx.$slots, "indicator", {}, () => [_hoisted_6$i])], 8, _hoisted_5$o), createVNode(_component_Portal, {
+  }, [renderSlot(_ctx.$slots, "indicator", {}, () => [_hoisted_6$i])], 8, _hoisted_5$n), createVNode(_component_Portal, {
     appendTo: $props.appendTo
   }, {
     default: withCtx(() => [createVNode(Transition, {
@@ -16809,7 +18107,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$s(css, ref) {
+function styleInject$p(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -16838,11 +18136,11 @@ function styleInject$s(css, ref) {
   }
 }
 
-var css_248z$A = "\n.p-treeselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-treeselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treeselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-treeselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-treeselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-treeselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-treeselect .p-treeselect-panel {\n    min-width: 100%;\n}\n.p-treeselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-treeselect-items-wrapper {\n    overflow: auto;\n}\n.p-fluid .p-treeselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$s(css_248z$A);
-script$1B.render = render$x;
+var css_248z$w = "\n.p-treeselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-treeselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treeselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-treeselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-treeselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-treeselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-treeselect .p-treeselect-panel {\n    min-width: 100%;\n}\n.p-treeselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-treeselect-items-wrapper {\n    overflow: auto;\n}\n.p-fluid .p-treeselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$p(css_248z$w);
+script$1v.render = render$v;
 
-var script$1A = {
+var script$1u = {
   props: {
          cell : Object,
          store : Object
@@ -16856,7 +18154,7 @@ const props = __props;
     
 
    
-     const client = inject("client");
+     inject("client");
 
      
 
@@ -16864,7 +18162,7 @@ const props = __props;
 
     
     
-    const referencestore = createTemporaryStore(client, props.cell.reference);
+    const referencestore = getModel(props.cell.reference);
     let parent = false;
     let common_parent_id = 0;
 
@@ -16881,7 +18179,7 @@ const props = __props;
     }
  
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$1d, {
+  return (openBlock(), createBlock(script$18, {
     store: unref(referencestore),
     onSaved: onCreate,
     parent: unref(parent),
@@ -16893,95 +18191,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1A.__file = "presstojam/src/components/actions/reference-create.vue";
+script$1u.__file = "presstojam/src/components/actions/reference-create.vue";
 
-let element,
-    firstVNode,
-    lastVNode,
-    shiftKey = false;
-
-function firstHiddenFocus() {
-  if (shiftKey) {
-    lastVNode.focus();
-  } else {
-    const firstFocusableEl = DomHandler.getFirstFocusableElement(element, ':not(.p-hidden-focusable)');
-    DomHandler.focus(firstFocusableEl);
-  }
-}
-
-function lastHiddenFocus() {
-  if (shiftKey) {
-    const lastFocusableEl = DomHandler.getLastFocusableElement(element, ':not(.p-hidden-focusable)');
-    DomHandler.focus(lastFocusableEl);
-  } else {
-    firstVNode.focus();
-  }
-}
-
-function createHiddenElement(callback) {
-  const el = document.createElement('span');
-  el.classList = 'p-hidden-accessible p-hidden-focusable';
-  el.tabIndex = '0';
-  el.setAttribute('aria-hidden', 'true');
-  el.setAttribute('role', 'presentation');
-  el.addEventListener('focus', callback);
-  return el;
-}
-
-function createHiddenElements(el) {
-  firstVNode = createHiddenElement(firstHiddenFocus);
-  lastVNode = createHiddenElement(lastHiddenFocus);
-  el.prepend(firstVNode);
-  el.append(lastVNode);
-}
-
-function bind$1(el) {
-  el.$_pfocustrap_keydownlistener = e => {
-    if (e.code === 'Tab') {
-      shiftKey = e.shiftKey;
-    }
-  };
-
-  el.addEventListener('keydown', el.$_pfocustrap_keydownlistener);
-}
-
-function unbind(el) {
-  if (el.$_pfocustrap_keydownlistener) {
-    el.removeEventListener('keydown', el.$_pfocustrap_keydownlistener);
-    el.$_pfocustrap_keydownlistener = null;
-  }
-}
-
-const FocusTrap = {
-  mounted(el, binding, vnode) {
-    const firstFocusableEl = DomHandler.getFirstFocusableElement(el, ':not(.p-hidden-focusable)');
-
-    if (firstFocusableEl) {
-      el.$_pfocustrapFocusTrapDisabled = false;
-
-      if (binding.value && typeof binding.value === 'object') {
-        el.$_pfocustrapFocusTrapDisabled = binding.value.focusTrapDisabled;
-      }
-
-      if (!el.$_pfocustrapFocusTrapDisabled) {
-        element = el;
-        createHiddenElements(el);
-        bind$1(el);
-      }
-    }
-  },
-
-  unmounted(el) {
-    element = null;
-    firstVNode = null;
-    lastVNode = null;
-    shiftKey = false;
-    unbind(el);
-  }
-
-};
-
-var script$1z = {
+var script$1t = {
   name: 'Dialog',
   inheritAttrs: false,
   emits: ['update:visible', 'show', 'hide', 'after-hide', 'maximize', 'unmaximize', 'dragend'],
@@ -17465,18 +18677,18 @@ var script$1z = {
     focustrap: FocusTrap
   },
   components: {
-    Portal: script$1C
+    Portal: script$1H
   }
 };
-const _hoisted_1$R = ["aria-labelledby", "aria-modal"];
-const _hoisted_2$I = ["id"];
-const _hoisted_3$y = {
+const _hoisted_1$K = ["aria-labelledby", "aria-modal"];
+const _hoisted_2$D = ["id"];
+const _hoisted_3$t = {
   class: "p-dialog-header-icons"
 };
-const _hoisted_4$u = ["tabindex"];
-const _hoisted_5$n = ["aria-label"];
+const _hoisted_4$q = ["tabindex"];
+const _hoisted_5$m = ["aria-label"];
 
-function render$w(_ctx, _cache, $props, $setup, $data, $options) {
+function render$u(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Portal = resolveComponent("Portal");
 
   const _directive_ripple = resolveDirective("ripple");
@@ -17516,7 +18728,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
         key: 0,
         id: $options.ariaLabelledById,
         class: "p-dialog-title"
-      }, toDisplayString$1($props.header), 9, _hoisted_2$I)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$y, [$props.maximizable ? withDirectives((openBlock(), createElementBlock("button", {
+      }, toDisplayString$1($props.header), 9, _hoisted_2$D)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$t, [$props.maximizable ? withDirectives((openBlock(), createElementBlock("button", {
         key: 0,
         ref: $options.maximizableRef,
         autofocus: "",
@@ -17526,7 +18738,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
         tabindex: $props.maximizable ? '0' : '-1'
       }, [createElementVNode("span", {
         class: normalizeClass($options.maximizeIconClass)
-      }, null, 2)], 8, _hoisted_4$u)), [[_directive_ripple]]) : createCommentVNode("", true), $props.closable ? withDirectives((openBlock(), createElementBlock("button", mergeProps({
+      }, null, 2)], 8, _hoisted_4$q)), [[_directive_ripple]]) : createCommentVNode("", true), $props.closable ? withDirectives((openBlock(), createElementBlock("button", mergeProps({
         key: 1,
         ref: $options.closeButtonRef,
         autofocus: "",
@@ -17536,7 +18748,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
         type: "button"
       }, $props.closeButtonProps), [createElementVNode("span", {
         class: normalizeClass(['p-dialog-header-close-icon', $props.closeIcon])
-      }, null, 2)], 16, _hoisted_5$n)), [[_directive_ripple]]) : createCommentVNode("", true)])], 544)) : createCommentVNode("", true), createElementVNode("div", mergeProps({
+      }, null, 2)], 16, _hoisted_5$m)), [[_directive_ripple]]) : createCommentVNode("", true)])], 544)) : createCommentVNode("", true), createElementVNode("div", mergeProps({
         ref: $options.contentRef,
         class: $options.contentStyleClass,
         style: $props.contentStyle
@@ -17544,7 +18756,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
         key: 1,
         ref: $options.footerContainerRef,
         class: "p-dialog-footer"
-      }, [renderSlot(_ctx.$slots, "footer", {}, () => [createTextVNode(toDisplayString$1($props.footer), 1)])], 512)) : createCommentVNode("", true)], 16, _hoisted_1$R)), [[_directive_focustrap, {
+      }, [renderSlot(_ctx.$slots, "footer", {}, () => [createTextVNode(toDisplayString$1($props.footer), 1)])], 512)) : createCommentVNode("", true)], 16, _hoisted_1$K)), [[_directive_focustrap, {
         focusTrapDisabled: !$props.modal
       }]]) : createCommentVNode("", true)]),
       _: 3
@@ -17553,7 +18765,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"]);
 }
 
-function styleInject$r(css, ref) {
+function styleInject$o(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -17582,11 +18794,11 @@ function styleInject$r(css, ref) {
   }
 }
 
-var css_248z$z = "\n.p-dialog-mask {\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    pointer-events: none;\n}\n.p-dialog-mask.p-component-overlay {\n    pointer-events: auto;\n}\n.p-dialog {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    pointer-events: auto;\n    max-height: 90%;\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n.p-dialog-content {\n    overflow-y: auto;\n}\n.p-dialog-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog-footer {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog .p-dialog-header-icons {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-dialog .p-dialog-header-icon {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Fluid */\n.p-fluid .p-dialog-footer .p-button {\n    width: auto;\n}\n\n/* Animation */\n/* Center */\n.p-dialog-enter-active {\n    -webkit-transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n}\n.p-dialog-leave-active {\n    -webkit-transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n.p-dialog-enter-from,\n.p-dialog-leave-to {\n    opacity: 0;\n    -webkit-transform: scale(0.7);\n            transform: scale(0.7);\n}\n\n/* Top, Bottom, Left, Right, Top* and Bottom* */\n.p-dialog-top .p-dialog,\n.p-dialog-bottom .p-dialog,\n.p-dialog-left .p-dialog,\n.p-dialog-right .p-dialog,\n.p-dialog-topleft .p-dialog,\n.p-dialog-topright .p-dialog,\n.p-dialog-bottomleft .p-dialog,\n.p-dialog-bottomright .p-dialog {\n    margin: 0.75rem;\n    -webkit-transform: translate3d(0px, 0px, 0px);\n            transform: translate3d(0px, 0px, 0px);\n}\n.p-dialog-top .p-dialog-enter-active,\n.p-dialog-top .p-dialog-leave-active,\n.p-dialog-bottom .p-dialog-enter-active,\n.p-dialog-bottom .p-dialog-leave-active,\n.p-dialog-left .p-dialog-enter-active,\n.p-dialog-left .p-dialog-leave-active,\n.p-dialog-right .p-dialog-enter-active,\n.p-dialog-right .p-dialog-leave-active,\n.p-dialog-topleft .p-dialog-enter-active,\n.p-dialog-topleft .p-dialog-leave-active,\n.p-dialog-topright .p-dialog-enter-active,\n.p-dialog-topright .p-dialog-leave-active,\n.p-dialog-bottomleft .p-dialog-enter-active,\n.p-dialog-bottomleft .p-dialog-leave-active,\n.p-dialog-bottomright .p-dialog-enter-active,\n.p-dialog-bottomright .p-dialog-leave-active {\n    -webkit-transition: all 0.3s ease-out;\n    transition: all 0.3s ease-out;\n}\n.p-dialog-top .p-dialog-enter-from,\n.p-dialog-top .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, -100%, 0px);\n            transform: translate3d(0px, -100%, 0px);\n}\n.p-dialog-bottom .p-dialog-enter-from,\n.p-dialog-bottom .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, 100%, 0px);\n            transform: translate3d(0px, 100%, 0px);\n}\n.p-dialog-left .p-dialog-enter-from,\n.p-dialog-left .p-dialog-leave-to,\n.p-dialog-topleft .p-dialog-enter-from,\n.p-dialog-topleft .p-dialog-leave-to,\n.p-dialog-bottomleft .p-dialog-enter-from,\n.p-dialog-bottomleft .p-dialog-leave-to {\n    -webkit-transform: translate3d(-100%, 0px, 0px);\n            transform: translate3d(-100%, 0px, 0px);\n}\n.p-dialog-right .p-dialog-enter-from,\n.p-dialog-right .p-dialog-leave-to,\n.p-dialog-topright .p-dialog-enter-from,\n.p-dialog-topright .p-dialog-leave-to,\n.p-dialog-bottomright .p-dialog-enter-from,\n.p-dialog-bottomright .p-dialog-leave-to {\n    -webkit-transform: translate3d(100%, 0px, 0px);\n            transform: translate3d(100%, 0px, 0px);\n}\n\n/* Maximize */\n.p-dialog-maximized {\n    -webkit-transition: none;\n    transition: none;\n    -webkit-transform: none;\n            transform: none;\n    width: 100vw !important;\n    height: 100vh !important;\n    top: 0px !important;\n    left: 0px !important;\n    max-height: 100%;\n    height: 100%;\n}\n.p-dialog-maximized .p-dialog-content {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n\n/* Position */\n.p-dialog-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-dialog-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-dialog-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-confirm-dialog .p-dialog-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
-styleInject$r(css_248z$z);
-script$1z.render = render$w;
+var css_248z$v = "\n.p-dialog-mask {\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    pointer-events: none;\n}\n.p-dialog-mask.p-component-overlay {\n    pointer-events: auto;\n}\n.p-dialog {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    pointer-events: auto;\n    max-height: 90%;\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n.p-dialog-content {\n    overflow-y: auto;\n}\n.p-dialog-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog-footer {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog .p-dialog-header-icons {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-dialog .p-dialog-header-icon {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Fluid */\n.p-fluid .p-dialog-footer .p-button {\n    width: auto;\n}\n\n/* Animation */\n/* Center */\n.p-dialog-enter-active {\n    -webkit-transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n}\n.p-dialog-leave-active {\n    -webkit-transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n.p-dialog-enter-from,\n.p-dialog-leave-to {\n    opacity: 0;\n    -webkit-transform: scale(0.7);\n            transform: scale(0.7);\n}\n\n/* Top, Bottom, Left, Right, Top* and Bottom* */\n.p-dialog-top .p-dialog,\n.p-dialog-bottom .p-dialog,\n.p-dialog-left .p-dialog,\n.p-dialog-right .p-dialog,\n.p-dialog-topleft .p-dialog,\n.p-dialog-topright .p-dialog,\n.p-dialog-bottomleft .p-dialog,\n.p-dialog-bottomright .p-dialog {\n    margin: 0.75rem;\n    -webkit-transform: translate3d(0px, 0px, 0px);\n            transform: translate3d(0px, 0px, 0px);\n}\n.p-dialog-top .p-dialog-enter-active,\n.p-dialog-top .p-dialog-leave-active,\n.p-dialog-bottom .p-dialog-enter-active,\n.p-dialog-bottom .p-dialog-leave-active,\n.p-dialog-left .p-dialog-enter-active,\n.p-dialog-left .p-dialog-leave-active,\n.p-dialog-right .p-dialog-enter-active,\n.p-dialog-right .p-dialog-leave-active,\n.p-dialog-topleft .p-dialog-enter-active,\n.p-dialog-topleft .p-dialog-leave-active,\n.p-dialog-topright .p-dialog-enter-active,\n.p-dialog-topright .p-dialog-leave-active,\n.p-dialog-bottomleft .p-dialog-enter-active,\n.p-dialog-bottomleft .p-dialog-leave-active,\n.p-dialog-bottomright .p-dialog-enter-active,\n.p-dialog-bottomright .p-dialog-leave-active {\n    -webkit-transition: all 0.3s ease-out;\n    transition: all 0.3s ease-out;\n}\n.p-dialog-top .p-dialog-enter-from,\n.p-dialog-top .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, -100%, 0px);\n            transform: translate3d(0px, -100%, 0px);\n}\n.p-dialog-bottom .p-dialog-enter-from,\n.p-dialog-bottom .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, 100%, 0px);\n            transform: translate3d(0px, 100%, 0px);\n}\n.p-dialog-left .p-dialog-enter-from,\n.p-dialog-left .p-dialog-leave-to,\n.p-dialog-topleft .p-dialog-enter-from,\n.p-dialog-topleft .p-dialog-leave-to,\n.p-dialog-bottomleft .p-dialog-enter-from,\n.p-dialog-bottomleft .p-dialog-leave-to {\n    -webkit-transform: translate3d(-100%, 0px, 0px);\n            transform: translate3d(-100%, 0px, 0px);\n}\n.p-dialog-right .p-dialog-enter-from,\n.p-dialog-right .p-dialog-leave-to,\n.p-dialog-topright .p-dialog-enter-from,\n.p-dialog-topright .p-dialog-leave-to,\n.p-dialog-bottomright .p-dialog-enter-from,\n.p-dialog-bottomright .p-dialog-leave-to {\n    -webkit-transform: translate3d(100%, 0px, 0px);\n            transform: translate3d(100%, 0px, 0px);\n}\n\n/* Maximize */\n.p-dialog-maximized {\n    -webkit-transition: none;\n    transition: none;\n    -webkit-transform: none;\n            transform: none;\n    width: 100vw !important;\n    height: 100vh !important;\n    top: 0px !important;\n    left: 0px !important;\n    max-height: 100%;\n    height: 100%;\n}\n.p-dialog-maximized .p-dialog-content {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n\n/* Position */\n.p-dialog-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-dialog-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-dialog-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-confirm-dialog .p-dialog-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
+styleInject$o(css_248z$v);
+script$1t.render = render$u;
 
-var script$1y = {
+var script$1s = {
   name: 'VirtualScroller',
   emits: ['update:numToleratedItems', 'scroll', 'scroll-index-change', 'lazy-load'],
   props: {
@@ -18243,13 +19455,13 @@ var script$1y = {
 
   }
 };
-const _hoisted_1$Q = ["tabindex"];
-const _hoisted_2$H = {
+const _hoisted_1$J = ["tabindex"];
+const _hoisted_2$C = {
   key: 1,
   class: "p-virtualscroller-loading-icon pi pi-spinner pi-spin"
 };
 
-function render$v(_ctx, _cache, $props, $setup, $data, $options) {
+function render$t(_ctx, _cache, $props, $setup, $data, $options) {
   return !$props.disabled ? (openBlock(), createElementBlock("div", {
     key: 0,
     ref: $options.elementRef,
@@ -18298,7 +19510,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
         numCols: _ctx.d_numItemsInViewport.cols
       })
     });
-  }), 128)) : (openBlock(), createElementBlock("i", _hoisted_2$H))], 2)) : createCommentVNode("", true)], 46, _hoisted_1$Q)) : (openBlock(), createElementBlock(Fragment, {
+  }), 128)) : (openBlock(), createElementBlock("i", _hoisted_2$C))], 2)) : createCommentVNode("", true)], 46, _hoisted_1$J)) : (openBlock(), createElementBlock(Fragment, {
     key: 1
   }, [renderSlot(_ctx.$slots, "default"), renderSlot(_ctx.$slots, "content", {
     items: $props.items,
@@ -18307,7 +19519,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
   })], 64));
 }
 
-function styleInject$q(css, ref) {
+function styleInject$n(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -18336,11 +19548,11 @@ function styleInject$q(css, ref) {
   }
 }
 
-var css_248z$y = "\n.p-virtualscroller {\n    position: relative;\n    overflow: auto;\n    contain: strict;\n    -webkit-transform: translateZ(0);\n            transform: translateZ(0);\n    will-change: scroll-position;\n    outline: 0 none;\n}\n.p-virtualscroller-content {\n    position: absolute;\n    top: 0;\n    left: 0;\n    contain: content;\n    min-height: 100%;\n    min-width: 100%;\n    will-change: transform;\n}\n.p-virtualscroller-spacer {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 1px;\n    -webkit-transform-origin: 0 0;\n            transform-origin: 0 0;\n    pointer-events: none;\n}\n.p-virtualscroller .p-virtualscroller-loader {\n    position: sticky;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n}\n.p-virtualscroller-loader.p-component-overlay {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n";
-styleInject$q(css_248z$y);
-script$1y.render = render$v;
+var css_248z$u = "\n.p-virtualscroller {\n    position: relative;\n    overflow: auto;\n    contain: strict;\n    -webkit-transform: translateZ(0);\n            transform: translateZ(0);\n    will-change: scroll-position;\n    outline: 0 none;\n}\n.p-virtualscroller-content {\n    position: absolute;\n    top: 0;\n    left: 0;\n    contain: content;\n    min-height: 100%;\n    min-width: 100%;\n    will-change: transform;\n}\n.p-virtualscroller-spacer {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 1px;\n    -webkit-transform-origin: 0 0;\n            transform-origin: 0 0;\n    pointer-events: none;\n}\n.p-virtualscroller .p-virtualscroller-loader {\n    position: sticky;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n}\n.p-virtualscroller-loader.p-component-overlay {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n";
+styleInject$n(css_248z$u);
+script$1s.render = render$t;
 
-var script$1x = {
+var script$1r = {
   name: 'AutoComplete',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'item-select', 'item-unselect', 'dropdown-click', 'clear', 'complete', 'before-show', 'before-hide', 'show', 'hide'],
   props: {
@@ -19326,21 +20538,21 @@ var script$1x = {
 
   },
   components: {
-    Button: script$1J,
-    VirtualScroller: script$1y,
-    Portal: script$1C
+    Button: script$1C,
+    VirtualScroller: script$1s,
+    Portal: script$1H
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$P = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_2$G = ["aria-activedescendant"];
-const _hoisted_3$x = ["id", "aria-label", "aria-setsize", "aria-posinset"];
-const _hoisted_4$t = {
+const _hoisted_1$I = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_2$B = ["aria-activedescendant"];
+const _hoisted_3$s = ["id", "aria-label", "aria-setsize", "aria-posinset"];
+const _hoisted_4$p = {
   class: "p-autocomplete-token-label"
 };
-const _hoisted_5$m = ["onClick"];
+const _hoisted_5$l = ["onClick"];
 const _hoisted_6$h = {
   class: "p-autocomplete-input-token",
   role: "option"
@@ -19360,7 +20572,7 @@ const _hoisted_12$6 = {
   class: "p-hidden-accessible"
 };
 
-function render$u(_ctx, _cache, $props, $setup, $data, $options) {
+function render$s(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Button = resolveComponent("Button");
 
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
@@ -19398,7 +20610,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[3] || (_cache[3] = (...args) => $options.onInput && $options.onInput(...args)),
     onChange: _cache[4] || (_cache[4] = (...args) => $options.onChange && $options.onChange(...args))
-  }, $props.inputProps), null, 16, _hoisted_1$P)) : createCommentVNode("", true), $props.multiple ? (openBlock(), createElementBlock("ul", {
+  }, $props.inputProps), null, 16, _hoisted_1$I)) : createCommentVNode("", true), $props.multiple ? (openBlock(), createElementBlock("ul", {
     key: 1,
     ref: "multiContainer",
     class: normalizeClass($options.multiContainerClass),
@@ -19423,11 +20635,11 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
       "aria-posinset": i + 1
     }, [renderSlot(_ctx.$slots, "chip", {
       value: option
-    }, () => [createElementVNode("span", _hoisted_4$t, toDisplayString$1($options.getOptionLabel(option)), 1)]), createElementVNode("span", {
+    }, () => [createElementVNode("span", _hoisted_4$p, toDisplayString$1($options.getOptionLabel(option)), 1)]), createElementVNode("span", {
       class: normalizeClass(['p-autocomplete-token-icon', $props.removeTokenIcon]),
       onClick: $event => $options.removeOption($event, i),
       "aria-hidden": "true"
-    }, null, 10, _hoisted_5$m)], 10, _hoisted_3$x);
+    }, null, 10, _hoisted_5$l)], 10, _hoisted_3$s);
   }), 128)), createElementVNode("li", _hoisted_6$h, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
@@ -19451,7 +20663,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[7] || (_cache[7] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[8] || (_cache[8] = (...args) => $options.onInput && $options.onInput(...args)),
     onChange: _cache[9] || (_cache[9] = (...args) => $options.onChange && $options.onChange(...args))
-  }, $props.inputProps), null, 16, _hoisted_7$b)])], 42, _hoisted_2$G)) : createCommentVNode("", true), $data.searching ? (openBlock(), createElementBlock("i", {
+  }, $props.inputProps), null, 16, _hoisted_7$b)])], 42, _hoisted_2$B)) : createCommentVNode("", true), $data.searching ? (openBlock(), createElementBlock("i", {
     key: 2,
     class: normalizeClass($options.loadingIconClass),
     "aria-hidden": "true"
@@ -19573,7 +20785,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$p(css, ref) {
+function styleInject$m(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -19602,11 +20814,11 @@ function styleInject$p(css, ref) {
   }
 }
 
-var css_248z$x = "\n.p-autocomplete {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n}\n.p-autocomplete-loader {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-autocomplete-dd .p-autocomplete-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-autocomplete-dd .p-autocomplete-input,\n.p-autocomplete-dd .p-autocomplete-multiple-container {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-autocomplete-dd .p-autocomplete-dropdown {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0px;\n}\n.p-autocomplete .p-autocomplete-panel {\n    min-width: 100%;\n}\n.p-autocomplete-panel {\n    position: absolute;\n    overflow: auto;\n    top: 0;\n    left: 0;\n}\n.p-autocomplete-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-autocomplete-item {\n    cursor: pointer;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-autocomplete-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-autocomplete-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-autocomplete-token-icon {\n    cursor: pointer;\n}\n.p-autocomplete-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-autocomplete-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-autocomplete {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-autocomplete-dd .p-autocomplete-input {\n    width: 1%;\n}\n";
-styleInject$p(css_248z$x);
-script$1x.render = render$u;
+var css_248z$t = "\n.p-autocomplete {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n}\n.p-autocomplete-loader {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-autocomplete-dd .p-autocomplete-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-autocomplete-dd .p-autocomplete-input,\n.p-autocomplete-dd .p-autocomplete-multiple-container {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-autocomplete-dd .p-autocomplete-dropdown {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0px;\n}\n.p-autocomplete .p-autocomplete-panel {\n    min-width: 100%;\n}\n.p-autocomplete-panel {\n    position: absolute;\n    overflow: auto;\n    top: 0;\n    left: 0;\n}\n.p-autocomplete-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-autocomplete-item {\n    cursor: pointer;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-autocomplete-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-autocomplete-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-autocomplete-token-icon {\n    cursor: pointer;\n}\n.p-autocomplete-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-autocomplete-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-autocomplete {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-autocomplete-dd .p-autocomplete-input {\n    width: 1%;\n}\n";
+styleInject$m(css_248z$t);
+script$1r.render = render$s;
 
-var script$1w = {
+var script$1q = {
   props: {
     bind : Object,
     options : Array
@@ -19620,7 +20832,14 @@ const props = __props;
 
 const filtered_options = ref([]);
 
-let cvalue = ref({ value : props.bind.value.value, label : "" });
+
+let cvalue = ref({ value : 0, label : 'None'});
+
+const def = props.options.filter(opt => opt.value == props.bind.value);
+
+if (def.length > 0) {
+    cvalue.value = def[0];
+}
 
 
 const value = computed({
@@ -19629,14 +20848,12 @@ const value = computed({
     },
     set(val) {
         cvalue.value = val;
-        console.log("Oval is ", val);
-        if (!val || typeof val != 'object') return;
         props.bind.setValue(val.value);
     }
 });
 
 function searchOptions(e) {
-    const active = props.options.filter(opt => opt.value == cvalue.value.value);
+    const active = props.options.filter(opt => opt.value == cvalue.value);
     if (active.length > 0) cvalue.value = active[0];
     let vl = (!e || !e.query) ? "" : e.query.trim().toLowerCase();
     filtered_options.value = props.options.filter((opt) => {
@@ -19649,12 +20866,9 @@ watch(() => props.options, () => {
     searchOptions();
 });
 
-const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
-});
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1x), {
+  return (openBlock(), createBlock(unref(script$1r), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
     name: __props.bind.cell.name,
@@ -19663,27 +20877,27 @@ return (_ctx, _cache) => {
     dropdown: true,
     suggestions: filtered_options.value,
     placeholder: "Please Select",
-    class: normalizeClass(["focus:border-primary", unref(errClass)]),
+    class: normalizeClass(["focus:border-primary", __props.bind.classes]),
     multiple: __props.bind.cell.multiple,
     onComplete: _cache[1] || (_cache[1] = $event => (searchOptions($event))),
-    onBlur: _cache[2] || (_cache[2] = $event => (__props.bind.active_validation.value = true))
+    onBlur: _cache[2] || (_cache[2] = $event => (__props.bind.setShowError(true)))
   }, null, 8 /* PROPS */, ["modelValue", "name", "suggestions", "class", "multiple"]))
 }
 }
 
 };
 
-script$1w.__file = "presstojam/src/components/form/autocomplete-select.vue";
+script$1q.__file = "presstojam/src/components/form/autocomplete-select.vue";
 
-const _hoisted_1$O = {
+const _hoisted_1$H = {
   key: 0,
   class: "p-inputgroup"
 };
-const _hoisted_2$F = { class: "p-inputgroup-addon" };
+const _hoisted_2$A = { class: "p-inputgroup-addon" };
 
 
 
-var script$1v = {
+var script$1p = {
   props: {
     bind : {
         type : Object,
@@ -19696,9 +20910,12 @@ const props = __props;
 
 
 
-
 const model = inject("model");
-const store = getStoreById(model);
+
+const repo = getStore(model);
+
+const store = repo.store;
+
 const client = inject("client");
 
 const dialog = ref(false);
@@ -19708,13 +20925,10 @@ const dialog = ref(false);
 const options = ref([]);
 let value;
 let id = 0;
-
-if (store.active_id) {
-    const repo = getStore(model);
-    id = repo.data.value['--parent'];
-} else if (store.parent_id) {
-    id = store.parent_id;
+if (repo.type == "active") ; else {
+    id = repo.parent_id;
 }
+
 
 const cell = props.bind.cell;
 
@@ -19731,7 +20945,7 @@ if (cell.isReferenceType()) {
 
     value = computed({
         get() {
-            return props.bind.value.value;
+            return props.bind.value;
         },
         set(val) {
             props.bind.setValue(val);
@@ -19740,7 +20954,7 @@ if (cell.isReferenceType()) {
 
 } else if (cell.recursive) {
     onMounted(() => {
-       cell.getRecursiveOptions(client, model, id, store.route.schema)
+       cell.getRecursiveOptions(client, model, id, store.fields)
        .then(response => {
         let arr = [...response];
         arr.unshift({key : "0", label : 'None' , "--recursive" : 0});
@@ -19752,11 +20966,10 @@ if (cell.isReferenceType()) {
     value = computed({
         get() {
             let obj = {};
-            obj[props.bind.value.value] = true;
+            obj[props.bind.value] = true;
             return obj;
         },
         set(val) {
-            console.log("Setting value to ", val);
             const keys = Object.keys(val);
             props.bind.setValue(keys[0]);
         }
@@ -19767,19 +20980,19 @@ if (cell.isReferenceType()) {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.isReferenceType())
-    ? (openBlock(), createElementBlock("div", _hoisted_1$O, [
-        createVNode(script$1w, {
+    ? (openBlock(), createElementBlock("div", _hoisted_1$H, [
+        createVNode(script$1q, {
           bind: __props.bind,
           options: options.value
         }, null, 8 /* PROPS */, ["bind", "options"]),
-        createElementVNode("span", _hoisted_2$F, [
+        createElementVNode("span", _hoisted_2$A, [
           createElementVNode("i", {
             class: "pi pi-plus",
             onClick: _cache[0] || (_cache[0] = $event => (dialog.value='true')),
             style: {"cursor":"pointer"}
           })
         ]),
-        createVNode(unref(script$1z), {
+        createVNode(unref(script$1t), {
           visible: dialog.value,
           "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
           header: 'Create ' + _ctx.$t('models.' + unref(cell).reference + '.title', 1),
@@ -19787,7 +21000,7 @@ return (_ctx, _cache) => {
           class: "p-fluid"
         }, {
           default: withCtx(() => [
-            createVNode(script$1A, {
+            createVNode(script$1u, {
               cell: __props.bind.cell,
               store: unref(store)
             }, null, 8 /* PROPS */, ["cell", "store"])
@@ -19796,28 +21009,30 @@ return (_ctx, _cache) => {
         }, 8 /* PROPS */, ["visible", "header"])
       ]))
     : (__props.bind.cell.recursive)
-      ? (openBlock(), createBlock(unref(script$1B), {
+      ? (openBlock(), createBlock(unref(script$1v), {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : value = $event)),
           options: options.value,
-          placeholder: "Select Item"
+          placeholder: "Select Item",
+          onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.setShowError(true)))
         }, null, 8 /* PROPS */, ["modelValue", "options"]))
-      : (openBlock(), createBlock(unref(script$1H), {
+      : (openBlock(), createBlock(unref(script$1A), {
           key: 2,
           name: __props.bind.cell.name,
           modelValue: unref(value),
-          "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => (isRef(value) ? (value).value = $event : value = $event)),
-          disabled: true
+          "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => (isRef(value) ? (value).value = $event : value = $event)),
+          disabled: true,
+          onBlur: _cache[5] || (_cache[5] = $event => (__props.bind.setShowError(true)))
         }, null, 8 /* PROPS */, ["name", "modelValue"]))
 }
 }
 
 };
 
-script$1v.__file = "presstojam/src/components/form/id-edit.vue";
+script$1p.__file = "presstojam/src/components/form/id-edit.vue";
 
-var script$1u = {
+var script$1o = {
   name: 'Calendar',
   emits: ['show', 'hide', 'input', 'month-change', 'year-change', 'date-select', 'update:modelValue', 'today-click', 'clear-click', 'focus', 'blur', 'keydown'],
   props: {
@@ -22602,20 +23817,20 @@ var script$1u = {
 
   },
   components: {
-    CalendarButton: script$1J,
-    Portal: script$1C
+    CalendarButton: script$1C,
+    Portal: script$1H
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$N = ["id"];
-const _hoisted_2$E = ["id", "placeholder", "aria-expanded", "aria-controls", "aria-labelledby", "aria-label", "disabled", "readonly"];
-const _hoisted_3$w = ["id", "role", "aria-modal", "aria-label"];
-const _hoisted_4$s = {
+const _hoisted_1$G = ["id"];
+const _hoisted_2$z = ["id", "placeholder", "aria-expanded", "aria-controls", "aria-labelledby", "aria-label", "disabled", "readonly"];
+const _hoisted_3$r = ["id", "role", "aria-modal", "aria-label"];
+const _hoisted_4$o = {
   class: "p-datepicker-group-container"
 };
-const _hoisted_5$l = {
+const _hoisted_5$k = {
   class: "p-datepicker-header"
 };
 const _hoisted_6$g = ["disabled", "aria-label"];
@@ -22725,7 +23940,7 @@ const _hoisted_44 = {
   class: "p-datepicker-buttonbar"
 };
 
-function render$t(_ctx, _cache, $props, $setup, $data, $options) {
+function render$r(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_CalendarButton = resolveComponent("CalendarButton");
 
   const _component_Portal = resolveComponent("Portal");
@@ -22760,7 +23975,7 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[2] || (_cache[2] = (...args) => $options.onFocus && $options.onFocus(...args)),
     onBlur: _cache[3] || (_cache[3] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$E)) : createCommentVNode("", true), $props.showIcon ? (openBlock(), createBlock(_component_CalendarButton, {
+  }, $props.inputProps), null, 16, _hoisted_2$z)) : createCommentVNode("", true), $props.showIcon ? (openBlock(), createBlock(_component_CalendarButton, {
     key: 1,
     icon: $props.icon,
     class: "p-datepicker-trigger",
@@ -22796,11 +24011,11 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
         onMouseup: _cache[67] || (_cache[67] = (...args) => $options.onOverlayMouseUp && $options.onOverlayMouseUp(...args))
       }, $props.panelProps), [!$props.timeOnly ? (openBlock(), createElementBlock(Fragment, {
         key: 0
-      }, [createElementVNode("div", _hoisted_4$s, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.months, (month, groupIndex) => {
+      }, [createElementVNode("div", _hoisted_4$o, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.months, (month, groupIndex) => {
         return openBlock(), createElementBlock("div", {
           key: month.month + month.year,
           class: "p-datepicker-group"
-        }, [createElementVNode("div", _hoisted_5$l, [renderSlot(_ctx.$slots, "header"), withDirectives((openBlock(), createElementBlock("button", {
+        }, [createElementVNode("div", _hoisted_5$k, [renderSlot(_ctx.$slots, "header"), withDirectives((openBlock(), createElementBlock("button", {
           class: "p-datepicker-prev p-link",
           onClick: _cache[5] || (_cache[5] = (...args) => $options.onPrevButtonClick && $options.onPrevButtonClick(...args)),
           type: "button",
@@ -22983,14 +24198,14 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
         onClick: _cache[64] || (_cache[64] = $event => $options.onClearButtonClick($event)),
         class: "p-button-text",
         onKeydown: $options.onContainerButtonKeydown
-      }, null, 8, ["label", "onKeydown"])])) : createCommentVNode("", true), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_3$w)) : createCommentVNode("", true)]),
+      }, null, 8, ["label", "onKeydown"])])) : createCommentVNode("", true), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_3$r)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onAfterEnter", "onAfterLeave", "onLeave"])]),
     _: 3
-  }, 8, ["appendTo", "disabled"])], 10, _hoisted_1$N);
+  }, 8, ["appendTo", "disabled"])], 10, _hoisted_1$G);
 }
 
-function styleInject$o(css, ref) {
+function styleInject$l(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -23019,14 +24234,14 @@ function styleInject$o(css, ref) {
   }
 }
 
-var css_248z$w = "\n.p-calendar {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    max-width: 100%;\n}\n.p-calendar .p-inputtext {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-calendar-w-btn .p-inputtext {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-calendar-w-btn .p-datepicker-trigger {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n\n/* Fluid */\n.p-fluid .p-calendar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-calendar .p-inputtext {\n    width: 1%;\n}\n\n/* Datepicker */\n.p-calendar .p-datepicker {\n    min-width: 100%;\n}\n.p-datepicker {\n    width: auto;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-datepicker-inline {\n    display: inline-block;\n    position: static;\n    overflow-x: auto;\n}\n\n/* Header */\n.p-datepicker-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-datepicker-header .p-datepicker-title {\n    margin: 0 auto;\n}\n.p-datepicker-prev,\n.p-datepicker-next {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Multiple Month DatePicker */\n.p-datepicker-multiple-month .p-datepicker-group-container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-datepicker-multiple-month .p-datepicker-group-container .p-datepicker-group {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n\n/* DatePicker Table */\n.p-datepicker table {\n    width: 100%;\n    border-collapse: collapse;\n}\n.p-datepicker td > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    margin: 0 auto;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Month Picker */\n.p-monthpicker-month {\n    width: 33.3%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Year Picker */\n.p-yearpicker-year {\n    width: 50%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/*  Button Bar */\n.p-datepicker-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n\n/* Time Picker */\n.p-timepicker {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-timepicker button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n.p-timepicker > div {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n\n/* Touch UI */\n.p-datepicker-touch-ui,\n.p-calendar .p-datepicker-touch-ui {\n    position: fixed;\n    top: 50%;\n    left: 50%;\n    min-width: 80vw;\n    -webkit-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%);\n}\n";
-styleInject$o(css_248z$w);
-script$1u.render = render$t;
+var css_248z$s = "\n.p-calendar {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    max-width: 100%;\n}\n.p-calendar .p-inputtext {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-calendar-w-btn .p-inputtext {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-calendar-w-btn .p-datepicker-trigger {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n\n/* Fluid */\n.p-fluid .p-calendar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-calendar .p-inputtext {\n    width: 1%;\n}\n\n/* Datepicker */\n.p-calendar .p-datepicker {\n    min-width: 100%;\n}\n.p-datepicker {\n    width: auto;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-datepicker-inline {\n    display: inline-block;\n    position: static;\n    overflow-x: auto;\n}\n\n/* Header */\n.p-datepicker-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-datepicker-header .p-datepicker-title {\n    margin: 0 auto;\n}\n.p-datepicker-prev,\n.p-datepicker-next {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Multiple Month DatePicker */\n.p-datepicker-multiple-month .p-datepicker-group-container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-datepicker-multiple-month .p-datepicker-group-container .p-datepicker-group {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n\n/* DatePicker Table */\n.p-datepicker table {\n    width: 100%;\n    border-collapse: collapse;\n}\n.p-datepicker td > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    margin: 0 auto;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Month Picker */\n.p-monthpicker-month {\n    width: 33.3%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Year Picker */\n.p-yearpicker-year {\n    width: 50%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/*  Button Bar */\n.p-datepicker-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n\n/* Time Picker */\n.p-timepicker {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-timepicker button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n.p-timepicker > div {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n\n/* Touch UI */\n.p-datepicker-touch-ui,\n.p-calendar .p-datepicker-touch-ui {\n    position: fixed;\n    top: 50%;\n    left: 50%;\n    min-width: 80vw;\n    -webkit-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%);\n}\n";
+styleInject$l(css_248z$s);
+script$1o.render = render$r;
 
-const _hoisted_1$M = { key: 1 };
+const _hoisted_1$F = { key: 1 };
 
 
-var script$1t = {
+var script$1n = {
   props: {
     bind : {
         type : Object,
@@ -23039,45 +24254,43 @@ const props = __props;
 
 
 
-
+let cvalue = ref(props.bind.value);
 
 const value = computed({
     get() {
-        return props.bind.value.value;
+        return cvalue.value;
     },
     set(val) {
         props.bind.setValue(val);
+        cvalue.value = props.bind.value;
     }
 });
 
 const disabled = (props.bind.cell.system) ? true : false;
 
-const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
-});
-
 
 return (_ctx, _cache) => {
   return (unref(disabled)==false)
-    ? (openBlock(), createBlock(unref(script$1u), {
+    ? (openBlock(), createBlock(unref(script$1o), {
         key: 0,
         id: "range",
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
         disabledDates: __props.bind.cell.invalid_dates,
         manualInput: false,
-        class: normalizeClass([unref(errClass), "focus:border-primary"]),
-        dateFormat: "dd/mm/yy"
+        class: normalizeClass([__props.bind.classes, "focus:border-primary"]),
+        dateFormat: "dd/mm/yy",
+        onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.setShowError(true)))
       }, null, 8 /* PROPS */, ["modelValue", "disabledDates", "class"]))
-    : (openBlock(), createElementBlock("span", _hoisted_1$M, toDisplayString$1(unref(value)), 1 /* TEXT */))
+    : (openBlock(), createElementBlock("span", _hoisted_1$F, toDisplayString$1(unref(value)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$1t.__file = "presstojam/src/components/form/time-edit.vue";
+script$1n.__file = "presstojam/src/components/form/time-edit.vue";
 
-var script$1s = {
+var script$1m = {
   name: 'Password',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'invalid'],
   props: {
@@ -23469,23 +24682,23 @@ var script$1s = {
 
   },
   components: {
-    PInputText: script$1I,
-    Portal: script$1C
+    PInputText: script$1B,
+    Portal: script$1H
   }
 };
-const _hoisted_1$L = {
+const _hoisted_1$E = {
   class: "p-hidden-accessible",
   "aria-live": "polite"
 };
-const _hoisted_2$D = ["id"];
-const _hoisted_3$v = {
+const _hoisted_2$y = ["id"];
+const _hoisted_3$q = {
   class: "p-password-meter"
 };
-const _hoisted_4$r = {
+const _hoisted_4$n = {
   class: "p-password-info"
 };
 
-function render$s(_ctx, _cache, $props, $setup, $data, $options) {
+function render$q(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_PInputText = resolveComponent("PInputText");
 
   const _component_Portal = resolveComponent("Portal");
@@ -23515,7 +24728,7 @@ function render$s(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     class: normalizeClass($options.toggleIconClass),
     onClick: _cache[0] || (_cache[0] = (...args) => $options.onMaskToggle && $options.onMaskToggle(...args))
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_1$L, toDisplayString$1($data.infoText), 1), createVNode(_component_Portal, {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_1$E, toDisplayString$1($data.infoText), 1), createVNode(_component_Portal, {
     appendTo: $props.appendTo
   }, {
     default: withCtx(() => [createVNode(Transition, {
@@ -23531,19 +24744,19 @@ function render$s(_ctx, _cache, $props, $setup, $data, $options) {
         class: $options.panelStyleClass,
         style: $props.panelStyle,
         onClick: _cache[1] || (_cache[1] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args))
-      }, $props.panelProps), [renderSlot(_ctx.$slots, "header"), renderSlot(_ctx.$slots, "content", {}, () => [createElementVNode("div", _hoisted_3$v, [createElementVNode("div", {
+      }, $props.panelProps), [renderSlot(_ctx.$slots, "header"), renderSlot(_ctx.$slots, "content", {}, () => [createElementVNode("div", _hoisted_3$q, [createElementVNode("div", {
         class: normalizeClass($options.strengthClass),
         style: normalizeStyle({
           width: $data.meter ? $data.meter.width : ''
         })
-      }, null, 6)]), createElementVNode("div", _hoisted_4$r, toDisplayString$1($data.infoText), 1)]), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_2$D)) : createCommentVNode("", true)]),
+      }, null, 6)]), createElementVNode("div", _hoisted_4$n, toDisplayString$1($data.infoText), 1)]), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_2$y)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$n(css, ref) {
+function styleInject$k(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -23572,11 +24785,11 @@ function styleInject$n(css, ref) {
   }
 }
 
-var css_248z$v = "\n.p-password {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-password-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-password .p-password-panel {\n    min-width: 100%;\n}\n.p-password-meter {\n    height: 10px;\n}\n.p-password-strength {\n    height: 100%;\n    width: 0;\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-fluid .p-password {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$n(css_248z$v);
-script$1s.render = render$s;
+var css_248z$r = "\n.p-password {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-password-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-password .p-password-panel {\n    min-width: 100%;\n}\n.p-password-meter {\n    height: 10px;\n}\n.p-password-strength {\n    height: 100%;\n    width: 0;\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-fluid .p-password {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$k(css_248z$r);
+script$1m.render = render$q;
 
-var script$1r = {
+var script$1l = {
   name: 'Textarea',
   emits: ['update:modelValue'],
   props: {
@@ -23626,9 +24839,9 @@ var script$1r = {
 
   }
 };
-const _hoisted_1$K = ["value"];
+const _hoisted_1$D = ["value"];
 
-function render$r(_ctx, _cache, $props, $setup, $data, $options) {
+function render$p(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("textarea", {
     class: normalizeClass(['p-inputtextarea p-inputtext p-component', {
       'p-filled': $options.filled,
@@ -23636,10 +24849,10 @@ function render$r(_ctx, _cache, $props, $setup, $data, $options) {
     }]),
     value: $props.modelValue,
     onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
-  }, null, 42, _hoisted_1$K);
+  }, null, 42, _hoisted_1$D);
 }
 
-function styleInject$m(css, ref) {
+function styleInject$j(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -23668,11 +24881,11 @@ function styleInject$m(css, ref) {
   }
 }
 
-var css_248z$u = "\n.p-inputtextarea-resizable {\n    overflow: hidden;\n    resize: none;\n}\n.p-fluid .p-inputtextarea {\n    width: 100%;\n}\n";
-styleInject$m(css_248z$u);
-script$1r.render = render$r;
+var css_248z$q = "\n.p-inputtextarea-resizable {\n    overflow: hidden;\n    resize: none;\n}\n.p-fluid .p-inputtextarea {\n    width: 100%;\n}\n";
+styleInject$j(css_248z$q);
+script$1l.render = render$p;
 
-var script$1q = {
+var script$1k = {
   props: {
     bind : {
         type : Object,
@@ -23687,7 +24900,7 @@ const props = __props;
 
 const value = computed({
     get() {
-        return props.bind.value.value;
+        return props.bind.value;
     },
     set(val) {
         props.bind.setValue(val);
@@ -23696,7 +24909,7 @@ const value = computed({
 
 
 const cell = props.bind.cell;
-const { te, t } = useI18n();
+const { te, t } = useI18n$1();
 let options = [];
 
 
@@ -23735,48 +24948,47 @@ if (cell.contains.includes("html")) {
 
 
 
-const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
-});
-
 return (_ctx, _cache) => {
   return (__props.bind.cell.encrypted)
-    ? (openBlock(), createBlock(unref(script$1s), {
+    ? (openBlock(), createBlock(unref(script$1m), {
         key: 0,
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-        class: normalizeClass(["focus:border-primary", unref(errClass)])
+        class: normalizeClass(["focus:border-primary", __props.bind.classes]),
+        onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.setShowError(true)))
       }, null, 8 /* PROPS */, ["modelValue", "class"]))
     : (unref(tag)=='textarea')
-      ? (openBlock(), createBlock(unref(script$1r), {
+      ? (openBlock(), createBlock(unref(script$1l), {
           key: 1,
           modelValue: unref(value),
-          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null)),
+          "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
           rows: "5",
-          class: normalizeClass(unref(errClass))
+          class: normalizeClass(__props.bind.classes),
+          onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.setShowError(true)))
         }, null, 8 /* PROPS */, ["modelValue", "class"]))
       : (unref(tag)=='select')
-        ? (openBlock(), createBlock(script$1w, {
+        ? (openBlock(), createBlock(script$1q, {
             key: 2,
             bind: __props.bind,
             options: unref(options),
-            class: normalizeClass(unref(errClass))
+            class: normalizeClass(__props.bind.classes),
+            onBlur: _cache[4] || (_cache[4] = $event => (__props.bind.setShowError(true)))
           }, null, 8 /* PROPS */, ["bind", "options", "class"]))
-        : (openBlock(), createBlock(unref(script$1I), mergeProps({ key: 3 }, atts, {
+        : (openBlock(), createBlock(unref(script$1B), mergeProps({ key: 3 }, atts, {
             name: __props.bind.cell.name,
-            class: ["focus:border-primary form-control", unref(errClass)],
+            class: ["focus:border-primary form-control", __props.bind.classes],
             modelValue: unref(value),
-            "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
-            onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.active_validation.value = true))
+            "onUpdate:modelValue": _cache[5] || (_cache[5] = $event => (isRef(value) ? (value).value = $event : null)),
+            onBlur: _cache[6] || (_cache[6] = $event => (__props.bind.setShowError(true)))
           }), null, 16 /* FULL_PROPS */, ["name", "modelValue", "class"]))
 }
 }
 
 };
 
-script$1q.__file = "presstojam/src/components/form/string-edit.vue";
+script$1k.__file = "presstojam/src/components/form/string-edit.vue";
 
-var script$1p = {
+var script$1j = {
   name: 'Message',
   emits: ['close'],
   props: {
@@ -23847,14 +25059,14 @@ var script$1p = {
     ripple: Ripple
   }
 };
-const _hoisted_1$J = {
+const _hoisted_1$C = {
   class: "p-message-wrapper"
 };
-const _hoisted_2$C = {
+const _hoisted_2$x = {
   class: "p-message-text"
 };
 
-function render$q(_ctx, _cache, $props, $setup, $data, $options) {
+function render$o(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createBlock(Transition, {
@@ -23864,9 +25076,9 @@ function render$q(_ctx, _cache, $props, $setup, $data, $options) {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
       class: normalizeClass($options.containerClass),
       role: "alert"
-    }, [createElementVNode("div", _hoisted_1$J, [createElementVNode("span", {
+    }, [createElementVNode("div", _hoisted_1$C, [createElementVNode("span", {
       class: normalizeClass($options.iconClass)
-    }, null, 2), createElementVNode("div", _hoisted_2$C, [renderSlot(_ctx.$slots, "default")]), $props.closable ? withDirectives((openBlock(), createElementBlock("button", {
+    }, null, 2), createElementVNode("div", _hoisted_2$x, [renderSlot(_ctx.$slots, "default")]), $props.closable ? withDirectives((openBlock(), createElementBlock("button", {
       key: 0,
       class: "p-message-close p-link",
       onClick: _cache[0] || (_cache[0] = $event => $options.close($event)),
@@ -23878,7 +25090,7 @@ function render$q(_ctx, _cache, $props, $setup, $data, $options) {
   });
 }
 
-function styleInject$l(css, ref) {
+function styleInject$i(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -23907,11 +25119,11 @@ function styleInject$l(css, ref) {
   }
 }
 
-var css_248z$t = "\n.p-message-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-message-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-message-close.p-link {\n    margin-left: auto;\n    overflow: hidden;\n    position: relative;\n}\n.p-message-enter-from {\n    opacity: 0;\n}\n.p-message-enter-active {\n    -webkit-transition: opacity 0.3s;\n    transition: opacity 0.3s;\n}\n.p-message.p-message-leave-from {\n    max-height: 1000px;\n}\n.p-message.p-message-leave-to {\n    max-height: 0;\n    opacity: 0;\n    margin: 0 !important;\n}\n.p-message-leave-active {\n    overflow: hidden;\n    -webkit-transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n    transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n}\n.p-message-leave-active .p-message-close {\n    display: none;\n}\n";
-styleInject$l(css_248z$t);
-script$1p.render = render$q;
+var css_248z$p = "\n.p-message-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-message-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-message-close.p-link {\n    margin-left: auto;\n    overflow: hidden;\n    position: relative;\n}\n.p-message-enter-from {\n    opacity: 0;\n}\n.p-message-enter-active {\n    -webkit-transition: opacity 0.3s;\n    transition: opacity 0.3s;\n}\n.p-message.p-message-leave-from {\n    max-height: 1000px;\n}\n.p-message.p-message-leave-to {\n    max-height: 0;\n    opacity: 0;\n    margin: 0 !important;\n}\n.p-message-leave-active {\n    overflow: hidden;\n    -webkit-transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n    transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n}\n.p-message-leave-active .p-message-close {\n    display: none;\n}\n";
+styleInject$i(css_248z$p);
+script$1j.render = render$o;
 
-var script$1o = {
+var script$1i = {
   name: 'ProgressBar',
   props: {
     value: {
@@ -23952,23 +25164,23 @@ var script$1o = {
 
   }
 };
-const _hoisted_1$I = ["aria-valuenow"];
-const _hoisted_2$B = {
+const _hoisted_1$B = ["aria-valuenow"];
+const _hoisted_2$w = {
   key: 0,
   class: "p-progressbar-label"
 };
-const _hoisted_3$u = {
+const _hoisted_3$p = {
   key: 1,
   class: "p-progressbar-indeterminate-container"
 };
 
-const _hoisted_4$q = /*#__PURE__*/createElementVNode("div", {
+const _hoisted_4$m = /*#__PURE__*/createElementVNode("div", {
   class: "p-progressbar-value p-progressbar-value-animate"
 }, null, -1);
 
-const _hoisted_5$k = [_hoisted_4$q];
+const _hoisted_5$j = [_hoisted_4$m];
 
-function render$p(_ctx, _cache, $props, $setup, $data, $options) {
+function render$n(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     role: "progressbar",
     class: normalizeClass($options.containerClass),
@@ -23979,10 +25191,10 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     class: "p-progressbar-value p-progressbar-value-animate",
     style: normalizeStyle($options.progressStyle)
-  }, [$props.value != null && $props.value !== 0 && $props.showValue ? (openBlock(), createElementBlock("div", _hoisted_2$B, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value + '%'), 1)])])) : createCommentVNode("", true)], 4)) : createCommentVNode("", true), $options.indeterminate ? (openBlock(), createElementBlock("div", _hoisted_3$u, _hoisted_5$k)) : createCommentVNode("", true)], 10, _hoisted_1$I);
+  }, [$props.value != null && $props.value !== 0 && $props.showValue ? (openBlock(), createElementBlock("div", _hoisted_2$w, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value + '%'), 1)])])) : createCommentVNode("", true)], 4)) : createCommentVNode("", true), $options.indeterminate ? (openBlock(), createElementBlock("div", _hoisted_3$p, _hoisted_5$j)) : createCommentVNode("", true)], 10, _hoisted_1$B);
 }
 
-function styleInject$k(css, ref) {
+function styleInject$h(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24011,11 +25223,11 @@ function styleInject$k(css, ref) {
   }
 }
 
-var css_248z$s = "\n.p-progressbar {\n    position: relative;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-value {\n    height: 100%;\n    width: 0%;\n    position: absolute;\n    display: none;\n    border: 0 none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-label {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-progressbar-determinate .p-progressbar-value-animate {\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-progressbar-indeterminate .p-progressbar-value::before {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n    animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n}\n.p-progressbar-indeterminate .p-progressbar-value::after {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    -webkit-animation-delay: 1.15s;\n    animation-delay: 1.15s;\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n";
-styleInject$k(css_248z$s);
-script$1o.render = render$p;
+var css_248z$o = "\n.p-progressbar {\n    position: relative;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-value {\n    height: 100%;\n    width: 0%;\n    position: absolute;\n    display: none;\n    border: 0 none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-label {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-progressbar-determinate .p-progressbar-value-animate {\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-progressbar-indeterminate .p-progressbar-value::before {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n    animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n}\n.p-progressbar-indeterminate .p-progressbar-value::after {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    -webkit-animation-delay: 1.15s;\n    animation-delay: 1.15s;\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n";
+styleInject$h(css_248z$o);
+script$1i.render = render$n;
 
-var script$1n = {
+var script$1h = {
   name: 'Badge',
   props: {
     value: null,
@@ -24043,15 +25255,15 @@ var script$1n = {
   }
 };
 
-function render$o(_ctx, _cache, $props, $setup, $data, $options) {
+function render$m(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("span", {
     class: normalizeClass($options.badgeClass)
   }, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value), 1)])], 2);
 }
 
-script$1n.render = render$o;
+script$1h.render = render$m;
 
-var script$1$6 = {
+var script$1$5 = {
   emits: ['remove'],
   props: {
     files: {
@@ -24086,15 +25298,15 @@ var script$1$6 = {
 
   },
   components: {
-    FileUploadButton: script$1J,
-    FileUploadBadge: script$1n
+    FileUploadButton: script$1C,
+    FileUploadBadge: script$1h
   }
 };
-const _hoisted_1$1$6 = ["alt", "src", "width"];
-const _hoisted_2$1$6 = {
+const _hoisted_1$1$5 = ["alt", "src", "width"];
+const _hoisted_2$1$5 = {
   class: "p-fileupload-file-details"
 };
-const _hoisted_3$1$5 = {
+const _hoisted_3$1$4 = {
   class: "p-fileupload-file-name"
 };
 const _hoisted_4$1$3 = {
@@ -24104,7 +25316,7 @@ const _hoisted_5$1$3 = {
   class: "p-fileupload-file-actions"
 };
 
-function render$1$6(_ctx, _cache, $props, $setup, $data, $options) {
+function render$1$5(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FileUploadBadge = resolveComponent("FileUploadBadge");
 
   const _component_FileUploadButton = resolveComponent("FileUploadButton");
@@ -24119,7 +25331,7 @@ function render$1$6(_ctx, _cache, $props, $setup, $data, $options) {
       alt: file.name,
       src: file.objectURL,
       width: $props.previewWidth
-    }, null, 8, _hoisted_1$1$6), createElementVNode("div", _hoisted_2$1$6, [createElementVNode("div", _hoisted_3$1$5, toDisplayString$1(file.name), 1), createElementVNode("span", _hoisted_4$1$3, toDisplayString$1($options.formatSize(file.size)), 1), createVNode(_component_FileUploadBadge, {
+    }, null, 8, _hoisted_1$1$5), createElementVNode("div", _hoisted_2$1$5, [createElementVNode("div", _hoisted_3$1$4, toDisplayString$1(file.name), 1), createElementVNode("span", _hoisted_4$1$3, toDisplayString$1($options.formatSize(file.size)), 1), createVNode(_component_FileUploadBadge, {
       value: $props.badgeValue,
       class: "p-fileupload-file-badge",
       severity: $props.badgeSeverity
@@ -24131,8 +25343,8 @@ function render$1$6(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128);
 }
 
-script$1$6.render = render$1$6;
-var script$1m = {
+script$1$5.render = render$1$5;
+var script$1g = {
   name: 'FileUpload',
   emits: ['select', 'uploader', 'before-upload', 'progress', 'upload', 'error', 'before-send', 'clear', 'remove', 'removeUploadedFile'],
   props: {
@@ -24614,27 +25826,27 @@ var script$1m = {
 
   },
   components: {
-    FileUploadButton: script$1J,
-    FileUploadProgressBar: script$1o,
-    FileUploadMessage: script$1p,
-    FileContent: script$1$6
+    FileUploadButton: script$1C,
+    FileUploadProgressBar: script$1i,
+    FileUploadMessage: script$1j,
+    FileContent: script$1$5
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$H = {
+const _hoisted_1$A = {
   key: 0,
   class: "p-fileupload p-fileupload-advanced p-component"
 };
-const _hoisted_2$A = ["multiple", "accept", "disabled"];
-const _hoisted_3$t = {
+const _hoisted_2$v = ["multiple", "accept", "disabled"];
+const _hoisted_3$o = {
   class: "p-fileupload-buttonbar"
 };
-const _hoisted_4$p = {
+const _hoisted_4$l = {
   class: "p-button-label"
 };
-const _hoisted_5$j = {
+const _hoisted_5$i = {
   key: 0,
   class: "p-fileupload-empty"
 };
@@ -24647,7 +25859,7 @@ const _hoisted_7$9 = {
 };
 const _hoisted_8$7 = ["accept", "disabled", "multiple"];
 
-function render$n(_ctx, _cache, $props, $setup, $data, $options) {
+function render$l(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FileUploadButton = resolveComponent("FileUploadButton");
 
   const _component_FileUploadProgressBar = resolveComponent("FileUploadProgressBar");
@@ -24658,14 +25870,14 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
 
   const _directive_ripple = resolveDirective("ripple");
 
-  return $options.isAdvanced ? (openBlock(), createElementBlock("div", _hoisted_1$H, [createElementVNode("input", {
+  return $options.isAdvanced ? (openBlock(), createElementBlock("div", _hoisted_1$A, [createElementVNode("input", {
     ref: "fileInput",
     type: "file",
     onChange: _cache[0] || (_cache[0] = (...args) => $options.onFileSelect && $options.onFileSelect(...args)),
     multiple: $props.multiple,
     accept: $props.accept,
     disabled: $options.chooseDisabled
-  }, null, 40, _hoisted_2$A), createElementVNode("div", _hoisted_3$t, [renderSlot(_ctx.$slots, "header", {
+  }, null, 40, _hoisted_2$v), createElementVNode("div", _hoisted_3$o, [renderSlot(_ctx.$slots, "header", {
     files: $data.files,
     uploadedFiles: $data.uploadedFiles,
     chooseCallback: $options.choose,
@@ -24681,7 +25893,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
     tabindex: "0"
   }, [createElementVNode("span", {
     class: normalizeClass($options.advancedChooseIconClass)
-  }, null, 2), createElementVNode("span", _hoisted_4$p, toDisplayString$1($options.chooseButtonLabel), 1)], 38)), [[_directive_ripple]]), $props.showUploadButton ? (openBlock(), createBlock(_component_FileUploadButton, {
+  }, null, 2), createElementVNode("span", _hoisted_4$l, toDisplayString$1($options.chooseButtonLabel), 1)], 38)), [[_directive_ripple]]), $props.showUploadButton ? (openBlock(), createBlock(_component_FileUploadButton, {
     key: 0,
     label: $options.uploadButtonLabel,
     icon: $props.uploadIcon,
@@ -24732,7 +25944,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
     badgeValue: $options.completedLabel,
     badgeSeverity: "success",
     previewWidth: $props.previewWidth
-  }, null, 8, ["files", "onRemove", "badgeValue", "previewWidth"])]), _ctx.$slots.empty && !$options.hasFiles && !$options.hasUploadedFiles ? (openBlock(), createElementBlock("div", _hoisted_5$j, [renderSlot(_ctx.$slots, "empty")])) : createCommentVNode("", true)], 544)])) : $options.isBasic ? (openBlock(), createElementBlock("div", _hoisted_6$f, [(openBlock(true), createElementBlock(Fragment, null, renderList($data.messages, msg => {
+  }, null, 8, ["files", "onRemove", "badgeValue", "previewWidth"])]), _ctx.$slots.empty && !$options.hasFiles && !$options.hasUploadedFiles ? (openBlock(), createElementBlock("div", _hoisted_5$i, [renderSlot(_ctx.$slots, "empty")])) : createCommentVNode("", true)], 544)])) : $options.isBasic ? (openBlock(), createElementBlock("div", _hoisted_6$f, [(openBlock(true), createElementBlock(Fragment, null, renderList($data.messages, msg => {
     return openBlock(), createBlock(_component_FileUploadMessage, {
       key: msg,
       severity: "error",
@@ -24764,7 +25976,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 40, _hoisted_8$7)) : createCommentVNode("", true)], 38)), [[_directive_ripple]])])) : createCommentVNode("", true);
 }
 
-function styleInject$j(css, ref) {
+function styleInject$g(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24793,15 +26005,15 @@ function styleInject$j(css, ref) {
   }
 }
 
-var css_248z$r = "\n.p-fileupload-content {\n    position: relative;\n}\n.p-fileupload-content .p-progressbar {\n    width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-button.p-fileupload-choose {\n    position: relative;\n    overflow: hidden;\n}\n.p-fileupload-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-fileupload > input[type='file'],\n.p-fileupload-basic input[type='file'] {\n    display: none;\n}\n.p-fluid .p-fileupload .p-button {\n    width: auto;\n}\n.p-fileupload-file {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-fileupload-file-thumbnail {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-fileupload-file-actions {\n    margin-left: auto;\n}\n";
-styleInject$j(css_248z$r);
-script$1m.render = render$n;
+var css_248z$n = "\n.p-fileupload-content {\n    position: relative;\n}\n.p-fileupload-content .p-progressbar {\n    width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-button.p-fileupload-choose {\n    position: relative;\n    overflow: hidden;\n}\n.p-fileupload-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-fileupload > input[type='file'],\n.p-fileupload-basic input[type='file'] {\n    display: none;\n}\n.p-fluid .p-fileupload .p-button {\n    width: auto;\n}\n.p-fileupload-file {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-fileupload-file-thumbnail {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-fileupload-file-actions {\n    margin-left: auto;\n}\n";
+styleInject$g(css_248z$n);
+script$1g.render = render$l;
 
 // accept="image/*" 
 
 
 
-var script$1l = {
+var script$1f = {
   props: {
     bind : {
         type : Object,
@@ -24811,30 +26023,23 @@ var script$1l = {
 },
   setup(__props) {
 
+const props = __props;
 
 
 
-const value = computed({
-    get() {
-        return bind.value.value;
-    },
-    set(val) {
-        bind.setValue(val);
-    }
-});
 
 
 function onUpload(e) {
     if (e.files.length == 0) {
-        value.value = null;
+        props.bind.value = null;
     } else {
-        value.value = e.files[0];
+        props.bind.setValue(e.files[0]);
     }
 }
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1m), {
+  return (openBlock(), createBlock(unref(script$1g), {
     mode: "basic",
     name: __props.bind.cell.name,
     customUpload: true,
@@ -24846,9 +26051,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1l.__file = "presstojam/src/components/form/asset-edit.vue";
+script$1f.__file = "presstojam/src/components/form/asset-edit.vue";
 
-var script$1k = {
+var script$1e = {
   name: 'Fieldset',
   emits: ['update:collapsed', 'toggle'],
   props: {
@@ -24905,32 +26110,32 @@ var script$1k = {
     ripple: Ripple
   }
 };
-const _hoisted_1$G = {
+const _hoisted_1$z = {
   class: "p-fieldset-legend"
 };
-const _hoisted_2$z = ["id"];
-const _hoisted_3$s = ["id", "aria-controls", "aria-expanded", "aria-label"];
-const _hoisted_4$o = {
+const _hoisted_2$u = ["id"];
+const _hoisted_3$n = ["id", "aria-controls", "aria-expanded", "aria-label"];
+const _hoisted_4$k = {
   class: "p-fieldset-legend-text"
 };
-const _hoisted_5$i = ["id", "aria-labelledby"];
+const _hoisted_5$h = ["id", "aria-labelledby"];
 const _hoisted_6$e = {
   class: "p-fieldset-content"
 };
 
-function render$m(_ctx, _cache, $props, $setup, $data, $options) {
+function render$k(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("fieldset", {
     class: normalizeClass(['p-fieldset p-component', {
       'p-fieldset-toggleable': $props.toggleable
     }])
-  }, [createElementVNode("legend", _hoisted_1$G, [!$props.toggleable ? renderSlot(_ctx.$slots, "legend", {
+  }, [createElementVNode("legend", _hoisted_1$z, [!$props.toggleable ? renderSlot(_ctx.$slots, "legend", {
     key: 0
   }, () => [createElementVNode("span", {
     id: $options.ariaId + '_header',
     class: "p-fieldset-legend-text"
-  }, toDisplayString$1($props.legend), 9, _hoisted_2$z)]) : createCommentVNode("", true), $props.toggleable ? withDirectives((openBlock(), createElementBlock("a", {
+  }, toDisplayString$1($props.legend), 9, _hoisted_2$u)]) : createCommentVNode("", true), $props.toggleable ? withDirectives((openBlock(), createElementBlock("a", {
     key: 1,
     id: $options.ariaId + '_header',
     tabindex: "0",
@@ -24942,7 +26147,7 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
   }, [createElementVNode("span", {
     class: normalizeClass($options.iconClass)
-  }, null, 2), renderSlot(_ctx.$slots, "legend", {}, () => [createElementVNode("span", _hoisted_4$o, toDisplayString$1($props.legend), 1)])], 40, _hoisted_3$s)), [[_directive_ripple]]) : createCommentVNode("", true)]), createVNode(Transition, {
+  }, null, 2), renderSlot(_ctx.$slots, "legend", {}, () => [createElementVNode("span", _hoisted_4$k, toDisplayString$1($props.legend), 1)])], 40, _hoisted_3$n)), [[_directive_ripple]]) : createCommentVNode("", true)]), createVNode(Transition, {
     name: "p-toggleable-content"
   }, {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
@@ -24950,12 +26155,12 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
       class: "p-toggleable-content",
       role: "region",
       "aria-labelledby": $options.ariaId + '_header'
-    }, [createElementVNode("div", _hoisted_6$e, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$i), [[vShow, !$data.d_collapsed]])]),
+    }, [createElementVNode("div", _hoisted_6$e, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$h), [[vShow, !$data.d_collapsed]])]),
     _: 3
   })], 2);
 }
 
-function styleInject$i(css, ref) {
+function styleInject$f(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24984,43 +26189,75 @@ function styleInject$i(css, ref) {
   }
 }
 
-var css_248z$q = "\n.p-fieldset-legend > a,\n.p-fieldset-legend > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-fieldset-toggleable .p-fieldset-legend a {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n    text-decoration: none;\n}\n.p-fieldset-legend-text {\n    line-height: 1;\n}\n";
-styleInject$i(css_248z$q);
-script$1k.render = render$m;
+var css_248z$m = "\n.p-fieldset-legend > a,\n.p-fieldset-legend > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-fieldset-toggleable .p-fieldset-legend a {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n    text-decoration: none;\n}\n.p-fieldset-legend-text {\n    line-height: 1;\n}\n";
+styleInject$f(css_248z$m);
+script$1e.render = render$k;
 
-const _hoisted_1$F = {
-  key: 0,
-  class: "form-text text-muted p-invalid"
-};
-const _hoisted_2$y = {
-  key: 1,
-  class: "form-text text-muted p-invalid"
-};
-const _hoisted_3$r = {
-  key: 2,
-  class: "form-text text-muted p-invalid"
-};
-const _hoisted_4$n = {
-  key: 3,
-  class: "form-text text-muted p-invalid"
-};
-const _hoisted_5$h = {
-  key: 4,
-  class: "form-text text-muted p-invalid"
-};
-const _hoisted_6$d = {
-  key: 5,
-  class: "form-text text-muted p-invalid"
-};
-
-
-var script$1j = {
+var script$1d = {
   props: {
-  error : Number,
-  field : Object
+    bind : {
+        type : Object,
+        required : true
+    }
 },
   setup(__props) {
 
+const props = __props;
+
+
+
+let group = props.bind.getGroup();
+
+
+
+const binds = computed(() => {
+    const arr = [];
+    for(let i in props.bind.cell.fields) {
+        const gbind = group.getBind(props.bind.cell.name + "-" + i);
+        if (gbind.active.value) {
+            arr.push(gbind);
+        } 
+    }
+    return arr;
+});
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1e), {
+    legend: _ctx.$t('models.' + __props.bind.cell.model + '.fields.' + __props.bind.cell.name + '.label')
+  }, {
+    default: withCtx(() => [
+      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(binds), (jbind) => {
+        return (openBlock(), createElementBlock("div", {
+          class: "field form-group",
+          key: jbind.cell.name
+        }, [
+          createVNode(script$1b, { bind: jbind }, null, 8 /* PROPS */, ["bind"])
+        ]))
+      }), 128 /* KEYED_FRAGMENT */))
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["legend"]))
+}
+}
+
+};
+
+script$1d.__file = "presstojam/src/components/form/json-edit.vue";
+
+const _hoisted_1$y = { class: "form-text text-muted p-invalid alert-danger" };
+
+
+var script$1c = {
+  props: {
+  bind :Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+const { t } = useI18n$1();
 
 
 
@@ -25034,86 +26271,35 @@ var script$1j = {
     const NullViolation = 6;
 */
 
-
-return (_ctx, _cache) => {
-  return (__props.error == 1)
-    ? (openBlock(), createElementBlock("small", _hoisted_1$F, toDisplayString$1(_ctx.$t("errors.min",  { min : __props.field.min })), 1 /* TEXT */))
-    : (__props.error == 2)
-      ? (openBlock(), createElementBlock("small", _hoisted_2$y, toDisplayString$1(_ctx.$t("errors.max", { max : __props.field.max })), 1 /* TEXT */))
-      : (__props.error == 3)
-        ? (openBlock(), createElementBlock("small", _hoisted_3$r, toDisplayString$1(_ctx.$t("errors.contains", { char : __props.field.contains })), 1 /* TEXT */))
-        : (__props.error == 4)
-          ? (openBlock(), createElementBlock("small", _hoisted_4$n, toDisplayString$1(_ctx.$t("errors.notcontains",  { char : __props.field.notcontains })), 1 /* TEXT */))
-          : (__props.error == 5)
-            ? (openBlock(), createElementBlock("small", _hoisted_5$h, toDisplayString$1(_ctx.$t("errors.unique")), 1 /* TEXT */))
-            : (__props.error == 6)
-              ? (openBlock(), createElementBlock("small", _hoisted_6$d, toDisplayString$1(_ctx.$t("errors.null")), 1 /* TEXT */))
-              : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$1j.__file = "presstojam/src/components/form/error.vue";
-
-var script$1i = {
-  props: {
-    bind : {
-        type : Object,
-        required : true
-    }
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const binds = computed(() => {
-    const arr = [];
-    for(let i in props.bind.children.binds) {
-        if (props.bind.children.binds[i].active.value) {
-            arr.push(props.bind.children.binds[i]);
-        } 
-    }
-    return arr;
+const err_message = computed(() => {
+  if (props.bind.error.value == 1) return t("errors.min",  { min : props.bind.cell.min });
+  else if (props.bind.error.value == 2) return t("errors.max", { max : props.bind.cell.max });
+  else if (props.bind.error.value == 3) return t("errors.contains", { char : props.bind.cell.contains });
+  else if (props.bind.error.value == 4) return t("errors.notcontains",  { char : props.bind.cell.notcontains });
+  else if (props.bind.error.value == 5) return t("errors.unique");
+  else return "";
 });
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1k), {
-    legend: _ctx.$t('models.' + __props.bind.cell.model + '.fields.' + __props.bind.cell.name + '.label')
-  }, {
-    default: withCtx(() => [
-      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(binds), (jbind) => {
-        return (openBlock(), createElementBlock("div", {
-          class: "field form-group",
-          key: jbind.cell.name
-        }, [
-          createVNode(script$1h, { bind: jbind }, null, 8 /* PROPS */, ["bind"])
-        ]))
-      }), 128 /* KEYED_FRAGMENT */))
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["legend"]))
+  return (openBlock(), createElementBlock("small", _hoisted_1$y, toDisplayString$1(unref(err_message)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$1i.__file = "presstojam/src/components/form/json-edit.vue";
+script$1c.__file = "presstojam/src/components/form/error.vue";
 
-const _hoisted_1$E = {
+const _hoisted_1$x = {
   key: 0,
   class: "form-check field-checkbox"
 };
-const _hoisted_2$x = ["for"];
-const _hoisted_3$q = {
+const _hoisted_2$t = ["for"];
+const _hoisted_3$m = {
   key: 1,
   class: "json-group"
 };
-const _hoisted_4$m = {
+const _hoisted_4$j = {
   key: 2,
   class: "form-group field row"
 };
@@ -25121,7 +26307,7 @@ const _hoisted_5$g = ["for"];
 
 
 
-var script$1h = {
+var script$1b = {
   props: {
     bind : Object,
     active_validation : Boolean
@@ -25131,82 +26317,88 @@ var script$1h = {
 ],
   setup(__props, { emit: emits }) {
 
+const props = __props;
+
  
 
+
+
+computed(() => {
+    if (props.bind.show_error) return props.error;
+    else return 0;
+});
 
 
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.type=='flag')
-    ? (openBlock(), createElementBlock("div", _hoisted_1$E, [
-        createVNode(script$1E, { bind: __props.bind }, null, 8 /* PROPS */, ["bind"]),
+    ? (openBlock(), createElementBlock("div", _hoisted_1$x, [
+        createVNode(script$1x, { bind: __props.bind }, null, 8 /* PROPS */, ["bind"]),
         createElementVNode("label", {
           for: __props.bind.cell.name,
           class: "form-check-label"
-        }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_2$x),
-        (__props.bind.active_validation.value && __props.bind.error.value && __props.bind.cell.type!='json')
-          ? (openBlock(), createBlock(script$1j, {
+        }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_2$t),
+        (__props.bind.show_error)
+          ? (openBlock(), createBlock(script$1c, {
               key: 0,
-              field: __props.bind.cell,
-              error: __props.bind.error.value
-            }, null, 8 /* PROPS */, ["field", "error"]))
+              bind: __props.bind
+            }, null, 8 /* PROPS */, ["bind"]))
           : createCommentVNode("v-if", true)
       ]))
     : (__props.bind.cell.type=='json')
-      ? (openBlock(), createElementBlock("div", _hoisted_3$q, [
-          createVNode(script$1i, {
+      ? (openBlock(), createElementBlock("div", _hoisted_3$m, [
+          createVNode(script$1d, {
             bind: __props.bind,
             active_validation: __props.active_validation
           }, null, 8 /* PROPS */, ["bind", "active_validation"])
         ]))
-      : (openBlock(), createElementBlock("div", _hoisted_4$m, [
+      : (openBlock(), createElementBlock("div", _hoisted_4$j, [
           createElementVNode("label", {
             for: __props.bind.cell.name,
             class: "form-label"
           }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_5$g),
           (__props.bind.cell.type=='number')
-            ? (openBlock(), createBlock(script$1G, {
+            ? (openBlock(), createBlock(script$1z, {
                 key: 0,
                 bind: __props.bind,
                 class: "col"
               }, null, 8 /* PROPS */, ["bind"]))
             : (__props.bind.cell.type=='id')
-              ? (openBlock(), createBlock(script$1v, {
+              ? (openBlock(), createBlock(script$1p, {
                   key: 1,
                   bind: __props.bind,
                   class: "col"
                 }, null, 8 /* PROPS */, ["bind"]))
               : (__props.bind.cell.type=='asset')
-                ? (openBlock(), createBlock(script$1l, {
+                ? (openBlock(), createBlock(script$1f, {
                     key: 2,
                     bind: __props.bind,
                     class: "col"
                   }, null, 8 /* PROPS */, ["bind"]))
                 : (__props.bind.cell.type=='time')
-                  ? (openBlock(), createBlock(script$1t, {
+                  ? (openBlock(), createBlock(script$1n, {
                       key: 3,
                       bind: __props.bind,
                       class: "col"
                     }, null, 8 /* PROPS */, ["bind"]))
                   : (__props.bind.cell.type=='json')
-                    ? (openBlock(), createBlock(script$1i, {
+                    ? (openBlock(), createBlock(script$1d, {
                         key: 4,
                         bind: __props.bind,
                         active_validation: __props.active_validation,
                         class: "col"
                       }, null, 8 /* PROPS */, ["bind", "active_validation"]))
-                    : (openBlock(), createBlock(script$1q, {
+                    : (openBlock(), createBlock(script$1k, {
                         key: 5,
                         bind: __props.bind,
                         class: "col"
                       }, null, 8 /* PROPS */, ["bind"])),
-          (__props.bind.active_validation.value && __props.bind.error.value && __props.bind.cell.type!='json')
-            ? (openBlock(), createBlock(script$1j, {
+          (__props.bind.show_error)
+            ? (openBlock(), createBlock(script$1c, {
                 key: 6,
-                field: __props.bind.cell,
-                error: __props.bind.error.value,
+                bind: __props.bind,
                 class: "col"
-              }, null, 8 /* PROPS */, ["field", "error"]))
+              }, null, 8 /* PROPS */, ["bind"]))
             : createCommentVNode("v-if", true)
         ]))
 }
@@ -25214,9 +26406,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1h.__file = "presstojam/src/components/form/edit-field.vue";
+script$1b.__file = "presstojam/src/components/form/edit-field.vue";
 
-var script$1g = {
+var script$1a = {
   props: {
     modelValue : [Number, String, Boolean],
     model : String,
@@ -25232,13 +26424,9 @@ const props = __props;
 
 
 
-const client = inject("client");
+inject("client");
 
-
-
-getRouteStructure(props.model);
-
-const store = createTemporaryStore(client, props.model);
+const store = getModel(props.model);
 const params = { to : props.common_parent };
 params[props.common_parent + "/--id"] = props.common_id; 
 store.setParams({ to : props.common_parent });
@@ -25254,7 +26442,7 @@ let value;
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1B), {
+  return (openBlock(), createBlock(unref(script$1v), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : value = $event)),
     options: options.value,
@@ -25265,119 +26453,155 @@ return (_ctx, _cache) => {
 
 };
 
-script$1g.__file = "presstojam/src/components/form/parent-select.vue";
+script$1a.__file = "presstojam/src/components/form/parent-select.vue";
 
-function createBind(cell, value) {
-  value = cell.clean(value);
-  const obj = {
-    cell: cell,
-    children: null,
-    error: ref(cell.validate(value)),
-    value: ref(value),
-    is_dirty: false,
-    active: ref(true),
-    active_validation: ref(false),
-    group: null,
+class BindGroup {
+  constructor() {
+    this._binds = {};
+  }
 
-    setError(error) {
-      this.error.value = error;
-    },
-
-    setValue(val) {
-      val = this.cell.clean(val);
-      this.error.value = this.cell.validate(val);
-      this.value.value = val;
-      this.setDirty(true);
-      if (this.group) this.group.setActiveBinds(this.cell.name, this.value.value);
-    },
-
-    setDirty(dirty) {
-      if (dirty) {
-        this.is_dirty = dirty;
-        if (this.group) this.group.setDirty(dirty);
-      }
-    },
-
-    activateValidation() {
-      this.active_validation.value = true;
-    }
-
-  };
-
-  if (cell.type == "json") {
-    obj.children = createBindGroup(obj);
-
-    for (let field in cell.fields) {
-      let cvalue = value ? value[field] : null;
-      obj.children.addBind(field, createBind(cell.fields[field], cvalue));
+  showValidation(val) {
+    for (const i in this._binds) {
+      this._binds[i].setShowError(val);
     }
   }
 
-  return obj;
-}
-function createBindGroup(parent = null) {
-  return {
-    binds: {},
-    parent_bind: parent,
-    is_dirty: false,
+  regBind(i, bind) {
+    this._binds[i] = bind;
+    bind.setGroup(this);
+  }
 
-    setActiveBinds(field, value) {
-      for (let i in this.binds) {
-        const cell = this.binds[i].cell; //only need to change active value if there is a where clause
+  getBind(i) {
+    return this._binds[i];
+  }
 
-        if (cell.where && cell.where.on == field) {
-          this.binds[i].active.value = cell.where.is == value;
-        }
+  trigger(field, value) {
+    for (let i in this._binds) {
+      const cell = this._binds[i].cell; //only need to change active value if there is a where clause
 
-        if (this.binds[i].children) {
-          this.binds[i].children.setActiveBinds(field, value);
-        }
-      }
-    },
-
-    setInitActive() {
-      for (let i in this.binds) {
-        this.setActiveBinds(i, this.binds[i].value.value);
-
-        if (this.binds[i].children) {
-          this.binds[i].children.setInitActive();
-        }
-      }
-    },
-
-    addBind(field, bind) {
-      this.binds[field] = bind;
-      bind.group = this;
-    },
-
-    setDirty(dirty) {
-      this.is_dirty = dirty;
-      if (this.parent_bind) this.parent_bind.setDirty(dirty);
-    },
-
-    hasErrors() {
-      for (let i in this.binds) {
-        if (this.binds[i].error.value) {
-          console.log("Error for ", i, this.binds[i].error.value);
-          return true;
-        }
-
-        if (this.binds[i].children) {
-          if (this.binds[i].children.hasErrors()) return true;
-        }
-      }
-    },
-
-    activateValidation() {
-      for (let i in this.binds) {
-        this.binds[i].activateValidation();
+      if (cell.where && cell.where.on == field) {
+        this._binds[i].active = cell.where.is == value;
       }
     }
+  }
 
-  };
+  setInitActive() {
+    for (let i in this._binds) {
+      this.trigger(this._binds[i].cell.name, this._binds[i].value);
+    }
+  }
+
+  hasErrors() {
+    for (let i in this._binds) {
+      if (this._binds[i].error.value) return true;
+    }
+  }
+
 }
 
-var script$1f = {
+class Bind {
+  constructor(cell, value) {
+    this._cell = cell;
+    this._value = value;
+    this._error = ref(0);
+    this._is_dirty = false;
+    this._bind_group;
+    this._active = ref(true);
+    this._show_error = ref(false);
+  }
+
+  get cell() {
+    return this._cell;
+  }
+
+  get value() {
+    return this._value;
+  }
+
+  get is_dirty() {
+    return this._is_dirty;
+  }
+
+  get error() {
+    return this._error;
+  }
+
+  set error(err) {
+    this._error.value = err;
+  }
+
+  set active(active) {
+    this._active.value = active;
+  }
+
+  get active() {
+    return this._active;
+  }
+
+  get show_error() {
+    return this._show_error;
+  }
+
+  get classes() {
+    if (this._error.value) {
+      return "p-invalid";
+    } else {
+      return "";
+    }
+  }
+
+  setShowError(val) {
+    if (this._cell.type == "json") return;
+    this._show_error.value = val;
+  }
+
+  setValue(val) {
+    val = this._cell.clean(val);
+    this._error.value = this._cell.validate(val);
+    this._value = val;
+    this.setDirty(true);
+
+    this._bind_group.trigger(this._cell.name, this._value);
+  }
+
+  setDirty(dirty) {
+    if (dirty) {
+      this._is_dirty = dirty;
+    }
+  }
+
+  setGroup(group) {
+    this._bind_group = group;
+  }
+
+  getGroup() {
+    return this._bind_group;
+  }
+
+}
+
+const _subscriptions = {};
+function subscribe(type, id, callback) {
+  if (!_subscriptions[type]) {
+    _subscriptions[type] = {};
+  }
+
+  _subscriptions[type][id] = callback;
+}
+function unsubscribe(type, id) {
+  if (_subscriptions[type] && _subscriptions[type][id]) {
+    delete _subscriptions[type][id];
+  }
+}
+function trigger(type, ...args) {
+  if (_subscriptions[type]) {
+    for (const id in _subscriptions[type]) {
+      _subscriptions[type][id](...args);
+    }
+  }
+}
+
+var script$19 = {
   name: 'ProgressSpinner',
   props: {
     strokeWidth: {
@@ -25402,15 +26626,15 @@ var script$1f = {
 
   }
 };
-const _hoisted_1$D = {
+const _hoisted_1$w = {
   class: "p-progress-spinner",
   role: "alert",
   "aria-busy": "true"
 };
-const _hoisted_2$w = ["fill", "stroke-width"];
+const _hoisted_2$s = ["fill", "stroke-width"];
 
-function render$l(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$D, [(openBlock(), createElementBlock("svg", {
+function render$j(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$w, [(openBlock(), createElementBlock("svg", {
     class: "p-progress-spinner-svg",
     viewBox: "25 25 50 50",
     style: normalizeStyle($options.svgStyle)
@@ -25422,10 +26646,10 @@ function render$l(_ctx, _cache, $props, $setup, $data, $options) {
     fill: $props.fill,
     "stroke-width": $props.strokeWidth,
     strokeMiterlimit: "10"
-  }, null, 8, _hoisted_2$w)], 4))]);
+  }, null, 8, _hoisted_2$s)], 4))]);
 }
 
-function styleInject$h(css, ref) {
+function styleInject$e(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25454,99 +26678,30 @@ function styleInject$h(css, ref) {
   }
 }
 
-var css_248z$p = "\n.p-progress-spinner {\n    position: relative;\n    margin: 0 auto;\n    width: 100px;\n    height: 100px;\n    display: inline-block;\n}\n.p-progress-spinner::before {\n    content: '';\n    display: block;\n    padding-top: 100%;\n}\n.p-progress-spinner-svg {\n    -webkit-animation: p-progress-spinner-rotate 2s linear infinite;\n            animation: p-progress-spinner-rotate 2s linear infinite;\n    height: 100%;\n    -webkit-transform-origin: center center;\n            transform-origin: center center;\n    width: 100%;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    margin: auto;\n}\n.p-progress-spinner-circle {\n    stroke-dasharray: 89, 200;\n    stroke-dashoffset: 0;\n    stroke: #d62d20;\n    -webkit-animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n            animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n    stroke-linecap: round;\n}\n@-webkit-keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@-webkit-keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@-webkit-keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n@keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n";
-styleInject$h(css_248z$p);
-script$1f.render = render$l;
+var css_248z$l = "\n.p-progress-spinner {\n    position: relative;\n    margin: 0 auto;\n    width: 100px;\n    height: 100px;\n    display: inline-block;\n}\n.p-progress-spinner::before {\n    content: '';\n    display: block;\n    padding-top: 100%;\n}\n.p-progress-spinner-svg {\n    -webkit-animation: p-progress-spinner-rotate 2s linear infinite;\n            animation: p-progress-spinner-rotate 2s linear infinite;\n    height: 100%;\n    -webkit-transform-origin: center center;\n            transform-origin: center center;\n    width: 100%;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    margin: auto;\n}\n.p-progress-spinner-circle {\n    stroke-dasharray: 89, 200;\n    stroke-dashoffset: 0;\n    stroke: #d62d20;\n    -webkit-animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n            animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n    stroke-linecap: round;\n}\n@-webkit-keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@-webkit-keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@-webkit-keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n@keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n";
+styleInject$e(css_248z$l);
+script$19.render = render$j;
 
-const _hoisted_1$C = /*#__PURE__*/createElementVNode("p", null, "Operation in action, please do not refresh or close the browser until complete", -1 /* HOISTED */);
-const _hoisted_2$v = { style: {"text-align":"center"} };
-const _hoisted_3$p = /*#__PURE__*/createElementVNode("p", null, " ", -1 /* HOISTED */);
-
-
-var script$1e = {
-  props: {
-    id : Number,
-    dialog : Object
-},
-  emits: ['complete','failed'],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-const client = inject("client");
-
-
-
-
-
-
-const delay = 1000;
-const status = ref('');
-
-
-function chkProgress() {
-    client.get("/dispatch/status/" + props.id)
-    .then(response => {
-        if (response.progress == "FAILED") {
-            emits('failed', response);
-        } else if (response.progress == "PROCESSED" || !response.progress) {
-            emits('complete');
-        } else {
-            status.value = response.progress;
-            setTimeout(chkProgress, delay, );
-        }
-    });
-}
-
-chkProgress();
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    _hoisted_1$C,
-    createElementVNode("p", null, "Status: " + toDisplayString$1(status.value), 1 /* TEXT */),
-    createElementVNode("p", _hoisted_2$v, [
-      createVNode(unref(script$1f))
-    ]),
-    _hoisted_3$p
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$1e.__file = "presstojam/src/components/dispatch/dispatch-response.vue";
-
-var dispatchResponse = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': script$1e
-});
-
-const _hoisted_1$B = ["onSubmit"];
-const _hoisted_2$u = /*#__PURE__*/createTextVNode("Saved");
-const _hoisted_3$o = {
-  key: 1,
+const _hoisted_1$v = ["onSubmit"];
+const _hoisted_2$r = {
+  key: 0,
   class: "form-group"
 };
+const _hoisted_3$l = /*#__PURE__*/createElementVNode("p", null, "Please do not refresh or close the browser until complete", -1 /* HOISTED */);
+const _hoisted_4$i = { style: {"text-align":"center"} };
 
 
-
-
-var script$1d = {
+var script$18 = {
   props: {
-    schema : Object,
     data : Object,
-    model : String,
-    parent : Boolean,
+    model : Object,
     method : {
         type : String,
         default : 'post'
-    }
+    },
+    parent : Boolean
 },
-  emits: [
-    "saved", "dataChanged"
-],
-  setup(__props, { emit: emits }) {
+  setup(__props) {
 
 const props = __props;
 
@@ -25557,63 +26712,62 @@ const Client = inject("client");
 
 
 
-const saved = ref(false);
+
 const global_error = ref("");
-const dispatch = ref(false);
-const dispatchid=ref(0);
+const processing = ref(false);
+const status = ref(0);
 
-provide("model", props.model);
-
-
-let cells;
-if (props.stype == 'put') cells = getMutableCells(props.schema);
-else cells = getImmutableCells(props.schema);
+provide("model", props.model.name);
 
 
-const bindGroup = createBindGroup();
+if (props.method == 'put') props.model.setEditableCells();
+else props.model.setCreateCells();
+
+const cells = props.model.getEnabledCells();
+
+
+const bindGroup = new BindGroup();
 
 
 if (props.parent) {
-    bindGroup.addBind("--parent", createBind(props.schema["--parent"], props.data["--parent"]));
+    bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.data["--parent"]));
 }
 
 
 for(const field in cells) {
-    bindGroup.addBind(field, createBind(props.schema[field], props.data[field]));
+    bindGroup.regBind(field, new Bind(cells[field], props.data[field]));
+    if (cells[field].type == "json") {
+        for(let ocell in cells[field].fields) {
+            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (props.data[field]) ? props.data[field][ocell] : null));
+        }
+    } 
 }
 
 
 bindGroup.setInitActive();
 
-const binds = computed(() => {
-    const arr = [];
-    for(let i in bindGroup.binds) {
-        if (bindGroup.binds[i].active.value) {
-            arr.push(bindGroup.binds[i]);
-        } 
-    }
-    return arr;
-});
+
 
 function setErrors(err) {
-    if (typeof err.error == "string") {
-        global_error.value = err.error;
-    } else {
-        for(let i in err.response) {
-            if (bindGroup.binds[i]) bindGroup.binds[i].setError(err[i]);
-        }
+    if (typeof err === 'string' || err instanceof String) {
+        err = JSON.parse(err);
+    }
+    for(let i in err) {
+        const bind = bindGroup.getBind(i);
+        console.log("Setting err for ", i, err[i][0]);
+        bind.error = err[i][0];
     }
 }
 
 function serializeData() {
     const formData = new FormData();
-    for(const i in bindGroup.binds) {
-        const bind = bindGroup.binds[i];
+    for(const i in cells) {
+        const bind = bindGroup.getBind(i);
         if (bind.is_dirty ) {
             const field = bind.cell;
-            if (field.type == "time") formData.append(i, bind.cell.buildString(bind.value.value));
+            if (field.type == "time") formData.append(i, bind.cell.buildString(bind.value));
             else if (field.type == "json") formData.append(i, JSON.stringify(bind.cell.buildJSON(bind)));
-            else formData.append(i, bind.value.value);
+            else formData.append(i, bind.value);
         }
     } 
     return formData;
@@ -25621,78 +26775,76 @@ function serializeData() {
 
 
 function submit() {
-    saved.value = false;
-    bindGroup.activateValidation();
-    if (bindGroup.hasErrors()) return;
 
+    
+    bindGroup.showValidation(true);
+    if (bindGroup.hasErrors()) {
+        global_error.value = "Some fields have errors, please correct and resubmit";
+        return;
+    }
+    processing.value = true;
     const data = serializeData();
     if (props.method == "put") {
         data.append("--id", props.data['--id']);
     } else if (props.method == "post" && props.data['--parent']) {
         data.append("--parent", props.data['--parent']);
-    }
-         
+    }         
 
-    return Client[props.method]("/data/" + props.model, data)
+    return Client[props.method]("/data/" + props.model.name, data)
     .then(response => {
-        if (props.method == 'post') {
-            emits("dataChanged", response);
-        } else if (props.method == "put") {
+        if (props.method == "put") {
             response.data["--id"] = props.data["--id"];
-            emits("dataChanged", response.data);
         }
         return response;
     })
     .then(response => {
         if (response['--dispatchid']) {
-            dispatchid.value = response['--dispatchid'];
-            dispatch.value = true;
+            runDispatch(response['--dispatchid'], response);
         } else {
-            saved.value = true;
-            emits("saved");
+            trigger("form_saved", response, props.method, props.model);
         }
+        return response;
     })
     .catch(err => {
-        if (err.status == 402) setErrors(err.response);
-        else console.log(err);
+        console.log(err);
+        processing.value = false;
+        if (err.status == 422) {
+            global_error.value = "Some fields have errors, please correct and resubmit";
+            setErrors(err.response.error);
+        } else global_error.value = err.response.error;
     });
-    
-}
-
-function dispatchFailed(response) {
-    setErrors(err.response);
-    dispatch.value = false;
-}
-
-function dispatchComplete() {
-    dispatch.value = false;
-    saved.value = true;
-    emits("saved");
 }
 
 
+function runDispatch(id, oresponse) {
+    const delay = 1000;
+   
+    function chkProgress() {
+        Client.get("/dispatch/status/" + id)
+        .then(response => {
+            if (response.progress == "FAILED") {
+                trigger("dispatch_failed", oresponse, props.method, props.model, response);
+            } else if (response.progress == "PROCESSED" || !response.progress) {
+                trigger("form_saved", oresponse, props.method, props.model, response);
+            } else {
+                status.value = response.progress;
+                setTimeout(chkProgress, delay);
+            }
+        });
+    }
+    chkProgress();
+}
 
 
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createElementVNode("form", {
+    withDirectives(createElementVNode("form", {
       onSubmit: withModifiers(submit, ["prevent"]),
       class: "card needs-validation",
       novalidate: ""
     }, [
-      (saved.value)
-        ? (openBlock(), createBlock(unref(script$1p), {
-            key: 0,
-            severity: "success"
-          }, {
-            default: withCtx(() => [
-              _hoisted_2$u
-            ]),
-            _: 1 /* STABLE */
-          }))
-        : createCommentVNode("v-if", true),
-      withDirectives(createVNode(unref(script$1p), { severity: "error" }, {
+      withDirectives(createVNode(unref(script$1j), { severity: "error" }, {
         default: withCtx(() => [
           createTextVNode(toDisplayString$1(global_error.value), 1 /* TEXT */)
         ]),
@@ -25701,180 +26853,1600 @@ return (_ctx, _cache) => {
         [vShow, global_error.value]
       ]),
       (__props.parent)
-        ? (openBlock(), createElementBlock("div", _hoisted_3$o, [
-            createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + _ctx.store.route.parent + ".title")), 1 /* TEXT */),
-            createVNode(script$1g, {
+        ? (openBlock(), createElementBlock("div", _hoisted_2$r, [
+            createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + _ctx.store.parent + ".title")), 1 /* TEXT */),
+            createVNode(script$1a, {
               modelValue: _ctx.proxy_values['--parent'],
               "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((_ctx.proxy_values['--parent']) = $event)),
-              model: _ctx.store.route.parent,
+              model: _ctx.store.parent,
               common_parent: _ctx.common_parent,
               common_parent_id: _ctx.common_parent_id
             }, null, 8 /* PROPS */, ["modelValue", "model", "common_parent", "common_parent_id"])
           ]))
         : createCommentVNode("v-if", true),
-      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(binds), (bind) => {
-        return (openBlock(), createBlock(script$1h, {
-          bind: bind,
-          key: bind.cell.name
+      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
+        return (openBlock(), createBlock(script$1b, {
+          bind: unref(bindGroup).getBind(cell.name),
+          key: cell.name
         }, null, 8 /* PROPS */, ["bind"]))
       }), 128 /* KEYED_FRAGMENT */)),
-      createVNode(unref(script$1J), {
+      createVNode(unref(script$1C), {
         label: _ctx.$t('btns.save'),
         onClick: submit
       }, null, 8 /* PROPS */, ["label"])
-    ], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$B),
-    createVNode(unref(script$1z), {
-      visible: dispatch.value,
-      "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dispatch).value = $event)),
-      modal: true,
-      class: "p-fluid"
+    ], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$v), [
+      [vShow, processing.value == false]
+    ]),
+    withDirectives(createVNode(unref(script$1D), {
+      Panel: "",
+      header: "Processing"
     }, {
       default: withCtx(() => [
-        (dispatchid.value != 0)
-          ? (openBlock(), createBlock(script$1e, {
-              key: 0,
-              onComplete: dispatchComplete,
-              onFailed: dispatchFailed,
-              id: dispatchid.value
-            }, null, 8 /* PROPS */, ["id"]))
-          : createCommentVNode("v-if", true)
+        _hoisted_3$l,
+        createElementVNode("p", null, "Status: " + toDisplayString$1(status.value), 1 /* TEXT */),
+        createElementVNode("p", _hoisted_4$i, [
+          createVNode(unref(script$19))
+        ])
       ]),
       _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible"])
+    }, 512 /* NEED_PATCH */), [
+      [vShow, processing.value]
+    ])
   ], 64 /* STABLE_FRAGMENT */))
 }
 }
 
 };
 
-script$1d.__file = "presstojam/src/components/form/form.vue";
+script$18.__file = "presstojam/src/components/form/form.vue";
 
 var form = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$1d
+    'default': script$18
 });
 
-const _hoisted_1$A = /*#__PURE__*/createElementVNode("p", null, "Are you sure you want to delete:", -1 /* HOISTED */);
-const _hoisted_2$t = /*#__PURE__*/createTextVNode("Type ");
-const _hoisted_3$n = /*#__PURE__*/createTextVNode(" in the box below");
-const _hoisted_4$l = { class: "p-inputgroup" };
-const _hoisted_5$f = /*#__PURE__*/createTextVNode("Delete");
-
-    
-var script$1c = {
+var script$17 = {
   props: {
-        name : String,
-        single : false
+    model : String,
+    base : String
+},
+  setup(__props) {
+
+const props = __props;
+
+const i18n = inject("i18n");
+const t = i18n.t;
+
+
+
+
+
+const store = getModel(props.model);
+
+const repo = createFirstStore(store);
+const data = ref({});
+regStore(props.model, repo);
+repo.load()
+.then(response => {
+    data.value = response;
+})
+.catch(e => console.log(e));
+
+
+const label = computed(() => {
+    return t('models.' + props.model + '.title') + ': ' + repo.label.value;
+});
+
+store.trigger("mounted");
+
+
+
+return (_ctx, _cache) => {
+  const _component_audit_action = resolveComponent("audit-action");
+  const _component_ptj_delete_action = resolveComponent("ptj-delete-action");
+
+  return (openBlock(), createElementBlock(Fragment, null, [
+    createVNode(script$1E, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$1D), { header: unref(label) }, {
+      icons: withCtx(() => [
+        (unref(store).audit)
+          ? (openBlock(), createBlock(_component_audit_action, {
+              key: 0,
+              model: unref(store),
+              data: data.value,
+              long: true
+            }, null, 8 /* PROPS */, ["model", "data"]))
+          : createCommentVNode("v-if", true),
+        createVNode(_component_ptj_delete_action, {
+          name: unref(store).name,
+          data: data.value
+        }, null, 8 /* PROPS */, ["name", "data"]),
+        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
+          return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({ data: data.value }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
+        }), 256 /* UNKEYED_FRAGMENT */))
+      ]),
+      default: withCtx(() => [
+        (data.value['--id'])
+          ? (openBlock(), createBlock(script$18, {
+              key: 0,
+              model: unref(store),
+              data: data.value,
+              method: "put"
+            }, null, 8 /* PROPS */, ["model", "data"]))
+          : createCommentVNode("v-if", true)
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["header"])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$17.__file = "presstojam/src/components/active/single.vue";
+
+var script$16 = {
+  name: 'MultiSelect',
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter', 'selectall-change'],
+  props: {
+    modelValue: null,
+    options: Array,
+    optionLabel: null,
+    optionValue: null,
+    optionDisabled: null,
+    optionGroupLabel: null,
+    optionGroupChildren: null,
+    scrollHeight: {
+      type: String,
+      default: '200px'
     },
+    placeholder: String,
+    disabled: Boolean,
+    inputId: {
+      type: String,
+      default: null
+    },
+    inputProps: {
+      type: null,
+      default: null
+    },
+    panelClass: {
+      type: String,
+      default: null
+    },
+    panelStyle: {
+      type: null,
+      default: null
+    },
+    panelProps: {
+      type: null,
+      default: null
+    },
+    filterInputProps: {
+      type: null,
+      default: null
+    },
+    closeButtonProps: {
+      type: null,
+      default: null
+    },
+    dataKey: null,
+    filter: Boolean,
+    filterPlaceholder: String,
+    filterLocale: String,
+    filterMatchMode: {
+      type: String,
+      default: 'contains'
+    },
+    filterFields: {
+      type: Array,
+      default: null
+    },
+    appendTo: {
+      type: String,
+      default: 'body'
+    },
+    display: {
+      type: String,
+      default: 'comma'
+    },
+    selectedItemsLabel: {
+      type: String,
+      default: '{0} items selected'
+    },
+    maxSelectedLabels: {
+      type: Number,
+      default: null
+    },
+    selectionLimit: {
+      type: Number,
+      default: null
+    },
+    showToggleAll: {
+      type: Boolean,
+      default: true
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    },
+    checkboxIcon: {
+      type: String,
+      default: 'pi pi-check'
+    },
+    closeIcon: {
+      type: String,
+      default: 'pi pi-times'
+    },
+    dropdownIcon: {
+      type: String,
+      default: 'pi pi-chevron-down'
+    },
+    filterIcon: {
+      type: String,
+      default: 'pi pi-search'
+    },
+    loadingIcon: {
+      type: String,
+      default: 'pi pi-spinner pi-spin'
+    },
+    removeTokenIcon: {
+      type: String,
+      default: 'pi pi-times-circle'
+    },
+    selectAll: {
+      type: Boolean,
+      default: null
+    },
+    resetFilterOnHide: {
+      type: Boolean,
+      default: false
+    },
+    virtualScrollerOptions: {
+      type: Object,
+      default: null
+    },
+    autoOptionFocus: {
+      type: Boolean,
+      default: true
+    },
+    autoFilterFocus: {
+      type: Boolean,
+      default: false
+    },
+    filterMessage: {
+      type: String,
+      default: null
+    },
+    selectionMessage: {
+      type: String,
+      default: null
+    },
+    emptySelectionMessage: {
+      type: String,
+      default: null
+    },
+    emptyFilterMessage: {
+      type: String,
+      default: null
+    },
+    emptyMessage: {
+      type: String,
+      default: null
+    },
+    tabindex: {
+      type: Number,
+      default: 0
+    },
+    'aria-label': {
+      type: String,
+      default: null
+    },
+    'aria-labelledby': {
+      type: String,
+      default: null
+    }
+  },
+  outsideClickListener: null,
+  scrollHandler: null,
+  resizeListener: null,
+  overlay: null,
+  list: null,
+  virtualScroller: null,
+  startRangeIndex: -1,
+  searchTimeout: null,
+  searchValue: '',
+  selectOnFocus: false,
+  focusOnHover: false,
+
+  data() {
+    return {
+      focused: false,
+      focusedOptionIndex: -1,
+      headerCheckboxFocused: false,
+      filterValue: null,
+      overlayVisible: false
+    };
+  },
+
+  watch: {
+    options() {
+      this.autoUpdateModel();
+    }
+
+  },
+
+  mounted() {
+    this.autoUpdateModel();
+  },
+
+  beforeUnmount() {
+    this.unbindOutsideClickListener();
+    this.unbindResizeListener();
+
+    if (this.scrollHandler) {
+      this.scrollHandler.destroy();
+      this.scrollHandler = null;
+    }
+
+    if (this.overlay) {
+      ZIndexUtils.clear(this.overlay);
+      this.overlay = null;
+    }
+  },
+
+  methods: {
+    getOptionIndex(index, fn) {
+      return this.virtualScrollerDisabled ? index : fn && fn(index)['index'];
+    },
+
+    getOptionLabel(option) {
+      return this.optionLabel ? ObjectUtils.resolveFieldData(option, this.optionLabel) : option;
+    },
+
+    getOptionValue(option) {
+      return this.optionValue ? ObjectUtils.resolveFieldData(option, this.optionValue) : option;
+    },
+
+    getOptionRenderKey(option) {
+      return this.dataKey ? ObjectUtils.resolveFieldData(option, this.dataKey) : this.getOptionLabel(option);
+    },
+
+    isOptionDisabled(option) {
+      if (this.maxSelectionLimitReached && !this.isSelected(option)) {
+        return true;
+      }
+
+      return this.optionDisabled ? ObjectUtils.resolveFieldData(option, this.optionDisabled) : false;
+    },
+
+    isOptionGroup(option) {
+      return this.optionGroupLabel && option.optionGroup && option.group;
+    },
+
+    getOptionGroupLabel(optionGroup) {
+      return ObjectUtils.resolveFieldData(optionGroup, this.optionGroupLabel);
+    },
+
+    getOptionGroupChildren(optionGroup) {
+      return ObjectUtils.resolveFieldData(optionGroup, this.optionGroupChildren);
+    },
+
+    getAriaPosInset(index) {
+      return (this.optionGroupLabel ? index - this.visibleOptions.slice(0, index).filter(option => this.isOptionGroup(option)).length : index) + 1;
+    },
+
+    show(isFocus) {
+      this.$emit('before-show');
+      this.overlayVisible = true;
+      this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
+      isFocus && DomHandler.focus(this.$refs.focusInput);
+    },
+
+    hide(isFocus) {
+      this.$emit('before-hide');
+      this.overlayVisible = false;
+      this.focusedOptionIndex = -1;
+      this.searchValue = '';
+      this.resetFilterOnHide && (this.filterValue = null);
+      isFocus && DomHandler.focus(this.$refs.focusInput);
+    },
+
+    onFocus(event) {
+      this.focused = true;
+      this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.overlayVisible && this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
+      this.overlayVisible && this.scrollInView(this.focusedOptionIndex);
+      this.$emit('focus', event);
+    },
+
+    onBlur(event) {
+      this.focused = false;
+      this.focusedOptionIndex = -1;
+      this.searchValue = '';
+      this.$emit('blur', event);
+    },
+
+    onKeyDown(event) {
+      const metaKey = event.metaKey || event.ctrlKey;
+
+      switch (event.code) {
+        case 'ArrowDown':
+          this.onArrowDownKey(event);
+          break;
+
+        case 'ArrowUp':
+          this.onArrowUpKey(event);
+          break;
+
+        case 'Home':
+          this.onHomeKey(event);
+          break;
+
+        case 'End':
+          this.onEndKey(event);
+          break;
+
+        case 'PageDown':
+          this.onPageDownKey(event);
+          break;
+
+        case 'PageUp':
+          this.onPageUpKey(event);
+          break;
+
+        case 'Enter':
+        case 'Space':
+          this.onEnterKey(event);
+          break;
+
+        case 'Escape':
+          this.onEscapeKey(event);
+          break;
+
+        case 'Tab':
+          this.onTabKey(event);
+          break;
+
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          this.onShiftKey(event);
+          break;
+
+        default:
+          if (event.code === 'KeyA' && metaKey) {
+            const value = this.visibleOptions.filter(option => this.isValidOption(option)).map(option => this.getOptionValue(option));
+            this.updateModel(event, value);
+            event.preventDefault();
+            break;
+          }
+
+          if (!metaKey && ObjectUtils.isPrintableCharacter(event.key)) {
+            !this.overlayVisible && this.show();
+            this.searchOptions(event);
+            event.preventDefault();
+          }
+
+          break;
+      }
+    },
+
+    onContainerClick(event) {
+      if (this.disabled || this.loading) {
+        return;
+      }
+
+      if (!this.overlay || !this.overlay.contains(event.target)) {
+        this.overlayVisible ? this.hide(true) : this.show(true);
+      }
+    },
+
+    onFirstHiddenFocus(event) {
+      const relatedTarget = event.relatedTarget;
+
+      if (relatedTarget === this.$refs.focusInput) {
+        const firstFocusableEl = DomHandler.getFirstFocusableElement(this.overlay, ':not(.p-hidden-focusable)');
+        DomHandler.focus(firstFocusableEl);
+      } else {
+        DomHandler.focus(this.$refs.focusInput);
+      }
+    },
+
+    onLastHiddenFocus() {
+      DomHandler.focus(this.$refs.firstHiddenFocusableElementOnOverlay);
+    },
+
+    onCloseClick() {
+      this.hide(true);
+    },
+
+    onHeaderCheckboxFocus() {
+      this.headerCheckboxFocused = true;
+    },
+
+    onHeaderCheckboxBlur() {
+      this.headerCheckboxFocused = false;
+    },
+
+    onOptionSelect(event, option, index = -1, isFocus = false) {
+      if (this.disabled || this.isOptionDisabled(option)) {
+        return;
+      }
+
+      let selected = this.isSelected(option);
+      let value = null;
+      if (selected) value = this.modelValue.filter(val => !ObjectUtils.equals(val, this.getOptionValue(option), this.equalityKey));else value = [...(this.modelValue || []), this.getOptionValue(option)];
+      this.updateModel(event, value);
+      index !== -1 && (this.focusedOptionIndex = index);
+      isFocus && DomHandler.focus(this.$refs.focusInput);
+    },
+
+    onOptionMouseMove(event, index) {
+      if (this.focusOnHover) {
+        this.changeFocusedOptionIndex(event, index);
+      }
+    },
+
+    onOptionSelectRange(event, start = -1, end = -1) {
+      start === -1 && (start = this.findNearestSelectedOptionIndex(end, true));
+      end === -1 && (end = this.findNearestSelectedOptionIndex(start));
+
+      if (start !== -1 && end !== -1) {
+        const rangeStart = Math.min(start, end);
+        const rangeEnd = Math.max(start, end);
+        const value = this.visibleOptions.slice(rangeStart, rangeEnd + 1).filter(option => this.isValidOption(option)).map(option => this.getOptionValue(option));
+        this.updateModel(event, value);
+      }
+    },
+
+    onFilterChange(event) {
+      const value = event.target.value;
+      this.filterValue = value;
+      this.focusedOptionIndex = -1;
+      this.$emit('filter', {
+        originalEvent: event,
+        value
+      });
+      !this.virtualScrollerDisabled && this.virtualScroller.scrollToIndex(0);
+    },
+
+    onFilterKeyDown(event) {
+      switch (event.code) {
+        case 'ArrowDown':
+          this.onArrowDownKey(event);
+          break;
+
+        case 'ArrowUp':
+          this.onArrowUpKey(event, true);
+          break;
+
+        case 'ArrowLeft':
+        case 'ArrowRight':
+          this.onArrowLeftKey(event, true);
+          break;
+
+        case 'Home':
+          this.onHomeKey(event, true);
+          break;
+
+        case 'End':
+          this.onEndKey(event, true);
+          break;
+
+        case 'Enter':
+          this.onEnterKey(event);
+          break;
+
+        case 'Escape':
+          this.onEscapeKey(event);
+          break;
+
+        case 'Tab':
+          this.onTabKey(event, true);
+          break;
+      }
+    },
+
+    onFilterBlur() {
+      this.focusedOptionIndex = -1;
+    },
+
+    onFilterUpdated() {
+      if (this.overlayVisible) {
+        this.alignOverlay();
+      }
+    },
+
+    onOverlayClick(event) {
+      OverlayEventBus.emit('overlay-click', {
+        originalEvent: event,
+        target: this.$el
+      });
+    },
+
+    onOverlayKeyDown(event) {
+      switch (event.code) {
+        case 'Escape':
+          this.onEscapeKey(event);
+          break;
+      }
+    },
+
+    onArrowDownKey(event) {
+      const optionIndex = this.focusedOptionIndex !== -1 ? this.findNextOptionIndex(this.focusedOptionIndex) : this.findFirstFocusedOptionIndex();
+
+      if (event.shiftKey) {
+        this.onOptionSelectRange(event, this.startRangeIndex, optionIndex);
+      }
+
+      this.changeFocusedOptionIndex(event, optionIndex);
+      !this.overlayVisible && this.show();
+      event.preventDefault();
+    },
+
+    onArrowUpKey(event, pressedInInputText = false) {
+      if (event.altKey && !pressedInInputText) {
+        if (this.focusedOptionIndex !== -1) {
+          this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
+        }
+
+        this.overlayVisible && this.hide();
+        event.preventDefault();
+      } else {
+        const optionIndex = this.focusedOptionIndex !== -1 ? this.findPrevOptionIndex(this.focusedOptionIndex) : this.findLastFocusedOptionIndex();
+
+        if (event.shiftKey) {
+          this.onOptionSelectRange(event, optionIndex, this.startRangeIndex);
+        }
+
+        this.changeFocusedOptionIndex(event, optionIndex);
+        !this.overlayVisible && this.show();
+        event.preventDefault();
+      }
+    },
+
+    onArrowLeftKey(event, pressedInInputText = false) {
+      pressedInInputText && (this.focusedOptionIndex = -1);
+    },
+
+    onHomeKey(event, pressedInInputText = false) {
+      if (pressedInInputText) {
+        event.currentTarget.setSelectionRange(0, 0);
+        this.focusedOptionIndex = -1;
+      } else {
+        let metaKey = event.metaKey || event.ctrlKey;
+        let optionIndex = this.findFirstOptionIndex();
+
+        if (event.shiftKey && metaKey) {
+          this.onOptionSelectRange(event, optionIndex, this.startRangeIndex);
+        }
+
+        this.changeFocusedOptionIndex(event, optionIndex);
+        !this.overlayVisible && this.show();
+      }
+
+      event.preventDefault();
+    },
+
+    onEndKey(event, pressedInInputText = false) {
+      if (pressedInInputText) {
+        const target = event.currentTarget;
+        const len = target.value.length;
+        target.setSelectionRange(len, len);
+        this.focusedOptionIndex = -1;
+      } else {
+        let metaKey = event.metaKey || event.ctrlKey;
+        let optionIndex = this.findLastOptionIndex();
+
+        if (event.shiftKey && metaKey) {
+          this.onOptionSelectRange(event, this.startRangeIndex, optionIndex);
+        }
+
+        this.changeFocusedOptionIndex(event, optionIndex);
+        !this.overlayVisible && this.show();
+      }
+
+      event.preventDefault();
+    },
+
+    onPageUpKey(event) {
+      this.scrollInView(0);
+      event.preventDefault();
+    },
+
+    onPageDownKey(event) {
+      this.scrollInView(this.visibleOptions.length - 1);
+      event.preventDefault();
+    },
+
+    onEnterKey(event) {
+      if (!this.overlayVisible) {
+        this.onArrowDownKey(event);
+      } else {
+        if (this.focusedOptionIndex !== -1) {
+          if (event.shiftKey) this.onOptionSelectRange(event, this.focusedOptionIndex);else this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
+        }
+      }
+
+      event.preventDefault();
+    },
+
+    onEscapeKey(event) {
+      this.overlayVisible && this.hide(true);
+      event.preventDefault();
+    },
+
+    onTabKey(event, pressedInInputText = false) {
+      if (!pressedInInputText) {
+        if (this.overlayVisible && this.hasFocusableElements()) {
+          DomHandler.focus(this.$refs.firstHiddenFocusableElementOnOverlay);
+          event.preventDefault();
+        } else {
+          if (this.focusedOptionIndex !== -1) {
+            this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
+          }
+
+          this.overlayVisible && this.hide(this.filter);
+        }
+      }
+    },
+
+    onShiftKey() {
+      this.startRangeIndex = this.focusedOptionIndex;
+    },
+
+    onOverlayEnter(el) {
+      ZIndexUtils.set('overlay', el, this.$primevue.config.zIndex.overlay);
+      this.alignOverlay();
+      this.scrollInView();
+      this.autoFilterFocus && DomHandler.focus(this.$refs.filterInput);
+    },
+
+    onOverlayAfterEnter() {
+      this.bindOutsideClickListener();
+      this.bindScrollListener();
+      this.bindResizeListener();
+      this.$emit('show');
+    },
+
+    onOverlayLeave() {
+      this.unbindOutsideClickListener();
+      this.unbindScrollListener();
+      this.unbindResizeListener();
+      this.$emit('hide');
+      this.overlay = null;
+    },
+
+    onOverlayAfterLeave(el) {
+      ZIndexUtils.clear(el);
+    },
+
+    alignOverlay() {
+      if (this.appendTo === 'self') {
+        DomHandler.relativePosition(this.overlay, this.$el);
+      } else {
+        this.overlay.style.minWidth = DomHandler.getOuterWidth(this.$el) + 'px';
+        DomHandler.absolutePosition(this.overlay, this.$el);
+      }
+    },
+
+    bindOutsideClickListener() {
+      if (!this.outsideClickListener) {
+        this.outsideClickListener = event => {
+          if (this.overlayVisible && this.isOutsideClicked(event)) {
+            this.hide();
+          }
+        };
+
+        document.addEventListener('click', this.outsideClickListener);
+      }
+    },
+
+    unbindOutsideClickListener() {
+      if (this.outsideClickListener) {
+        document.removeEventListener('click', this.outsideClickListener);
+        this.outsideClickListener = null;
+      }
+    },
+
+    bindScrollListener() {
+      if (!this.scrollHandler) {
+        this.scrollHandler = new ConnectedOverlayScrollHandler(this.$refs.container, () => {
+          if (this.overlayVisible) {
+            this.hide();
+          }
+        });
+      }
+
+      this.scrollHandler.bindScrollListener();
+    },
+
+    unbindScrollListener() {
+      if (this.scrollHandler) {
+        this.scrollHandler.unbindScrollListener();
+      }
+    },
+
+    bindResizeListener() {
+      if (!this.resizeListener) {
+        this.resizeListener = () => {
+          if (this.overlayVisible && !DomHandler.isTouchDevice()) {
+            this.hide();
+          }
+        };
+
+        window.addEventListener('resize', this.resizeListener);
+      }
+    },
+
+    unbindResizeListener() {
+      if (this.resizeListener) {
+        window.removeEventListener('resize', this.resizeListener);
+        this.resizeListener = null;
+      }
+    },
+
+    isOutsideClicked(event) {
+      return !(this.$el.isSameNode(event.target) || this.$el.contains(event.target) || this.overlay && this.overlay.contains(event.target));
+    },
+
+    getLabelByValue(value) {
+      const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
+      const matchedOption = options.find(option => !this.isOptionGroup(option) && ObjectUtils.equals(this.getOptionValue(option), value, this.equalityKey));
+      return matchedOption ? this.getOptionLabel(matchedOption) : null;
+    },
+
+    getSelectedItemsLabel() {
+      let pattern = /{(.*?)}/;
+
+      if (pattern.test(this.selectedItemsLabel)) {
+        return this.selectedItemsLabel.replace(this.selectedItemsLabel.match(pattern)[0], this.modelValue.length + '');
+      }
+
+      return this.selectedItemsLabel;
+    },
+
+    onToggleAll(event) {
+      if (this.selectAll !== null) {
+        this.$emit('selectall-change', {
+          originalEvent: event,
+          checked: !this.allSelected
+        });
+      } else {
+        const value = this.allSelected ? [] : this.visibleOptions.filter(option => !this.isOptionDisabled(option) && !this.isOptionGroup(option)).map(option => this.getOptionValue(option));
+        this.updateModel(event, value);
+      }
+
+      this.headerCheckboxFocused = true;
+    },
+
+    removeOption(event, optionValue) {
+      let value = this.modelValue.filter(val => !ObjectUtils.equals(val, optionValue, this.equalityKey));
+      this.updateModel(event, value);
+    },
+
+    clearFilter() {
+      this.filterValue = null;
+    },
+
+    hasFocusableElements() {
+      return DomHandler.getFocusableElements(this.overlay, ':not(.p-hidden-focusable)').length > 0;
+    },
+
+    isOptionMatched(option) {
+      return this.isValidOption(option) && this.getOptionLabel(option).toLocaleLowerCase(this.filterLocale).startsWith(this.searchValue.toLocaleLowerCase(this.filterLocale));
+    },
+
+    isValidOption(option) {
+      return option && !(this.isOptionDisabled(option) || this.isOptionGroup(option));
+    },
+
+    isValidSelectedOption(option) {
+      return this.isValidOption(option) && this.isSelected(option);
+    },
+
+    isSelected(option) {
+      const optionValue = this.getOptionValue(option);
+      return (this.modelValue || []).some(value => ObjectUtils.equals(value, optionValue, this.equalityKey));
+    },
+
+    findFirstOptionIndex() {
+      return this.visibleOptions.findIndex(option => this.isValidOption(option));
+    },
+
+    findLastOptionIndex() {
+      return ObjectUtils.findLastIndex(this.visibleOptions, option => this.isValidOption(option));
+    },
+
+    findNextOptionIndex(index) {
+      const matchedOptionIndex = index < this.visibleOptions.length - 1 ? this.visibleOptions.slice(index + 1).findIndex(option => this.isValidOption(option)) : -1;
+      return matchedOptionIndex > -1 ? matchedOptionIndex + index + 1 : index;
+    },
+
+    findPrevOptionIndex(index) {
+      const matchedOptionIndex = index > 0 ? ObjectUtils.findLastIndex(this.visibleOptions.slice(0, index), option => this.isValidOption(option)) : -1;
+      return matchedOptionIndex > -1 ? matchedOptionIndex : index;
+    },
+
+    findFirstSelectedOptionIndex() {
+      return this.hasSelectedOption ? this.visibleOptions.findIndex(option => this.isValidSelectedOption(option)) : -1;
+    },
+
+    findLastSelectedOptionIndex() {
+      return this.hasSelectedOption ? ObjectUtils.findLastIndex(this.visibleOptions, option => this.isValidSelectedOption(option)) : -1;
+    },
+
+    findNextSelectedOptionIndex(index) {
+      const matchedOptionIndex = this.hasSelectedOption && index < this.visibleOptions.length - 1 ? this.visibleOptions.slice(index + 1).findIndex(option => this.isValidSelectedOption(option)) : -1;
+      return matchedOptionIndex > -1 ? matchedOptionIndex + index + 1 : -1;
+    },
+
+    findPrevSelectedOptionIndex(index) {
+      const matchedOptionIndex = this.hasSelectedOption && index > 0 ? ObjectUtils.findLastIndex(this.visibleOptions.slice(0, index), option => this.isValidSelectedOption(option)) : -1;
+      return matchedOptionIndex > -1 ? matchedOptionIndex : -1;
+    },
+
+    findNearestSelectedOptionIndex(index, firstCheckUp = false) {
+      let matchedOptionIndex = -1;
+
+      if (this.hasSelectedOption) {
+        if (firstCheckUp) {
+          matchedOptionIndex = this.findPrevSelectedOptionIndex(index);
+          matchedOptionIndex = matchedOptionIndex === -1 ? this.findNextSelectedOptionIndex(index) : matchedOptionIndex;
+        } else {
+          matchedOptionIndex = this.findNextSelectedOptionIndex(index);
+          matchedOptionIndex = matchedOptionIndex === -1 ? this.findPrevSelectedOptionIndex(index) : matchedOptionIndex;
+        }
+      }
+
+      return matchedOptionIndex > -1 ? matchedOptionIndex : index;
+    },
+
+    findFirstFocusedOptionIndex() {
+      const selectedIndex = this.findFirstSelectedOptionIndex();
+      return selectedIndex < 0 ? this.findFirstOptionIndex() : selectedIndex;
+    },
+
+    findLastFocusedOptionIndex() {
+      const selectedIndex = this.findLastSelectedOptionIndex();
+      return selectedIndex < 0 ? this.findLastOptionIndex() : selectedIndex;
+    },
+
+    searchOptions(event) {
+      this.searchValue = (this.searchValue || '') + event.key;
+      let optionIndex = -1;
+
+      if (this.focusedOptionIndex !== -1) {
+        optionIndex = this.visibleOptions.slice(this.focusedOptionIndex).findIndex(option => this.isOptionMatched(option));
+        optionIndex = optionIndex === -1 ? this.visibleOptions.slice(0, this.focusedOptionIndex).findIndex(option => this.isOptionMatched(option)) : optionIndex + this.focusedOptionIndex;
+      } else {
+        optionIndex = this.visibleOptions.findIndex(option => this.isOptionMatched(option));
+      }
+
+      if (optionIndex === -1 && this.focusedOptionIndex === -1) {
+        const selectedIndex = this.findSelectedOptionIndex();
+        optionIndex = selectedIndex < 0 ? this.findFirstOptionIndex() : selectedIndex;
+      }
+
+      if (optionIndex !== -1) {
+        this.changeFocusedOptionIndex(event, optionIndex);
+      }
+
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+
+      this.searchTimeout = setTimeout(() => {
+        this.searchValue = '';
+        this.searchTimeout = null;
+      }, 500);
+    },
+
+    changeFocusedOptionIndex(event, index) {
+      if (this.focusedOptionIndex !== index) {
+        this.focusedOptionIndex = index;
+        this.scrollInView();
+      }
+    },
+
+    scrollInView(index = -1) {
+      const id = index !== -1 ? `${this.id}_${index}` : this.focusedOptionId;
+      const element = DomHandler.findSingle(this.list, `li[id="${id}"]`);
+
+      if (element) {
+        element.scrollIntoView && element.scrollIntoView({
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      } else if (!this.virtualScrollerDisabled) {
+        this.virtualScroller && this.virtualScroller.scrollToIndex(index !== -1 ? index : this.focusedOptionIndex);
+      }
+    },
+
+    autoUpdateModel() {
+      if (this.selectOnFocus && this.autoOptionFocus && !this.hasSelectedOption) {
+        this.focusedOptionIndex = this.findFirstFocusedOptionIndex();
+        const value = this.getOptionValue(this.visibleOptions[this.focusedOptionIndex]);
+        this.updateModel(null, [value]);
+      }
+    },
+
+    updateModel(event, value) {
+      this.$emit('update:modelValue', value);
+      this.$emit('change', {
+        originalEvent: event,
+        value
+      });
+    },
+
+    flatOptions(options) {
+      return (options || []).reduce((result, option, index) => {
+        result.push({
+          optionGroup: option,
+          group: true,
+          index
+        });
+        const optionGroupChildren = this.getOptionGroupChildren(option);
+        optionGroupChildren && optionGroupChildren.forEach(o => result.push(o));
+        return result;
+      }, []);
+    },
+
+    overlayRef(el) {
+      this.overlay = el;
+    },
+
+    listRef(el, contentRef) {
+      this.list = el;
+      contentRef && contentRef(el); // For VirtualScroller
+    },
+
+    virtualScrollerRef(el) {
+      this.virtualScroller = el;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-multiselect p-component p-inputwrapper', {
+        'p-multiselect-chip': this.display === 'chip',
+        'p-disabled': this.disabled,
+        'p-focus': this.focused,
+        'p-inputwrapper-filled': this.modelValue && this.modelValue.length,
+        'p-inputwrapper-focus': this.focused || this.overlayVisible,
+        'p-overlay-open': this.overlayVisible
+      }];
+    },
+
+    labelClass() {
+      return ['p-multiselect-label', {
+        'p-placeholder': this.label === this.placeholder,
+        'p-multiselect-label-empty': !this.placeholder && (!this.modelValue || this.modelValue.length === 0)
+      }];
+    },
+
+    dropdownIconClass() {
+      return ['p-multiselect-trigger-icon', this.loading ? this.loadingIcon : this.dropdownIcon];
+    },
+
+    panelStyleClass() {
+      return ['p-multiselect-panel p-component', this.panelClass, {
+        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
+        'p-ripple-disabled': this.$primevue.config.ripple === false
+      }];
+    },
+
+    headerCheckboxClass() {
+      return ['p-checkbox p-component', {
+        'p-checkbox-checked': this.allSelected,
+        'p-checkbox-focused': this.headerCheckboxFocused
+      }];
+    },
+
+    visibleOptions() {
+      const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
+
+      if (this.filterValue) {
+        const filteredOptions = FilterService.filter(options, this.searchFields, this.filterValue, this.filterMatchMode, this.filterLocale);
+
+        if (this.optionGroupLabel) {
+          const optionGroups = this.options || [];
+          const filtered = [];
+          optionGroups.forEach(group => {
+            const filteredItems = group.items.filter(item => filteredOptions.includes(item));
+            if (filteredItems.length > 0) filtered.push({ ...group,
+              items: [...filteredItems]
+            });
+          });
+          return this.flatOptions(filtered);
+        }
+
+        return filteredOptions;
+      }
+
+      return options;
+    },
+
+    label() {
+      // TODO: Refactor
+      let label;
+
+      if (this.modelValue && this.modelValue.length) {
+        if (ObjectUtils.isNotEmpty(this.maxSelectedLabels) && this.modelValue.length > this.maxSelectedLabels) {
+          return this.getSelectedItemsLabel();
+        } else {
+          label = '';
+
+          for (let i = 0; i < this.modelValue.length; i++) {
+            if (i !== 0) {
+              label += ', ';
+            }
+
+            label += this.getLabelByValue(this.modelValue[i]);
+          }
+        }
+      } else {
+        label = this.placeholder;
+      }
+
+      return label;
+    },
+
+    allSelected() {
+      return this.selectAll !== null ? this.selectAll : ObjectUtils.isNotEmpty(this.visibleOptions) && this.visibleOptions.filter(option => !this.isOptionDisabled(option)).every(option => this.isOptionGroup(option) || this.isValidSelectedOption(option));
+    },
+
+    hasSelectedOption() {
+      return ObjectUtils.isNotEmpty(this.modelValue);
+    },
+
+    equalityKey() {
+      return this.optionValue ? null : this.dataKey;
+    },
+
+    searchFields() {
+      return this.filterFields || [this.optionLabel];
+    },
+
+    maxSelectionLimitReached() {
+      return this.selectionLimit && this.modelValue && this.modelValue.length === this.selectionLimit;
+    },
+
+    filterResultMessageText() {
+      return ObjectUtils.isNotEmpty(this.visibleOptions) ? this.filterMessageText.replaceAll('{0}', this.visibleOptions.length) : this.emptyFilterMessageText;
+    },
+
+    filterMessageText() {
+      return this.filterMessage || this.$primevue.config.locale.searchMessage || '';
+    },
+
+    emptyFilterMessageText() {
+      return this.emptyFilterMessage || this.$primevue.config.locale.emptySearchMessage || this.$primevue.config.locale.emptyFilterMessage || '';
+    },
+
+    emptyMessageText() {
+      return this.emptyMessage || this.$primevue.config.locale.emptyMessage || '';
+    },
+
+    selectionMessageText() {
+      return this.selectionMessage || this.$primevue.config.locale.selectionMessage || '';
+    },
+
+    emptySelectionMessageText() {
+      return this.emptySelectionMessage || this.$primevue.config.locale.emptySelectionMessage || '';
+    },
+
+    selectedMessageText() {
+      return this.hasSelectedOption ? this.selectionMessageText.replaceAll('{0}', this.modelValue.length) : this.emptySelectionMessageText;
+    },
+
+    id() {
+      return this.$attrs.id || UniqueComponentId();
+    },
+
+    focusedOptionId() {
+      return this.focusedOptionIndex !== -1 ? `${this.id}_${this.focusedOptionIndex}` : null;
+    },
+
+    ariaSetSize() {
+      return this.visibleOptions.filter(option => !this.isOptionGroup(option)).length;
+    },
+
+    toggleAllAriaLabel() {
+      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria[this.allSelected ? 'selectAll' : 'unselectAll'] : undefined;
+    },
+
+    closeAriaLabel() {
+      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria.close : undefined;
+    },
+
+    virtualScrollerDisabled() {
+      return !this.virtualScrollerOptions;
+    }
+
+  },
+  directives: {
+    ripple: Ripple
+  },
+  components: {
+    VirtualScroller: script$1s,
+    Portal: script$1H
+  }
+};
+const _hoisted_1$u = {
+  class: "p-hidden-accessible"
+};
+const _hoisted_2$q = ["id", "disabled", "placeholder", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_3$k = {
+  class: "p-multiselect-label-container"
+};
+const _hoisted_4$h = {
+  class: "p-multiselect-token-label"
+};
+const _hoisted_5$f = ["onClick"];
+const _hoisted_6$d = {
+  class: "p-multiselect-trigger"
+};
+const _hoisted_7$8 = {
+  key: 0,
+  class: "p-multiselect-header"
+};
+const _hoisted_8$6 = {
+  class: "p-hidden-accessible"
+};
+const _hoisted_9$4 = ["checked", "aria-label"];
+const _hoisted_10$4 = {
+  key: 1,
+  class: "p-multiselect-filter-container"
+};
+const _hoisted_11$4 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
+const _hoisted_12$4 = {
+  key: 2,
+  role: "status",
+  "aria-live": "polite",
+  class: "p-hidden-accessible"
+};
+const _hoisted_13$4 = ["aria-label"];
+const _hoisted_14$3 = ["id"];
+const _hoisted_15$2 = ["id"];
+const _hoisted_16$1 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
+const _hoisted_17$1 = {
+  class: "p-checkbox p-component"
+};
+const _hoisted_18$1 = {
+  key: 0,
+  class: "p-multiselect-empty-message",
+  role: "option"
+};
+const _hoisted_19$1 = {
+  key: 1,
+  class: "p-multiselect-empty-message",
+  role: "option"
+};
+const _hoisted_20$1 = {
+  key: 0,
+  role: "status",
+  "aria-live": "polite",
+  class: "p-hidden-accessible"
+};
+const _hoisted_21$1 = {
+  role: "status",
+  "aria-live": "polite",
+  class: "p-hidden-accessible"
+};
+
+function render$i(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_VirtualScroller = resolveComponent("VirtualScroller");
+
+  const _component_Portal = resolveComponent("Portal");
+
+  const _directive_ripple = resolveDirective("ripple");
+
+  return openBlock(), createElementBlock("div", {
+    ref: "container",
+    class: normalizeClass($options.containerClass),
+    onClick: _cache[15] || (_cache[15] = (...args) => $options.onContainerClick && $options.onContainerClick(...args))
+  }, [createElementVNode("div", _hoisted_1$u, [createElementVNode("input", mergeProps({
+    ref: "focusInput",
+    id: $props.inputId,
+    type: "text",
+    readonly: "",
+    disabled: $props.disabled,
+    placeholder: $props.placeholder,
+    tabindex: !$props.disabled ? $props.tabindex : -1,
+    role: "combobox",
+    "aria-label": _ctx.ariaLabel,
+    "aria-labelledby": _ctx.ariaLabelledby,
+    "aria-haspopup": "listbox",
+    "aria-expanded": $data.overlayVisible,
+    "aria-controls": $options.id + '_list',
+    "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
+    onFocus: _cache[0] || (_cache[0] = (...args) => $options.onFocus && $options.onFocus(...args)),
+    onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
+    onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
+  }, $props.inputProps), null, 16, _hoisted_2$q)]), createElementVNode("div", _hoisted_3$k, [createElementVNode("div", {
+    class: normalizeClass($options.labelClass)
+  }, [renderSlot(_ctx.$slots, "value", {
+    value: $props.modelValue,
+    placeholder: $props.placeholder
+  }, () => [$props.display === 'comma' ? (openBlock(), createElementBlock(Fragment, {
+    key: 0
+  }, [createTextVNode(toDisplayString$1($options.label || 'empty'), 1)], 64)) : $props.display === 'chip' ? (openBlock(), createElementBlock(Fragment, {
+    key: 1
+  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.modelValue, item => {
+    return openBlock(), createElementBlock("div", {
+      key: $options.getLabelByValue(item),
+      class: "p-multiselect-token"
+    }, [renderSlot(_ctx.$slots, "chip", {
+      value: item
+    }, () => [createElementVNode("span", _hoisted_4$h, toDisplayString$1($options.getLabelByValue(item)), 1)]), !$props.disabled ? (openBlock(), createElementBlock("span", {
+      key: 0,
+      class: normalizeClass(['p-multiselect-token-icon', $props.removeTokenIcon]),
+      onClick: $event => $options.removeOption($event, item)
+    }, null, 10, _hoisted_5$f)) : createCommentVNode("", true)]);
+  }), 128)), !$props.modelValue || $props.modelValue.length === 0 ? (openBlock(), createElementBlock(Fragment, {
+    key: 0
+  }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", _hoisted_6$d, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
+    class: normalizeClass($options.dropdownIconClass),
+    "aria-hidden": "true"
+  }, null, 2)])]), createVNode(_component_Portal, {
+    appendTo: $props.appendTo
+  }, {
+    default: withCtx(() => [createVNode(Transition, {
+      name: "p-connected-overlay",
+      onEnter: $options.onOverlayEnter,
+      onAfterEnter: $options.onOverlayAfterEnter,
+      onLeave: $options.onOverlayLeave,
+      onAfterLeave: $options.onOverlayAfterLeave
+    }, {
+      default: withCtx(() => [$data.overlayVisible ? (openBlock(), createElementBlock("div", mergeProps({
+        key: 0,
+        ref: $options.overlayRef,
+        style: $props.panelStyle,
+        class: $options.panelStyleClass,
+        onClick: _cache[13] || (_cache[13] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args)),
+        onKeydown: _cache[14] || (_cache[14] = (...args) => $options.onOverlayKeyDown && $options.onOverlayKeyDown(...args))
+      }, $props.panelProps), [createElementVNode("span", {
+        ref: "firstHiddenFocusableElementOnOverlay",
+        role: "presentation",
+        "aria-hidden": "true",
+        class: "p-hidden-accessible p-hidden-focusable",
+        tabindex: 0,
+        onFocus: _cache[3] || (_cache[3] = (...args) => $options.onFirstHiddenFocus && $options.onFirstHiddenFocus(...args))
+      }, null, 544), renderSlot(_ctx.$slots, "header", {
+        value: $props.modelValue,
+        options: $options.visibleOptions
+      }), $props.showToggleAll && $props.selectionLimit == null || $props.filter ? (openBlock(), createElementBlock("div", _hoisted_7$8, [$props.showToggleAll && $props.selectionLimit == null ? (openBlock(), createElementBlock("div", {
+        key: 0,
+        class: normalizeClass($options.headerCheckboxClass),
+        onClick: _cache[6] || (_cache[6] = (...args) => $options.onToggleAll && $options.onToggleAll(...args))
+      }, [createElementVNode("div", _hoisted_8$6, [createElementVNode("input", {
+        type: "checkbox",
+        readonly: "",
+        checked: $options.allSelected,
+        "aria-label": $options.toggleAllAriaLabel,
+        onFocus: _cache[4] || (_cache[4] = (...args) => $options.onHeaderCheckboxFocus && $options.onHeaderCheckboxFocus(...args)),
+        onBlur: _cache[5] || (_cache[5] = (...args) => $options.onHeaderCheckboxBlur && $options.onHeaderCheckboxBlur(...args))
+      }, null, 40, _hoisted_9$4)]), createElementVNode("div", {
+        class: normalizeClass(['p-checkbox-box', {
+          'p-highlight': $options.allSelected,
+          'p-focus': $data.headerCheckboxFocused
+        }])
+      }, [createElementVNode("span", {
+        class: normalizeClass(['p-checkbox-icon', {
+          [$props.checkboxIcon]: $options.allSelected
+        }])
+      }, null, 2)], 2)], 2)) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_10$4, [createElementVNode("input", mergeProps({
+        ref: "filterInput",
+        type: "text",
+        value: $data.filterValue,
+        onVnodeUpdated: _cache[7] || (_cache[7] = (...args) => $options.onFilterUpdated && $options.onFilterUpdated(...args)),
+        class: "p-multiselect-filter p-inputtext p-component",
+        placeholder: $props.filterPlaceholder,
+        role: "searchbox",
+        autocomplete: "off",
+        "aria-owns": $options.id + '_list',
+        "aria-activedescendant": $options.focusedOptionId,
+        onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onFilterKeyDown && $options.onFilterKeyDown(...args)),
+        onBlur: _cache[9] || (_cache[9] = (...args) => $options.onFilterBlur && $options.onFilterBlur(...args)),
+        onInput: _cache[10] || (_cache[10] = (...args) => $options.onFilterChange && $options.onFilterChange(...args))
+      }, $props.filterInputProps), null, 16, _hoisted_11$4), createElementVNode("span", {
+        class: normalizeClass(['p-multiselect-filter-icon', $props.filterIcon])
+      }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("span", _hoisted_12$4, toDisplayString$1($options.filterResultMessageText), 1)) : createCommentVNode("", true), withDirectives((openBlock(), createElementBlock("button", mergeProps({
+        class: "p-multiselect-close p-link",
+        "aria-label": $options.closeAriaLabel,
+        onClick: _cache[11] || (_cache[11] = (...args) => $options.onCloseClick && $options.onCloseClick(...args)),
+        type: "button"
+      }, $props.closeButtonProps), [createElementVNode("span", {
+        class: normalizeClass(['p-multiselect-close-icon', $props.closeIcon])
+      }, null, 2)], 16, _hoisted_13$4)), [[_directive_ripple]])])) : createCommentVNode("", true), createElementVNode("div", {
+        class: "p-multiselect-items-wrapper",
+        style: normalizeStyle({
+          'max-height': $options.virtualScrollerDisabled ? $props.scrollHeight : ''
+        })
+      }, [createVNode(_component_VirtualScroller, mergeProps({
+        ref: $options.virtualScrollerRef
+      }, $props.virtualScrollerOptions, {
+        items: $options.visibleOptions,
+        style: {
+          height: $props.scrollHeight
+        },
+        tabindex: -1,
+        disabled: $options.virtualScrollerDisabled
+      }), createSlots({
+        content: withCtx(({
+          styleClass,
+          contentRef,
+          items,
+          getItemOptions,
+          contentStyle,
+          itemSize
+        }) => [createElementVNode("ul", {
+          ref: el => $options.listRef(el, contentRef),
+          id: $options.id + '_list',
+          class: normalizeClass(['p-multiselect-items p-component', styleClass]),
+          style: normalizeStyle(contentStyle),
+          role: "listbox",
+          "aria-multiselectable": "true"
+        }, [(openBlock(true), createElementBlock(Fragment, null, renderList(items, (option, i) => {
+          return openBlock(), createElementBlock(Fragment, {
+            key: $options.getOptionRenderKey(option, $options.getOptionIndex(i, getItemOptions))
+          }, [$options.isOptionGroup(option) ? (openBlock(), createElementBlock("li", {
+            key: 0,
+            id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
+            style: normalizeStyle({
+              height: itemSize ? itemSize + 'px' : undefined
+            }),
+            class: "p-multiselect-item-group",
+            role: "option"
+          }, [renderSlot(_ctx.$slots, "optiongroup", {
+            option: option.optionGroup,
+            index: $options.getOptionIndex(i, getItemOptions)
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_15$2)) : withDirectives((openBlock(), createElementBlock("li", {
+            key: 1,
+            id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
+            style: normalizeStyle({
+              height: itemSize ? itemSize + 'px' : undefined
+            }),
+            class: normalizeClass(['p-multiselect-item', {
+              'p-highlight': $options.isSelected(option),
+              'p-focus': $data.focusedOptionIndex === $options.getOptionIndex(i, getItemOptions),
+              'p-disabled': $options.isOptionDisabled(option)
+            }]),
+            role: "option",
+            "aria-label": $options.getOptionLabel(option),
+            "aria-selected": $options.isSelected(option),
+            "aria-disabled": $options.isOptionDisabled(option),
+            "aria-setsize": $options.ariaSetSize,
+            "aria-posinset": $options.getAriaPosInset($options.getOptionIndex(i, getItemOptions)),
+            onClick: $event => $options.onOptionSelect($event, option, $options.getOptionIndex(i, getItemOptions), true),
+            onMousemove: $event => $options.onOptionMouseMove($event, $options.getOptionIndex(i, getItemOptions))
+          }, [createElementVNode("div", _hoisted_17$1, [createElementVNode("div", {
+            class: normalizeClass(['p-checkbox-box', {
+              'p-highlight': $options.isSelected(option)
+            }])
+          }, [createElementVNode("span", {
+            class: normalizeClass(['p-checkbox-icon', {
+              [$props.checkboxIcon]: $options.isSelected(option)
+            }])
+          }, null, 2)], 2)]), renderSlot(_ctx.$slots, "option", {
+            option: option,
+            index: $options.getOptionIndex(i, getItemOptions)
+          }, () => [createElementVNode("span", null, toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_16$1)), [[_directive_ripple]])], 64);
+        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_18$1, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_19$1, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_14$3), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_20$1, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_21$1, toDisplayString$1($options.selectedMessageText), 1)]),
+        _: 2
+      }, [_ctx.$slots.loader ? {
+        name: "loader",
+        fn: withCtx(({
+          options
+        }) => [renderSlot(_ctx.$slots, "loader", {
+          options: options
+        })]),
+        key: "0"
+      } : undefined]), 1040, ["items", "style", "disabled"])], 4), renderSlot(_ctx.$slots, "footer", {
+        value: $props.modelValue,
+        options: $options.visibleOptions
+      }), createElementVNode("span", {
+        ref: "lastHiddenFocusableElementOnOverlay",
+        role: "presentation",
+        "aria-hidden": "true",
+        class: "p-hidden-accessible p-hidden-focusable",
+        tabindex: 0,
+        onFocus: _cache[12] || (_cache[12] = (...args) => $options.onLastHiddenFocus && $options.onLastHiddenFocus(...args))
+      }, null, 544)], 16)) : createCommentVNode("", true)]),
+      _: 3
+    }, 8, ["onEnter", "onAfterEnter", "onLeave", "onAfterLeave"])]),
+    _: 3
+  }, 8, ["appendTo"])], 2);
+}
+
+function styleInject$d(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$k = "\n.p-multiselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-multiselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-multiselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-multiselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-multiselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-multiselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-multiselect-token-icon {\n    cursor: pointer;\n}\n.p-multiselect .p-multiselect-panel {\n    min-width: 100%;\n}\n.p-multiselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-multiselect-items-wrapper {\n    overflow: auto;\n}\n.p-multiselect-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-multiselect-item {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-multiselect-item-group {\n    cursor: auto;\n}\n.p-multiselect-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-multiselect-filter-container {\n    position: relative;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-multiselect-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-multiselect-filter-container .p-inputtext {\n    width: 100%;\n}\n.p-multiselect-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    overflow: hidden;\n    position: relative;\n    margin-left: auto;\n}\n.p-fluid .p-multiselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$d(css_248z$k);
+script$16.render = render$i;
+
+var script$15 = {
+  props: {
+    report : Object
+},
   emits: [
-        "onDel"
-    ],
+    "changed"
+],
   setup(__props, { emit: emits }) {
 
 const props = __props;
 
-    const client = inject("client");
 
-    
 
-    
 
-    const repo = getStore(props.name);
-    const check_str = "delete";
 
-    const dialog = ref(false);
-
-    function delRow() {
-        dialog.value =true;
-        delval.value = "";
+const overlay = computed({
+    get() {
+        return props.report.active;
+    },
+    set(val) {
+        props.report.active = val;
     }
+});
 
 
-    let delval = ref("");
-
-    const disabled = computed(() => {
-        return (delval.value == check_str) ? false : true;
+const options = [];
+for(let i in props.report.results) {
+    options.push({
+        name : i,
+        code : i
     });
+}
 
+function onChange() {
+    emits("changed");
+}
 
-    function del() {
-        let params = {};
-        const keys = [];
-        for(const row of repo.selected.value) {
-            keys.push(row['--id']);
-        }
-        params["--id"] = keys;
-        
-        client.delete("/data/" +repo.store.model, params)
-        .then(() => {
-            dialog.value = false;
-            repo.selected.value = [];
-            emits("onDel");
-        })
-        .catch(e => console.log(e));
-    }
-    
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1J), {
-      label: "Delete",
-      icon: "pi pi-trash",
-      class: "p-button-danger",
-      disabled: !unref(repo).selected.value.length,
-      onClick: delRow
-    }, null, 8 /* PROPS */, ["disabled"]),
-    createVNode(unref(script$1z), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
-      header: 'Delete ' + _ctx.$t('models.' + unref(repo).store.model + '.title', (__props.single) ? 1 : 2),
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        _hoisted_1$A,
-        createElementVNode("ul", null, [
-          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(repo).selected.value, (item) => {
-            return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).store.route.schema, item)), 1 /* TEXT */))
-          }), 256 /* UNKEYED_FRAGMENT */))
-        ]),
-        createElementVNode("p", null, [
-          _hoisted_2$t,
-          createElementVNode("i", null, toDisplayString$1(check_str)),
-          _hoisted_3$n
-        ]),
-        createElementVNode("div", _hoisted_4$l, [
-          createVNode(unref(script$1I), {
-            placeholder: check_str,
-            modelValue: unref(delval),
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(delval) ? (delval).value = $event : delval = $event))
-          }, null, 8 /* PROPS */, ["modelValue"]),
-          createVNode(unref(script$1J), {
-            label: "Delete",
-            disabled: unref(disabled),
-            icon: "pi pi-trash",
-            onClick: del,
-            class: "p-button-danger"
-          }, {
-            default: withCtx(() => [
-              _hoisted_5$f
-            ]),
-            _: 1 /* STABLE */
-          }, 8 /* PROPS */, ["disabled"])
-        ])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible", "header"])
-  ], 64 /* STABLE_FRAGMENT */))
+  return (openBlock(), createBlock(unref(script$16), {
+    modelValue: unref(overlay),
+    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(overlay) ? (overlay).value = $event : null)),
+    options: options,
+    optionLabel: "name",
+    onChange: onChange
+  }, null, 8 /* PROPS */, ["modelValue"]))
 }
 }
 
 };
 
-script$1c.__file = "presstojam/src/components/actions/delete-action.vue";
+script$15.__file = "presstojam/src/components/reports/overlays.vue";
 
-var script$1b = {
+var script$14 = {
   name: 'Dropdown',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter'],
   props: {
@@ -26829,14 +29401,14 @@ var script$1b = {
     ripple: Ripple
   },
   components: {
-    VirtualScroller: script$1y,
-    Portal: script$1C
+    VirtualScroller: script$1s,
+    Portal: script$1H
   }
 };
-const _hoisted_1$z = ["id"];
-const _hoisted_2$s = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_3$m = ["id", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant", "aria-disabled"];
-const _hoisted_4$k = {
+const _hoisted_1$t = ["id"];
+const _hoisted_2$p = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_3$j = ["id", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant", "aria-disabled"];
+const _hoisted_4$g = {
   class: "p-dropdown-trigger"
 };
 const _hoisted_5$e = {
@@ -26846,38 +29418,38 @@ const _hoisted_5$e = {
 const _hoisted_6$c = {
   class: "p-dropdown-filter-container"
 };
-const _hoisted_7$8 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
-const _hoisted_8$6 = {
+const _hoisted_7$7 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
+const _hoisted_8$5 = {
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
-const _hoisted_9$4 = ["id"];
-const _hoisted_10$4 = ["id"];
-const _hoisted_11$4 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
-const _hoisted_12$4 = {
+const _hoisted_9$3 = ["id"];
+const _hoisted_10$3 = ["id"];
+const _hoisted_11$3 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
+const _hoisted_12$3 = {
   key: 0,
   class: "p-dropdown-empty-message",
   role: "option"
 };
-const _hoisted_13$4 = {
+const _hoisted_13$3 = {
   key: 1,
   class: "p-dropdown-empty-message",
   role: "option"
 };
-const _hoisted_14$3 = {
+const _hoisted_14$2 = {
   key: 0,
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
-const _hoisted_15$2 = {
+const _hoisted_15$1 = {
   role: "status",
   "aria-live": "polite",
   class: "p-hidden-accessible"
 };
 
-function render$k(_ctx, _cache, $props, $setup, $data, $options) {
+function render$h(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
 
   const _component_Portal = resolveComponent("Portal");
@@ -26912,7 +29484,7 @@ function render$k(_ctx, _cache, $props, $setup, $data, $options) {
     onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[3] || (_cache[3] = (...args) => $options.onEditableInput && $options.onEditableInput(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$s)) : (openBlock(), createElementBlock("span", mergeProps({
+  }, $props.inputProps), null, 16, _hoisted_2$p)) : (openBlock(), createElementBlock("span", mergeProps({
     key: 1,
     ref: "focusInput",
     id: $props.inputId,
@@ -26933,11 +29505,11 @@ function render$k(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.inputProps), [renderSlot(_ctx.$slots, "value", {
     value: $props.modelValue,
     placeholder: $props.placeholder
-  }, () => [createTextVNode(toDisplayString$1($options.label === 'p-emptylabel' ? ' ' : $options.label || 'empty'), 1)])], 16, _hoisted_3$m)), $props.showClear && $props.modelValue != null ? (openBlock(), createElementBlock("i", mergeProps({
+  }, () => [createTextVNode(toDisplayString$1($options.label === 'p-emptylabel' ? ' ' : $options.label || 'empty'), 1)])], 16, _hoisted_3$j)), $props.showClear && $props.modelValue != null ? (openBlock(), createElementBlock("i", mergeProps({
     key: 2,
     class: ['p-dropdown-clear-icon', $props.clearIcon],
     onClick: _cache[7] || (_cache[7] = (...args) => $options.onClearClick && $options.onClearClick(...args))
-  }, $props.clearIconProps), null, 16)) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$k, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
+  }, $props.clearIconProps), null, 16)) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$g, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
     class: normalizeClass($options.dropdownIconClass),
     "aria-hidden": "true"
   }, null, 2)])]), createVNode(_component_Portal, {
@@ -26981,9 +29553,9 @@ function render$k(_ctx, _cache, $props, $setup, $data, $options) {
         onKeydown: _cache[10] || (_cache[10] = (...args) => $options.onFilterKeyDown && $options.onFilterKeyDown(...args)),
         onBlur: _cache[11] || (_cache[11] = (...args) => $options.onFilterBlur && $options.onFilterBlur(...args)),
         onInput: _cache[12] || (_cache[12] = (...args) => $options.onFilterChange && $options.onFilterChange(...args))
-      }, $props.filterInputProps), null, 16, _hoisted_7$8), createElementVNode("span", {
+      }, $props.filterInputProps), null, 16, _hoisted_7$7), createElementVNode("span", {
         class: normalizeClass(['p-dropdown-filter-icon', $props.filterIcon])
-      }, null, 2)]), createElementVNode("span", _hoisted_8$6, toDisplayString$1($options.filterResultMessageText), 1)])) : createCommentVNode("", true), createElementVNode("div", {
+      }, null, 2)]), createElementVNode("span", _hoisted_8$5, toDisplayString$1($options.filterResultMessageText), 1)])) : createCommentVNode("", true), createElementVNode("div", {
         class: "p-dropdown-items-wrapper",
         style: normalizeStyle({
           'max-height': $options.virtualScrollerDisabled ? $props.scrollHeight : ''
@@ -27025,7 +29597,7 @@ function render$k(_ctx, _cache, $props, $setup, $data, $options) {
           }, [renderSlot(_ctx.$slots, "optiongroup", {
             option: option.optionGroup,
             index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_10$4)) : withDirectives((openBlock(), createElementBlock("li", {
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_10$3)) : withDirectives((openBlock(), createElementBlock("li", {
             key: 1,
             id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
             style: normalizeStyle({
@@ -27047,8 +29619,8 @@ function render$k(_ctx, _cache, $props, $setup, $data, $options) {
           }, [renderSlot(_ctx.$slots, "option", {
             option: option,
             index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_11$4)), [[_directive_ripple]])], 64);
-        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_12$4, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_13$4, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_9$4), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_14$3, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_15$2, toDisplayString$1($options.selectedMessageText), 1)]),
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_11$3)), [[_directive_ripple]])], 64);
+        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_12$3, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_13$3, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_9$3), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_14$2, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_15$1, toDisplayString$1($options.selectedMessageText), 1)]),
         _: 2
       }, [_ctx.$slots.loader ? {
         name: "loader",
@@ -27072,10 +29644,10 @@ function render$k(_ctx, _cache, $props, $setup, $data, $options) {
       _: 3
     }, 8, ["onEnter", "onAfterEnter", "onLeave", "onAfterLeave"])]),
     _: 3
-  }, 8, ["appendTo"])], 10, _hoisted_1$z);
+  }, 8, ["appendTo"])], 10, _hoisted_1$t);
 }
 
-function styleInject$g(css, ref) {
+function styleInject$c(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -27104,9 +29676,1345 @@ function styleInject$g(css, ref) {
   }
 }
 
-var css_248z$o = "\n.p-dropdown {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-dropdown-clear-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-dropdown-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dropdown-label {\n    display: block;\n    white-space: nowrap;\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n    text-overflow: ellipsis;\n    cursor: pointer;\n}\n.p-dropdown-label-empty {\n    overflow: hidden;\n    opacity: 0;\n}\ninput.p-dropdown-label {\n    cursor: default;\n}\n.p-dropdown .p-dropdown-panel {\n    min-width: 100%;\n}\n.p-dropdown-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-dropdown-items-wrapper {\n    overflow: auto;\n}\n.p-dropdown-item {\n    cursor: pointer;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-dropdown-item-group {\n    cursor: auto;\n}\n.p-dropdown-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-dropdown-filter {\n    width: 100%;\n}\n.p-dropdown-filter-container {\n    position: relative;\n}\n.p-dropdown-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-fluid .p-dropdown {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-dropdown .p-dropdown-label {\n    width: 1%;\n}\n";
-styleInject$g(css_248z$o);
-script$1b.render = render$k;
+var css_248z$j = "\n.p-dropdown {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-dropdown-clear-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-dropdown-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dropdown-label {\n    display: block;\n    white-space: nowrap;\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n    text-overflow: ellipsis;\n    cursor: pointer;\n}\n.p-dropdown-label-empty {\n    overflow: hidden;\n    opacity: 0;\n}\ninput.p-dropdown-label {\n    cursor: default;\n}\n.p-dropdown .p-dropdown-panel {\n    min-width: 100%;\n}\n.p-dropdown-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-dropdown-items-wrapper {\n    overflow: auto;\n}\n.p-dropdown-item {\n    cursor: pointer;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-dropdown-item-group {\n    cursor: auto;\n}\n.p-dropdown-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-dropdown-filter {\n    width: 100%;\n}\n.p-dropdown-filter-container {\n    position: relative;\n}\n.p-dropdown-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-fluid .p-dropdown {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-dropdown .p-dropdown-label {\n    width: 1%;\n}\n";
+styleInject$c(css_248z$j);
+script$14.render = render$h;
+
+var script$13 = {
+  props: {
+    report : Object
+},
+  emits: [
+    "changed"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+
+const scale = computed({
+    get() {
+        return props.report.scale;
+    },
+    set(val) {
+        props.report.active = scale;
+    }
+});
+
+
+const options = [];
+for(let i in props.report.fields) {
+    if (props.report.fields[i].type == "time") {
+        options.push({
+            name : i,
+            code : i
+        });
+    }
+}
+
+function onChange() {
+    emits("changed");
+}
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$14), {
+    modelValue: unref(scale),
+    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(scale) ? (scale).value = $event : null)),
+    options: options,
+    onChange: onChange
+  }, null, 8 /* PROPS */, ["modelValue"]))
+}
+}
+
+};
+
+script$13.__file = "presstojam/src/components/reports/scales.vue";
+
+var script$12 = {
+  props: {
+    report : Object
+},
+  emits: [
+    "changed"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+
+const type = computed({
+    get() {
+        return props.report.agg_type;
+    },
+    set(val) {
+        props.report.agg_type = val;
+    }
+});
+
+
+function onChange() {
+    emits("changed");
+}
+
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$14), {
+    modelValue: unref(type),
+    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(type) ? (type).value = $event : null)),
+    options: _ctx.types,
+    onChange: onChange
+  }, null, 8 /* PROPS */, ["modelValue", "options"]))
+}
+}
+
+};
+
+script$12.__file = "presstojam/src/components/reports/aggregate-type.vue";
+
+var script$1$4 = {
+  name: 'MenubarSub',
+  emits: ['item-mouseenter', 'item-click'],
+  props: {
+    items: {
+      type: Array,
+      default: null
+    },
+    root: {
+      type: Boolean,
+      default: false
+    },
+    popup: {
+      type: Boolean,
+      default: false
+    },
+    mobileActive: {
+      type: Boolean,
+      default: false
+    },
+    template: {
+      type: Function,
+      default: null
+    },
+    exact: {
+      type: Boolean,
+      default: true
+    },
+    level: {
+      type: Number,
+      default: 0
+    },
+    menuId: {
+      type: String,
+      default: null
+    },
+    focusedItemId: {
+      type: String,
+      default: null
+    },
+    activeItemPath: {
+      type: Object,
+      default: null
+    }
+  },
+  list: null,
+  methods: {
+    getItemId(processedItem) {
+      return `${this.menuId}_${processedItem.key}`;
+    },
+
+    getItemKey(processedItem) {
+      return this.getItemId(processedItem);
+    },
+
+    getItemProp(processedItem, name) {
+      return processedItem && processedItem.item ? ObjectUtils.getItemValue(processedItem.item[name]) : undefined;
+    },
+
+    getItemLabel(processedItem) {
+      return this.getItemProp(processedItem, 'label');
+    },
+
+    isItemActive(processedItem) {
+      return this.activeItemPath.some(path => path.key === processedItem.key);
+    },
+
+    isItemVisible(processedItem) {
+      return this.getItemProp(processedItem, 'visible') !== false;
+    },
+
+    isItemDisabled(processedItem) {
+      return this.getItemProp(processedItem, 'disabled');
+    },
+
+    isItemFocused(processedItem) {
+      return this.focusedItemId === this.getItemId(processedItem);
+    },
+
+    isItemGroup(processedItem) {
+      return ObjectUtils.isNotEmpty(processedItem.items);
+    },
+
+    onItemClick(event, processedItem) {
+      const command = this.getItemProp(processedItem, 'command');
+      command && command({
+        originalEvent: event,
+        item: processedItem.item
+      });
+      this.$emit('item-click', {
+        originalEvent: event,
+        processedItem,
+        isFocus: true
+      });
+    },
+
+    onItemMouseEnter(event, processedItem) {
+      this.$emit('item-mouseenter', {
+        originalEvent: event,
+        processedItem
+      });
+    },
+
+    onItemActionClick(event, navigate) {
+      navigate && navigate(event);
+    },
+
+    getAriaSetSize() {
+      return this.items.filter(processedItem => this.isItemVisible(processedItem) && !this.getItemProp(processedItem, 'separator')).length;
+    },
+
+    getAriaPosInset(index) {
+      return index - this.items.slice(0, index).filter(processedItem => this.isItemVisible(processedItem) && this.getItemProp(processedItem, 'separator')).length + 1;
+    },
+
+    getItemClass(processedItem) {
+      return ['p-menuitem', this.getItemProp(processedItem, 'class'), {
+        'p-menuitem-active p-highlight': this.isItemActive(processedItem),
+        'p-focus': this.isItemFocused(processedItem),
+        'p-disabled': this.isItemDisabled(processedItem)
+      }];
+    },
+
+    getItemActionClass(processedItem, routerProps) {
+      return ['p-menuitem-link', {
+        'router-link-active': routerProps && routerProps.isActive,
+        'router-link-active-exact': this.exact && routerProps && routerProps.isExactActive
+      }];
+    },
+
+    getItemIconClass(processedItem) {
+      return ['p-menuitem-icon', this.getItemProp(processedItem, 'icon')];
+    },
+
+    getSeparatorItemClass(processedItem) {
+      return ['p-menuitem-separator', this.getItemProp(processedItem, 'class')];
+    },
+
+    getSubmenuIcon() {
+      return ['p-submenu-icon pi', {
+        'pi-angle-right': !this.root,
+        'pi-angle-down': this.root
+      }];
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return {
+        'p-submenu-list': !this.root,
+        'p-menubar-root-list': this.root
+      };
+    }
+
+  },
+  directives: {
+    ripple: Ripple
+  }
+};
+const _hoisted_1$1$4 = ["id", "aria-label", "aria-disabled", "aria-expanded", "aria-haspopup", "aria-level", "aria-setsize", "aria-posinset"];
+const _hoisted_2$1$4 = ["onClick", "onMouseenter"];
+const _hoisted_3$1$3 = ["href", "onClick"];
+const _hoisted_4$1$2 = {
+  class: "p-menuitem-text"
+};
+const _hoisted_5$1$2 = ["href", "target"];
+const _hoisted_6$b = {
+  class: "p-menuitem-text"
+};
+const _hoisted_7$6 = ["id"];
+
+function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_router_link = resolveComponent("router-link");
+
+  const _component_MenubarSub = resolveComponent("MenubarSub", true);
+
+  const _directive_ripple = resolveDirective("ripple");
+
+  return openBlock(), createElementBlock("ul", null, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.items, (processedItem, index) => {
+    return openBlock(), createElementBlock(Fragment, {
+      key: $options.getItemKey(processedItem)
+    }, [$options.isItemVisible(processedItem) && !$options.getItemProp(processedItem, 'separator') ? (openBlock(), createElementBlock("li", {
+      key: 0,
+      id: $options.getItemId(processedItem),
+      style: normalizeStyle($options.getItemProp(processedItem, 'style')),
+      class: normalizeClass($options.getItemClass(processedItem)),
+      role: "menuitem",
+      "aria-label": $options.getItemLabel(processedItem),
+      "aria-disabled": $options.isItemDisabled(processedItem) || undefined,
+      "aria-expanded": $options.isItemGroup(processedItem) ? $options.isItemActive(processedItem) : undefined,
+      "aria-haspopup": $options.isItemGroup(processedItem) && !$options.getItemProp(processedItem, 'to') ? 'menu' : undefined,
+      "aria-level": $props.level + 1,
+      "aria-setsize": $options.getAriaSetSize(),
+      "aria-posinset": $options.getAriaPosInset(index)
+    }, [createElementVNode("div", {
+      class: "p-menuitem-content",
+      onClick: $event => $options.onItemClick($event, processedItem),
+      onMouseenter: $event => $options.onItemMouseEnter($event, processedItem)
+    }, [!$props.template ? (openBlock(), createElementBlock(Fragment, {
+      key: 0
+    }, [$options.getItemProp(processedItem, 'to') && !$options.isItemDisabled(processedItem) ? (openBlock(), createBlock(_component_router_link, {
+      key: 0,
+      to: $options.getItemProp(processedItem, 'to'),
+      custom: ""
+    }, {
+      default: withCtx(({
+        navigate,
+        href,
+        isActive,
+        isExactActive
+      }) => [withDirectives((openBlock(), createElementBlock("a", {
+        href: href,
+        class: normalizeClass($options.getItemActionClass(processedItem, {
+          isActive,
+          isExactActive
+        })),
+        tabindex: "-1",
+        "aria-hidden": "true",
+        onClick: $event => $options.onItemActionClick($event, navigate)
+      }, [$options.getItemProp(processedItem, 'icon') ? (openBlock(), createElementBlock("span", {
+        key: 0,
+        class: normalizeClass($options.getItemIconClass(processedItem))
+      }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_4$1$2, toDisplayString$1($options.getItemLabel(processedItem)), 1)], 10, _hoisted_3$1$3)), [[_directive_ripple]])]),
+      _: 2
+    }, 1032, ["to"])) : withDirectives((openBlock(), createElementBlock("a", {
+      key: 1,
+      href: $options.getItemProp(processedItem, 'url'),
+      class: normalizeClass($options.getItemActionClass(processedItem)),
+      target: $options.getItemProp(processedItem, 'target'),
+      tabindex: "-1",
+      "aria-hidden": "true"
+    }, [$options.getItemProp(processedItem, 'icon') ? (openBlock(), createElementBlock("span", {
+      key: 0,
+      class: normalizeClass($options.getItemIconClass(processedItem))
+    }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_6$b, toDisplayString$1($options.getItemLabel(processedItem)), 1), $options.getItemProp(processedItem, 'items') ? (openBlock(), createElementBlock("span", {
+      key: 1,
+      class: normalizeClass($options.getSubmenuIcon())
+    }, null, 2)) : createCommentVNode("", true)], 10, _hoisted_5$1$2)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
+      key: 1,
+      item: processedItem.item
+    }, null, 8, ["item"]))], 40, _hoisted_2$1$4), $options.isItemVisible(processedItem) && $options.isItemGroup(processedItem) ? (openBlock(), createBlock(_component_MenubarSub, {
+      key: 0,
+      menuId: $props.menuId,
+      role: "menu",
+      class: "p-submenu-list",
+      focusedItemId: $props.focusedItemId,
+      items: processedItem.items,
+      mobileActive: $props.mobileActive,
+      activeItemPath: $props.activeItemPath,
+      template: $props.template,
+      exact: $props.exact,
+      level: $props.level + 1,
+      onItemClick: _cache[0] || (_cache[0] = $event => _ctx.$emit('item-click', $event)),
+      onItemMouseenter: _cache[1] || (_cache[1] = $event => _ctx.$emit('item-mouseenter', $event))
+    }, null, 8, ["menuId", "focusedItemId", "items", "mobileActive", "activeItemPath", "template", "exact", "level"])) : createCommentVNode("", true)], 14, _hoisted_1$1$4)) : createCommentVNode("", true), $options.isItemVisible(processedItem) && $options.getItemProp(processedItem, 'separator') ? (openBlock(), createElementBlock("li", {
+      key: 1,
+      id: $options.getItemId(processedItem),
+      style: normalizeStyle($options.getItemProp(processedItem, 'style')),
+      class: normalizeClass($options.getSeparatorItemClass(processedItem)),
+      role: "separator"
+    }, null, 14, _hoisted_7$6)) : createCommentVNode("", true)], 64);
+  }), 128))]);
+}
+
+script$1$4.render = render$1$4;
+var script$11 = {
+  name: 'Menubar',
+  emits: ['focus', 'blur'],
+  props: {
+    model: {
+      type: Array,
+      default: null
+    },
+    exact: {
+      type: Boolean,
+      default: true
+    },
+    buttonProps: {
+      type: null,
+      default: null
+    },
+    'aria-labelledby': {
+      type: String,
+      default: null
+    },
+    'aria-label': {
+      type: String,
+      default: null
+    }
+  },
+
+  data() {
+    return {
+      mobileActive: false,
+      focused: false,
+      focusedItemInfo: {
+        index: -1,
+        level: 0,
+        parentKey: ''
+      },
+      activeItemPath: [],
+      dirty: false
+    };
+  },
+
+  watch: {
+    activeItemPath(newPath) {
+      if (ObjectUtils.isNotEmpty(newPath)) {
+        this.bindOutsideClickListener();
+        this.bindResizeListener();
+      } else {
+        this.unbindOutsideClickListener();
+        this.unbindResizeListener();
+      }
+    }
+
+  },
+  outsideClickListener: null,
+  container: null,
+  menubar: null,
+
+  beforeUnmount() {
+    this.mobileActive = false;
+    this.unbindOutsideClickListener();
+    this.unbindResizeListener();
+
+    if (this.container) {
+      ZIndexUtils.clear(this.container);
+    }
+
+    this.container = null;
+  },
+
+  methods: {
+    getItemProp(item, name) {
+      return item ? ObjectUtils.getItemValue(item[name]) : undefined;
+    },
+
+    getItemLabel(item) {
+      return this.getItemProp(item, 'label');
+    },
+
+    isItemDisabled(item) {
+      return this.getItemProp(item, 'disabled');
+    },
+
+    isItemGroup(item) {
+      return ObjectUtils.isNotEmpty(this.getItemProp(item, 'items'));
+    },
+
+    isItemSeparator(item) {
+      return this.getItemProp(item, 'separator');
+    },
+
+    getProccessedItemLabel(processedItem) {
+      return processedItem ? this.getItemLabel(processedItem.item) : undefined;
+    },
+
+    isProccessedItemGroup(processedItem) {
+      return processedItem && ObjectUtils.isNotEmpty(processedItem.items);
+    },
+
+    toggle(event) {
+      if (this.mobileActive) {
+        this.mobileActive = false;
+        ZIndexUtils.clear(this.menubar);
+        this.hide();
+      } else {
+        this.mobileActive = true;
+        ZIndexUtils.set('menu', this.menubar, this.$primevue.config.zIndex.menu);
+        setTimeout(() => {
+          this.show();
+        }, 0);
+      }
+
+      this.bindOutsideClickListener();
+      event.preventDefault();
+    },
+
+    show() {
+      this.focusedItemInfo = {
+        index: this.findFirstFocusedItemIndex(),
+        level: 0,
+        parentKey: ''
+      };
+      DomHandler.focus(this.menubar);
+    },
+
+    hide(event, isFocus) {
+      if (this.mobileActive) {
+        setTimeout(() => {
+          DomHandler.focus(this.$refs.menubutton);
+        }, 0);
+      }
+
+      this.activeItemPath = [];
+      this.focusedItemInfo = {
+        index: -1,
+        level: 0,
+        parentKey: ''
+      };
+      isFocus && DomHandler.focus(this.menubar);
+      this.dirty = false;
+    },
+
+    onFocus(event) {
+      this.focused = true;
+      this.focusedItemInfo = this.focusedItemInfo.index !== -1 ? this.focusedItemInfo : {
+        index: this.findFirstFocusedItemIndex(),
+        level: 0,
+        parentKey: ''
+      };
+      this.$emit('focus', event);
+    },
+
+    onBlur(event) {
+      this.focused = false;
+      this.focusedItemInfo = {
+        index: -1,
+        level: 0,
+        parentKey: ''
+      };
+      this.searchValue = '';
+      this.dirty = false;
+      this.$emit('blur', event);
+    },
+
+    onKeyDown(event) {
+      const metaKey = event.metaKey || event.ctrlKey;
+
+      switch (event.code) {
+        case 'ArrowDown':
+          this.onArrowDownKey(event);
+          break;
+
+        case 'ArrowUp':
+          this.onArrowUpKey(event);
+          break;
+
+        case 'ArrowLeft':
+          this.onArrowLeftKey(event);
+          break;
+
+        case 'ArrowRight':
+          this.onArrowRightKey(event);
+          break;
+
+        case 'Home':
+          this.onHomeKey(event);
+          break;
+
+        case 'End':
+          this.onEndKey(event);
+          break;
+
+        case 'Space':
+          this.onSpaceKey(event);
+          break;
+
+        case 'Enter':
+          this.onEnterKey(event);
+          break;
+
+        case 'Escape':
+          this.onEscapeKey(event);
+          break;
+
+        case 'Tab':
+          this.onTabKey(event);
+          break;
+
+        case 'PageDown':
+        case 'PageUp':
+        case 'Backspace':
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          //NOOP
+          break;
+
+        default:
+          if (!metaKey && ObjectUtils.isPrintableCharacter(event.key)) {
+            this.searchItems(event, event.key);
+          }
+
+          break;
+      }
+    },
+
+    onItemChange(event) {
+      const {
+        processedItem,
+        isFocus
+      } = event;
+      if (ObjectUtils.isEmpty(processedItem)) return;
+      const {
+        index,
+        key,
+        level,
+        parentKey,
+        items
+      } = processedItem;
+      const grouped = ObjectUtils.isNotEmpty(items);
+      const activeItemPath = this.activeItemPath.filter(p => p.parentKey !== parentKey && p.parentKey !== key);
+      grouped && activeItemPath.push(processedItem);
+      this.focusedItemInfo = {
+        index,
+        level,
+        parentKey
+      };
+      this.activeItemPath = activeItemPath;
+      grouped && (this.dirty = true);
+      isFocus && DomHandler.focus(this.menubar);
+    },
+
+    onItemClick(event) {
+      const {
+        originalEvent,
+        processedItem
+      } = event;
+      const grouped = this.isProccessedItemGroup(processedItem);
+      const root = ObjectUtils.isEmpty(processedItem.parent);
+      const selected = this.isSelected(processedItem);
+
+      if (selected) {
+        const {
+          index,
+          key,
+          level,
+          parentKey
+        } = processedItem;
+        this.activeItemPath = this.activeItemPath.filter(p => key !== p.key && key.startsWith(p.key));
+        this.focusedItemInfo = {
+          index,
+          level,
+          parentKey
+        };
+        this.dirty = !root;
+        DomHandler.focus(this.menubar);
+      } else {
+        if (grouped) {
+          this.onItemChange(event);
+        } else {
+          this.hide(originalEvent, true);
+          this.mobileActive = false;
+        }
+      }
+    },
+
+    onItemMouseEnter(event) {
+      if (!this.mobileActive && this.dirty) {
+        this.onItemChange(event);
+      }
+    },
+
+    menuButtonClick(event) {
+      this.toggle(event);
+    },
+
+    menuButtonKeydown(event) {
+      (event.code === 'Enter' || event.code === 'Space') && this.menuButtonClick(event);
+    },
+
+    onArrowDownKey(event) {
+      const processedItem = this.visibleItems[this.focusedItemInfo.index];
+      const root = processedItem ? ObjectUtils.isEmpty(processedItem.parent) : null;
+
+      if (root) {
+        const grouped = this.isProccessedItemGroup(processedItem);
+
+        if (grouped) {
+          this.onItemChange({
+            originalEvent: event,
+            processedItem
+          });
+          this.focusedItemInfo = {
+            index: -1,
+            parentKey: processedItem.key
+          };
+          this.onArrowRightKey(event);
+        }
+      } else {
+        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findNextItemIndex(this.focusedItemInfo.index) : this.findFirstFocusedItemIndex();
+        this.changeFocusedItemIndex(event, itemIndex);
+        event.preventDefault();
+      }
+    },
+
+    onArrowUpKey(event) {
+      const processedItem = this.visibleItems[this.focusedItemInfo.index];
+      const root = ObjectUtils.isEmpty(processedItem.parent);
+
+      if (root) {
+        const grouped = this.isProccessedItemGroup(processedItem);
+
+        if (grouped) {
+          this.onItemChange({
+            originalEvent: event,
+            processedItem
+          });
+          this.focusedItemInfo = {
+            index: -1,
+            parentKey: processedItem.key
+          };
+          const itemIndex = this.findLastItemIndex();
+          this.changeFocusedItemIndex(event, itemIndex);
+        }
+      } else {
+        const parentItem = this.activeItemPath.find(p => p.key === processedItem.parentKey);
+
+        if (this.focusedItemInfo.index === 0) {
+          this.focusedItemInfo = {
+            index: -1,
+            parentKey: parentItem ? parentItem.parentKey : ''
+          };
+          this.searchValue = '';
+          this.onArrowLeftKey(event);
+          this.activeItemPath = this.activeItemPath.filter(p => p.parentKey !== this.focusedItemInfo.parentKey);
+        } else {
+          const itemIndex = this.focusedItemInfo.index !== -1 ? this.findPrevItemIndex(this.focusedItemInfo.index) : this.findLastFocusedItemIndex();
+          this.changeFocusedItemIndex(event, itemIndex);
+        }
+      }
+
+      event.preventDefault();
+    },
+
+    onArrowLeftKey(event) {
+      const processedItem = this.visibleItems[this.focusedItemInfo.index];
+      const parentItem = processedItem ? this.activeItemPath.find(p => p.key === processedItem.parentKey) : null;
+
+      if (parentItem) {
+        this.onItemChange({
+          originalEvent: event,
+          processedItem: parentItem
+        });
+        this.activeItemPath = this.activeItemPath.filter(p => p.parentKey !== this.focusedItemInfo.parentKey);
+        event.preventDefault();
+      } else {
+        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findPrevItemIndex(this.focusedItemInfo.index) : this.findLastFocusedItemIndex();
+        this.changeFocusedItemIndex(event, itemIndex);
+        event.preventDefault();
+      }
+    },
+
+    onArrowRightKey(event) {
+      const processedItem = this.visibleItems[this.focusedItemInfo.index];
+      const parentItem = processedItem ? this.activeItemPath.find(p => p.key === processedItem.parentKey) : null;
+
+      if (parentItem) {
+        const grouped = this.isProccessedItemGroup(processedItem);
+
+        if (grouped) {
+          this.onItemChange({
+            originalEvent: event,
+            processedItem
+          });
+          this.focusedItemInfo = {
+            index: -1,
+            parentKey: processedItem.key
+          };
+          this.onArrowDownKey(event);
+        }
+      } else {
+        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findNextItemIndex(this.focusedItemInfo.index) : this.findFirstFocusedItemIndex();
+        this.changeFocusedItemIndex(event, itemIndex);
+        event.preventDefault();
+      }
+    },
+
+    onHomeKey(event) {
+      this.changeFocusedItemIndex(event, this.findFirstItemIndex());
+      event.preventDefault();
+    },
+
+    onEndKey(event) {
+      this.changeFocusedItemIndex(event, this.findLastItemIndex());
+      event.preventDefault();
+    },
+
+    onEnterKey(event) {
+      if (this.focusedItemInfo.index !== -1) {
+        const element = DomHandler.findSingle(this.menubar, `li[id="${`${this.focusedItemId}`}"]`);
+        const anchorElement = element && DomHandler.findSingle(element, '.p-menuitem-link');
+        anchorElement ? anchorElement.click() : element && element.click();
+        const processedItem = this.visibleItems[this.focusedItemInfo.index];
+        const grouped = this.isProccessedItemGroup(processedItem);
+        !grouped && (this.focusedItemInfo.index = this.findFirstFocusedItemIndex());
+      }
+
+      event.preventDefault();
+    },
+
+    onSpaceKey(event) {
+      this.onEnterKey(event);
+    },
+
+    onEscapeKey(event) {
+      this.hide(event, true);
+      this.focusedItemInfo.index = this.findFirstFocusedItemIndex();
+      event.preventDefault();
+    },
+
+    onTabKey(event) {
+      if (this.focusedItemInfo.index !== -1) {
+        const processedItem = this.visibleItems[this.focusedItemInfo.index];
+        const grouped = this.isProccessedItemGroup(processedItem);
+        !grouped && this.onItemChange({
+          originalEvent: event,
+          processedItem
+        });
+      }
+
+      this.hide();
+    },
+
+    bindOutsideClickListener() {
+      if (!this.outsideClickListener) {
+        this.outsideClickListener = event => {
+          const isOutsideContainer = this.menubar !== event.target && !this.menubar.contains(event.target);
+          const isOutsideMenuButton = this.mobileActive && this.$refs.menubutton !== event.target && !this.$refs.menubutton.contains(event.target);
+
+          if (isOutsideContainer) {
+            isOutsideMenuButton ? this.mobileActive = false : this.hide();
+          }
+        };
+
+        document.addEventListener('click', this.outsideClickListener);
+      }
+    },
+
+    unbindOutsideClickListener() {
+      if (this.outsideClickListener) {
+        document.removeEventListener('click', this.outsideClickListener);
+        this.outsideClickListener = null;
+      }
+    },
+
+    bindResizeListener() {
+      if (!this.resizeListener) {
+        this.resizeListener = event => {
+          if (!DomHandler.isTouchDevice()) {
+            this.hide(event, true);
+          }
+
+          this.mobileActive = false;
+        };
+
+        window.addEventListener('resize', this.resizeListener);
+      }
+    },
+
+    unbindResizeListener() {
+      if (this.resizeListener) {
+        window.removeEventListener('resize', this.resizeListener);
+        this.resizeListener = null;
+      }
+    },
+
+    isItemMatched(processedItem) {
+      return this.isValidItem(processedItem) && this.getProccessedItemLabel(processedItem).toLocaleLowerCase().startsWith(this.searchValue.toLocaleLowerCase());
+    },
+
+    isValidItem(processedItem) {
+      return !!processedItem && !this.isItemDisabled(processedItem.item) && !this.isItemSeparator(processedItem.item);
+    },
+
+    isValidSelectedItem(processedItem) {
+      return this.isValidItem(processedItem) && this.isSelected(processedItem);
+    },
+
+    isSelected(processedItem) {
+      return this.activeItemPath.some(p => p.key === processedItem.key);
+    },
+
+    findFirstItemIndex() {
+      return this.visibleItems.findIndex(processedItem => this.isValidItem(processedItem));
+    },
+
+    findLastItemIndex() {
+      return ObjectUtils.findLastIndex(this.visibleItems, processedItem => this.isValidItem(processedItem));
+    },
+
+    findNextItemIndex(index) {
+      const matchedItemIndex = index < this.visibleItems.length - 1 ? this.visibleItems.slice(index + 1).findIndex(processedItem => this.isValidItem(processedItem)) : -1;
+      return matchedItemIndex > -1 ? matchedItemIndex + index + 1 : index;
+    },
+
+    findPrevItemIndex(index) {
+      const matchedItemIndex = index > 0 ? ObjectUtils.findLastIndex(this.visibleItems.slice(0, index), processedItem => this.isValidItem(processedItem)) : -1;
+      return matchedItemIndex > -1 ? matchedItemIndex : index;
+    },
+
+    findSelectedItemIndex() {
+      return this.visibleItems.findIndex(processedItem => this.isValidSelectedItem(processedItem));
+    },
+
+    findFirstFocusedItemIndex() {
+      const selectedIndex = this.findSelectedItemIndex();
+      return selectedIndex < 0 ? this.findFirstItemIndex() : selectedIndex;
+    },
+
+    findLastFocusedItemIndex() {
+      const selectedIndex = this.findSelectedItemIndex();
+      return selectedIndex < 0 ? this.findLastItemIndex() : selectedIndex;
+    },
+
+    searchItems(event, char) {
+      this.searchValue = (this.searchValue || '') + char;
+      let itemIndex = -1;
+      let matched = false;
+
+      if (this.focusedItemInfo.index !== -1) {
+        itemIndex = this.visibleItems.slice(this.focusedItemInfo.index).findIndex(processedItem => this.isItemMatched(processedItem));
+        itemIndex = itemIndex === -1 ? this.visibleItems.slice(0, this.focusedItemInfo.index).findIndex(processedItem => this.isItemMatched(processedItem)) : itemIndex + this.focusedItemInfo.index;
+      } else {
+        itemIndex = this.visibleItems.findIndex(processedItem => this.isItemMatched(processedItem));
+      }
+
+      if (itemIndex !== -1) {
+        matched = true;
+      }
+
+      if (itemIndex === -1 && this.focusedItemInfo.index === -1) {
+        itemIndex = this.findFirstFocusedItemIndex();
+      }
+
+      if (itemIndex !== -1) {
+        this.changeFocusedItemIndex(event, itemIndex);
+      }
+
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+
+      this.searchTimeout = setTimeout(() => {
+        this.searchValue = '';
+        this.searchTimeout = null;
+      }, 500);
+      return matched;
+    },
+
+    changeFocusedItemIndex(event, index) {
+      if (this.focusedItemInfo.index !== index) {
+        this.focusedItemInfo.index = index;
+        this.scrollInView();
+      }
+    },
+
+    scrollInView(index = -1) {
+      const id = index !== -1 ? `${this.id}_${index}` : this.focusedItemId;
+      const element = DomHandler.findSingle(this.menubar, `li[id="${id}"]`);
+
+      if (element) {
+        element.scrollIntoView && element.scrollIntoView({
+          block: 'nearest',
+          inline: 'start'
+        });
+      }
+    },
+
+    createProcessedItems(items, level = 0, parent = {}, parentKey = '') {
+      const processedItems = [];
+      items && items.forEach((item, index) => {
+        const key = (parentKey !== '' ? parentKey + '_' : '') + index;
+        const newItem = {
+          item,
+          index,
+          level,
+          key,
+          parent,
+          parentKey
+        };
+        newItem['items'] = this.createProcessedItems(item.items, level + 1, newItem, key);
+        processedItems.push(newItem);
+      });
+      return processedItems;
+    },
+
+    containerRef(el) {
+      this.container = el;
+    },
+
+    menubarRef(el) {
+      this.menubar = el ? el.$el : undefined;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-menubar p-component', {
+        'p-menubar-mobile-active': this.mobileActive
+      }];
+    },
+
+    processedItems() {
+      return this.createProcessedItems(this.model || []);
+    },
+
+    visibleItems() {
+      const processedItem = this.activeItemPath.find(p => p.key === this.focusedItemInfo.parentKey);
+      return processedItem ? processedItem.items : this.processedItems;
+    },
+
+    id() {
+      return this.$attrs.id || UniqueComponentId();
+    },
+
+    focusedItemId() {
+      return this.focusedItemInfo.index !== -1 ? `${this.id}${ObjectUtils.isNotEmpty(this.focusedItemInfo.parentKey) ? '_' + this.focusedItemInfo.parentKey : ''}_${this.focusedItemInfo.index}` : null;
+    }
+
+  },
+  components: {
+    MenubarSub: script$1$4
+  }
+};
+const _hoisted_1$s = {
+  key: 0,
+  class: "p-menubar-start"
+};
+const _hoisted_2$o = ["aria-haspopup", "aria-expanded", "aria-controls", "aria-label"];
+
+const _hoisted_3$i = /*#__PURE__*/createElementVNode("i", {
+  class: "pi pi-bars"
+}, null, -1);
+
+const _hoisted_4$f = [_hoisted_3$i];
+const _hoisted_5$d = {
+  key: 2,
+  class: "p-menubar-end"
+};
+
+function render$g(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_MenubarSub = resolveComponent("MenubarSub");
+
+  return openBlock(), createElementBlock("div", {
+    ref: $options.containerRef,
+    class: normalizeClass($options.containerClass)
+  }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_1$s, [renderSlot(_ctx.$slots, "start")])) : createCommentVNode("", true), $props.model.length > 0 ? (openBlock(), createElementBlock("a", mergeProps({
+    key: 1,
+    ref: "menubutton",
+    role: "button",
+    tabindex: "0",
+    class: "p-menubar-button",
+    "aria-haspopup": $props.model.length && $props.model.length > 0 ? true : false,
+    "aria-expanded": $data.mobileActive,
+    "aria-controls": $options.id,
+    "aria-label": _ctx.$primevue.config.locale.aria.navigation,
+    onClick: _cache[0] || (_cache[0] = $event => $options.menuButtonClick($event)),
+    onKeydown: _cache[1] || (_cache[1] = $event => $options.menuButtonKeydown($event))
+  }, $props.buttonProps), _hoisted_4$f, 16, _hoisted_2$o)) : createCommentVNode("", true), createVNode(_component_MenubarSub, {
+    ref: $options.menubarRef,
+    id: $options.id,
+    class: "p-menubar-root-list",
+    role: "menubar",
+    items: $options.processedItems,
+    template: _ctx.$slots.item,
+    root: true,
+    mobileActive: $data.mobileActive,
+    tabindex: "0",
+    "aria-activedescendant": $data.focused ? $options.focusedItemId : undefined,
+    menuId: $options.id,
+    focusedItemId: $data.focused ? $options.focusedItemId : undefined,
+    activeItemPath: $data.activeItemPath,
+    exact: $props.exact,
+    level: 0,
+    "aria-labelledby": _ctx.ariaLabelledby,
+    "aria-label": _ctx.ariaLabel,
+    onFocus: $options.onFocus,
+    onBlur: $options.onBlur,
+    onKeydown: $options.onKeyDown,
+    onItemClick: $options.onItemClick,
+    onItemMouseenter: $options.onItemMouseEnter
+  }, null, 8, ["id", "items", "template", "mobileActive", "aria-activedescendant", "menuId", "focusedItemId", "activeItemPath", "exact", "aria-labelledby", "aria-label", "onFocus", "onBlur", "onKeydown", "onItemClick", "onItemMouseenter"]), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_5$d, [renderSlot(_ctx.$slots, "end")])) : createCommentVNode("", true)], 2);
+}
+
+function styleInject$b(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$i = "\n.p-menubar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-menubar ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menubar .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menubar .p-menuitem-text {\n    line-height: 1;\n}\n.p-menubar .p-menuitem {\n    position: relative;\n}\n.p-menubar-root-list {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-menubar-root-list > li ul {\n    display: none;\n    z-index: 1;\n}\n.p-menubar-root-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n}\n.p-menubar .p-submenu-list {\n    display: none;\n    position: absolute;\n    z-index: 1;\n}\n.p-menubar .p-submenu-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n    left: 100%;\n    top: 0;\n}\n.p-menubar .p-submenu-list .p-menuitem .p-menuitem-content .p-menuitem-link .p-submenu-icon {\n    margin-left: auto;\n}\n.p-menubar .p-menubar-end {\n    margin-left: auto;\n    -ms-flex-item-align: center;\n        align-self: center;\n}\n.p-menubar-button {\n    display: none;\n    cursor: pointer;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    text-decoration: none;\n}\n";
+styleInject$b(css_248z$i);
+script$11.render = render$g;
+
+var script$10 = {
+  name: 'Chart',
+  emits: ['select', 'loaded'],
+  props: {
+    type: String,
+    data: null,
+    options: null,
+    plugins: null,
+    width: {
+      type: Number,
+      default: 300
+    },
+    height: {
+      type: Number,
+      default: 150
+    }
+  },
+  chart: null,
+  watch: {
+    /*
+     * Use deep watch to enable triggering watch for changes within structure
+     * otherwise the entire data object needs to be replaced to trigger watch
+     */
+    data: {
+      handler() {
+        this.reinit();
+      },
+
+      deep: true
+    },
+
+    type() {
+      this.reinit();
+    },
+
+    options() {
+      this.reinit();
+    }
+
+  },
+
+  mounted() {
+    this.initChart();
+  },
+
+  beforeUnmount() {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+  },
+
+  methods: {
+    initChart() {
+      Promise.resolve().then(function () { return auto; }).then(module => {
+        if (this.chart) {
+          this.chart.destroy();
+          this.chart = null;
+        }
+
+        if (module && module.default) {
+          this.chart = new module.default(this.$refs.canvas, {
+            type: this.type,
+            data: this.data,
+            options: this.options,
+            plugins: this.plugins
+          });
+        }
+
+        this.$emit('loaded', this.chart);
+      });
+    },
+
+    getCanvas() {
+      return this.$canvas;
+    },
+
+    getChart() {
+      return this.chart;
+    },
+
+    getBase64Image() {
+      return this.chart.toBase64Image();
+    },
+
+    refresh() {
+      if (this.chart) {
+        this.chart.update();
+      }
+    },
+
+    reinit() {
+      this.initChart();
+    },
+
+    onCanvasClick(event) {
+      if (this.chart) {
+        const element = this.chart.getElementsAtEventForMode(event, 'nearest', {
+          intersect: true
+        }, false);
+        const dataset = this.chart.getElementsAtEventForMode(event, 'dataset', {
+          intersect: true
+        }, false);
+
+        if (element && element[0] && dataset) {
+          this.$emit('select', {
+            originalEvent: event,
+            element: element[0],
+            dataset: dataset
+          });
+        }
+      }
+    },
+
+    generateLegend() {
+      if (this.chart) {
+        return this.chart.generateLegend();
+      }
+    }
+
+  }
+};
+const _hoisted_1$r = {
+  class: "p-chart"
+};
+const _hoisted_2$n = ["width", "height"];
+
+function render$f(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$r, [createElementVNode("canvas", {
+    ref: "canvas",
+    width: $props.width,
+    height: $props.height,
+    onClick: _cache[0] || (_cache[0] = $event => $options.onCanvasClick($event))
+  }, null, 8, _hoisted_2$n)]);
+}
+
+function styleInject$a(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$h = "\n.p-chart {\n    position: relative;\n}\n";
+styleInject$a(css_248z$h);
+script$10.render = render$f;
+
+var script$$ = {
+  props: {
+    group : String,
+    field : String,
+    report : Object
+},
+  setup(__props) {
+
+
+
+
+const model = inject("model");
+
+const store = getModel(model);
+createRepoStore(store);
+
+const schema = store.fields;
+
+for(const field in schema) {
+    if (schema[field].type == "time" || schema[field].type == "number") ;
+}
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    createVNode(unref(script$11), null, {
+      start: withCtx(() => [
+        createVNode(script$12, { report: __props.report }, null, 8 /* PROPS */, ["report"]),
+        (__props.report.has_scale)
+          ? (openBlock(), createBlock(script$13, {
+              key: 0,
+              report: __props.report
+            }, null, 8 /* PROPS */, ["report"]))
+          : createCommentVNode("v-if", true)
+      ]),
+      end: withCtx(() => [
+        createVNode(script$15, { report: __props.report }, null, 8 /* PROPS */, ["report"])
+      ]),
+      _: 1 /* STABLE */
+    }),
+    (__props.report.has_scale)
+      ? (openBlock(), createBlock(unref(script$10), {
+          key: 0,
+          type: "line"
+        }))
+      : (openBlock(), createBlock(unref(script$10), {
+          key: 1,
+          type: "bar"
+        }))
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$$.__file = "presstojam/src/components/reports/numeric-report.vue";
 
 var script$9$2 = {
   name: 'CurrentPageReport',
@@ -27220,7 +31128,7 @@ var script$7$2 = {
 
   },
   components: {
-    JTPDropdown: script$1b
+    JTPDropdown: script$14
   }
 };
 
@@ -27255,7 +31163,7 @@ var script$6$2 = {
 
   },
   components: {
-    JTPInput: script$1H
+    JTPInput: script$1A
   }
 };
 
@@ -27390,11 +31298,11 @@ var script$2$2 = {
   }
 };
 
-const _hoisted_1$1$5 = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_1$1$3 = /*#__PURE__*/createElementVNode("span", {
   class: "p-paginator-icon pi pi-angle-left"
 }, null, -1);
 
-const _hoisted_2$1$5 = [_hoisted_1$1$5];
+const _hoisted_2$1$3 = [_hoisted_1$1$3];
 
 function render$2$2(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
@@ -27402,11 +31310,11 @@ function render$2$2(_ctx, _cache, $props, $setup, $data, $options) {
   return withDirectives((openBlock(), createElementBlock("button", {
     class: normalizeClass($options.containerClass),
     type: "button"
-  }, _hoisted_2$1$5, 2)), [[_directive_ripple]]);
+  }, _hoisted_2$1$3, 2)), [[_directive_ripple]]);
 }
 
 script$2$2.render = render$2$2;
-var script$1$5 = {
+var script$1$3 = {
   name: 'RowsPerPageDropdown',
   inheritAttrs: false,
   emits: ['rows-change'],
@@ -27439,11 +31347,11 @@ var script$1$5 = {
 
   },
   components: {
-    RPPDropdown: script$1b
+    RPPDropdown: script$14
   }
 };
 
-function render$1$5(_ctx, _cache, $props, $setup, $data, $options) {
+function render$1$3(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_RPPDropdown = resolveComponent("RPPDropdown");
 
   return openBlock(), createBlock(_component_RPPDropdown, {
@@ -27457,8 +31365,8 @@ function render$1$5(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["modelValue", "options", "disabled"]);
 }
 
-script$1$5.render = render$1$5;
-var script$1a = {
+script$1$3.render = render$1$3;
+var script$_ = {
   name: 'Paginator',
   emits: ['update:first', 'update:rows', 'page'],
   props: {
@@ -27740,24 +31648,24 @@ var script$1a = {
     NextPageLink: script$4$2,
     PageLinks: script$3$2,
     PrevPageLink: script$2$2,
-    RowsPerPageDropdown: script$1$5,
+    RowsPerPageDropdown: script$1$3,
     JumpToPageDropdown: script$7$2,
     JumpToPageInput: script$6$2
   }
 };
-const _hoisted_1$y = {
+const _hoisted_1$q = {
   key: 0
 };
-const _hoisted_2$r = {
+const _hoisted_2$m = {
   key: 0,
   class: "p-paginator-left-content"
 };
-const _hoisted_3$l = {
+const _hoisted_3$h = {
   key: 1,
   class: "p-paginator-right-content"
 };
 
-function render$j(_ctx, _cache, $props, $setup, $data, $options) {
+function render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FirstPageLink = resolveComponent("FirstPageLink");
 
   const _component_PrevPageLink = resolveComponent("PrevPageLink");
@@ -27776,13 +31684,13 @@ function render$j(_ctx, _cache, $props, $setup, $data, $options) {
 
   const _component_JumpToPageInput = resolveComponent("JumpToPageInput");
 
-  return ($props.alwaysShow ? true : $options.pageLinks && $options.pageLinks.length > 1) ? (openBlock(), createElementBlock("div", _hoisted_1$y, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.templateItems, (value, key) => {
+  return ($props.alwaysShow ? true : $options.pageLinks && $options.pageLinks.length > 1) ? (openBlock(), createElementBlock("div", _hoisted_1$q, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.templateItems, (value, key) => {
     return openBlock(), createElementBlock("div", {
       key: key,
       ref_for: true,
       ref: "paginator",
       class: normalizeClass(["p-paginator p-component", $options.getPaginatorClasses(key)])
-    }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_2$r, [renderSlot(_ctx.$slots, "start", {
+    }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_2$m, [renderSlot(_ctx.$slots, "start", {
       state: $options.currentState
     })])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(value, item => {
       return openBlock(), createElementBlock(Fragment, {
@@ -27835,13 +31743,13 @@ function render$j(_ctx, _cache, $props, $setup, $data, $options) {
         onPageChange: _cache[7] || (_cache[7] = $event => $options.changePage($event)),
         disabled: $options.empty
       }, null, 8, ["page", "disabled"])) : createCommentVNode("", true)], 64);
-    }), 128)), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_3$l, [renderSlot(_ctx.$slots, "end", {
+    }), 128)), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_3$h, [renderSlot(_ctx.$slots, "end", {
       state: $options.currentState
     })])) : createCommentVNode("", true)], 2);
   }), 128))])) : createCommentVNode("", true);
 }
 
-function styleInject$f(css, ref) {
+function styleInject$9(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -27870,9 +31778,9 @@ function styleInject$f(css, ref) {
   }
 }
 
-var css_248z$n = "\n.p-paginator-default {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-paginator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-paginator-left-content {\n    margin-right: auto;\n}\n.p-paginator-right-content {\n    margin-left: auto;\n}\n.p-paginator-page,\n.p-paginator-next,\n.p-paginator-last,\n.p-paginator-first,\n.p-paginator-prev,\n.p-paginator-current {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    line-height: 1;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-paginator-element:focus {\n    z-index: 1;\n    position: relative;\n}\n";
-styleInject$f(css_248z$n);
-script$1a.render = render$j;
+var css_248z$g = "\n.p-paginator-default {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-paginator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-paginator-left-content {\n    margin-right: auto;\n}\n.p-paginator-right-content {\n    margin-left: auto;\n}\n.p-paginator-page,\n.p-paginator-next,\n.p-paginator-last,\n.p-paginator-first,\n.p-paginator-prev,\n.p-paginator-current {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    line-height: 1;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-paginator-element:focus {\n    z-index: 1;\n    position: relative;\n}\n";
+styleInject$9(css_248z$g);
+script$_.render = render$e;
 
 var script$a$1 = {
   name: 'RowRadioButton',
@@ -30050,9 +33958,9 @@ var script$3$1 = {
 
   },
   components: {
-    CFDropdown: script$1b,
-    CFButton: script$1J,
-    Portal: script$1C
+    CFDropdown: script$14,
+    CFButton: script$1C,
+    Portal: script$1H
   }
 };
 const _hoisted_1$3$1 = {
@@ -30067,33 +33975,33 @@ const _hoisted_3$3$1 = /*#__PURE__*/createElementVNode("span", {
 
 const _hoisted_4$2$1 = [_hoisted_3$3$1];
 
-const _hoisted_5$1$2 = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_5$1$1 = /*#__PURE__*/createElementVNode("span", {
   class: "pi pi-filter-slash"
 }, null, -1);
 
-const _hoisted_6$1$1 = [_hoisted_5$1$2];
-const _hoisted_7$7 = {
+const _hoisted_6$1$1 = [_hoisted_5$1$1];
+const _hoisted_7$5 = {
   key: 0,
   class: "p-column-filter-row-items"
 };
-const _hoisted_8$5 = ["onClick", "onKeydown", "tabindex"];
+const _hoisted_8$4 = ["onClick", "onKeydown", "tabindex"];
 
-const _hoisted_9$3 = /*#__PURE__*/createElementVNode("li", {
+const _hoisted_9$2 = /*#__PURE__*/createElementVNode("li", {
   class: "p-column-filter-separator"
 }, null, -1);
 
-const _hoisted_10$3 = {
+const _hoisted_10$2 = {
   key: 0,
   class: "p-column-filter-operator"
 };
-const _hoisted_11$3 = {
+const _hoisted_11$2 = {
   class: "p-column-filter-constraints"
 };
-const _hoisted_12$3 = {
+const _hoisted_12$2 = {
   key: 1,
   class: "p-column-filter-add-rule"
 };
-const _hoisted_13$3 = {
+const _hoisted_13$2 = {
   class: "p-column-filter-buttonbar"
 };
 
@@ -30147,7 +34055,7 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
         field: $props.field,
         filterModel: $props.filters[$props.field],
         filterCallback: $options.filterCallback
-      }, null, 8, ["field", "filterModel", "filterCallback"])), $props.display === 'row' ? (openBlock(), createElementBlock("ul", _hoisted_7$7, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.matchModes, (matchMode, i) => {
+      }, null, 8, ["field", "filterModel", "filterCallback"])), $props.display === 'row' ? (openBlock(), createElementBlock("ul", _hoisted_7$5, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.matchModes, (matchMode, i) => {
         return openBlock(), createElementBlock("li", {
           key: matchMode.label,
           class: normalizeClass(["p-column-filter-row-item", {
@@ -30156,21 +34064,21 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
           onClick: $event => $options.onRowMatchModeChange(matchMode.value),
           onKeydown: [_cache[3] || (_cache[3] = $event => $options.onRowMatchModeKeyDown($event)), withKeys(withModifiers($event => $options.onRowMatchModeChange(matchMode.value), ["prevent"]), ["enter"])],
           tabindex: i === 0 ? '0' : null
-        }, toDisplayString$1(matchMode.label), 43, _hoisted_8$5);
-      }), 128)), _hoisted_9$3, createElementVNode("li", {
+        }, toDisplayString$1(matchMode.label), 43, _hoisted_8$4);
+      }), 128)), _hoisted_9$2, createElementVNode("li", {
         class: "p-column-filter-row-item",
         onClick: _cache[4] || (_cache[4] = $event => $options.clearFilter()),
         onKeydown: [_cache[5] || (_cache[5] = $event => $options.onRowMatchModeKeyDown($event)), _cache[6] || (_cache[6] = withKeys($event => _ctx.onRowClearItemClick(), ["enter"]))]
       }, toDisplayString$1($options.noFilterLabel), 33)])) : (openBlock(), createElementBlock(Fragment, {
         key: 1
-      }, [$options.isShowOperator ? (openBlock(), createElementBlock("div", _hoisted_10$3, [createVNode(_component_CFDropdown, {
+      }, [$options.isShowOperator ? (openBlock(), createElementBlock("div", _hoisted_10$2, [createVNode(_component_CFDropdown, {
         options: $options.operatorOptions,
         modelValue: $options.operator,
         "onUpdate:modelValue": _cache[7] || (_cache[7] = $event => $options.onOperatorChange($event)),
         class: "p-column-filter-operator-dropdown",
         optionLabel: "label",
         optionValue: "value"
-      }, null, 8, ["options", "modelValue"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_11$3, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.fieldConstraints, (fieldConstraint, i) => {
+      }, null, 8, ["options", "modelValue"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_11$2, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.fieldConstraints, (fieldConstraint, i) => {
         return openBlock(), createElementBlock("div", {
           key: i,
           class: "p-column-filter-constraint"
@@ -30195,13 +34103,13 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
           onClick: $event => $options.removeConstraint(i),
           label: $options.removeRuleButtonLabel
         }, null, 8, ["onClick", "label"])) : createCommentVNode("", true)])]);
-      }), 128))]), $options.isShowAddConstraint ? (openBlock(), createElementBlock("div", _hoisted_12$3, [createVNode(_component_CFButton, {
+      }), 128))]), $options.isShowAddConstraint ? (openBlock(), createElementBlock("div", _hoisted_12$2, [createVNode(_component_CFButton, {
         type: "button",
         label: $options.addRuleButtonLabel,
         icon: "pi pi-plus",
         class: "p-column-filter-add-button p-button-text p-button-sm",
         onClick: _cache[8] || (_cache[8] = $event => $options.addConstraint())
-      }, null, 8, ["label"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_13$3, [!$props.filterClearTemplate && $props.showClearButton ? (openBlock(), createBlock(_component_CFButton, {
+      }, null, 8, ["label"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_13$2, [!$props.filterClearTemplate && $props.showClearButton ? (openBlock(), createBlock(_component_CFButton, {
         key: 0,
         type: "button",
         class: "p-button-outlined p-button-sm",
@@ -30489,7 +34397,7 @@ const _hoisted_3$2$1 = {
   key: 1,
   class: "p-column-title"
 };
-const _hoisted_4$1$2 = {
+const _hoisted_4$1$1 = {
   key: 3,
   class: "p-sortable-column-badge"
 };
@@ -30524,7 +34432,7 @@ function render$2$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["column"])) : createCommentVNode("", true), $options.columnProp('header') ? (openBlock(), createElementBlock("span", _hoisted_3$2$1, toDisplayString$1($options.columnProp('header')), 1)) : createCommentVNode("", true), $options.columnProp('sortable') ? (openBlock(), createElementBlock("span", {
     key: 2,
     class: normalizeClass($options.sortableColumnIcon)
-  }, null, 2)) : createCommentVNode("", true), $options.isMultiSorted() ? (openBlock(), createElementBlock("span", _hoisted_4$1$2, toDisplayString$1($options.getBadgeValue()), 1)) : createCommentVNode("", true), $options.columnProp('selectionMode') === 'multiple' && $props.filterDisplay !== 'row' ? (openBlock(), createBlock(_component_DTHeaderCheckbox, {
+  }, null, 2)) : createCommentVNode("", true), $options.isMultiSorted() ? (openBlock(), createElementBlock("span", _hoisted_4$1$1, toDisplayString$1($options.getBadgeValue()), 1)) : createCommentVNode("", true), $options.columnProp('selectionMode') === 'multiple' && $props.filterDisplay !== 'row' ? (openBlock(), createBlock(_component_DTHeaderCheckbox, {
     key: 4,
     checked: $props.allRowsSelected,
     onChange: $options.onHeaderCheckboxChange,
@@ -30562,7 +34470,7 @@ function render$2$1(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$2$1.render = render$2$1;
-var script$1$4 = {
+var script$1$2 = {
   name: 'TableHeader',
   emits: ['column-click', 'column-mousedown', 'column-dragstart', 'column-dragover', 'column-dragleave', 'column-drop', 'column-resizestart', 'checkbox-change', 'filter-change', 'filter-apply', 'operator-change', 'matchmode-change', 'constraint-add', 'constraint-remove', 'filter-clear', 'apply-click'],
   props: {
@@ -30681,28 +34589,28 @@ var script$1$4 = {
     DTColumnFilter: script$3$1
   }
 };
-const _hoisted_1$1$4 = {
+const _hoisted_1$1$2 = {
   class: "p-datatable-thead",
   role: "rowgroup"
 };
-const _hoisted_2$1$4 = {
+const _hoisted_2$1$2 = {
   role: "row"
 };
-const _hoisted_3$1$4 = {
+const _hoisted_3$1$2 = {
   key: 0,
   role: "row"
 };
 
-function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
+function render$1$2(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTHeaderCell = resolveComponent("DTHeaderCell");
 
   const _component_DTHeaderCheckbox = resolveComponent("DTHeaderCheckbox");
 
   const _component_DTColumnFilter = resolveComponent("DTColumnFilter");
 
-  return openBlock(), createElementBlock("thead", _hoisted_1$1$4, [!$props.columnGroup ? (openBlock(), createElementBlock(Fragment, {
+  return openBlock(), createElementBlock("thead", _hoisted_1$1$2, [!$props.columnGroup ? (openBlock(), createElementBlock(Fragment, {
     key: 0
-  }, [createElementVNode("tr", _hoisted_2$1$4, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.columns, (col, i) => {
+  }, [createElementVNode("tr", _hoisted_2$1$2, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.columns, (col, i) => {
     return openBlock(), createElementBlock(Fragment, {
       key: $options.columnProp(col, 'columnKey') || $options.columnProp(col, 'field') || i
     }, [!$options.columnProp(col, 'hidden') && ($props.rowGroupMode !== 'subheader' || $props.groupRowsBy !== $options.columnProp(col, 'field')) ? (openBlock(), createBlock(_component_DTHeaderCell, {
@@ -30737,7 +34645,7 @@ function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
       onConstraintRemove: _cache[13] || (_cache[13] = $event => _ctx.$emit('constraint-remove', $event)),
       onApplyClick: _cache[14] || (_cache[14] = $event => _ctx.$emit('apply-click', $event))
     }, null, 8, ["column", "groupRowsBy", "groupRowSortField", "reorderableColumns", "resizableColumns", "sortMode", "sortField", "sortOrder", "multiSortMeta", "allRowsSelected", "empty", "filters", "filterDisplay", "filtersStore"])) : createCommentVNode("", true)], 64);
-  }), 128))]), $props.filterDisplay === 'row' ? (openBlock(), createElementBlock("tr", _hoisted_3$1$4, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.columns, (col, i) => {
+  }), 128))]), $props.filterDisplay === 'row' ? (openBlock(), createElementBlock("tr", _hoisted_3$1$2, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.columns, (col, i) => {
     return openBlock(), createElementBlock(Fragment, {
       key: $options.columnProp(col, 'columnKey') || $options.columnProp(col, 'field') || i
     }, [!$options.columnProp(col, 'hidden') && ($props.rowGroupMode !== 'subheader' || $props.groupRowsBy !== $options.columnProp(col, 'field')) ? (openBlock(), createElementBlock("th", {
@@ -30817,8 +34725,8 @@ function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128))]);
 }
 
-script$1$4.render = render$1$4;
-var script$19 = {
+script$1$2.render = render$1$2;
+var script$Z = {
   name: 'DataTable',
   emits: ['value-change', 'update:first', 'update:rows', 'page', 'update:sortField', 'update:sortOrder', 'update:multiSortMeta', 'sort', 'filter', 'row-click', 'row-dblclick', 'update:selection', 'row-select', 'row-unselect', 'update:contextMenuSelection', 'row-contextmenu', 'row-unselect-all', 'row-select-all', 'select-all-change', 'column-resize-end', 'column-reorder', 'row-reorder', 'update:expandedRows', 'row-collapse', 'row-expand', 'update:expandedRowGroups', 'rowgroup-collapse', 'rowgroup-expand', 'update:filters', 'state-restore', 'state-save', 'cell-edit-init', 'cell-edit-complete', 'cell-edit-cancel', 'update:editingRows', 'row-edit-init', 'row-edit-save', 'row-edit-cancel'],
   props: {
@@ -32812,33 +36720,33 @@ var script$19 = {
 
   },
   components: {
-    DTPaginator: script$1a,
-    DTTableHeader: script$1$4,
+    DTPaginator: script$_,
+    DTTableHeader: script$1$2,
     DTTableBody: script$7$1,
     DTTableFooter: script$5$1,
-    DTVirtualScroller: script$1y
+    DTVirtualScroller: script$1s
   }
 };
-const _hoisted_1$x = {
+const _hoisted_1$p = {
   key: 0,
   class: "p-datatable-loading-overlay p-component-overlay"
 };
-const _hoisted_2$q = {
+const _hoisted_2$l = {
   key: 1,
   class: "p-datatable-header"
 };
-const _hoisted_3$k = {
+const _hoisted_3$g = {
   key: 4,
   class: "p-datatable-footer"
 };
-const _hoisted_4$j = {
+const _hoisted_4$e = {
   ref: "resizeHelper",
   class: "p-column-resizer-helper",
   style: {
     "display": "none"
   }
 };
-const _hoisted_5$d = {
+const _hoisted_5$c = {
   key: 5,
   ref: "reorderIndicatorUp",
   class: "pi pi-arrow-down p-datatable-reorder-indicator-up",
@@ -32847,7 +36755,7 @@ const _hoisted_5$d = {
     "display": "none"
   }
 };
-const _hoisted_6$b = {
+const _hoisted_6$a = {
   key: 6,
   ref: "reorderIndicatorDown",
   class: "pi pi-arrow-up p-datatable-reorder-indicator-down",
@@ -32857,7 +36765,7 @@ const _hoisted_6$b = {
   }
 };
 
-function render$i(_ctx, _cache, $props, $setup, $data, $options) {
+function render$d(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTPaginator = resolveComponent("DTPaginator");
 
   const _component_DTTableHeader = resolveComponent("DTTableHeader");
@@ -32871,12 +36779,12 @@ function render$i(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass),
     "data-scrollselectors": ".p-datatable-wrapper"
-  }, [renderSlot(_ctx.$slots, "default"), $props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$x, [_ctx.$slots.loading ? renderSlot(_ctx.$slots, "loading", {
+  }, [renderSlot(_ctx.$slots, "default"), $props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$p, [_ctx.$slots.loading ? renderSlot(_ctx.$slots, "loading", {
     key: 0
   }) : (openBlock(), createElementBlock("i", {
     key: 1,
     class: normalizeClass($options.loadingIconClass)
-  }, null, 2))])) : createCommentVNode("", true), _ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$q, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DTPaginator, {
+  }, null, 2))])) : createCommentVNode("", true), _ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$l, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DTPaginator, {
     key: 2,
     rows: $data.d_rows,
     first: $data.d_first,
@@ -33082,4025 +36990,7 @@ function render$i(_ctx, _cache, $props, $setup, $data, $options) {
     name: "end",
     fn: withCtx(() => [renderSlot(_ctx.$slots, "paginatorend")]),
     key: "1"
-  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_3$k, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$j, null, 512), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_5$d, null, 512)) : createCommentVNode("", true), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_6$b, null, 512)) : createCommentVNode("", true)], 2);
-}
-
-function styleInject$e(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$m = "\n.p-datatable {\n    position: relative;\n}\n.p-datatable table {\n    border-collapse: collapse;\n    min-width: 100%;\n    table-layout: fixed;\n}\n.p-datatable .p-sortable-column {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-datatable .p-sortable-column .p-column-title,\n.p-datatable .p-sortable-column .p-sortable-column-icon,\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    vertical-align: middle;\n}\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper > table,\n.p-datatable-auto-layout > .p-datatable-wrapper > table {\n    table-layout: auto;\n}\n.p-datatable-hoverable-rows .p-selectable-row {\n    cursor: pointer;\n}\n\n/* Scrollable */\n.p-datatable-scrollable .p-datatable-wrapper {\n    position: relative;\n    overflow: auto;\n}\n.p-datatable-scrollable .p-datatable-thead,\n.p-datatable-scrollable .p-datatable-tbody,\n.p-datatable-scrollable .p-datatable-tfoot {\n    display: block;\n}\n.p-datatable-scrollable .p-datatable-thead > tr,\n.p-datatable-scrollable .p-datatable-tbody > tr,\n.p-datatable-scrollable .p-datatable-tfoot > tr {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n    width: 100%;\n}\n.p-datatable-scrollable .p-datatable-thead > tr > th,\n.p-datatable-scrollable .p-datatable-tbody > tr > td,\n.p-datatable-scrollable .p-datatable-tfoot > tr > td {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 0px;\n            flex: 1 1 0;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable-scrollable .p-datatable-thead {\n    position: sticky;\n    top: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-frozen-tbody {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-tfoot {\n    position: sticky;\n    bottom: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-frozen-column {\n    position: sticky;\n    background: inherit;\n}\n.p-datatable-scrollable th.p-frozen-column {\n    z-index: 1;\n}\n.p-datatable-scrollable-both .p-datatable-thead > tr > th,\n.p-datatable-scrollable-both .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-both .p-datatable-tfoot > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-thead > tr > th .p-datatable-scrollable-horizontal .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-tfoot > tr > td {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 0 auto;\n            flex: 1 0 auto;\n}\n.p-datatable-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    height: 100%;\n}\n.p-datatable-flex-scrollable .p-datatable-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n}\n.p-datatable-scrollable .p-rowgroup-header {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot {\n    display: table;\n    border-collapse: collapse;\n    width: 100%;\n    table-layout: fixed;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr {\n    display: table-row;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr > th,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr > td {\n    display: table-cell;\n}\n.p-datatable-scrollable .p-virtualscroller > .p-datatable-table {\n    display: inline-block; /* For Safari */\n}\n\n/* Resizable */\n.p-datatable-resizable > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-resizable .p-datatable-thead > tr > th,\n.p-datatable-resizable .p-datatable-tfoot > tr > td,\n.p-datatable-resizable .p-datatable-tbody > tr > td {\n    overflow: hidden;\n    white-space: nowrap;\n}\n.p-datatable-resizable .p-resizable-column:not(.p-frozen-column) {\n    background-clip: padding-box;\n    position: relative;\n}\n.p-datatable-resizable-fit .p-resizable-column:last-child .p-column-resizer {\n    display: none;\n}\n.p-datatable .p-column-resizer {\n    display: block;\n    position: absolute !important;\n    top: 0;\n    right: 0;\n    margin: 0;\n    width: 0.5rem;\n    height: 100%;\n    padding: 0px;\n    cursor: col-resize;\n    border: 1px solid transparent;\n}\n.p-datatable .p-column-header-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable .p-column-resizer-helper {\n    width: 1px;\n    position: absolute;\n    z-index: 10;\n    display: none;\n}\n.p-datatable .p-row-editor-init,\n.p-datatable .p-row-editor-save,\n.p-datatable .p-row-editor-cancel {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Expand */\n.p-datatable .p-row-toggler {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Reorder */\n.p-datatable-reorder-indicator-up,\n.p-datatable-reorder-indicator-down {\n    position: absolute;\n    display: none;\n}\n.p-reorderable-column,\n.p-datatable-reorderablerow-handle {\n    cursor: move;\n}\n\n/* Loader */\n.p-datatable .p-datatable-loading-overlay {\n    position: absolute;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    z-index: 2;\n}\n\n/* Filter */\n.p-column-filter-row {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    width: 100%;\n}\n.p-column-filter-menu {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    margin-left: auto;\n}\n.p-column-filter-row .p-column-filter-element {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-column-filter-menu-button,\n.p-column-filter-clear-button {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-column-filter-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-column-filter-row-items {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-column-filter-row-item {\n    cursor: pointer;\n}\n.p-column-filter-add-button,\n.p-column-filter-remove-button {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-column-filter-add-button .p-button-label,\n.p-column-filter-remove-button .p-button-label {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n}\n.p-column-filter-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-column-filter-buttonbar .p-button:not(.p-button-icon-only) {\n    width: auto;\n}\n\n/* Responsive */\n.p-datatable .p-datatable-tbody > tr > td > .p-column-title {\n    display: none;\n}\n\n/* VirtualScroller */\n.p-datatable .p-virtualscroller-loading {\n    -webkit-transform: none !important;\n            transform: none !important;\n    min-height: 0;\n    position: sticky;\n    top: 0;\n    left: 0;\n}\n";
-styleInject$e(css_248z$m);
-script$19.render = render$i;
-
-var script$18 = {
-  name: 'Column',
-  props: {
-    columnKey: {
-      type: null,
-      default: null
-    },
-    field: {
-      type: [String, Function],
-      default: null
-    },
-    sortField: {
-      type: [String, Function],
-      default: null
-    },
-    filterField: {
-      type: [String, Function],
-      default: null
-    },
-    dataType: {
-      type: String,
-      default: 'text'
-    },
-    sortable: {
-      type: Boolean,
-      default: false
-    },
-    header: {
-      type: null,
-      default: null
-    },
-    footer: {
-      type: null,
-      default: null
-    },
-    style: {
-      type: null,
-      default: null
-    },
-    class: {
-      type: String,
-      default: null
-    },
-    headerStyle: {
-      type: null,
-      default: null
-    },
-    headerClass: {
-      type: String,
-      default: null
-    },
-    bodyStyle: {
-      type: null,
-      default: null
-    },
-    bodyClass: {
-      type: String,
-      default: null
-    },
-    footerStyle: {
-      type: null,
-      default: null
-    },
-    footerClass: {
-      type: String,
-      default: null
-    },
-    showFilterMenu: {
-      type: Boolean,
-      default: true
-    },
-    showFilterOperator: {
-      type: Boolean,
-      default: true
-    },
-    showClearButton: {
-      type: Boolean,
-      default: true
-    },
-    showApplyButton: {
-      type: Boolean,
-      default: true
-    },
-    showFilterMatchModes: {
-      type: Boolean,
-      default: true
-    },
-    showAddButton: {
-      type: Boolean,
-      default: true
-    },
-    filterMatchModeOptions: {
-      type: Array,
-      default: null
-    },
-    maxConstraints: {
-      type: Number,
-      default: 2
-    },
-    excludeGlobalFilter: {
-      type: Boolean,
-      default: false
-    },
-    filterHeaderClass: {
-      type: String,
-      default: null
-    },
-    filterHeaderStyle: {
-      type: null,
-      default: null
-    },
-    filterMenuClass: {
-      type: String,
-      default: null
-    },
-    filterMenuStyle: {
-      type: null,
-      default: null
-    },
-    selectionMode: {
-      type: String,
-      default: null
-    },
-    expander: {
-      type: Boolean,
-      default: false
-    },
-    colspan: {
-      type: Number,
-      default: null
-    },
-    rowspan: {
-      type: Number,
-      default: null
-    },
-    rowReorder: {
-      type: Boolean,
-      default: false
-    },
-    rowReorderIcon: {
-      type: String,
-      default: 'pi pi-bars'
-    },
-    reorderableColumn: {
-      type: Boolean,
-      default: true
-    },
-    rowEditor: {
-      type: Boolean,
-      default: false
-    },
-    frozen: {
-      type: Boolean,
-      default: false
-    },
-    alignFrozen: {
-      type: String,
-      default: 'left'
-    },
-    exportable: {
-      type: Boolean,
-      default: true
-    },
-    exportHeader: {
-      type: String,
-      default: null
-    },
-    exportFooter: {
-      type: String,
-      default: null
-    },
-    filterMatchMode: {
-      type: String,
-      default: null
-    },
-    hidden: {
-      type: Boolean,
-      default: false
-    }
-  },
-
-  render() {
-    return null;
-  }
-
-};
-
-var script$17 = {
-  props: {
-    repo : {
-        type : Object,
-        required : true
-    },
-    id : {
-        type : Number,
-        required : true
-    }
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const client = inject("client");
-const data = ref([]);
-client.get("/audit/" + props.repo.store.model + "/" + props.id)
-.then(response => {
-    for(const obj of response) {
-        if (obj.action == "POST") obj.action = "Created";
-        else if (obj.action == "PUT") obj.action = "Updated";
-        else if (obj.action == "DELETE") obj.action = "Deleted";
-        //obj['--created'] = (!obj['--created']) ? obj['--created'] : obj['--created'].toLocaleDateString("en-UK");
-    }
-    data.value = response;
-});
-
-/*
-const fields = {};
-fields.action = audit.route.schema.action;
-fields['user-login-id'] = audit.route.schema['user-login-id'];
-fields["log"] = audit.route.schema["log"];
-fields["--created"] = audit.route.schema["--created"];
-*/
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$19), { value: data.value }, {
-    default: withCtx(() => [
-      createVNode(unref(script$18), {
-        field: "user-login-id/name",
-        header: "User"
-      }),
-      createVNode(unref(script$18), {
-        field: "action",
-        header: "Type"
-      }),
-      createVNode(unref(script$18), {
-        field: "log",
-        header: "Values"
-      }, {
-        body: withCtx((slotProps) => [
-          createElementVNode("ul", null, [
-            (openBlock(true), createElementBlock(Fragment, null, renderList(slotProps.data.log, (log, key) => {
-              return (openBlock(), createElementBlock("li", null, toDisplayString$1(key) + ": " + toDisplayString$1(log), 1 /* TEXT */))
-            }), 256 /* UNKEYED_FRAGMENT */))
-          ])
-        ]),
-        _: 1 /* STABLE */
-      }),
-      createVNode(unref(script$18), {
-        field: "--created",
-        header: "Date"
-      })
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["value"]))
-}
-}
-
-};
-
-script$17.__file = "presstojam/src/components/effects/audit.vue";
-
-var script$16 = {
-  props: {
-    repo : Object
-},
-  setup(__props) {
-
-
-
-const dialog = ref(false);
-
-
-function showAudit() {
-    dialog.value = true;
-}
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1J), {
-      label: "Audit",
-      icon: "pi pi-history",
-      class: "mr-2 p-button-help",
-      onClick: showAudit
-    }),
-    createVNode(unref(script$1z), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
-      header: "Audit",
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        createVNode(script$17, {
-          repo: __props.repo,
-          id: __props.repo.active_id
-        }, null, 8 /* PROPS */, ["repo", "id"])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$16.__file = "presstojam/src/components/actions/show-audit.vue";
-
-var script$15 = {
-  props: {
-    name : {
-      type : String,
-      required : true
-    }
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const repo = getStore(props.name);
-const store = repo.store;
-repo.selected.value = [{ key : repo.data.value['--id'], label : repo.label }];
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1K), {
-    header: _ctx.$t('models.' + unref(store).model + '.title')
-  }, {
-    icons: withCtx(() => [
-      (unref(store).route.audit)
-        ? (openBlock(), createBlock(script$16, {
-            key: 0,
-            repo: unref(repo)
-          }, null, 8 /* PROPS */, ["repo"]))
-        : createCommentVNode("v-if", true),
-      createVNode(script$1c, {
-        name: __props.name,
-        single: true
-      }, null, 8 /* PROPS */, ["name"]),
-      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).route.settings.actions, (component) => {
-        return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({
-          data: unref(repo).data.value
-        }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
-      }), 256 /* UNKEYED_FRAGMENT */))
-    ]),
-    default: withCtx(() => [
-      (unref(repo).data.value['--id'])
-        ? (openBlock(), createBlock(script$1d, {
-            key: 0,
-            schema: unref(store).route.schema,
-            model: unref(store).model,
-            data: unref(repo).data.value,
-            method: "put"
-          }, null, 8 /* PROPS */, ["schema", "model", "data"]))
-        : createCommentVNode("v-if", true)
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["header"]))
-}
-}
-
-};
-
-script$15.__file = "presstojam/src/components/display.vue";
-
-var script$1$3 = {
-  name: 'BreadcrumbItem',
-  props: {
-    item: null,
-    template: null,
-    exact: null
-  },
-  methods: {
-    onClick(event, navigate) {
-      if (this.item.command) {
-        this.item.command({
-          originalEvent: event,
-          item: this.item
-        });
-      }
-
-      if (this.item.to && navigate) {
-        navigate(event);
-      }
-    },
-
-    containerClass() {
-      return ['p-menuitem', {
-        'p-disabled': this.disabled()
-      }, this.item.class];
-    },
-
-    linkClass(routerProps) {
-      return ['p-menuitem-link', {
-        'router-link-active': routerProps && routerProps.isActive,
-        'router-link-active-exact': this.exact && routerProps && routerProps.isExactActive
-      }];
-    },
-
-    visible() {
-      return typeof this.item.visible === 'function' ? this.item.visible() : this.item.visible !== false;
-    },
-
-    disabled() {
-      return typeof this.item.disabled === 'function' ? this.item.disabled() : this.item.disabled;
-    },
-
-    label() {
-      return typeof this.item.label === 'function' ? this.item.label() : this.item.label;
-    },
-
-    isCurrentUrl() {
-      const {
-        to,
-        url
-      } = this.item;
-      let lastPath = this.$router ? this.$router.currentRoute.path : '';
-      return to === lastPath || url === lastPath ? 'page' : undefined;
-    }
-
-  },
-  computed: {
-    iconClass() {
-      return ['p-menuitem-icon', this.item.icon];
-    }
-
-  }
-};
-const _hoisted_1$1$3 = ["href", "aria-current", "onClick"];
-const _hoisted_2$1$3 = {
-  key: 1,
-  class: "p-menuitem-text"
-};
-const _hoisted_3$1$3 = ["href", "target", "aria-current"];
-const _hoisted_4$i = {
-  key: 1,
-  class: "p-menuitem-text"
-};
-
-function render$1$3(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_router_link = resolveComponent("router-link");
-
-  return $options.visible() ? (openBlock(), createElementBlock("li", {
-    key: 0,
-    class: normalizeClass($options.containerClass())
-  }, [!$props.template ? (openBlock(), createElementBlock(Fragment, {
-    key: 0
-  }, [$props.item.to ? (openBlock(), createBlock(_component_router_link, {
-    key: 0,
-    to: $props.item.to,
-    custom: ""
-  }, {
-    default: withCtx(({
-      navigate,
-      href,
-      isActive,
-      isExactActive
-    }) => [createElementVNode("a", {
-      href: href,
-      class: normalizeClass($options.linkClass({
-        isActive,
-        isExactActive
-      })),
-      "aria-current": $options.isCurrentUrl(),
-      onClick: $event => $options.onClick($event, navigate)
-    }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
-      key: 0,
-      class: normalizeClass($options.iconClass)
-    }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_2$1$3, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_1$1$3)]),
-    _: 1
-  }, 8, ["to"])) : (openBlock(), createElementBlock("a", {
-    key: 1,
-    href: $props.item.url || '#',
-    class: normalizeClass($options.linkClass()),
-    target: $props.item.target,
-    "aria-current": $options.isCurrentUrl(),
-    onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
-  }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
-    key: 0,
-    class: normalizeClass($options.iconClass)
-  }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_4$i, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_3$1$3))], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
-    key: 1,
-    item: $props.item
-  }, null, 8, ["item"]))], 2)) : createCommentVNode("", true);
-}
-
-script$1$3.render = render$1$3;
-var script$14 = {
-  name: 'Breadcrumb',
-  props: {
-    model: {
-      type: Array,
-      default: null
-    },
-    home: {
-      type: null,
-      default: null
-    },
-    exact: {
-      type: Boolean,
-      default: true
-    }
-  },
-  components: {
-    BreadcrumbItem: script$1$3
-  }
-};
-const _hoisted_1$w = {
-  class: "p-breadcrumb p-component"
-};
-const _hoisted_2$p = {
-  class: "p-breadcrumb-list"
-};
-
-const _hoisted_3$j = /*#__PURE__*/createElementVNode("li", {
-  class: "p-menuitem-separator"
-}, [/*#__PURE__*/createElementVNode("span", {
-  class: "pi pi-chevron-right",
-  "aria-hidden": "true"
-})], -1);
-
-function render$h(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_BreadcrumbItem = resolveComponent("BreadcrumbItem");
-
-  return openBlock(), createElementBlock("nav", _hoisted_1$w, [createElementVNode("ol", _hoisted_2$p, [$props.home ? (openBlock(), createBlock(_component_BreadcrumbItem, {
-    key: 0,
-    item: $props.home,
-    class: "p-breadcrumb-home",
-    template: _ctx.$slots.item,
-    exact: $props.exact
-  }, null, 8, ["item", "template", "exact"])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList($props.model, item => {
-    return openBlock(), createElementBlock(Fragment, {
-      key: item.label
-    }, [_hoisted_3$j, createVNode(_component_BreadcrumbItem, {
-      item: item,
-      template: _ctx.$slots.item,
-      exact: $props.exact
-    }, null, 8, ["item", "template", "exact"])], 64);
-  }), 128))])]);
-}
-
-function styleInject$d(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$l = "\n.p-breadcrumb {\n    overflow-x: auto;\n}\n.p-breadcrumb .p-breadcrumb-list {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-breadcrumb .p-menuitem-text {\n    line-height: 1;\n}\n.p-breadcrumb .p-menuitem-link {\n    text-decoration: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb .p-menuitem-separator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb::-webkit-scrollbar {\n    display: none;\n}\n";
-styleInject$d(css_248z$l);
-script$14.render = render$h;
-
-var script$13 = {
-  name: 'OverlayPanel',
-  inheritAttrs: false,
-  emits: ['show', 'hide'],
-  props: {
-    dismissable: {
-      type: Boolean,
-      default: true
-    },
-    showCloseIcon: {
-      type: Boolean,
-      default: false
-    },
-    appendTo: {
-      type: String,
-      default: 'body'
-    },
-    baseZIndex: {
-      type: Number,
-      default: 0
-    },
-    autoZIndex: {
-      type: Boolean,
-      default: true
-    },
-    ariaCloseLabel: {
-      type: String,
-      default: 'close'
-    },
-    breakpoints: {
-      type: Object,
-      default: null
-    }
-  },
-
-  data() {
-    return {
-      visible: false
-    };
-  },
-
-  watch: {
-    dismissable: {
-      immediate: true,
-
-      handler(newValue) {
-        if (newValue) {
-          this.bindOutsideClickListener();
-        } else {
-          this.unbindOutsideClickListener();
-        }
-      }
-
-    }
-  },
-  selfClick: false,
-  target: null,
-  eventTarget: null,
-  outsideClickListener: null,
-  scrollHandler: null,
-  resizeListener: null,
-  container: null,
-  styleElement: null,
-  overlayEventListener: null,
-
-  beforeUnmount() {
-    if (this.dismissable) {
-      this.unbindOutsideClickListener();
-    }
-
-    if (this.scrollHandler) {
-      this.scrollHandler.destroy();
-      this.scrollHandler = null;
-    }
-
-    this.destroyStyle();
-    this.unbindResizeListener();
-    this.target = null;
-
-    if (this.container && this.autoZIndex) {
-      ZIndexUtils.clear(this.container);
-    }
-
-    if (this.overlayEventListener) {
-      OverlayEventBus.off('overlay-click', this.overlayEventListener);
-      this.overlayEventListener = null;
-    }
-
-    this.container = null;
-  },
-
-  mounted() {
-    if (this.breakpoints) {
-      this.createStyle();
-    }
-  },
-
-  methods: {
-    toggle(event, target) {
-      if (this.visible) this.hide();else this.show(event, target);
-    },
-
-    show(event, target) {
-      this.visible = true;
-      this.eventTarget = event.currentTarget;
-      this.target = target || event.currentTarget;
-    },
-
-    hide() {
-      this.visible = false;
-      DomHandler.focus(this.target);
-    },
-
-    onContentClick() {
-      this.selfClick = true;
-    },
-
-    onEnter(el) {
-      this.container.setAttribute(this.attributeSelector, '');
-      this.alignOverlay();
-
-      if (this.dismissable) {
-        this.bindOutsideClickListener();
-      }
-
-      this.bindScrollListener();
-      this.bindResizeListener();
-
-      if (this.autoZIndex) {
-        ZIndexUtils.set('overlay', el, this.baseZIndex + this.$primevue.config.zIndex.overlay);
-      }
-
-      this.overlayEventListener = e => {
-        if (this.container.contains(e.target)) {
-          this.selfClick = true;
-        }
-      };
-
-      this.focus();
-      OverlayEventBus.on('overlay-click', this.overlayEventListener);
-      this.$emit('show');
-    },
-
-    onLeave() {
-      this.unbindOutsideClickListener();
-      this.unbindScrollListener();
-      this.unbindResizeListener();
-      OverlayEventBus.off('overlay-click', this.overlayEventListener);
-      this.overlayEventListener = null;
-      this.$emit('hide');
-    },
-
-    onAfterLeave(el) {
-      if (this.autoZIndex) {
-        ZIndexUtils.clear(el);
-      }
-    },
-
-    alignOverlay() {
-      DomHandler.absolutePosition(this.container, this.target);
-      const containerOffset = DomHandler.getOffset(this.container);
-      const targetOffset = DomHandler.getOffset(this.target);
-      let arrowLeft = 0;
-
-      if (containerOffset.left < targetOffset.left) {
-        arrowLeft = targetOffset.left - containerOffset.left;
-      }
-
-      this.container.style.setProperty('--overlayArrowLeft', `${arrowLeft}px`);
-
-      if (containerOffset.top < targetOffset.top) {
-        DomHandler.addClass(this.container, 'p-overlaypanel-flipped');
-      }
-    },
-
-    onContentKeydown(event) {
-      event.code === 'Escape' && this.hide();
-    },
-
-    onButtonKeydown(event) {
-      switch (event.code) {
-        case 'ArrowDown':
-        case 'ArrowUp':
-        case 'ArrowLeft':
-        case 'ArrowRight':
-          event.preventDefault();
-      }
-    },
-
-    focus() {
-      let focusTarget = this.container.querySelector('[autofocus]');
-
-      if (focusTarget) {
-        focusTarget.focus();
-      }
-    },
-
-    bindOutsideClickListener() {
-      if (!this.outsideClickListener && DomHandler.isClient()) {
-        this.outsideClickListener = event => {
-          if (this.visible && !this.selfClick && !this.isTargetClicked(event)) {
-            this.visible = false;
-          }
-
-          this.selfClick = false;
-        };
-
-        document.addEventListener('click', this.outsideClickListener);
-      }
-    },
-
-    unbindOutsideClickListener() {
-      if (this.outsideClickListener) {
-        document.removeEventListener('click', this.outsideClickListener);
-        this.outsideClickListener = null;
-        this.selfClick = false;
-      }
-    },
-
-    bindScrollListener() {
-      if (!this.scrollHandler) {
-        this.scrollHandler = new ConnectedOverlayScrollHandler(this.target, () => {
-          if (this.visible) {
-            this.visible = false;
-          }
-        });
-      }
-
-      this.scrollHandler.bindScrollListener();
-    },
-
-    unbindScrollListener() {
-      if (this.scrollHandler) {
-        this.scrollHandler.unbindScrollListener();
-      }
-    },
-
-    bindResizeListener() {
-      if (!this.resizeListener) {
-        this.resizeListener = () => {
-          if (this.visible && !DomHandler.isTouchDevice()) {
-            this.visible = false;
-          }
-        };
-
-        window.addEventListener('resize', this.resizeListener);
-      }
-    },
-
-    unbindResizeListener() {
-      if (this.resizeListener) {
-        window.removeEventListener('resize', this.resizeListener);
-        this.resizeListener = null;
-      }
-    },
-
-    isTargetClicked(event) {
-      return this.eventTarget && (this.eventTarget === event.target || this.eventTarget.contains(event.target));
-    },
-
-    containerRef(el) {
-      this.container = el;
-    },
-
-    createStyle() {
-      if (!this.styleElement) {
-        this.styleElement = document.createElement('style');
-        this.styleElement.type = 'text/css';
-        document.head.appendChild(this.styleElement);
-        let innerHTML = '';
-
-        for (let breakpoint in this.breakpoints) {
-          innerHTML += `
-                        @media screen and (max-width: ${breakpoint}) {
-                            .p-overlaypanel[${this.attributeSelector}] {
-                                width: ${this.breakpoints[breakpoint]} !important;
-                            }
-                        }
-                    `;
-        }
-
-        this.styleElement.innerHTML = innerHTML;
-      }
-    },
-
-    destroyStyle() {
-      if (this.styleElement) {
-        document.head.removeChild(this.styleElement);
-        this.styleElement = null;
-      }
-    },
-
-    onOverlayClick(event) {
-      OverlayEventBus.emit('overlay-click', {
-        originalEvent: event,
-        target: this.target
-      });
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-overlaypanel p-component', {
-        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
-        'p-ripple-disabled': this.$primevue.config.ripple === false
-      }];
-    },
-
-    attributeSelector() {
-      return UniqueComponentId();
-    }
-
-  },
-  directives: {
-    focustrap: FocusTrap,
-    ripple: Ripple
-  },
-  components: {
-    Portal: script$1C
-  }
-};
-const _hoisted_1$v = ["aria-modal"];
-const _hoisted_2$o = ["aria-label"];
-
-const _hoisted_3$i = /*#__PURE__*/createElementVNode("span", {
-  class: "p-overlaypanel-close-icon pi pi-times"
-}, null, -1);
-
-const _hoisted_4$h = [_hoisted_3$i];
-
-function render$g(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_Portal = resolveComponent("Portal");
-
-  const _directive_ripple = resolveDirective("ripple");
-
-  const _directive_focustrap = resolveDirective("focustrap");
-
-  return openBlock(), createBlock(_component_Portal, {
-    appendTo: $props.appendTo
-  }, {
-    default: withCtx(() => [createVNode(Transition, {
-      name: "p-overlaypanel",
-      onEnter: $options.onEnter,
-      onLeave: $options.onLeave,
-      onAfterLeave: $options.onAfterLeave
-    }, {
-      default: withCtx(() => [$data.visible ? withDirectives((openBlock(), createElementBlock("div", mergeProps({
-        key: 0,
-        ref: $options.containerRef,
-        role: "dialog",
-        class: $options.containerClass,
-        "aria-modal": $data.visible,
-        onClick: _cache[5] || (_cache[5] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args))
-      }, _ctx.$attrs), [createElementVNode("div", {
-        class: "p-overlaypanel-content",
-        onClick: _cache[0] || (_cache[0] = (...args) => $options.onContentClick && $options.onContentClick(...args)),
-        onMousedown: _cache[1] || (_cache[1] = (...args) => $options.onContentClick && $options.onContentClick(...args)),
-        onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onContentKeydown && $options.onContentKeydown(...args))
-      }, [renderSlot(_ctx.$slots, "default")], 32), $props.showCloseIcon ? withDirectives((openBlock(), createElementBlock("button", {
-        key: 0,
-        class: "p-overlaypanel-close p-link",
-        "aria-label": $props.ariaCloseLabel,
-        type: "button",
-        autofocus: "",
-        onClick: _cache[3] || (_cache[3] = (...args) => $options.hide && $options.hide(...args)),
-        onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onButtonKeydown && $options.onButtonKeydown(...args))
-      }, _hoisted_4$h, 40, _hoisted_2$o)), [[_directive_ripple]]) : createCommentVNode("", true)], 16, _hoisted_1$v)), [[_directive_focustrap]]) : createCommentVNode("", true)]),
-      _: 3
-    }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
-    _: 3
-  }, 8, ["appendTo"]);
-}
-
-function styleInject$c(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$k = "\n.p-overlaypanel {\n    position: absolute;\n    margin-top: 10px;\n    top: 0;\n    left: 0;\n}\n.p-overlaypanel-flipped {\n    margin-top: 0;\n    margin-bottom: 10px;\n}\n.p-overlaypanel-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Animation */\n.p-overlaypanel-enter-from {\n    opacity: 0;\n    -webkit-transform: scaleY(0.8);\n            transform: scaleY(0.8);\n}\n.p-overlaypanel-leave-to {\n    opacity: 0;\n}\n.p-overlaypanel-enter-active {\n    -webkit-transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n}\n.p-overlaypanel-leave-active {\n    -webkit-transition: opacity 0.1s linear;\n    transition: opacity 0.1s linear;\n}\n.p-overlaypanel:after,\n.p-overlaypanel:before {\n    bottom: 100%;\n    left: calc(var(--overlayArrowLeft, 0) + 1.25rem);\n    content: ' ';\n    height: 0;\n    width: 0;\n    position: absolute;\n    pointer-events: none;\n}\n.p-overlaypanel:after {\n    border-width: 8px;\n    margin-left: -8px;\n}\n.p-overlaypanel:before {\n    border-width: 10px;\n    margin-left: -10px;\n}\n.p-overlaypanel-flipped:after,\n.p-overlaypanel-flipped:before {\n    bottom: auto;\n    top: 100%;\n}\n.p-overlaypanel.p-overlaypanel-flipped:after {\n    border-bottom-color: transparent;\n}\n.p-overlaypanel.p-overlaypanel-flipped:before {\n    border-bottom-color: transparent;\n}\n";
-styleInject$c(css_248z$k);
-script$13.render = render$g;
-
-const _hoisted_1$u = ["href", "onClick"];
-const _hoisted_2$n = { class: "p-menuitem-text" };
-const _hoisted_3$h = { class: "row" };
-const _hoisted_4$g = /*#__PURE__*/createTextVNode();
-
-
-var script$12 = {
-  props: {
-    item : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const info = ref();
-
-function toggleInfo(e) {
-    if (props.item && props.item.info) info.value.toggle(e);
-}
-
-
-return (_ctx, _cache) => {
-  const _component_router_link = resolveComponent("router-link");
-
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(_component_router_link, {
-      to: __props.item.to,
-      custom: ""
-    }, {
-      default: withCtx(({isActive, href, navigate, isExactActive}) => [
-        createElementVNode("a", {
-          class: normalizeClass([{'active-link': isActive}, "p-menuitem-link"]),
-          href: href,
-          onClick: navigate,
-          onMouseover: toggleInfo,
-          onMouseout: toggleInfo
-        }, [
-          (__props.item.icon)
-            ? (openBlock(), createElementBlock("i", {
-                key: 0,
-                class: normalizeClass(["pi", __props.item.icon])
-              }, null, 2 /* CLASS */))
-            : createCommentVNode("v-if", true),
-          createElementVNode("span", _hoisted_2$n, toDisplayString$1(__props.item.label), 1 /* TEXT */)
-        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$u)
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["to"]),
-    (__props.item.info)
-      ? (openBlock(), createBlock(unref(script$13), {
-          key: 0,
-          ref_key: "info",
-          ref: info,
-          appendTo: "body"
-        }, {
-          default: withCtx(() => [
-            (openBlock(true), createElementBlock(Fragment, null, renderList(__props.item.info, (row) => {
-              return (openBlock(), createElementBlock("dl", null, [
-                createElementVNode("div", _hoisted_3$h, [
-                  createElementVNode("dt", null, toDisplayString$1(row.label), 1 /* TEXT */),
-                  _hoisted_4$g,
-                  createElementVNode("dd", null, toDisplayString$1(row.value), 1 /* TEXT */)
-                ])
-              ]))
-            }), 256 /* UNKEYED_FRAGMENT */))
-          ]),
-          _: 1 /* STABLE */
-        }, 512 /* NEED_PATCH */))
-      : createCommentVNode("v-if", true)
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-function styleInject$b(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$j = "\ndl[data-v-0b46fb32] {\r\n        position : relative;\r\n        display: flex;\r\n        flex-direction: column;\n}\ndt[data-v-0b46fb32] {\r\n        float : left;\r\n        font-weight : 700;\r\n        width : 50%\n}\ndd[data-v-0b46fb32] {\r\n        position : relative;\r\n        margin-left : 50%;\r\n        padding : 2px;\n}\ndl > div[data-v-0b46fb32] {\r\n        position : relative;\r\n        clear : both;\r\n        display : block;\n}\r\n";
-styleInject$b(css_248z$j);
-
-script$12.__scopeId = "data-v-0b46fb32";
-script$12.__file = "presstojam/src/components/slugtrail/crumb.vue";
-
-var script$11 = {
-  props: {
-    name : String
-},
-  setup(__props) {
-
-const props = __props;
-
-const Client = inject("client");
-const i18n = inject("i18n");
-
-const t = i18n.t;
-
-
-
-
-const repo = getStore(props.name);
-const store = repo.store;
-const home = {icon: 'pi pi-home', to: configs.get("base")};
-
-const routes = ref(getRouteStructure(store.model));
-
-const slug_trail = ref(null);
-
-
-if (store.route.parent) { 
-    if (repo.active_id) {
-        repo.load()
-        .then(() => {
-            const id = repo.data.value['--parent'];
-            return Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
-        }).then(response => {
-            slug_trail.value = rowToTree(response, store.route.parent);
-        }).catch(e => console.log(e));
-    } else {
-        const id = repo.parent_id;
-        Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
-        .then(response => {
-            slug_trail.value = rowToTree(response, store.route.parent);
-        }).catch(e => console.log(e));
-    }
-} 
- 
-
-function trailRouteInfo(trail, route) {
-    let info = [];
-    let summary = [];
-    for(let i in trail[route.name]) {
-        if (route.schema[i].background) continue;
-        if (route.schema[i].summary) summary.push(trail[route.name][i]);
-        info.push({label : t("models." + route.name + ".fields." + i + ".label"), value : trail[route.name][i]});
-    }
-    
-    const label = (summary.length > 0) ? summary.join(" ") : route.name + " - " + trail[route.name]["--id"];
-    return {
-        label,
-        info
-    }
-}
-
-let crumbs = computed(() => {
-    let arr = [];
-    if (!slug_trail.value) return arr;
-
-    let trail = slug_trail.value;
-
-    for(let route of routes.value) {
-        if (!trail[route.name]) continue;
-        //set multiple route
-        const obj = { label : route.name, to : { name : "repo", params : { model : route.name } } };
-        
-        if (trail[route.name] && trail[route.name]["--parent"]) obj.to.params.id = trail[route.name]["--parent"];
-        arr.push(obj);
-        
-        //set child route
-        if (trail[route.name]) {
-            const { label, info } = trailRouteInfo(trail, route);
-            const obj = {
-                label : label,
-                to : { name : "primary", params : { model : route.name, id : trail[route.name]["--id"]} }
-            };
-            if (info.length > 0) obj.info = info;
-            
-            arr.push(obj);
-        }
-    }
-    return arr;
-});
-
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$14), {
-    home: home,
-    model: unref(crumbs)
-  }, {
-    item: withCtx(({item}) => [
-      createVNode(script$12, { item: item }, null, 8 /* PROPS */, ["item"])
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["model"]))
-}
-}
-
-};
-
-var css_248z$i = "\n.slug-trail-vue-vue-type-style-index-0-id-027b103d-scoped-true-lang_p-breadcrumb__D8PaD[data-v-027b103d] {\r\n    background: #ffffff;\r\n    border: 1px solid #dee2e6;\r\n    border-radius: 6px;\r\n    padding: 1rem;\n}\r\n";
-styleInject$b(css_248z$i);
-
-script$11.__scopeId = "data-v-027b103d";
-script$11.__file = "presstojam/src/components/slugtrail/slug-trail.vue";
-
-var slugTrail = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': script$11
-});
-
-var script$10 = {
-  props: {
-    model : String,
-    base : String
-},
-  setup(__props) {
-
-const props = __props;
-
-const i18n = inject("i18n");
-const t = i18n.t;
-
-
-
-/*
-<TabPanel v-for="child in store.route.children" :header="child">
-            <PtjChildPanel :parent="store.active['--id']" :model="child" />
-        </TabPanel>
-*/
-
-
-
-const store = getStoreById(props.model);
-
-const repo = createFirstStore(store);
-regStore(props.model, repo);
-repo.load()
-.catch(e => console.log(e));
-
-
-const label = computed(() => {
-    return t('models.' + props.model + '.title') + ': ' + repo.label.value;
-});
-
-if (store.route && store.route.settings.active && store.route.settings.active.mounted) {
-    onMounted(() => {
-        store.route.settings.active.mounted(store);
-    });
-}
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$11, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$1K), { header: unref(label) }, {
-      default: withCtx(() => [
-        createVNode(script$15, {
-          name: props.model
-        }, null, 8 /* PROPS */, ["name"])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["header"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$10.__file = "presstojam/src/components/active/single.vue";
-
-var script$$ = {
-  name: 'MultiSelect',
-  emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter', 'selectall-change'],
-  props: {
-    modelValue: null,
-    options: Array,
-    optionLabel: null,
-    optionValue: null,
-    optionDisabled: null,
-    optionGroupLabel: null,
-    optionGroupChildren: null,
-    scrollHeight: {
-      type: String,
-      default: '200px'
-    },
-    placeholder: String,
-    disabled: Boolean,
-    inputId: {
-      type: String,
-      default: null
-    },
-    inputProps: {
-      type: null,
-      default: null
-    },
-    panelClass: {
-      type: String,
-      default: null
-    },
-    panelStyle: {
-      type: null,
-      default: null
-    },
-    panelProps: {
-      type: null,
-      default: null
-    },
-    filterInputProps: {
-      type: null,
-      default: null
-    },
-    closeButtonProps: {
-      type: null,
-      default: null
-    },
-    dataKey: null,
-    filter: Boolean,
-    filterPlaceholder: String,
-    filterLocale: String,
-    filterMatchMode: {
-      type: String,
-      default: 'contains'
-    },
-    filterFields: {
-      type: Array,
-      default: null
-    },
-    appendTo: {
-      type: String,
-      default: 'body'
-    },
-    display: {
-      type: String,
-      default: 'comma'
-    },
-    selectedItemsLabel: {
-      type: String,
-      default: '{0} items selected'
-    },
-    maxSelectedLabels: {
-      type: Number,
-      default: null
-    },
-    selectionLimit: {
-      type: Number,
-      default: null
-    },
-    showToggleAll: {
-      type: Boolean,
-      default: true
-    },
-    loading: {
-      type: Boolean,
-      default: false
-    },
-    checkboxIcon: {
-      type: String,
-      default: 'pi pi-check'
-    },
-    closeIcon: {
-      type: String,
-      default: 'pi pi-times'
-    },
-    dropdownIcon: {
-      type: String,
-      default: 'pi pi-chevron-down'
-    },
-    filterIcon: {
-      type: String,
-      default: 'pi pi-search'
-    },
-    loadingIcon: {
-      type: String,
-      default: 'pi pi-spinner pi-spin'
-    },
-    removeTokenIcon: {
-      type: String,
-      default: 'pi pi-times-circle'
-    },
-    selectAll: {
-      type: Boolean,
-      default: null
-    },
-    resetFilterOnHide: {
-      type: Boolean,
-      default: false
-    },
-    virtualScrollerOptions: {
-      type: Object,
-      default: null
-    },
-    autoOptionFocus: {
-      type: Boolean,
-      default: true
-    },
-    autoFilterFocus: {
-      type: Boolean,
-      default: false
-    },
-    filterMessage: {
-      type: String,
-      default: null
-    },
-    selectionMessage: {
-      type: String,
-      default: null
-    },
-    emptySelectionMessage: {
-      type: String,
-      default: null
-    },
-    emptyFilterMessage: {
-      type: String,
-      default: null
-    },
-    emptyMessage: {
-      type: String,
-      default: null
-    },
-    tabindex: {
-      type: Number,
-      default: 0
-    },
-    'aria-label': {
-      type: String,
-      default: null
-    },
-    'aria-labelledby': {
-      type: String,
-      default: null
-    }
-  },
-  outsideClickListener: null,
-  scrollHandler: null,
-  resizeListener: null,
-  overlay: null,
-  list: null,
-  virtualScroller: null,
-  startRangeIndex: -1,
-  searchTimeout: null,
-  searchValue: '',
-  selectOnFocus: false,
-  focusOnHover: false,
-
-  data() {
-    return {
-      focused: false,
-      focusedOptionIndex: -1,
-      headerCheckboxFocused: false,
-      filterValue: null,
-      overlayVisible: false
-    };
-  },
-
-  watch: {
-    options() {
-      this.autoUpdateModel();
-    }
-
-  },
-
-  mounted() {
-    this.autoUpdateModel();
-  },
-
-  beforeUnmount() {
-    this.unbindOutsideClickListener();
-    this.unbindResizeListener();
-
-    if (this.scrollHandler) {
-      this.scrollHandler.destroy();
-      this.scrollHandler = null;
-    }
-
-    if (this.overlay) {
-      ZIndexUtils.clear(this.overlay);
-      this.overlay = null;
-    }
-  },
-
-  methods: {
-    getOptionIndex(index, fn) {
-      return this.virtualScrollerDisabled ? index : fn && fn(index)['index'];
-    },
-
-    getOptionLabel(option) {
-      return this.optionLabel ? ObjectUtils.resolveFieldData(option, this.optionLabel) : option;
-    },
-
-    getOptionValue(option) {
-      return this.optionValue ? ObjectUtils.resolveFieldData(option, this.optionValue) : option;
-    },
-
-    getOptionRenderKey(option) {
-      return this.dataKey ? ObjectUtils.resolveFieldData(option, this.dataKey) : this.getOptionLabel(option);
-    },
-
-    isOptionDisabled(option) {
-      if (this.maxSelectionLimitReached && !this.isSelected(option)) {
-        return true;
-      }
-
-      return this.optionDisabled ? ObjectUtils.resolveFieldData(option, this.optionDisabled) : false;
-    },
-
-    isOptionGroup(option) {
-      return this.optionGroupLabel && option.optionGroup && option.group;
-    },
-
-    getOptionGroupLabel(optionGroup) {
-      return ObjectUtils.resolveFieldData(optionGroup, this.optionGroupLabel);
-    },
-
-    getOptionGroupChildren(optionGroup) {
-      return ObjectUtils.resolveFieldData(optionGroup, this.optionGroupChildren);
-    },
-
-    getAriaPosInset(index) {
-      return (this.optionGroupLabel ? index - this.visibleOptions.slice(0, index).filter(option => this.isOptionGroup(option)).length : index) + 1;
-    },
-
-    show(isFocus) {
-      this.$emit('before-show');
-      this.overlayVisible = true;
-      this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
-      isFocus && DomHandler.focus(this.$refs.focusInput);
-    },
-
-    hide(isFocus) {
-      this.$emit('before-hide');
-      this.overlayVisible = false;
-      this.focusedOptionIndex = -1;
-      this.searchValue = '';
-      this.resetFilterOnHide && (this.filterValue = null);
-      isFocus && DomHandler.focus(this.$refs.focusInput);
-    },
-
-    onFocus(event) {
-      this.focused = true;
-      this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.overlayVisible && this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
-      this.overlayVisible && this.scrollInView(this.focusedOptionIndex);
-      this.$emit('focus', event);
-    },
-
-    onBlur(event) {
-      this.focused = false;
-      this.focusedOptionIndex = -1;
-      this.searchValue = '';
-      this.$emit('blur', event);
-    },
-
-    onKeyDown(event) {
-      const metaKey = event.metaKey || event.ctrlKey;
-
-      switch (event.code) {
-        case 'ArrowDown':
-          this.onArrowDownKey(event);
-          break;
-
-        case 'ArrowUp':
-          this.onArrowUpKey(event);
-          break;
-
-        case 'Home':
-          this.onHomeKey(event);
-          break;
-
-        case 'End':
-          this.onEndKey(event);
-          break;
-
-        case 'PageDown':
-          this.onPageDownKey(event);
-          break;
-
-        case 'PageUp':
-          this.onPageUpKey(event);
-          break;
-
-        case 'Enter':
-        case 'Space':
-          this.onEnterKey(event);
-          break;
-
-        case 'Escape':
-          this.onEscapeKey(event);
-          break;
-
-        case 'Tab':
-          this.onTabKey(event);
-          break;
-
-        case 'ShiftLeft':
-        case 'ShiftRight':
-          this.onShiftKey(event);
-          break;
-
-        default:
-          if (event.code === 'KeyA' && metaKey) {
-            const value = this.visibleOptions.filter(option => this.isValidOption(option)).map(option => this.getOptionValue(option));
-            this.updateModel(event, value);
-            event.preventDefault();
-            break;
-          }
-
-          if (!metaKey && ObjectUtils.isPrintableCharacter(event.key)) {
-            !this.overlayVisible && this.show();
-            this.searchOptions(event);
-            event.preventDefault();
-          }
-
-          break;
-      }
-    },
-
-    onContainerClick(event) {
-      if (this.disabled || this.loading) {
-        return;
-      }
-
-      if (!this.overlay || !this.overlay.contains(event.target)) {
-        this.overlayVisible ? this.hide(true) : this.show(true);
-      }
-    },
-
-    onFirstHiddenFocus(event) {
-      const relatedTarget = event.relatedTarget;
-
-      if (relatedTarget === this.$refs.focusInput) {
-        const firstFocusableEl = DomHandler.getFirstFocusableElement(this.overlay, ':not(.p-hidden-focusable)');
-        DomHandler.focus(firstFocusableEl);
-      } else {
-        DomHandler.focus(this.$refs.focusInput);
-      }
-    },
-
-    onLastHiddenFocus() {
-      DomHandler.focus(this.$refs.firstHiddenFocusableElementOnOverlay);
-    },
-
-    onCloseClick() {
-      this.hide(true);
-    },
-
-    onHeaderCheckboxFocus() {
-      this.headerCheckboxFocused = true;
-    },
-
-    onHeaderCheckboxBlur() {
-      this.headerCheckboxFocused = false;
-    },
-
-    onOptionSelect(event, option, index = -1, isFocus = false) {
-      if (this.disabled || this.isOptionDisabled(option)) {
-        return;
-      }
-
-      let selected = this.isSelected(option);
-      let value = null;
-      if (selected) value = this.modelValue.filter(val => !ObjectUtils.equals(val, this.getOptionValue(option), this.equalityKey));else value = [...(this.modelValue || []), this.getOptionValue(option)];
-      this.updateModel(event, value);
-      index !== -1 && (this.focusedOptionIndex = index);
-      isFocus && DomHandler.focus(this.$refs.focusInput);
-    },
-
-    onOptionMouseMove(event, index) {
-      if (this.focusOnHover) {
-        this.changeFocusedOptionIndex(event, index);
-      }
-    },
-
-    onOptionSelectRange(event, start = -1, end = -1) {
-      start === -1 && (start = this.findNearestSelectedOptionIndex(end, true));
-      end === -1 && (end = this.findNearestSelectedOptionIndex(start));
-
-      if (start !== -1 && end !== -1) {
-        const rangeStart = Math.min(start, end);
-        const rangeEnd = Math.max(start, end);
-        const value = this.visibleOptions.slice(rangeStart, rangeEnd + 1).filter(option => this.isValidOption(option)).map(option => this.getOptionValue(option));
-        this.updateModel(event, value);
-      }
-    },
-
-    onFilterChange(event) {
-      const value = event.target.value;
-      this.filterValue = value;
-      this.focusedOptionIndex = -1;
-      this.$emit('filter', {
-        originalEvent: event,
-        value
-      });
-      !this.virtualScrollerDisabled && this.virtualScroller.scrollToIndex(0);
-    },
-
-    onFilterKeyDown(event) {
-      switch (event.code) {
-        case 'ArrowDown':
-          this.onArrowDownKey(event);
-          break;
-
-        case 'ArrowUp':
-          this.onArrowUpKey(event, true);
-          break;
-
-        case 'ArrowLeft':
-        case 'ArrowRight':
-          this.onArrowLeftKey(event, true);
-          break;
-
-        case 'Home':
-          this.onHomeKey(event, true);
-          break;
-
-        case 'End':
-          this.onEndKey(event, true);
-          break;
-
-        case 'Enter':
-          this.onEnterKey(event);
-          break;
-
-        case 'Escape':
-          this.onEscapeKey(event);
-          break;
-
-        case 'Tab':
-          this.onTabKey(event, true);
-          break;
-      }
-    },
-
-    onFilterBlur() {
-      this.focusedOptionIndex = -1;
-    },
-
-    onFilterUpdated() {
-      if (this.overlayVisible) {
-        this.alignOverlay();
-      }
-    },
-
-    onOverlayClick(event) {
-      OverlayEventBus.emit('overlay-click', {
-        originalEvent: event,
-        target: this.$el
-      });
-    },
-
-    onOverlayKeyDown(event) {
-      switch (event.code) {
-        case 'Escape':
-          this.onEscapeKey(event);
-          break;
-      }
-    },
-
-    onArrowDownKey(event) {
-      const optionIndex = this.focusedOptionIndex !== -1 ? this.findNextOptionIndex(this.focusedOptionIndex) : this.findFirstFocusedOptionIndex();
-
-      if (event.shiftKey) {
-        this.onOptionSelectRange(event, this.startRangeIndex, optionIndex);
-      }
-
-      this.changeFocusedOptionIndex(event, optionIndex);
-      !this.overlayVisible && this.show();
-      event.preventDefault();
-    },
-
-    onArrowUpKey(event, pressedInInputText = false) {
-      if (event.altKey && !pressedInInputText) {
-        if (this.focusedOptionIndex !== -1) {
-          this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
-        }
-
-        this.overlayVisible && this.hide();
-        event.preventDefault();
-      } else {
-        const optionIndex = this.focusedOptionIndex !== -1 ? this.findPrevOptionIndex(this.focusedOptionIndex) : this.findLastFocusedOptionIndex();
-
-        if (event.shiftKey) {
-          this.onOptionSelectRange(event, optionIndex, this.startRangeIndex);
-        }
-
-        this.changeFocusedOptionIndex(event, optionIndex);
-        !this.overlayVisible && this.show();
-        event.preventDefault();
-      }
-    },
-
-    onArrowLeftKey(event, pressedInInputText = false) {
-      pressedInInputText && (this.focusedOptionIndex = -1);
-    },
-
-    onHomeKey(event, pressedInInputText = false) {
-      if (pressedInInputText) {
-        event.currentTarget.setSelectionRange(0, 0);
-        this.focusedOptionIndex = -1;
-      } else {
-        let metaKey = event.metaKey || event.ctrlKey;
-        let optionIndex = this.findFirstOptionIndex();
-
-        if (event.shiftKey && metaKey) {
-          this.onOptionSelectRange(event, optionIndex, this.startRangeIndex);
-        }
-
-        this.changeFocusedOptionIndex(event, optionIndex);
-        !this.overlayVisible && this.show();
-      }
-
-      event.preventDefault();
-    },
-
-    onEndKey(event, pressedInInputText = false) {
-      if (pressedInInputText) {
-        const target = event.currentTarget;
-        const len = target.value.length;
-        target.setSelectionRange(len, len);
-        this.focusedOptionIndex = -1;
-      } else {
-        let metaKey = event.metaKey || event.ctrlKey;
-        let optionIndex = this.findLastOptionIndex();
-
-        if (event.shiftKey && metaKey) {
-          this.onOptionSelectRange(event, this.startRangeIndex, optionIndex);
-        }
-
-        this.changeFocusedOptionIndex(event, optionIndex);
-        !this.overlayVisible && this.show();
-      }
-
-      event.preventDefault();
-    },
-
-    onPageUpKey(event) {
-      this.scrollInView(0);
-      event.preventDefault();
-    },
-
-    onPageDownKey(event) {
-      this.scrollInView(this.visibleOptions.length - 1);
-      event.preventDefault();
-    },
-
-    onEnterKey(event) {
-      if (!this.overlayVisible) {
-        this.onArrowDownKey(event);
-      } else {
-        if (this.focusedOptionIndex !== -1) {
-          if (event.shiftKey) this.onOptionSelectRange(event, this.focusedOptionIndex);else this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
-        }
-      }
-
-      event.preventDefault();
-    },
-
-    onEscapeKey(event) {
-      this.overlayVisible && this.hide(true);
-      event.preventDefault();
-    },
-
-    onTabKey(event, pressedInInputText = false) {
-      if (!pressedInInputText) {
-        if (this.overlayVisible && this.hasFocusableElements()) {
-          DomHandler.focus(this.$refs.firstHiddenFocusableElementOnOverlay);
-          event.preventDefault();
-        } else {
-          if (this.focusedOptionIndex !== -1) {
-            this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
-          }
-
-          this.overlayVisible && this.hide(this.filter);
-        }
-      }
-    },
-
-    onShiftKey() {
-      this.startRangeIndex = this.focusedOptionIndex;
-    },
-
-    onOverlayEnter(el) {
-      ZIndexUtils.set('overlay', el, this.$primevue.config.zIndex.overlay);
-      this.alignOverlay();
-      this.scrollInView();
-      this.autoFilterFocus && DomHandler.focus(this.$refs.filterInput);
-    },
-
-    onOverlayAfterEnter() {
-      this.bindOutsideClickListener();
-      this.bindScrollListener();
-      this.bindResizeListener();
-      this.$emit('show');
-    },
-
-    onOverlayLeave() {
-      this.unbindOutsideClickListener();
-      this.unbindScrollListener();
-      this.unbindResizeListener();
-      this.$emit('hide');
-      this.overlay = null;
-    },
-
-    onOverlayAfterLeave(el) {
-      ZIndexUtils.clear(el);
-    },
-
-    alignOverlay() {
-      if (this.appendTo === 'self') {
-        DomHandler.relativePosition(this.overlay, this.$el);
-      } else {
-        this.overlay.style.minWidth = DomHandler.getOuterWidth(this.$el) + 'px';
-        DomHandler.absolutePosition(this.overlay, this.$el);
-      }
-    },
-
-    bindOutsideClickListener() {
-      if (!this.outsideClickListener) {
-        this.outsideClickListener = event => {
-          if (this.overlayVisible && this.isOutsideClicked(event)) {
-            this.hide();
-          }
-        };
-
-        document.addEventListener('click', this.outsideClickListener);
-      }
-    },
-
-    unbindOutsideClickListener() {
-      if (this.outsideClickListener) {
-        document.removeEventListener('click', this.outsideClickListener);
-        this.outsideClickListener = null;
-      }
-    },
-
-    bindScrollListener() {
-      if (!this.scrollHandler) {
-        this.scrollHandler = new ConnectedOverlayScrollHandler(this.$refs.container, () => {
-          if (this.overlayVisible) {
-            this.hide();
-          }
-        });
-      }
-
-      this.scrollHandler.bindScrollListener();
-    },
-
-    unbindScrollListener() {
-      if (this.scrollHandler) {
-        this.scrollHandler.unbindScrollListener();
-      }
-    },
-
-    bindResizeListener() {
-      if (!this.resizeListener) {
-        this.resizeListener = () => {
-          if (this.overlayVisible && !DomHandler.isTouchDevice()) {
-            this.hide();
-          }
-        };
-
-        window.addEventListener('resize', this.resizeListener);
-      }
-    },
-
-    unbindResizeListener() {
-      if (this.resizeListener) {
-        window.removeEventListener('resize', this.resizeListener);
-        this.resizeListener = null;
-      }
-    },
-
-    isOutsideClicked(event) {
-      return !(this.$el.isSameNode(event.target) || this.$el.contains(event.target) || this.overlay && this.overlay.contains(event.target));
-    },
-
-    getLabelByValue(value) {
-      const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
-      const matchedOption = options.find(option => !this.isOptionGroup(option) && ObjectUtils.equals(this.getOptionValue(option), value, this.equalityKey));
-      return matchedOption ? this.getOptionLabel(matchedOption) : null;
-    },
-
-    getSelectedItemsLabel() {
-      let pattern = /{(.*?)}/;
-
-      if (pattern.test(this.selectedItemsLabel)) {
-        return this.selectedItemsLabel.replace(this.selectedItemsLabel.match(pattern)[0], this.modelValue.length + '');
-      }
-
-      return this.selectedItemsLabel;
-    },
-
-    onToggleAll(event) {
-      if (this.selectAll !== null) {
-        this.$emit('selectall-change', {
-          originalEvent: event,
-          checked: !this.allSelected
-        });
-      } else {
-        const value = this.allSelected ? [] : this.visibleOptions.filter(option => !this.isOptionDisabled(option) && !this.isOptionGroup(option)).map(option => this.getOptionValue(option));
-        this.updateModel(event, value);
-      }
-
-      this.headerCheckboxFocused = true;
-    },
-
-    removeOption(event, optionValue) {
-      let value = this.modelValue.filter(val => !ObjectUtils.equals(val, optionValue, this.equalityKey));
-      this.updateModel(event, value);
-    },
-
-    clearFilter() {
-      this.filterValue = null;
-    },
-
-    hasFocusableElements() {
-      return DomHandler.getFocusableElements(this.overlay, ':not(.p-hidden-focusable)').length > 0;
-    },
-
-    isOptionMatched(option) {
-      return this.isValidOption(option) && this.getOptionLabel(option).toLocaleLowerCase(this.filterLocale).startsWith(this.searchValue.toLocaleLowerCase(this.filterLocale));
-    },
-
-    isValidOption(option) {
-      return option && !(this.isOptionDisabled(option) || this.isOptionGroup(option));
-    },
-
-    isValidSelectedOption(option) {
-      return this.isValidOption(option) && this.isSelected(option);
-    },
-
-    isSelected(option) {
-      const optionValue = this.getOptionValue(option);
-      return (this.modelValue || []).some(value => ObjectUtils.equals(value, optionValue, this.equalityKey));
-    },
-
-    findFirstOptionIndex() {
-      return this.visibleOptions.findIndex(option => this.isValidOption(option));
-    },
-
-    findLastOptionIndex() {
-      return ObjectUtils.findLastIndex(this.visibleOptions, option => this.isValidOption(option));
-    },
-
-    findNextOptionIndex(index) {
-      const matchedOptionIndex = index < this.visibleOptions.length - 1 ? this.visibleOptions.slice(index + 1).findIndex(option => this.isValidOption(option)) : -1;
-      return matchedOptionIndex > -1 ? matchedOptionIndex + index + 1 : index;
-    },
-
-    findPrevOptionIndex(index) {
-      const matchedOptionIndex = index > 0 ? ObjectUtils.findLastIndex(this.visibleOptions.slice(0, index), option => this.isValidOption(option)) : -1;
-      return matchedOptionIndex > -1 ? matchedOptionIndex : index;
-    },
-
-    findFirstSelectedOptionIndex() {
-      return this.hasSelectedOption ? this.visibleOptions.findIndex(option => this.isValidSelectedOption(option)) : -1;
-    },
-
-    findLastSelectedOptionIndex() {
-      return this.hasSelectedOption ? ObjectUtils.findLastIndex(this.visibleOptions, option => this.isValidSelectedOption(option)) : -1;
-    },
-
-    findNextSelectedOptionIndex(index) {
-      const matchedOptionIndex = this.hasSelectedOption && index < this.visibleOptions.length - 1 ? this.visibleOptions.slice(index + 1).findIndex(option => this.isValidSelectedOption(option)) : -1;
-      return matchedOptionIndex > -1 ? matchedOptionIndex + index + 1 : -1;
-    },
-
-    findPrevSelectedOptionIndex(index) {
-      const matchedOptionIndex = this.hasSelectedOption && index > 0 ? ObjectUtils.findLastIndex(this.visibleOptions.slice(0, index), option => this.isValidSelectedOption(option)) : -1;
-      return matchedOptionIndex > -1 ? matchedOptionIndex : -1;
-    },
-
-    findNearestSelectedOptionIndex(index, firstCheckUp = false) {
-      let matchedOptionIndex = -1;
-
-      if (this.hasSelectedOption) {
-        if (firstCheckUp) {
-          matchedOptionIndex = this.findPrevSelectedOptionIndex(index);
-          matchedOptionIndex = matchedOptionIndex === -1 ? this.findNextSelectedOptionIndex(index) : matchedOptionIndex;
-        } else {
-          matchedOptionIndex = this.findNextSelectedOptionIndex(index);
-          matchedOptionIndex = matchedOptionIndex === -1 ? this.findPrevSelectedOptionIndex(index) : matchedOptionIndex;
-        }
-      }
-
-      return matchedOptionIndex > -1 ? matchedOptionIndex : index;
-    },
-
-    findFirstFocusedOptionIndex() {
-      const selectedIndex = this.findFirstSelectedOptionIndex();
-      return selectedIndex < 0 ? this.findFirstOptionIndex() : selectedIndex;
-    },
-
-    findLastFocusedOptionIndex() {
-      const selectedIndex = this.findLastSelectedOptionIndex();
-      return selectedIndex < 0 ? this.findLastOptionIndex() : selectedIndex;
-    },
-
-    searchOptions(event) {
-      this.searchValue = (this.searchValue || '') + event.key;
-      let optionIndex = -1;
-
-      if (this.focusedOptionIndex !== -1) {
-        optionIndex = this.visibleOptions.slice(this.focusedOptionIndex).findIndex(option => this.isOptionMatched(option));
-        optionIndex = optionIndex === -1 ? this.visibleOptions.slice(0, this.focusedOptionIndex).findIndex(option => this.isOptionMatched(option)) : optionIndex + this.focusedOptionIndex;
-      } else {
-        optionIndex = this.visibleOptions.findIndex(option => this.isOptionMatched(option));
-      }
-
-      if (optionIndex === -1 && this.focusedOptionIndex === -1) {
-        const selectedIndex = this.findSelectedOptionIndex();
-        optionIndex = selectedIndex < 0 ? this.findFirstOptionIndex() : selectedIndex;
-      }
-
-      if (optionIndex !== -1) {
-        this.changeFocusedOptionIndex(event, optionIndex);
-      }
-
-      if (this.searchTimeout) {
-        clearTimeout(this.searchTimeout);
-      }
-
-      this.searchTimeout = setTimeout(() => {
-        this.searchValue = '';
-        this.searchTimeout = null;
-      }, 500);
-    },
-
-    changeFocusedOptionIndex(event, index) {
-      if (this.focusedOptionIndex !== index) {
-        this.focusedOptionIndex = index;
-        this.scrollInView();
-      }
-    },
-
-    scrollInView(index = -1) {
-      const id = index !== -1 ? `${this.id}_${index}` : this.focusedOptionId;
-      const element = DomHandler.findSingle(this.list, `li[id="${id}"]`);
-
-      if (element) {
-        element.scrollIntoView && element.scrollIntoView({
-          block: 'nearest',
-          inline: 'nearest'
-        });
-      } else if (!this.virtualScrollerDisabled) {
-        this.virtualScroller && this.virtualScroller.scrollToIndex(index !== -1 ? index : this.focusedOptionIndex);
-      }
-    },
-
-    autoUpdateModel() {
-      if (this.selectOnFocus && this.autoOptionFocus && !this.hasSelectedOption) {
-        this.focusedOptionIndex = this.findFirstFocusedOptionIndex();
-        const value = this.getOptionValue(this.visibleOptions[this.focusedOptionIndex]);
-        this.updateModel(null, [value]);
-      }
-    },
-
-    updateModel(event, value) {
-      this.$emit('update:modelValue', value);
-      this.$emit('change', {
-        originalEvent: event,
-        value
-      });
-    },
-
-    flatOptions(options) {
-      return (options || []).reduce((result, option, index) => {
-        result.push({
-          optionGroup: option,
-          group: true,
-          index
-        });
-        const optionGroupChildren = this.getOptionGroupChildren(option);
-        optionGroupChildren && optionGroupChildren.forEach(o => result.push(o));
-        return result;
-      }, []);
-    },
-
-    overlayRef(el) {
-      this.overlay = el;
-    },
-
-    listRef(el, contentRef) {
-      this.list = el;
-      contentRef && contentRef(el); // For VirtualScroller
-    },
-
-    virtualScrollerRef(el) {
-      this.virtualScroller = el;
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-multiselect p-component p-inputwrapper', {
-        'p-multiselect-chip': this.display === 'chip',
-        'p-disabled': this.disabled,
-        'p-focus': this.focused,
-        'p-inputwrapper-filled': this.modelValue && this.modelValue.length,
-        'p-inputwrapper-focus': this.focused || this.overlayVisible,
-        'p-overlay-open': this.overlayVisible
-      }];
-    },
-
-    labelClass() {
-      return ['p-multiselect-label', {
-        'p-placeholder': this.label === this.placeholder,
-        'p-multiselect-label-empty': !this.placeholder && (!this.modelValue || this.modelValue.length === 0)
-      }];
-    },
-
-    dropdownIconClass() {
-      return ['p-multiselect-trigger-icon', this.loading ? this.loadingIcon : this.dropdownIcon];
-    },
-
-    panelStyleClass() {
-      return ['p-multiselect-panel p-component', this.panelClass, {
-        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
-        'p-ripple-disabled': this.$primevue.config.ripple === false
-      }];
-    },
-
-    headerCheckboxClass() {
-      return ['p-checkbox p-component', {
-        'p-checkbox-checked': this.allSelected,
-        'p-checkbox-focused': this.headerCheckboxFocused
-      }];
-    },
-
-    visibleOptions() {
-      const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
-
-      if (this.filterValue) {
-        const filteredOptions = FilterService.filter(options, this.searchFields, this.filterValue, this.filterMatchMode, this.filterLocale);
-
-        if (this.optionGroupLabel) {
-          const optionGroups = this.options || [];
-          const filtered = [];
-          optionGroups.forEach(group => {
-            const filteredItems = group.items.filter(item => filteredOptions.includes(item));
-            if (filteredItems.length > 0) filtered.push({ ...group,
-              items: [...filteredItems]
-            });
-          });
-          return this.flatOptions(filtered);
-        }
-
-        return filteredOptions;
-      }
-
-      return options;
-    },
-
-    label() {
-      // TODO: Refactor
-      let label;
-
-      if (this.modelValue && this.modelValue.length) {
-        if (ObjectUtils.isNotEmpty(this.maxSelectedLabels) && this.modelValue.length > this.maxSelectedLabels) {
-          return this.getSelectedItemsLabel();
-        } else {
-          label = '';
-
-          for (let i = 0; i < this.modelValue.length; i++) {
-            if (i !== 0) {
-              label += ', ';
-            }
-
-            label += this.getLabelByValue(this.modelValue[i]);
-          }
-        }
-      } else {
-        label = this.placeholder;
-      }
-
-      return label;
-    },
-
-    allSelected() {
-      return this.selectAll !== null ? this.selectAll : ObjectUtils.isNotEmpty(this.visibleOptions) && this.visibleOptions.filter(option => !this.isOptionDisabled(option)).every(option => this.isOptionGroup(option) || this.isValidSelectedOption(option));
-    },
-
-    hasSelectedOption() {
-      return ObjectUtils.isNotEmpty(this.modelValue);
-    },
-
-    equalityKey() {
-      return this.optionValue ? null : this.dataKey;
-    },
-
-    searchFields() {
-      return this.filterFields || [this.optionLabel];
-    },
-
-    maxSelectionLimitReached() {
-      return this.selectionLimit && this.modelValue && this.modelValue.length === this.selectionLimit;
-    },
-
-    filterResultMessageText() {
-      return ObjectUtils.isNotEmpty(this.visibleOptions) ? this.filterMessageText.replaceAll('{0}', this.visibleOptions.length) : this.emptyFilterMessageText;
-    },
-
-    filterMessageText() {
-      return this.filterMessage || this.$primevue.config.locale.searchMessage || '';
-    },
-
-    emptyFilterMessageText() {
-      return this.emptyFilterMessage || this.$primevue.config.locale.emptySearchMessage || this.$primevue.config.locale.emptyFilterMessage || '';
-    },
-
-    emptyMessageText() {
-      return this.emptyMessage || this.$primevue.config.locale.emptyMessage || '';
-    },
-
-    selectionMessageText() {
-      return this.selectionMessage || this.$primevue.config.locale.selectionMessage || '';
-    },
-
-    emptySelectionMessageText() {
-      return this.emptySelectionMessage || this.$primevue.config.locale.emptySelectionMessage || '';
-    },
-
-    selectedMessageText() {
-      return this.hasSelectedOption ? this.selectionMessageText.replaceAll('{0}', this.modelValue.length) : this.emptySelectionMessageText;
-    },
-
-    id() {
-      return this.$attrs.id || UniqueComponentId();
-    },
-
-    focusedOptionId() {
-      return this.focusedOptionIndex !== -1 ? `${this.id}_${this.focusedOptionIndex}` : null;
-    },
-
-    ariaSetSize() {
-      return this.visibleOptions.filter(option => !this.isOptionGroup(option)).length;
-    },
-
-    toggleAllAriaLabel() {
-      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria[this.allSelected ? 'selectAll' : 'unselectAll'] : undefined;
-    },
-
-    closeAriaLabel() {
-      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria.close : undefined;
-    },
-
-    virtualScrollerDisabled() {
-      return !this.virtualScrollerOptions;
-    }
-
-  },
-  directives: {
-    ripple: Ripple
-  },
-  components: {
-    VirtualScroller: script$1y,
-    Portal: script$1C
-  }
-};
-const _hoisted_1$t = {
-  class: "p-hidden-accessible"
-};
-const _hoisted_2$m = ["id", "disabled", "placeholder", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_3$g = {
-  class: "p-multiselect-label-container"
-};
-const _hoisted_4$f = {
-  class: "p-multiselect-token-label"
-};
-const _hoisted_5$c = ["onClick"];
-const _hoisted_6$a = {
-  class: "p-multiselect-trigger"
-};
-const _hoisted_7$6 = {
-  key: 0,
-  class: "p-multiselect-header"
-};
-const _hoisted_8$4 = {
-  class: "p-hidden-accessible"
-};
-const _hoisted_9$2 = ["checked", "aria-label"];
-const _hoisted_10$2 = {
-  key: 1,
-  class: "p-multiselect-filter-container"
-};
-const _hoisted_11$2 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
-const _hoisted_12$2 = {
-  key: 2,
-  role: "status",
-  "aria-live": "polite",
-  class: "p-hidden-accessible"
-};
-const _hoisted_13$2 = ["aria-label"];
-const _hoisted_14$2 = ["id"];
-const _hoisted_15$1 = ["id"];
-const _hoisted_16$1 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
-const _hoisted_17$1 = {
-  class: "p-checkbox p-component"
-};
-const _hoisted_18$1 = {
-  key: 0,
-  class: "p-multiselect-empty-message",
-  role: "option"
-};
-const _hoisted_19$1 = {
-  key: 1,
-  class: "p-multiselect-empty-message",
-  role: "option"
-};
-const _hoisted_20$1 = {
-  key: 0,
-  role: "status",
-  "aria-live": "polite",
-  class: "p-hidden-accessible"
-};
-const _hoisted_21$1 = {
-  role: "status",
-  "aria-live": "polite",
-  class: "p-hidden-accessible"
-};
-
-function render$f(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_VirtualScroller = resolveComponent("VirtualScroller");
-
-  const _component_Portal = resolveComponent("Portal");
-
-  const _directive_ripple = resolveDirective("ripple");
-
-  return openBlock(), createElementBlock("div", {
-    ref: "container",
-    class: normalizeClass($options.containerClass),
-    onClick: _cache[15] || (_cache[15] = (...args) => $options.onContainerClick && $options.onContainerClick(...args))
-  }, [createElementVNode("div", _hoisted_1$t, [createElementVNode("input", mergeProps({
-    ref: "focusInput",
-    id: $props.inputId,
-    type: "text",
-    readonly: "",
-    disabled: $props.disabled,
-    placeholder: $props.placeholder,
-    tabindex: !$props.disabled ? $props.tabindex : -1,
-    role: "combobox",
-    "aria-label": _ctx.ariaLabel,
-    "aria-labelledby": _ctx.ariaLabelledby,
-    "aria-haspopup": "listbox",
-    "aria-expanded": $data.overlayVisible,
-    "aria-controls": $options.id + '_list',
-    "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
-    onFocus: _cache[0] || (_cache[0] = (...args) => $options.onFocus && $options.onFocus(...args)),
-    onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
-    onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$m)]), createElementVNode("div", _hoisted_3$g, [createElementVNode("div", {
-    class: normalizeClass($options.labelClass)
-  }, [renderSlot(_ctx.$slots, "value", {
-    value: $props.modelValue,
-    placeholder: $props.placeholder
-  }, () => [$props.display === 'comma' ? (openBlock(), createElementBlock(Fragment, {
-    key: 0
-  }, [createTextVNode(toDisplayString$1($options.label || 'empty'), 1)], 64)) : $props.display === 'chip' ? (openBlock(), createElementBlock(Fragment, {
-    key: 1
-  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.modelValue, item => {
-    return openBlock(), createElementBlock("div", {
-      key: $options.getLabelByValue(item),
-      class: "p-multiselect-token"
-    }, [renderSlot(_ctx.$slots, "chip", {
-      value: item
-    }, () => [createElementVNode("span", _hoisted_4$f, toDisplayString$1($options.getLabelByValue(item)), 1)]), !$props.disabled ? (openBlock(), createElementBlock("span", {
-      key: 0,
-      class: normalizeClass(['p-multiselect-token-icon', $props.removeTokenIcon]),
-      onClick: $event => $options.removeOption($event, item)
-    }, null, 10, _hoisted_5$c)) : createCommentVNode("", true)]);
-  }), 128)), !$props.modelValue || $props.modelValue.length === 0 ? (openBlock(), createElementBlock(Fragment, {
-    key: 0
-  }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", _hoisted_6$a, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
-    class: normalizeClass($options.dropdownIconClass),
-    "aria-hidden": "true"
-  }, null, 2)])]), createVNode(_component_Portal, {
-    appendTo: $props.appendTo
-  }, {
-    default: withCtx(() => [createVNode(Transition, {
-      name: "p-connected-overlay",
-      onEnter: $options.onOverlayEnter,
-      onAfterEnter: $options.onOverlayAfterEnter,
-      onLeave: $options.onOverlayLeave,
-      onAfterLeave: $options.onOverlayAfterLeave
-    }, {
-      default: withCtx(() => [$data.overlayVisible ? (openBlock(), createElementBlock("div", mergeProps({
-        key: 0,
-        ref: $options.overlayRef,
-        style: $props.panelStyle,
-        class: $options.panelStyleClass,
-        onClick: _cache[13] || (_cache[13] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args)),
-        onKeydown: _cache[14] || (_cache[14] = (...args) => $options.onOverlayKeyDown && $options.onOverlayKeyDown(...args))
-      }, $props.panelProps), [createElementVNode("span", {
-        ref: "firstHiddenFocusableElementOnOverlay",
-        role: "presentation",
-        "aria-hidden": "true",
-        class: "p-hidden-accessible p-hidden-focusable",
-        tabindex: 0,
-        onFocus: _cache[3] || (_cache[3] = (...args) => $options.onFirstHiddenFocus && $options.onFirstHiddenFocus(...args))
-      }, null, 544), renderSlot(_ctx.$slots, "header", {
-        value: $props.modelValue,
-        options: $options.visibleOptions
-      }), $props.showToggleAll && $props.selectionLimit == null || $props.filter ? (openBlock(), createElementBlock("div", _hoisted_7$6, [$props.showToggleAll && $props.selectionLimit == null ? (openBlock(), createElementBlock("div", {
-        key: 0,
-        class: normalizeClass($options.headerCheckboxClass),
-        onClick: _cache[6] || (_cache[6] = (...args) => $options.onToggleAll && $options.onToggleAll(...args))
-      }, [createElementVNode("div", _hoisted_8$4, [createElementVNode("input", {
-        type: "checkbox",
-        readonly: "",
-        checked: $options.allSelected,
-        "aria-label": $options.toggleAllAriaLabel,
-        onFocus: _cache[4] || (_cache[4] = (...args) => $options.onHeaderCheckboxFocus && $options.onHeaderCheckboxFocus(...args)),
-        onBlur: _cache[5] || (_cache[5] = (...args) => $options.onHeaderCheckboxBlur && $options.onHeaderCheckboxBlur(...args))
-      }, null, 40, _hoisted_9$2)]), createElementVNode("div", {
-        class: normalizeClass(['p-checkbox-box', {
-          'p-highlight': $options.allSelected,
-          'p-focus': $data.headerCheckboxFocused
-        }])
-      }, [createElementVNode("span", {
-        class: normalizeClass(['p-checkbox-icon', {
-          [$props.checkboxIcon]: $options.allSelected
-        }])
-      }, null, 2)], 2)], 2)) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_10$2, [createElementVNode("input", mergeProps({
-        ref: "filterInput",
-        type: "text",
-        value: $data.filterValue,
-        onVnodeUpdated: _cache[7] || (_cache[7] = (...args) => $options.onFilterUpdated && $options.onFilterUpdated(...args)),
-        class: "p-multiselect-filter p-inputtext p-component",
-        placeholder: $props.filterPlaceholder,
-        role: "searchbox",
-        autocomplete: "off",
-        "aria-owns": $options.id + '_list',
-        "aria-activedescendant": $options.focusedOptionId,
-        onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onFilterKeyDown && $options.onFilterKeyDown(...args)),
-        onBlur: _cache[9] || (_cache[9] = (...args) => $options.onFilterBlur && $options.onFilterBlur(...args)),
-        onInput: _cache[10] || (_cache[10] = (...args) => $options.onFilterChange && $options.onFilterChange(...args))
-      }, $props.filterInputProps), null, 16, _hoisted_11$2), createElementVNode("span", {
-        class: normalizeClass(['p-multiselect-filter-icon', $props.filterIcon])
-      }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("span", _hoisted_12$2, toDisplayString$1($options.filterResultMessageText), 1)) : createCommentVNode("", true), withDirectives((openBlock(), createElementBlock("button", mergeProps({
-        class: "p-multiselect-close p-link",
-        "aria-label": $options.closeAriaLabel,
-        onClick: _cache[11] || (_cache[11] = (...args) => $options.onCloseClick && $options.onCloseClick(...args)),
-        type: "button"
-      }, $props.closeButtonProps), [createElementVNode("span", {
-        class: normalizeClass(['p-multiselect-close-icon', $props.closeIcon])
-      }, null, 2)], 16, _hoisted_13$2)), [[_directive_ripple]])])) : createCommentVNode("", true), createElementVNode("div", {
-        class: "p-multiselect-items-wrapper",
-        style: normalizeStyle({
-          'max-height': $options.virtualScrollerDisabled ? $props.scrollHeight : ''
-        })
-      }, [createVNode(_component_VirtualScroller, mergeProps({
-        ref: $options.virtualScrollerRef
-      }, $props.virtualScrollerOptions, {
-        items: $options.visibleOptions,
-        style: {
-          height: $props.scrollHeight
-        },
-        tabindex: -1,
-        disabled: $options.virtualScrollerDisabled
-      }), createSlots({
-        content: withCtx(({
-          styleClass,
-          contentRef,
-          items,
-          getItemOptions,
-          contentStyle,
-          itemSize
-        }) => [createElementVNode("ul", {
-          ref: el => $options.listRef(el, contentRef),
-          id: $options.id + '_list',
-          class: normalizeClass(['p-multiselect-items p-component', styleClass]),
-          style: normalizeStyle(contentStyle),
-          role: "listbox",
-          "aria-multiselectable": "true"
-        }, [(openBlock(true), createElementBlock(Fragment, null, renderList(items, (option, i) => {
-          return openBlock(), createElementBlock(Fragment, {
-            key: $options.getOptionRenderKey(option, $options.getOptionIndex(i, getItemOptions))
-          }, [$options.isOptionGroup(option) ? (openBlock(), createElementBlock("li", {
-            key: 0,
-            id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
-            style: normalizeStyle({
-              height: itemSize ? itemSize + 'px' : undefined
-            }),
-            class: "p-multiselect-item-group",
-            role: "option"
-          }, [renderSlot(_ctx.$slots, "optiongroup", {
-            option: option.optionGroup,
-            index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_15$1)) : withDirectives((openBlock(), createElementBlock("li", {
-            key: 1,
-            id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
-            style: normalizeStyle({
-              height: itemSize ? itemSize + 'px' : undefined
-            }),
-            class: normalizeClass(['p-multiselect-item', {
-              'p-highlight': $options.isSelected(option),
-              'p-focus': $data.focusedOptionIndex === $options.getOptionIndex(i, getItemOptions),
-              'p-disabled': $options.isOptionDisabled(option)
-            }]),
-            role: "option",
-            "aria-label": $options.getOptionLabel(option),
-            "aria-selected": $options.isSelected(option),
-            "aria-disabled": $options.isOptionDisabled(option),
-            "aria-setsize": $options.ariaSetSize,
-            "aria-posinset": $options.getAriaPosInset($options.getOptionIndex(i, getItemOptions)),
-            onClick: $event => $options.onOptionSelect($event, option, $options.getOptionIndex(i, getItemOptions), true),
-            onMousemove: $event => $options.onOptionMouseMove($event, $options.getOptionIndex(i, getItemOptions))
-          }, [createElementVNode("div", _hoisted_17$1, [createElementVNode("div", {
-            class: normalizeClass(['p-checkbox-box', {
-              'p-highlight': $options.isSelected(option)
-            }])
-          }, [createElementVNode("span", {
-            class: normalizeClass(['p-checkbox-icon', {
-              [$props.checkboxIcon]: $options.isSelected(option)
-            }])
-          }, null, 2)], 2)]), renderSlot(_ctx.$slots, "option", {
-            option: option,
-            index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createElementVNode("span", null, toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_16$1)), [[_directive_ripple]])], 64);
-        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_18$1, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_19$1, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_14$2), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_20$1, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_21$1, toDisplayString$1($options.selectedMessageText), 1)]),
-        _: 2
-      }, [_ctx.$slots.loader ? {
-        name: "loader",
-        fn: withCtx(({
-          options
-        }) => [renderSlot(_ctx.$slots, "loader", {
-          options: options
-        })]),
-        key: "0"
-      } : undefined]), 1040, ["items", "style", "disabled"])], 4), renderSlot(_ctx.$slots, "footer", {
-        value: $props.modelValue,
-        options: $options.visibleOptions
-      }), createElementVNode("span", {
-        ref: "lastHiddenFocusableElementOnOverlay",
-        role: "presentation",
-        "aria-hidden": "true",
-        class: "p-hidden-accessible p-hidden-focusable",
-        tabindex: 0,
-        onFocus: _cache[12] || (_cache[12] = (...args) => $options.onLastHiddenFocus && $options.onLastHiddenFocus(...args))
-      }, null, 544)], 16)) : createCommentVNode("", true)]),
-      _: 3
-    }, 8, ["onEnter", "onAfterEnter", "onLeave", "onAfterLeave"])]),
-    _: 3
-  }, 8, ["appendTo"])], 2);
-}
-
-function styleInject$a(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$h = "\n.p-multiselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-multiselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-multiselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-multiselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-multiselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-multiselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-multiselect-token-icon {\n    cursor: pointer;\n}\n.p-multiselect .p-multiselect-panel {\n    min-width: 100%;\n}\n.p-multiselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-multiselect-items-wrapper {\n    overflow: auto;\n}\n.p-multiselect-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-multiselect-item {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-multiselect-item-group {\n    cursor: auto;\n}\n.p-multiselect-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-multiselect-filter-container {\n    position: relative;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-multiselect-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-multiselect-filter-container .p-inputtext {\n    width: 100%;\n}\n.p-multiselect-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    overflow: hidden;\n    position: relative;\n    margin-left: auto;\n}\n.p-fluid .p-multiselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$a(css_248z$h);
-script$$.render = render$f;
-
-var script$_ = {
-  props: {
-    report : Object
-},
-  emits: [
-    "changed"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const overlay = computed({
-    get() {
-        return props.report.active;
-    },
-    set(val) {
-        props.report.active = val;
-    }
-});
-
-
-const options = [];
-for(let i in props.report.results) {
-    options.push({
-        name : i,
-        code : i
-    });
-}
-
-function onChange() {
-    emits("changed");
-}
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$$), {
-    modelValue: unref(overlay),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(overlay) ? (overlay).value = $event : null)),
-    options: options,
-    optionLabel: "name",
-    onChange: onChange
-  }, null, 8 /* PROPS */, ["modelValue"]))
-}
-}
-
-};
-
-script$_.__file = "presstojam/src/components/reports/overlays.vue";
-
-var script$Z = {
-  props: {
-    report : Object
-},
-  emits: [
-    "changed"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const scale = computed({
-    get() {
-        return props.report.scale;
-    },
-    set(val) {
-        props.report.active = scale;
-    }
-});
-
-
-const options = [];
-for(let i in props.report.fields) {
-    if (props.report.fields[i].type == "time") {
-        options.push({
-            name : i,
-            code : i
-        });
-    }
-}
-
-function onChange() {
-    emits("changed");
-}
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1b), {
-    modelValue: unref(scale),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(scale) ? (scale).value = $event : null)),
-    options: options,
-    onChange: onChange
-  }, null, 8 /* PROPS */, ["modelValue"]))
-}
-}
-
-};
-
-script$Z.__file = "presstojam/src/components/reports/scales.vue";
-
-var script$Y = {
-  props: {
-    report : Object
-},
-  emits: [
-    "changed"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const type = computed({
-    get() {
-        return props.report.agg_type;
-    },
-    set(val) {
-        props.report.agg_type = val;
-    }
-});
-
-
-function onChange() {
-    emits("changed");
-}
-
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1b), {
-    modelValue: unref(type),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(type) ? (type).value = $event : null)),
-    options: _ctx.types,
-    onChange: onChange
-  }, null, 8 /* PROPS */, ["modelValue", "options"]))
-}
-}
-
-};
-
-script$Y.__file = "presstojam/src/components/reports/aggregate-type.vue";
-
-var script$1$2 = {
-  name: 'MenubarSub',
-  emits: ['item-mouseenter', 'item-click'],
-  props: {
-    items: {
-      type: Array,
-      default: null
-    },
-    root: {
-      type: Boolean,
-      default: false
-    },
-    popup: {
-      type: Boolean,
-      default: false
-    },
-    mobileActive: {
-      type: Boolean,
-      default: false
-    },
-    template: {
-      type: Function,
-      default: null
-    },
-    exact: {
-      type: Boolean,
-      default: true
-    },
-    level: {
-      type: Number,
-      default: 0
-    },
-    menuId: {
-      type: String,
-      default: null
-    },
-    focusedItemId: {
-      type: String,
-      default: null
-    },
-    activeItemPath: {
-      type: Object,
-      default: null
-    }
-  },
-  list: null,
-  methods: {
-    getItemId(processedItem) {
-      return `${this.menuId}_${processedItem.key}`;
-    },
-
-    getItemKey(processedItem) {
-      return this.getItemId(processedItem);
-    },
-
-    getItemProp(processedItem, name) {
-      return processedItem && processedItem.item ? ObjectUtils.getItemValue(processedItem.item[name]) : undefined;
-    },
-
-    getItemLabel(processedItem) {
-      return this.getItemProp(processedItem, 'label');
-    },
-
-    isItemActive(processedItem) {
-      return this.activeItemPath.some(path => path.key === processedItem.key);
-    },
-
-    isItemVisible(processedItem) {
-      return this.getItemProp(processedItem, 'visible') !== false;
-    },
-
-    isItemDisabled(processedItem) {
-      return this.getItemProp(processedItem, 'disabled');
-    },
-
-    isItemFocused(processedItem) {
-      return this.focusedItemId === this.getItemId(processedItem);
-    },
-
-    isItemGroup(processedItem) {
-      return ObjectUtils.isNotEmpty(processedItem.items);
-    },
-
-    onItemClick(event, processedItem) {
-      const command = this.getItemProp(processedItem, 'command');
-      command && command({
-        originalEvent: event,
-        item: processedItem.item
-      });
-      this.$emit('item-click', {
-        originalEvent: event,
-        processedItem,
-        isFocus: true
-      });
-    },
-
-    onItemMouseEnter(event, processedItem) {
-      this.$emit('item-mouseenter', {
-        originalEvent: event,
-        processedItem
-      });
-    },
-
-    onItemActionClick(event, navigate) {
-      navigate && navigate(event);
-    },
-
-    getAriaSetSize() {
-      return this.items.filter(processedItem => this.isItemVisible(processedItem) && !this.getItemProp(processedItem, 'separator')).length;
-    },
-
-    getAriaPosInset(index) {
-      return index - this.items.slice(0, index).filter(processedItem => this.isItemVisible(processedItem) && this.getItemProp(processedItem, 'separator')).length + 1;
-    },
-
-    getItemClass(processedItem) {
-      return ['p-menuitem', this.getItemProp(processedItem, 'class'), {
-        'p-menuitem-active p-highlight': this.isItemActive(processedItem),
-        'p-focus': this.isItemFocused(processedItem),
-        'p-disabled': this.isItemDisabled(processedItem)
-      }];
-    },
-
-    getItemActionClass(processedItem, routerProps) {
-      return ['p-menuitem-link', {
-        'router-link-active': routerProps && routerProps.isActive,
-        'router-link-active-exact': this.exact && routerProps && routerProps.isExactActive
-      }];
-    },
-
-    getItemIconClass(processedItem) {
-      return ['p-menuitem-icon', this.getItemProp(processedItem, 'icon')];
-    },
-
-    getSeparatorItemClass(processedItem) {
-      return ['p-menuitem-separator', this.getItemProp(processedItem, 'class')];
-    },
-
-    getSubmenuIcon() {
-      return ['p-submenu-icon pi', {
-        'pi-angle-right': !this.root,
-        'pi-angle-down': this.root
-      }];
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return {
-        'p-submenu-list': !this.root,
-        'p-menubar-root-list': this.root
-      };
-    }
-
-  },
-  directives: {
-    ripple: Ripple
-  }
-};
-const _hoisted_1$1$2 = ["id", "aria-label", "aria-disabled", "aria-expanded", "aria-haspopup", "aria-level", "aria-setsize", "aria-posinset"];
-const _hoisted_2$1$2 = ["onClick", "onMouseenter"];
-const _hoisted_3$1$2 = ["href", "onClick"];
-const _hoisted_4$1$1 = {
-  class: "p-menuitem-text"
-};
-const _hoisted_5$1$1 = ["href", "target"];
-const _hoisted_6$9 = {
-  class: "p-menuitem-text"
-};
-const _hoisted_7$5 = ["id"];
-
-function render$1$2(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_router_link = resolveComponent("router-link");
-
-  const _component_MenubarSub = resolveComponent("MenubarSub", true);
-
-  const _directive_ripple = resolveDirective("ripple");
-
-  return openBlock(), createElementBlock("ul", null, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.items, (processedItem, index) => {
-    return openBlock(), createElementBlock(Fragment, {
-      key: $options.getItemKey(processedItem)
-    }, [$options.isItemVisible(processedItem) && !$options.getItemProp(processedItem, 'separator') ? (openBlock(), createElementBlock("li", {
-      key: 0,
-      id: $options.getItemId(processedItem),
-      style: normalizeStyle($options.getItemProp(processedItem, 'style')),
-      class: normalizeClass($options.getItemClass(processedItem)),
-      role: "menuitem",
-      "aria-label": $options.getItemLabel(processedItem),
-      "aria-disabled": $options.isItemDisabled(processedItem) || undefined,
-      "aria-expanded": $options.isItemGroup(processedItem) ? $options.isItemActive(processedItem) : undefined,
-      "aria-haspopup": $options.isItemGroup(processedItem) && !$options.getItemProp(processedItem, 'to') ? 'menu' : undefined,
-      "aria-level": $props.level + 1,
-      "aria-setsize": $options.getAriaSetSize(),
-      "aria-posinset": $options.getAriaPosInset(index)
-    }, [createElementVNode("div", {
-      class: "p-menuitem-content",
-      onClick: $event => $options.onItemClick($event, processedItem),
-      onMouseenter: $event => $options.onItemMouseEnter($event, processedItem)
-    }, [!$props.template ? (openBlock(), createElementBlock(Fragment, {
-      key: 0
-    }, [$options.getItemProp(processedItem, 'to') && !$options.isItemDisabled(processedItem) ? (openBlock(), createBlock(_component_router_link, {
-      key: 0,
-      to: $options.getItemProp(processedItem, 'to'),
-      custom: ""
-    }, {
-      default: withCtx(({
-        navigate,
-        href,
-        isActive,
-        isExactActive
-      }) => [withDirectives((openBlock(), createElementBlock("a", {
-        href: href,
-        class: normalizeClass($options.getItemActionClass(processedItem, {
-          isActive,
-          isExactActive
-        })),
-        tabindex: "-1",
-        "aria-hidden": "true",
-        onClick: $event => $options.onItemActionClick($event, navigate)
-      }, [$options.getItemProp(processedItem, 'icon') ? (openBlock(), createElementBlock("span", {
-        key: 0,
-        class: normalizeClass($options.getItemIconClass(processedItem))
-      }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_4$1$1, toDisplayString$1($options.getItemLabel(processedItem)), 1)], 10, _hoisted_3$1$2)), [[_directive_ripple]])]),
-      _: 2
-    }, 1032, ["to"])) : withDirectives((openBlock(), createElementBlock("a", {
-      key: 1,
-      href: $options.getItemProp(processedItem, 'url'),
-      class: normalizeClass($options.getItemActionClass(processedItem)),
-      target: $options.getItemProp(processedItem, 'target'),
-      tabindex: "-1",
-      "aria-hidden": "true"
-    }, [$options.getItemProp(processedItem, 'icon') ? (openBlock(), createElementBlock("span", {
-      key: 0,
-      class: normalizeClass($options.getItemIconClass(processedItem))
-    }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_6$9, toDisplayString$1($options.getItemLabel(processedItem)), 1), $options.getItemProp(processedItem, 'items') ? (openBlock(), createElementBlock("span", {
-      key: 1,
-      class: normalizeClass($options.getSubmenuIcon())
-    }, null, 2)) : createCommentVNode("", true)], 10, _hoisted_5$1$1)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
-      key: 1,
-      item: processedItem.item
-    }, null, 8, ["item"]))], 40, _hoisted_2$1$2), $options.isItemVisible(processedItem) && $options.isItemGroup(processedItem) ? (openBlock(), createBlock(_component_MenubarSub, {
-      key: 0,
-      menuId: $props.menuId,
-      role: "menu",
-      class: "p-submenu-list",
-      focusedItemId: $props.focusedItemId,
-      items: processedItem.items,
-      mobileActive: $props.mobileActive,
-      activeItemPath: $props.activeItemPath,
-      template: $props.template,
-      exact: $props.exact,
-      level: $props.level + 1,
-      onItemClick: _cache[0] || (_cache[0] = $event => _ctx.$emit('item-click', $event)),
-      onItemMouseenter: _cache[1] || (_cache[1] = $event => _ctx.$emit('item-mouseenter', $event))
-    }, null, 8, ["menuId", "focusedItemId", "items", "mobileActive", "activeItemPath", "template", "exact", "level"])) : createCommentVNode("", true)], 14, _hoisted_1$1$2)) : createCommentVNode("", true), $options.isItemVisible(processedItem) && $options.getItemProp(processedItem, 'separator') ? (openBlock(), createElementBlock("li", {
-      key: 1,
-      id: $options.getItemId(processedItem),
-      style: normalizeStyle($options.getItemProp(processedItem, 'style')),
-      class: normalizeClass($options.getSeparatorItemClass(processedItem)),
-      role: "separator"
-    }, null, 14, _hoisted_7$5)) : createCommentVNode("", true)], 64);
-  }), 128))]);
-}
-
-script$1$2.render = render$1$2;
-var script$X = {
-  name: 'Menubar',
-  emits: ['focus', 'blur'],
-  props: {
-    model: {
-      type: Array,
-      default: null
-    },
-    exact: {
-      type: Boolean,
-      default: true
-    },
-    buttonProps: {
-      type: null,
-      default: null
-    },
-    'aria-labelledby': {
-      type: String,
-      default: null
-    },
-    'aria-label': {
-      type: String,
-      default: null
-    }
-  },
-
-  data() {
-    return {
-      mobileActive: false,
-      focused: false,
-      focusedItemInfo: {
-        index: -1,
-        level: 0,
-        parentKey: ''
-      },
-      activeItemPath: [],
-      dirty: false
-    };
-  },
-
-  watch: {
-    activeItemPath(newPath) {
-      if (ObjectUtils.isNotEmpty(newPath)) {
-        this.bindOutsideClickListener();
-        this.bindResizeListener();
-      } else {
-        this.unbindOutsideClickListener();
-        this.unbindResizeListener();
-      }
-    }
-
-  },
-  outsideClickListener: null,
-  container: null,
-  menubar: null,
-
-  beforeUnmount() {
-    this.mobileActive = false;
-    this.unbindOutsideClickListener();
-    this.unbindResizeListener();
-
-    if (this.container) {
-      ZIndexUtils.clear(this.container);
-    }
-
-    this.container = null;
-  },
-
-  methods: {
-    getItemProp(item, name) {
-      return item ? ObjectUtils.getItemValue(item[name]) : undefined;
-    },
-
-    getItemLabel(item) {
-      return this.getItemProp(item, 'label');
-    },
-
-    isItemDisabled(item) {
-      return this.getItemProp(item, 'disabled');
-    },
-
-    isItemGroup(item) {
-      return ObjectUtils.isNotEmpty(this.getItemProp(item, 'items'));
-    },
-
-    isItemSeparator(item) {
-      return this.getItemProp(item, 'separator');
-    },
-
-    getProccessedItemLabel(processedItem) {
-      return processedItem ? this.getItemLabel(processedItem.item) : undefined;
-    },
-
-    isProccessedItemGroup(processedItem) {
-      return processedItem && ObjectUtils.isNotEmpty(processedItem.items);
-    },
-
-    toggle(event) {
-      if (this.mobileActive) {
-        this.mobileActive = false;
-        ZIndexUtils.clear(this.menubar);
-        this.hide();
-      } else {
-        this.mobileActive = true;
-        ZIndexUtils.set('menu', this.menubar, this.$primevue.config.zIndex.menu);
-        setTimeout(() => {
-          this.show();
-        }, 0);
-      }
-
-      this.bindOutsideClickListener();
-      event.preventDefault();
-    },
-
-    show() {
-      this.focusedItemInfo = {
-        index: this.findFirstFocusedItemIndex(),
-        level: 0,
-        parentKey: ''
-      };
-      DomHandler.focus(this.menubar);
-    },
-
-    hide(event, isFocus) {
-      if (this.mobileActive) {
-        setTimeout(() => {
-          DomHandler.focus(this.$refs.menubutton);
-        }, 0);
-      }
-
-      this.activeItemPath = [];
-      this.focusedItemInfo = {
-        index: -1,
-        level: 0,
-        parentKey: ''
-      };
-      isFocus && DomHandler.focus(this.menubar);
-      this.dirty = false;
-    },
-
-    onFocus(event) {
-      this.focused = true;
-      this.focusedItemInfo = this.focusedItemInfo.index !== -1 ? this.focusedItemInfo : {
-        index: this.findFirstFocusedItemIndex(),
-        level: 0,
-        parentKey: ''
-      };
-      this.$emit('focus', event);
-    },
-
-    onBlur(event) {
-      this.focused = false;
-      this.focusedItemInfo = {
-        index: -1,
-        level: 0,
-        parentKey: ''
-      };
-      this.searchValue = '';
-      this.dirty = false;
-      this.$emit('blur', event);
-    },
-
-    onKeyDown(event) {
-      const metaKey = event.metaKey || event.ctrlKey;
-
-      switch (event.code) {
-        case 'ArrowDown':
-          this.onArrowDownKey(event);
-          break;
-
-        case 'ArrowUp':
-          this.onArrowUpKey(event);
-          break;
-
-        case 'ArrowLeft':
-          this.onArrowLeftKey(event);
-          break;
-
-        case 'ArrowRight':
-          this.onArrowRightKey(event);
-          break;
-
-        case 'Home':
-          this.onHomeKey(event);
-          break;
-
-        case 'End':
-          this.onEndKey(event);
-          break;
-
-        case 'Space':
-          this.onSpaceKey(event);
-          break;
-
-        case 'Enter':
-          this.onEnterKey(event);
-          break;
-
-        case 'Escape':
-          this.onEscapeKey(event);
-          break;
-
-        case 'Tab':
-          this.onTabKey(event);
-          break;
-
-        case 'PageDown':
-        case 'PageUp':
-        case 'Backspace':
-        case 'ShiftLeft':
-        case 'ShiftRight':
-          //NOOP
-          break;
-
-        default:
-          if (!metaKey && ObjectUtils.isPrintableCharacter(event.key)) {
-            this.searchItems(event, event.key);
-          }
-
-          break;
-      }
-    },
-
-    onItemChange(event) {
-      const {
-        processedItem,
-        isFocus
-      } = event;
-      if (ObjectUtils.isEmpty(processedItem)) return;
-      const {
-        index,
-        key,
-        level,
-        parentKey,
-        items
-      } = processedItem;
-      const grouped = ObjectUtils.isNotEmpty(items);
-      const activeItemPath = this.activeItemPath.filter(p => p.parentKey !== parentKey && p.parentKey !== key);
-      grouped && activeItemPath.push(processedItem);
-      this.focusedItemInfo = {
-        index,
-        level,
-        parentKey
-      };
-      this.activeItemPath = activeItemPath;
-      grouped && (this.dirty = true);
-      isFocus && DomHandler.focus(this.menubar);
-    },
-
-    onItemClick(event) {
-      const {
-        originalEvent,
-        processedItem
-      } = event;
-      const grouped = this.isProccessedItemGroup(processedItem);
-      const root = ObjectUtils.isEmpty(processedItem.parent);
-      const selected = this.isSelected(processedItem);
-
-      if (selected) {
-        const {
-          index,
-          key,
-          level,
-          parentKey
-        } = processedItem;
-        this.activeItemPath = this.activeItemPath.filter(p => key !== p.key && key.startsWith(p.key));
-        this.focusedItemInfo = {
-          index,
-          level,
-          parentKey
-        };
-        this.dirty = !root;
-        DomHandler.focus(this.menubar);
-      } else {
-        if (grouped) {
-          this.onItemChange(event);
-        } else {
-          this.hide(originalEvent, true);
-          this.mobileActive = false;
-        }
-      }
-    },
-
-    onItemMouseEnter(event) {
-      if (!this.mobileActive && this.dirty) {
-        this.onItemChange(event);
-      }
-    },
-
-    menuButtonClick(event) {
-      this.toggle(event);
-    },
-
-    menuButtonKeydown(event) {
-      (event.code === 'Enter' || event.code === 'Space') && this.menuButtonClick(event);
-    },
-
-    onArrowDownKey(event) {
-      const processedItem = this.visibleItems[this.focusedItemInfo.index];
-      const root = processedItem ? ObjectUtils.isEmpty(processedItem.parent) : null;
-
-      if (root) {
-        const grouped = this.isProccessedItemGroup(processedItem);
-
-        if (grouped) {
-          this.onItemChange({
-            originalEvent: event,
-            processedItem
-          });
-          this.focusedItemInfo = {
-            index: -1,
-            parentKey: processedItem.key
-          };
-          this.onArrowRightKey(event);
-        }
-      } else {
-        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findNextItemIndex(this.focusedItemInfo.index) : this.findFirstFocusedItemIndex();
-        this.changeFocusedItemIndex(event, itemIndex);
-        event.preventDefault();
-      }
-    },
-
-    onArrowUpKey(event) {
-      const processedItem = this.visibleItems[this.focusedItemInfo.index];
-      const root = ObjectUtils.isEmpty(processedItem.parent);
-
-      if (root) {
-        const grouped = this.isProccessedItemGroup(processedItem);
-
-        if (grouped) {
-          this.onItemChange({
-            originalEvent: event,
-            processedItem
-          });
-          this.focusedItemInfo = {
-            index: -1,
-            parentKey: processedItem.key
-          };
-          const itemIndex = this.findLastItemIndex();
-          this.changeFocusedItemIndex(event, itemIndex);
-        }
-      } else {
-        const parentItem = this.activeItemPath.find(p => p.key === processedItem.parentKey);
-
-        if (this.focusedItemInfo.index === 0) {
-          this.focusedItemInfo = {
-            index: -1,
-            parentKey: parentItem ? parentItem.parentKey : ''
-          };
-          this.searchValue = '';
-          this.onArrowLeftKey(event);
-          this.activeItemPath = this.activeItemPath.filter(p => p.parentKey !== this.focusedItemInfo.parentKey);
-        } else {
-          const itemIndex = this.focusedItemInfo.index !== -1 ? this.findPrevItemIndex(this.focusedItemInfo.index) : this.findLastFocusedItemIndex();
-          this.changeFocusedItemIndex(event, itemIndex);
-        }
-      }
-
-      event.preventDefault();
-    },
-
-    onArrowLeftKey(event) {
-      const processedItem = this.visibleItems[this.focusedItemInfo.index];
-      const parentItem = processedItem ? this.activeItemPath.find(p => p.key === processedItem.parentKey) : null;
-
-      if (parentItem) {
-        this.onItemChange({
-          originalEvent: event,
-          processedItem: parentItem
-        });
-        this.activeItemPath = this.activeItemPath.filter(p => p.parentKey !== this.focusedItemInfo.parentKey);
-        event.preventDefault();
-      } else {
-        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findPrevItemIndex(this.focusedItemInfo.index) : this.findLastFocusedItemIndex();
-        this.changeFocusedItemIndex(event, itemIndex);
-        event.preventDefault();
-      }
-    },
-
-    onArrowRightKey(event) {
-      const processedItem = this.visibleItems[this.focusedItemInfo.index];
-      const parentItem = processedItem ? this.activeItemPath.find(p => p.key === processedItem.parentKey) : null;
-
-      if (parentItem) {
-        const grouped = this.isProccessedItemGroup(processedItem);
-
-        if (grouped) {
-          this.onItemChange({
-            originalEvent: event,
-            processedItem
-          });
-          this.focusedItemInfo = {
-            index: -1,
-            parentKey: processedItem.key
-          };
-          this.onArrowDownKey(event);
-        }
-      } else {
-        const itemIndex = this.focusedItemInfo.index !== -1 ? this.findNextItemIndex(this.focusedItemInfo.index) : this.findFirstFocusedItemIndex();
-        this.changeFocusedItemIndex(event, itemIndex);
-        event.preventDefault();
-      }
-    },
-
-    onHomeKey(event) {
-      this.changeFocusedItemIndex(event, this.findFirstItemIndex());
-      event.preventDefault();
-    },
-
-    onEndKey(event) {
-      this.changeFocusedItemIndex(event, this.findLastItemIndex());
-      event.preventDefault();
-    },
-
-    onEnterKey(event) {
-      if (this.focusedItemInfo.index !== -1) {
-        const element = DomHandler.findSingle(this.menubar, `li[id="${`${this.focusedItemId}`}"]`);
-        const anchorElement = element && DomHandler.findSingle(element, '.p-menuitem-link');
-        anchorElement ? anchorElement.click() : element && element.click();
-        const processedItem = this.visibleItems[this.focusedItemInfo.index];
-        const grouped = this.isProccessedItemGroup(processedItem);
-        !grouped && (this.focusedItemInfo.index = this.findFirstFocusedItemIndex());
-      }
-
-      event.preventDefault();
-    },
-
-    onSpaceKey(event) {
-      this.onEnterKey(event);
-    },
-
-    onEscapeKey(event) {
-      this.hide(event, true);
-      this.focusedItemInfo.index = this.findFirstFocusedItemIndex();
-      event.preventDefault();
-    },
-
-    onTabKey(event) {
-      if (this.focusedItemInfo.index !== -1) {
-        const processedItem = this.visibleItems[this.focusedItemInfo.index];
-        const grouped = this.isProccessedItemGroup(processedItem);
-        !grouped && this.onItemChange({
-          originalEvent: event,
-          processedItem
-        });
-      }
-
-      this.hide();
-    },
-
-    bindOutsideClickListener() {
-      if (!this.outsideClickListener) {
-        this.outsideClickListener = event => {
-          const isOutsideContainer = this.menubar !== event.target && !this.menubar.contains(event.target);
-          const isOutsideMenuButton = this.mobileActive && this.$refs.menubutton !== event.target && !this.$refs.menubutton.contains(event.target);
-
-          if (isOutsideContainer) {
-            isOutsideMenuButton ? this.mobileActive = false : this.hide();
-          }
-        };
-
-        document.addEventListener('click', this.outsideClickListener);
-      }
-    },
-
-    unbindOutsideClickListener() {
-      if (this.outsideClickListener) {
-        document.removeEventListener('click', this.outsideClickListener);
-        this.outsideClickListener = null;
-      }
-    },
-
-    bindResizeListener() {
-      if (!this.resizeListener) {
-        this.resizeListener = event => {
-          if (!DomHandler.isTouchDevice()) {
-            this.hide(event, true);
-          }
-
-          this.mobileActive = false;
-        };
-
-        window.addEventListener('resize', this.resizeListener);
-      }
-    },
-
-    unbindResizeListener() {
-      if (this.resizeListener) {
-        window.removeEventListener('resize', this.resizeListener);
-        this.resizeListener = null;
-      }
-    },
-
-    isItemMatched(processedItem) {
-      return this.isValidItem(processedItem) && this.getProccessedItemLabel(processedItem).toLocaleLowerCase().startsWith(this.searchValue.toLocaleLowerCase());
-    },
-
-    isValidItem(processedItem) {
-      return !!processedItem && !this.isItemDisabled(processedItem.item) && !this.isItemSeparator(processedItem.item);
-    },
-
-    isValidSelectedItem(processedItem) {
-      return this.isValidItem(processedItem) && this.isSelected(processedItem);
-    },
-
-    isSelected(processedItem) {
-      return this.activeItemPath.some(p => p.key === processedItem.key);
-    },
-
-    findFirstItemIndex() {
-      return this.visibleItems.findIndex(processedItem => this.isValidItem(processedItem));
-    },
-
-    findLastItemIndex() {
-      return ObjectUtils.findLastIndex(this.visibleItems, processedItem => this.isValidItem(processedItem));
-    },
-
-    findNextItemIndex(index) {
-      const matchedItemIndex = index < this.visibleItems.length - 1 ? this.visibleItems.slice(index + 1).findIndex(processedItem => this.isValidItem(processedItem)) : -1;
-      return matchedItemIndex > -1 ? matchedItemIndex + index + 1 : index;
-    },
-
-    findPrevItemIndex(index) {
-      const matchedItemIndex = index > 0 ? ObjectUtils.findLastIndex(this.visibleItems.slice(0, index), processedItem => this.isValidItem(processedItem)) : -1;
-      return matchedItemIndex > -1 ? matchedItemIndex : index;
-    },
-
-    findSelectedItemIndex() {
-      return this.visibleItems.findIndex(processedItem => this.isValidSelectedItem(processedItem));
-    },
-
-    findFirstFocusedItemIndex() {
-      const selectedIndex = this.findSelectedItemIndex();
-      return selectedIndex < 0 ? this.findFirstItemIndex() : selectedIndex;
-    },
-
-    findLastFocusedItemIndex() {
-      const selectedIndex = this.findSelectedItemIndex();
-      return selectedIndex < 0 ? this.findLastItemIndex() : selectedIndex;
-    },
-
-    searchItems(event, char) {
-      this.searchValue = (this.searchValue || '') + char;
-      let itemIndex = -1;
-      let matched = false;
-
-      if (this.focusedItemInfo.index !== -1) {
-        itemIndex = this.visibleItems.slice(this.focusedItemInfo.index).findIndex(processedItem => this.isItemMatched(processedItem));
-        itemIndex = itemIndex === -1 ? this.visibleItems.slice(0, this.focusedItemInfo.index).findIndex(processedItem => this.isItemMatched(processedItem)) : itemIndex + this.focusedItemInfo.index;
-      } else {
-        itemIndex = this.visibleItems.findIndex(processedItem => this.isItemMatched(processedItem));
-      }
-
-      if (itemIndex !== -1) {
-        matched = true;
-      }
-
-      if (itemIndex === -1 && this.focusedItemInfo.index === -1) {
-        itemIndex = this.findFirstFocusedItemIndex();
-      }
-
-      if (itemIndex !== -1) {
-        this.changeFocusedItemIndex(event, itemIndex);
-      }
-
-      if (this.searchTimeout) {
-        clearTimeout(this.searchTimeout);
-      }
-
-      this.searchTimeout = setTimeout(() => {
-        this.searchValue = '';
-        this.searchTimeout = null;
-      }, 500);
-      return matched;
-    },
-
-    changeFocusedItemIndex(event, index) {
-      if (this.focusedItemInfo.index !== index) {
-        this.focusedItemInfo.index = index;
-        this.scrollInView();
-      }
-    },
-
-    scrollInView(index = -1) {
-      const id = index !== -1 ? `${this.id}_${index}` : this.focusedItemId;
-      const element = DomHandler.findSingle(this.menubar, `li[id="${id}"]`);
-
-      if (element) {
-        element.scrollIntoView && element.scrollIntoView({
-          block: 'nearest',
-          inline: 'start'
-        });
-      }
-    },
-
-    createProcessedItems(items, level = 0, parent = {}, parentKey = '') {
-      const processedItems = [];
-      items && items.forEach((item, index) => {
-        const key = (parentKey !== '' ? parentKey + '_' : '') + index;
-        const newItem = {
-          item,
-          index,
-          level,
-          key,
-          parent,
-          parentKey
-        };
-        newItem['items'] = this.createProcessedItems(item.items, level + 1, newItem, key);
-        processedItems.push(newItem);
-      });
-      return processedItems;
-    },
-
-    containerRef(el) {
-      this.container = el;
-    },
-
-    menubarRef(el) {
-      this.menubar = el ? el.$el : undefined;
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-menubar p-component', {
-        'p-menubar-mobile-active': this.mobileActive
-      }];
-    },
-
-    processedItems() {
-      return this.createProcessedItems(this.model || []);
-    },
-
-    visibleItems() {
-      const processedItem = this.activeItemPath.find(p => p.key === this.focusedItemInfo.parentKey);
-      return processedItem ? processedItem.items : this.processedItems;
-    },
-
-    id() {
-      return this.$attrs.id || UniqueComponentId();
-    },
-
-    focusedItemId() {
-      return this.focusedItemInfo.index !== -1 ? `${this.id}${ObjectUtils.isNotEmpty(this.focusedItemInfo.parentKey) ? '_' + this.focusedItemInfo.parentKey : ''}_${this.focusedItemInfo.index}` : null;
-    }
-
-  },
-  components: {
-    MenubarSub: script$1$2
-  }
-};
-const _hoisted_1$s = {
-  key: 0,
-  class: "p-menubar-start"
-};
-const _hoisted_2$l = ["aria-haspopup", "aria-expanded", "aria-controls", "aria-label"];
-
-const _hoisted_3$f = /*#__PURE__*/createElementVNode("i", {
-  class: "pi pi-bars"
-}, null, -1);
-
-const _hoisted_4$e = [_hoisted_3$f];
-const _hoisted_5$b = {
-  key: 2,
-  class: "p-menubar-end"
-};
-
-function render$e(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_MenubarSub = resolveComponent("MenubarSub");
-
-  return openBlock(), createElementBlock("div", {
-    ref: $options.containerRef,
-    class: normalizeClass($options.containerClass)
-  }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_1$s, [renderSlot(_ctx.$slots, "start")])) : createCommentVNode("", true), $props.model.length > 0 ? (openBlock(), createElementBlock("a", mergeProps({
-    key: 1,
-    ref: "menubutton",
-    role: "button",
-    tabindex: "0",
-    class: "p-menubar-button",
-    "aria-haspopup": $props.model.length && $props.model.length > 0 ? true : false,
-    "aria-expanded": $data.mobileActive,
-    "aria-controls": $options.id,
-    "aria-label": _ctx.$primevue.config.locale.aria.navigation,
-    onClick: _cache[0] || (_cache[0] = $event => $options.menuButtonClick($event)),
-    onKeydown: _cache[1] || (_cache[1] = $event => $options.menuButtonKeydown($event))
-  }, $props.buttonProps), _hoisted_4$e, 16, _hoisted_2$l)) : createCommentVNode("", true), createVNode(_component_MenubarSub, {
-    ref: $options.menubarRef,
-    id: $options.id,
-    class: "p-menubar-root-list",
-    role: "menubar",
-    items: $options.processedItems,
-    template: _ctx.$slots.item,
-    root: true,
-    mobileActive: $data.mobileActive,
-    tabindex: "0",
-    "aria-activedescendant": $data.focused ? $options.focusedItemId : undefined,
-    menuId: $options.id,
-    focusedItemId: $data.focused ? $options.focusedItemId : undefined,
-    activeItemPath: $data.activeItemPath,
-    exact: $props.exact,
-    level: 0,
-    "aria-labelledby": _ctx.ariaLabelledby,
-    "aria-label": _ctx.ariaLabel,
-    onFocus: $options.onFocus,
-    onBlur: $options.onBlur,
-    onKeydown: $options.onKeyDown,
-    onItemClick: $options.onItemClick,
-    onItemMouseenter: $options.onItemMouseEnter
-  }, null, 8, ["id", "items", "template", "mobileActive", "aria-activedescendant", "menuId", "focusedItemId", "activeItemPath", "exact", "aria-labelledby", "aria-label", "onFocus", "onBlur", "onKeydown", "onItemClick", "onItemMouseenter"]), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_5$b, [renderSlot(_ctx.$slots, "end")])) : createCommentVNode("", true)], 2);
-}
-
-function styleInject$9(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$g = "\n.p-menubar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-menubar ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menubar .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menubar .p-menuitem-text {\n    line-height: 1;\n}\n.p-menubar .p-menuitem {\n    position: relative;\n}\n.p-menubar-root-list {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-menubar-root-list > li ul {\n    display: none;\n    z-index: 1;\n}\n.p-menubar-root-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n}\n.p-menubar .p-submenu-list {\n    display: none;\n    position: absolute;\n    z-index: 1;\n}\n.p-menubar .p-submenu-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n    left: 100%;\n    top: 0;\n}\n.p-menubar .p-submenu-list .p-menuitem .p-menuitem-content .p-menuitem-link .p-submenu-icon {\n    margin-left: auto;\n}\n.p-menubar .p-menubar-end {\n    margin-left: auto;\n    -ms-flex-item-align: center;\n        align-self: center;\n}\n.p-menubar-button {\n    display: none;\n    cursor: pointer;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    text-decoration: none;\n}\n";
-styleInject$9(css_248z$g);
-script$X.render = render$e;
-
-var script$W = {
-  name: 'Chart',
-  emits: ['select', 'loaded'],
-  props: {
-    type: String,
-    data: null,
-    options: null,
-    plugins: null,
-    width: {
-      type: Number,
-      default: 300
-    },
-    height: {
-      type: Number,
-      default: 150
-    }
-  },
-  chart: null,
-  watch: {
-    /*
-     * Use deep watch to enable triggering watch for changes within structure
-     * otherwise the entire data object needs to be replaced to trigger watch
-     */
-    data: {
-      handler() {
-        this.reinit();
-      },
-
-      deep: true
-    },
-
-    type() {
-      this.reinit();
-    },
-
-    options() {
-      this.reinit();
-    }
-
-  },
-
-  mounted() {
-    this.initChart();
-  },
-
-  beforeUnmount() {
-    if (this.chart) {
-      this.chart.destroy();
-      this.chart = null;
-    }
-  },
-
-  methods: {
-    initChart() {
-      Promise.resolve().then(function () { return auto; }).then(module => {
-        if (this.chart) {
-          this.chart.destroy();
-          this.chart = null;
-        }
-
-        if (module && module.default) {
-          this.chart = new module.default(this.$refs.canvas, {
-            type: this.type,
-            data: this.data,
-            options: this.options,
-            plugins: this.plugins
-          });
-        }
-
-        this.$emit('loaded', this.chart);
-      });
-    },
-
-    getCanvas() {
-      return this.$canvas;
-    },
-
-    getChart() {
-      return this.chart;
-    },
-
-    getBase64Image() {
-      return this.chart.toBase64Image();
-    },
-
-    refresh() {
-      if (this.chart) {
-        this.chart.update();
-      }
-    },
-
-    reinit() {
-      this.initChart();
-    },
-
-    onCanvasClick(event) {
-      if (this.chart) {
-        const element = this.chart.getElementsAtEventForMode(event, 'nearest', {
-          intersect: true
-        }, false);
-        const dataset = this.chart.getElementsAtEventForMode(event, 'dataset', {
-          intersect: true
-        }, false);
-
-        if (element && element[0] && dataset) {
-          this.$emit('select', {
-            originalEvent: event,
-            element: element[0],
-            dataset: dataset
-          });
-        }
-      }
-    },
-
-    generateLegend() {
-      if (this.chart) {
-        return this.chart.generateLegend();
-      }
-    }
-
-  }
-};
-const _hoisted_1$r = {
-  class: "p-chart"
-};
-const _hoisted_2$k = ["width", "height"];
-
-function render$d(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$r, [createElementVNode("canvas", {
-    ref: "canvas",
-    width: $props.width,
-    height: $props.height,
-    onClick: _cache[0] || (_cache[0] = $event => $options.onCanvasClick($event))
-  }, null, 8, _hoisted_2$k)]);
+  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_3$g, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$e, null, 512), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_5$c, null, 512)) : createCommentVNode("", true), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_6$a, null, 512)) : createCommentVNode("", true)], 2);
 }
 
 function styleInject$8(css, ref) {
@@ -37132,68 +37022,11 @@ function styleInject$8(css, ref) {
   }
 }
 
-var css_248z$f = "\n.p-chart {\n    position: relative;\n}\n";
+var css_248z$f = "\n.p-datatable {\n    position: relative;\n}\n.p-datatable table {\n    border-collapse: collapse;\n    min-width: 100%;\n    table-layout: fixed;\n}\n.p-datatable .p-sortable-column {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-datatable .p-sortable-column .p-column-title,\n.p-datatable .p-sortable-column .p-sortable-column-icon,\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    vertical-align: middle;\n}\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper > table,\n.p-datatable-auto-layout > .p-datatable-wrapper > table {\n    table-layout: auto;\n}\n.p-datatable-hoverable-rows .p-selectable-row {\n    cursor: pointer;\n}\n\n/* Scrollable */\n.p-datatable-scrollable .p-datatable-wrapper {\n    position: relative;\n    overflow: auto;\n}\n.p-datatable-scrollable .p-datatable-thead,\n.p-datatable-scrollable .p-datatable-tbody,\n.p-datatable-scrollable .p-datatable-tfoot {\n    display: block;\n}\n.p-datatable-scrollable .p-datatable-thead > tr,\n.p-datatable-scrollable .p-datatable-tbody > tr,\n.p-datatable-scrollable .p-datatable-tfoot > tr {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n    width: 100%;\n}\n.p-datatable-scrollable .p-datatable-thead > tr > th,\n.p-datatable-scrollable .p-datatable-tbody > tr > td,\n.p-datatable-scrollable .p-datatable-tfoot > tr > td {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 0px;\n            flex: 1 1 0;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable-scrollable .p-datatable-thead {\n    position: sticky;\n    top: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-frozen-tbody {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-tfoot {\n    position: sticky;\n    bottom: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-frozen-column {\n    position: sticky;\n    background: inherit;\n}\n.p-datatable-scrollable th.p-frozen-column {\n    z-index: 1;\n}\n.p-datatable-scrollable-both .p-datatable-thead > tr > th,\n.p-datatable-scrollable-both .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-both .p-datatable-tfoot > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-thead > tr > th .p-datatable-scrollable-horizontal .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-tfoot > tr > td {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 0 auto;\n            flex: 1 0 auto;\n}\n.p-datatable-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    height: 100%;\n}\n.p-datatable-flex-scrollable .p-datatable-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n}\n.p-datatable-scrollable .p-rowgroup-header {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot {\n    display: table;\n    border-collapse: collapse;\n    width: 100%;\n    table-layout: fixed;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr {\n    display: table-row;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr > th,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr > td {\n    display: table-cell;\n}\n.p-datatable-scrollable .p-virtualscroller > .p-datatable-table {\n    display: inline-block; /* For Safari */\n}\n\n/* Resizable */\n.p-datatable-resizable > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-resizable .p-datatable-thead > tr > th,\n.p-datatable-resizable .p-datatable-tfoot > tr > td,\n.p-datatable-resizable .p-datatable-tbody > tr > td {\n    overflow: hidden;\n    white-space: nowrap;\n}\n.p-datatable-resizable .p-resizable-column:not(.p-frozen-column) {\n    background-clip: padding-box;\n    position: relative;\n}\n.p-datatable-resizable-fit .p-resizable-column:last-child .p-column-resizer {\n    display: none;\n}\n.p-datatable .p-column-resizer {\n    display: block;\n    position: absolute !important;\n    top: 0;\n    right: 0;\n    margin: 0;\n    width: 0.5rem;\n    height: 100%;\n    padding: 0px;\n    cursor: col-resize;\n    border: 1px solid transparent;\n}\n.p-datatable .p-column-header-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable .p-column-resizer-helper {\n    width: 1px;\n    position: absolute;\n    z-index: 10;\n    display: none;\n}\n.p-datatable .p-row-editor-init,\n.p-datatable .p-row-editor-save,\n.p-datatable .p-row-editor-cancel {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Expand */\n.p-datatable .p-row-toggler {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Reorder */\n.p-datatable-reorder-indicator-up,\n.p-datatable-reorder-indicator-down {\n    position: absolute;\n    display: none;\n}\n.p-reorderable-column,\n.p-datatable-reorderablerow-handle {\n    cursor: move;\n}\n\n/* Loader */\n.p-datatable .p-datatable-loading-overlay {\n    position: absolute;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    z-index: 2;\n}\n\n/* Filter */\n.p-column-filter-row {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    width: 100%;\n}\n.p-column-filter-menu {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    margin-left: auto;\n}\n.p-column-filter-row .p-column-filter-element {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-column-filter-menu-button,\n.p-column-filter-clear-button {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-column-filter-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-column-filter-row-items {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-column-filter-row-item {\n    cursor: pointer;\n}\n.p-column-filter-add-button,\n.p-column-filter-remove-button {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-column-filter-add-button .p-button-label,\n.p-column-filter-remove-button .p-button-label {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n}\n.p-column-filter-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-column-filter-buttonbar .p-button:not(.p-button-icon-only) {\n    width: auto;\n}\n\n/* Responsive */\n.p-datatable .p-datatable-tbody > tr > td > .p-column-title {\n    display: none;\n}\n\n/* VirtualScroller */\n.p-datatable .p-virtualscroller-loading {\n    -webkit-transform: none !important;\n            transform: none !important;\n    min-height: 0;\n    position: sticky;\n    top: 0;\n    left: 0;\n}\n";
 styleInject$8(css_248z$f);
-script$W.render = render$d;
+script$Z.render = render$d;
 
-var script$V = {
-  props: {
-    group : String,
-    field : String,
-    report : Object
-},
-  setup(__props) {
-
-
-
-
-const model = inject("model");
-
-const store = getStoreById(model);
-createRepoStore(store);
-
-const schema = store.route.schema;
-
-for(const field in schema) {
-    if (schema[field].type == "time" || schema[field].type == "number") ;
-}
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$X), null, {
-      start: withCtx(() => [
-        createVNode(script$Y, { report: __props.report }, null, 8 /* PROPS */, ["report"]),
-        (__props.report.has_scale)
-          ? (openBlock(), createBlock(script$Z, {
-              key: 0,
-              report: __props.report
-            }, null, 8 /* PROPS */, ["report"]))
-          : createCommentVNode("v-if", true)
-      ]),
-      end: withCtx(() => [
-        createVNode(script$_, { report: __props.report }, null, 8 /* PROPS */, ["report"])
-      ]),
-      _: 1 /* STABLE */
-    }),
-    (__props.report.has_scale)
-      ? (openBlock(), createBlock(unref(script$W), {
-          key: 0,
-          type: "line"
-        }))
-      : (openBlock(), createBlock(unref(script$W), {
-          key: 1,
-          type: "bar"
-        }))
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$V.__file = "presstojam/src/components/reports/numeric-report.vue";
-
-var script$U = {
+var script$Y = {
   props: {
     group : String
 },
@@ -37203,20 +37036,20 @@ var script$U = {
 
 const model = inject("model");
 
-const store = getStoreById(model);
+const store = getModel(model);
 createRepoStore(store);
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$19)))
+  return (openBlock(), createBlock(unref(script$Z)))
 }
 }
 
 };
 
-script$U.__file = "presstojam/src/components/reports/summary-report.vue";
+script$Y.__file = "presstojam/src/components/reports/summary-report.vue";
 
-var script$T = {
+var script$X = {
   props: {
     group : String
 },
@@ -37226,8 +37059,8 @@ var script$T = {
 
 const model = inject("model");
 
-const store = getStoreById(model);
-const schema = store.route.schema;
+const store = getModel(model);
+const schema = store.fields;
 
 const numeric_reports = [];
 for(const field in schema) {
@@ -37242,22 +37075,22 @@ return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
     createElementVNode("h3", null, "Reports For " + toDisplayString$1(__props.group), 1 /* TEXT */),
     (openBlock(), createElementBlock(Fragment, null, renderList(numeric_reports, (field) => {
-      return createVNode(script$V, {
+      return createVNode(script$$, {
         group: __props.group,
         field: field,
         key: field
       }, null, 8 /* PROPS */, ["group", "field"])
     }), 64 /* STABLE_FRAGMENT */)),
-    createVNode(script$U, { group: __props.group }, null, 8 /* PROPS */, ["group"])
+    createVNode(script$Y, { group: __props.group }, null, 8 /* PROPS */, ["group"])
   ], 64 /* STABLE_FRAGMENT */))
 }
 }
 
 };
 
-script$T.__file = "presstojam/src/components/reports/report-group.vue";
+script$X.__file = "presstojam/src/components/reports/report-group.vue";
 
-var script$S = {
+var script$W = {
   props: {
     model : String,
     id : String,
@@ -37271,17 +37104,16 @@ const props = __props;
 
 provide("model", props.model);
 
-const client = inject("client");
 
-clearDataCache();
-const store = createDataStore(client, props.model);
-const schema = store.route.schema;
+clearModelCache();
+const store = getModel(props.model);
 
 const groups = [];
-for(const field in schema) {
-    if (schema[field].type == "id" && schema[field].reference_type == ReferenceTypes.REFERENCE) {
+for(const field_name in store.fields) {
+    const field = store.fields[field_name];
+    if (field.type == "id" && field.reference_type == ReferenceTypes.REFERENCE) {
         groups.push(field);
-    } else if (schema[field].type == "string" && schema[field].isEnum()) {
+    } else if (field.type == "string" && field.isEnum()) {
         groups.push(field);
     }
 }
@@ -37289,9 +37121,9 @@ for(const field in schema) {
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$T, { group: "all" }),
+    createVNode(script$X, { group: "all" }),
     (openBlock(), createElementBlock(Fragment, null, renderList(groups, (group) => {
-      return createVNode(script$T, {
+      return createVNode(script$X, {
         key: group,
         group: group
       }, null, 8 /* PROPS */, ["group"])
@@ -37302,35 +37134,35 @@ return (_ctx, _cache) => {
 
 };
 
-script$S.__file = "presstojam/src/components/reports/report.vue";
+script$W.__file = "presstojam/src/components/reports/report.vue";
 
 var report = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$S
+    'default': script$W
 });
 
-var script$R = {
+var script$V = {
   name: 'Card'
 };
-const _hoisted_1$q = {
+const _hoisted_1$o = {
   class: "p-card p-component"
 };
-const _hoisted_2$j = {
+const _hoisted_2$k = {
   key: 0,
   class: "p-card-header"
 };
-const _hoisted_3$e = {
+const _hoisted_3$f = {
   class: "p-card-body"
 };
 const _hoisted_4$d = {
   key: 0,
   class: "p-card-title"
 };
-const _hoisted_5$a = {
+const _hoisted_5$b = {
   key: 1,
   class: "p-card-subtitle"
 };
-const _hoisted_6$8 = {
+const _hoisted_6$9 = {
   class: "p-card-content"
 };
 const _hoisted_7$4 = {
@@ -37339,7 +37171,7 @@ const _hoisted_7$4 = {
 };
 
 function render$c(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$q, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$j, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_3$e, [_ctx.$slots.title ? (openBlock(), createElementBlock("div", _hoisted_4$d, [renderSlot(_ctx.$slots, "title")])) : createCommentVNode("", true), _ctx.$slots.subtitle ? (openBlock(), createElementBlock("div", _hoisted_5$a, [renderSlot(_ctx.$slots, "subtitle")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_6$8, [renderSlot(_ctx.$slots, "content")]), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_7$4, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)])]);
+  return openBlock(), createElementBlock("div", _hoisted_1$o, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$k, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_3$f, [_ctx.$slots.title ? (openBlock(), createElementBlock("div", _hoisted_4$d, [renderSlot(_ctx.$slots, "title")])) : createCommentVNode("", true), _ctx.$slots.subtitle ? (openBlock(), createElementBlock("div", _hoisted_5$b, [renderSlot(_ctx.$slots, "subtitle")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_6$9, [renderSlot(_ctx.$slots, "content")]), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_7$4, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)])]);
 }
 
 function styleInject$7(css, ref) {
@@ -37373,14 +37205,14 @@ function styleInject$7(css, ref) {
 
 var css_248z$e = "\n.p-card-header img {\n    width: 100%;\n}\n";
 styleInject$7(css_248z$e);
-script$R.render = render$c;
+script$V.render = render$c;
 
-const _hoisted_1$p = /*#__PURE__*/createTextVNode(" Login ");
-const _hoisted_2$i = { class: "ptj-login" };
-const _hoisted_3$d = { class: "field row" };
+const _hoisted_1$n = /*#__PURE__*/createTextVNode(" Login ");
+const _hoisted_2$j = { class: "ptj-login" };
+const _hoisted_3$e = { class: "field row" };
 const _hoisted_4$c = { class: "p-float-label" };
-const _hoisted_5$9 = /*#__PURE__*/createElementVNode("label", { for: "lusername" }, "Username", -1 /* HOISTED */);
-const _hoisted_6$7 = { class: "field row" };
+const _hoisted_5$a = /*#__PURE__*/createElementVNode("label", { for: "lusername" }, "Username", -1 /* HOISTED */);
+const _hoisted_6$8 = { class: "field row" };
 const _hoisted_7$3 = { class: "p-float-label" };
 const _hoisted_8$3 = /*#__PURE__*/createElementVNode("label", { for: "lpassword" }, "Password", -1 /* HOISTED */);
 const _hoisted_9$1 = { class: "row" };
@@ -37406,7 +37238,7 @@ const _hoisted_28 = /*#__PURE__*/createTextVNode(" | ");
 
 
 
-var script$Q = {
+var script$U = {
   props: {
     actions : []
 },
@@ -37487,30 +37319,30 @@ function submit() {
 } 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$R), null, {
+  return (openBlock(), createBlock(unref(script$V), null, {
     title: withCtx(() => [
-      _hoisted_1$p
+      _hoisted_1$n
     ]),
     content: withCtx(() => [
-      createElementVNode("div", _hoisted_2$i, [
+      createElementVNode("div", _hoisted_2$j, [
         withDirectives(createElementVNode("form", null, [
           withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(unref(store).globalerror), 513 /* TEXT, NEED_PATCH */), [
             [vShow, unref(store).globalerror]
           ]),
-          createElementVNode("div", _hoisted_3$d, [
+          createElementVNode("div", _hoisted_3$e, [
             createElementVNode("span", _hoisted_4$c, [
-              createVNode(unref(script$1I), {
+              createVNode(unref(script$1B), {
                 id: "lusername",
                 type: "text",
                 modelValue: unref(store).email,
                 "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((unref(store).email) = $event))
               }, null, 8 /* PROPS */, ["modelValue"]),
-              _hoisted_5$9
+              _hoisted_5$a
             ])
           ]),
-          createElementVNode("div", _hoisted_6$7, [
+          createElementVNode("div", _hoisted_6$8, [
             createElementVNode("span", _hoisted_7$3, [
-              createVNode(unref(script$1I), {
+              createVNode(unref(script$1B), {
                 id: "lpassword",
                 type: "password",
                 modelValue: unref(store).password,
@@ -37520,7 +37352,7 @@ return (_ctx, _cache) => {
             ])
           ]),
           createElementVNode("div", _hoisted_9$1, [
-            createVNode(unref(script$1J), {
+            createVNode(unref(script$1C), {
               label: unref(t)('btns.login'),
               onClick: submit
             }, null, 8 /* PROPS */, ["label"])
@@ -37534,7 +37366,7 @@ return (_ctx, _cache) => {
           ]),
           createElementVNode("div", _hoisted_11$1, [
             createElementVNode("span", _hoisted_12$1, [
-              createVNode(unref(script$1I), {
+              createVNode(unref(script$1B), {
                 id: "cusername",
                 type: "text",
                 modelValue: unref(store).username,
@@ -37545,7 +37377,7 @@ return (_ctx, _cache) => {
           ]),
           createElementVNode("div", _hoisted_14$1, [
             createElementVNode("span", _hoisted_15, [
-              createVNode(unref(script$1I), {
+              createVNode(unref(script$1B), {
                 id: "cpassword",
                 type: "password",
                 modelValue: unref(store).password,
@@ -37556,7 +37388,7 @@ return (_ctx, _cache) => {
           ]),
           createElementVNode("div", _hoisted_17, [
             createElementVNode("span", _hoisted_18, [
-              createVNode(unref(script$1I), {
+              createVNode(unref(script$1B), {
                 id: "cconfirm_password",
                 type: "password",
                 modelValue: unref(store).confirm_password,
@@ -37566,7 +37398,7 @@ return (_ctx, _cache) => {
             ])
           ]),
           createElementVNode("div", _hoisted_20, [
-            createVNode(unref(script$1J), {
+            createVNode(unref(script$1C), {
               label: unref(t)('btns.create'),
               onClick: submit
             }, null, 8 /* PROPS */, ["label"])
@@ -37580,7 +37412,7 @@ return (_ctx, _cache) => {
           ]),
           createElementVNode("div", _hoisted_22, [
             createElementVNode("span", _hoisted_23, [
-              createVNode(unref(script$1I), {
+              createVNode(unref(script$1B), {
                 id: "fusername",
                 type: "text",
                 modelValue: unref(store).username,
@@ -37590,7 +37422,7 @@ return (_ctx, _cache) => {
             ])
           ]),
           createElementVNode("div", _hoisted_25, [
-            createVNode(unref(script$1J), {
+            createVNode(unref(script$1C), {
               label: unref(t)('btns.forgot'),
               onClick: submit
             }, null, 8 /* PROPS */, ["label"])
@@ -37621,13 +37453,13 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$d = "\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v {\r\n        width : 450px;\r\n        margin-left : auto;\r\n        margin-right : auto;\n}\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v > form > div {\r\n        margin-bottom :28px;\n}\n.login-vue-vue-type-style-index-0-id-26fc1ace-lang_ptj-login__uVh-v input {\r\n        width : 100%;\n}\r\n";
-styleInject$b(css_248z$d);
+styleInject$t(css_248z$d);
 
-script$Q.__file = "presstojam/src/components/login/login.vue";
+script$U.__file = "presstojam/src/components/login/login.vue";
 
 var login = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$Q
+    'default': script$U
 });
 
 function render$b(_ctx, _cache) {
@@ -37653,12 +37485,12 @@ function render$b(_ctx, _cache) {
 }
 
 var css_248z$c = "\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  transition-property: opacity;\r\n  transition-duration: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs {\r\n  transition-delay: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter__T5pru, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  opacity: 0\n}\r\n";
-styleInject$b(css_248z$c);
+styleInject$t(css_248z$c);
 
-const script$P = {};
+const script$T = {};
 
-script$P.render = render$b;
-script$P.__file = "presstojam/src/components/routes.vue";
+script$T.render = render$b;
+script$T.__file = "presstojam/src/components/routes.vue";
 
 var script$1$1 = {
   name: 'Menuitem',
@@ -37730,7 +37562,7 @@ const _hoisted_3$1$1 = {
   class: "p-menuitem-text"
 };
 const _hoisted_4$b = ["href", "target"];
-const _hoisted_5$8 = {
+const _hoisted_5$9 = {
   class: "p-menuitem-text"
 };
 
@@ -37786,14 +37618,14 @@ function render$1$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
     key: 0,
     class: normalizeClass(['p-menuitem-icon', $props.item.icon])
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_5$8, toDisplayString$1($options.label()), 1)], 10, _hoisted_4$b)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_5$9, toDisplayString$1($options.label()), 1)], 10, _hoisted_4$b)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
     key: 1,
     item: $props.item
   }, null, 8, ["item"]))])], 14, _hoisted_1$1$1)) : createCommentVNode("", true);
 }
 
 script$1$1.render = render$1$1;
-var script$O = {
+var script$S = {
   name: 'Menu',
   inheritAttrs: false,
   emits: ['show', 'hide', 'focus', 'blur'],
@@ -38172,12 +38004,12 @@ var script$O = {
   },
   components: {
     PVMenuitem: script$1$1,
-    Portal: script$1C
+    Portal: script$1H
   }
 };
-const _hoisted_1$o = ["id"];
-const _hoisted_2$h = ["id", "tabindex", "aria-activedescendant", "aria-label", "aria-labelledby"];
-const _hoisted_3$c = ["id"];
+const _hoisted_1$m = ["id"];
+const _hoisted_2$i = ["id", "tabindex", "aria-activedescendant", "aria-label", "aria-labelledby"];
+const _hoisted_3$d = ["id"];
 
 function render$a(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_PVMenuitem = resolveComponent("PVMenuitem");
@@ -38225,7 +38057,7 @@ function render$a(_ctx, _cache, $props, $setup, $data, $options) {
           role: "none"
         }, [renderSlot(_ctx.$slots, "item", {
           item: item
-        }, () => [createTextVNode(toDisplayString$1($options.label(item)), 1)])], 8, _hoisted_3$c)) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(item.items, (child, j) => {
+        }, () => [createTextVNode(toDisplayString$1($options.label(item)), 1)])], 8, _hoisted_3$d)) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(item.items, (child, j) => {
           return openBlock(), createElementBlock(Fragment, {
             key: child.label + i + '_' + j
           }, [$options.visible(child) && !child.separator ? (openBlock(), createBlock(_component_PVMenuitem, {
@@ -38256,7 +38088,7 @@ function render$a(_ctx, _cache, $props, $setup, $data, $options) {
           focusedOptionId: $options.focusedOptionId,
           onItemClick: $options.itemClick
         }, null, 8, ["id", "item", "template", "exact", "focusedOptionId", "onItemClick"]))], 64);
-      }), 128))], 40, _hoisted_2$h)], 16, _hoisted_1$o)) : createCommentVNode("", true)]),
+      }), 128))], 40, _hoisted_2$i)], 16, _hoisted_1$m)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
@@ -38294,17 +38126,17 @@ function styleInject$6(css, ref) {
 
 var css_248z$b = "\n.p-menu-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-menu ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menu .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menu .p-menuitem-text {\n    line-height: 1;\n}\n";
 styleInject$6(css_248z$b);
-script$O.render = render$a;
+script$S.render = render$a;
 
-const _hoisted_1$n = ["href", "onClick"];
-const _hoisted_2$g = { key: 1 };
-const _hoisted_3$b = ["href", "onClick"];
+const _hoisted_1$l = ["href", "onClick"];
+const _hoisted_2$h = { key: 1 };
+const _hoisted_3$c = ["href", "onClick"];
 const _hoisted_4$a = ["onClick"];
-const _hoisted_5$7 = { key: 1 };
-const _hoisted_6$6 = ["onClick"];
+const _hoisted_5$8 = { key: 1 };
+const _hoisted_6$7 = ["onClick"];
 
 
-var script$N = {
+var script$R = {
   props: {
     name : [String, Object]
 },
@@ -38321,7 +38153,7 @@ const report_items = ref([]);
 const menu = ref();
 const report_menu = ref();
 
-let routes = getRoutes();
+let routes = getEntities();
 
 let arr = [];
 let carr = [];
@@ -38329,14 +38161,14 @@ let carr = [];
 for(const i in routes) {
     const route = routes[i];
     if (!route.parent) {
-        if (route.min_rows == 1 && route.max_rows == 1 && route.schema['--owner'] && route.schema['--owner'].reference == _profile) {
+        if (route.min_rows == 1 && route.max_rows == 1 && route.cells['--owner'] && route.cells['--owner'].reference == _profile) {
             carr.push({
                 label : route.name,
                 model : i,
                 is_report : false
             });
             
-            for(const x of route.schema['--id'].reference) {
+            for(const x of route.cells['--id'].reference) {
                 const croute = routes[x];
                 arr.push({
                     label : croute.name,
@@ -38404,7 +38236,7 @@ const toggleReports = (event) => {
 return (_ctx, _cache) => {
   const _component_router_link = resolveComponent("router-link");
 
-  return (openBlock(), createBlock(unref(script$X), { model: items.value }, {
+  return (openBlock(), createBlock(unref(script$11), { model: items.value }, {
     item: withCtx(({item}) => [
       (item.is_report == false)
         ? (openBlock(), createBlock(_component_router_link, {
@@ -38416,16 +38248,16 @@ return (_ctx, _cache) => {
                 href: href,
                 onClick: navigate,
                 class: normalizeClass(["p-menuitem-link p-menuitem-content", {'active-link': isActive, 'active-link-exact': isExactActive}])
-              }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_1$n)
+              }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_1$l)
             ]),
             _: 2 /* DYNAMIC */
           }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"]))
-        : (openBlock(), createElementBlock("div", _hoisted_2$g, [
+        : (openBlock(), createElementBlock("div", _hoisted_2$h, [
             createElementVNode("a", {
               class: "p-menuitem-link p-menuitem-content",
               onClick: toggleReports
             }, "Reports"),
-            createVNode(unref(script$O), {
+            createVNode(unref(script$S), {
               id: "report_menu",
               ref_key: "report_menu",
               ref: report_menu,
@@ -38441,7 +38273,7 @@ return (_ctx, _cache) => {
                       href: href,
                       onClick: navigate,
                       class: normalizeClass(["p-menuitem-link p-menuitem-content", {'active-link': isActive, 'active-link-exact': isExactActive}])
-                    }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_3$b)
+                    }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_3$c)
                   ]),
                   _: 2 /* DYNAMIC */
                 }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"])
@@ -38451,7 +38283,7 @@ return (_ctx, _cache) => {
           ]))
     ]),
     end: withCtx(() => [
-      createVNode(unref(script$1J), {
+      createVNode(unref(script$1C), {
         type: "button",
         label: "Toggle",
         onClick: toggle,
@@ -38463,7 +38295,7 @@ return (_ctx, _cache) => {
         ]),
         _: 1 /* STABLE */
       }),
-      createVNode(unref(script$O), {
+      createVNode(unref(script$S), {
         id: "overlay_menu",
         ref_key: "menu",
         ref: menu,
@@ -38484,11 +38316,11 @@ return (_ctx, _cache) => {
                 ]),
                 _: 2 /* DYNAMIC */
               }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"]))
-            : (openBlock(), createElementBlock("div", _hoisted_5$7, [
+            : (openBlock(), createElementBlock("div", _hoisted_5$8, [
                 createElementVNode("a", {
                   onClick: item.command,
                   class: "p-menuitem-link p-menuitem-content"
-                }, toDisplayString$1(item.label), 9 /* TEXT, PROPS */, _hoisted_6$6)
+                }, toDisplayString$1(item.label), 9 /* TEXT, PROPS */, _hoisted_6$7)
               ]))
         ]),
         _: 1 /* STABLE */
@@ -38501,13 +38333,63 @@ return (_ctx, _cache) => {
 
 };
 
-script$N.__file = "presstojam/src/components/nav/nav.vue";
+script$R.__file = "presstojam/src/components/nav/nav.vue";
 
-const _hoisted_1$m = { key: 1 };
+var script$Q = {
+  setup(__props) {
+
+const component = shallowRef(null);
+const args = ref({});
+const dialogswitch = ref(false);
+const header = ref('');
 
 
 
-var script$M = {
+subscribe("dialog_open", 1, (in_component, in_args, input_header) => {
+    dialogswitch.value = true;
+    header.value = input_header;
+    component.value = in_component;
+    args.value = in_args;
+});
+
+subscribe("dialog_close", 1, function() {
+    dialogswitch.value = false;
+    header.value = null;
+    component.value = null;
+    args.value = null;
+});
+
+
+onBeforeUnmount(() => {
+    unsubscribe("dialog_close", 1);
+    unsubscribe("dialog_open", 1);
+});
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1t), {
+    visible: dialogswitch.value,
+    "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialogswitch).value = $event)),
+    header: header.value,
+    modal: true,
+    class: "p-fluid"
+  }, {
+    default: withCtx(() => [
+      (openBlock(), createBlock(resolveDynamicComponent(unref(component)), normalizeProps(guardReactiveProps(args.value)), null, 16 /* FULL_PROPS */))
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["visible", "header"]))
+}
+}
+
+};
+
+script$Q.__file = "presstojam/src/components/effects/dialog.vue";
+
+const _hoisted_1$k = { key: 1 };
+
+
+
+var script$P = {
   async setup(__props) {
 
 let __temp, __restore;
@@ -38553,7 +38435,7 @@ function loadRoutes() {
 
 
 function loadDictionary() {
-    client.get("/user/dictionary")
+    return client.get("/user/dictionary")
     .then(response => {
         for(let i in response) {
             i18n.setLocaleMessage(i, response[i]);
@@ -38562,7 +38444,7 @@ function loadDictionary() {
 }
 
 function loadUser() {
-    client.get("/user/details")
+    return client.get("/user/details")
     .then(response => {
         name.value = (response.name) ? response.name : response.email;
     });  
@@ -38571,7 +38453,6 @@ function loadUser() {
   ([__temp,__restore] = withAsyncContext(() => client.get("/user/check-user")
 .then(response => {
     if (response.name != _profile) {
-        console.log("Name is", response.name, _profile);
         require_login.value = true;
         return loadDictionary();
     } else {
@@ -38590,31 +38471,32 @@ function loadUser() {
 
 return (_ctx, _cache) => {
   return (require_login.value)
-    ? (openBlock(), createBlock(script$Q, { key: 0 }))
-    : (openBlock(), createElementBlock("div", _hoisted_1$m, [
+    ? (openBlock(), createBlock(script$U, { key: 0 }))
+    : (openBlock(), createElementBlock("div", _hoisted_1$k, [
         (unref(no_nav) == false)
-          ? (openBlock(), createBlock(script$N, {
+          ? (openBlock(), createBlock(script$R, {
               key: 0,
               name: name.value
             }, null, 8 /* PROPS */, ["name"]))
           : createCommentVNode("v-if", true),
-        createVNode(script$P)
+        createVNode(script$T),
+        createVNode(script$Q)
       ]))
 }
 }
 
 };
 
-script$M.__file = "presstojam/src/components/user.vue";
+script$P.__file = "presstojam/src/components/user.vue";
 
-var script$L = {
+var script$O = {
   setup(__props) {
 
 
 return (_ctx, _cache) => {
   return (openBlock(), createBlock(Suspense, null, {
     default: withCtx(() => [
-      createVNode(script$M)
+      createVNode(script$P)
     ]),
     _: 1 /* STABLE */
   }))
@@ -38623,9 +38505,67 @@ return (_ctx, _cache) => {
 
 };
 
-script$L.__file = "presstojam/src/components/controller.vue";
+script$O.__file = "presstojam/src/components/controller.vue";
 
-var script$K = {
+var script$N = {
+  name: 'Toolbar',
+  props: {
+    'aria-labelledby': {
+      type: String,
+      default: null
+    }
+  }
+};
+const _hoisted_1$j = ["aria-labelledby"];
+const _hoisted_2$g = {
+  class: "p-toolbar-group-left"
+};
+const _hoisted_3$b = {
+  class: "p-toolbar-group-right"
+};
+
+function render$9(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: "p-toolbar p-component",
+    role: "toolbar",
+    "aria-labelledby": _ctx.ariaLabelledby
+  }, [createElementVNode("div", _hoisted_2$g, [renderSlot(_ctx.$slots, "start")]), createElementVNode("div", _hoisted_3$b, [renderSlot(_ctx.$slots, "end")])], 8, _hoisted_1$j);
+}
+
+function styleInject$5(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$a = "\n.p-toolbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-toolbar-group-left,\n.p-toolbar-group-right {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
+styleInject$5(css_248z$a);
+script$N.render = render$9;
+
+var script$M = {
   name: 'Splitter',
   emits: ['resizestart', 'resizeend'],
   props: {
@@ -39023,10 +38963,10 @@ var script$K = {
 
   }
 };
-const _hoisted_1$l = ["onMousedown", "onTouchstart", "onTouchmove", "onTouchend"];
+const _hoisted_1$i = ["onMousedown", "onTouchstart", "onTouchmove", "onTouchend"];
 const _hoisted_2$f = ["aria-orientation", "aria-valuenow", "onKeydown"];
 
-function render$9(_ctx, _cache, $props, $setup, $data, $options) {
+function render$8(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
   }, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.panels, (panel, i) => {
@@ -39051,11 +38991,11 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
       "aria-valuenow": $data.prevSize,
       onKeyup: _cache[0] || (_cache[0] = (...args) => $options.onGutterKeyUp && $options.onGutterKeyUp(...args)),
       onKeydown: $event => $options.onGutterKeyDown($event, i)
-    }, null, 44, _hoisted_2$f)], 40, _hoisted_1$l)) : createCommentVNode("", true)], 64);
+    }, null, 44, _hoisted_2$f)], 40, _hoisted_1$i)) : createCommentVNode("", true)], 64);
   }), 128))], 2);
 }
 
-function styleInject$5(css, ref) {
+function styleInject$4(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -39084,11 +39024,11 @@ function styleInject$5(css, ref) {
   }
 }
 
-var css_248z$a = "\n.p-splitter {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-splitter-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-splitter-panel {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n.p-splitter-panel-nested {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-splitter-panel .p-splitter {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n    border: 0 none;\n}\n.p-splitter-gutter {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: col-resize;\n}\n.p-splitter-horizontal.p-splitter-resizing {\n    cursor: col-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-horizontal > .p-splitter-gutter > .p-splitter-gutter-handle {\n    height: 24px;\n    width: 100%;\n}\n.p-splitter-horizontal > .p-splitter-gutter {\n    cursor: col-resize;\n}\n.p-splitter-vertical.p-splitter-resizing {\n    cursor: row-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-vertical > .p-splitter-gutter {\n    cursor: row-resize;\n}\n.p-splitter-vertical > .p-splitter-gutter > .p-splitter-gutter-handle {\n    width: 24px;\n    height: 100%;\n}\n";
-styleInject$5(css_248z$a);
-script$K.render = render$9;
+var css_248z$9 = "\n.p-splitter {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-splitter-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-splitter-panel {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n.p-splitter-panel-nested {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-splitter-panel .p-splitter {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n    border: 0 none;\n}\n.p-splitter-gutter {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: col-resize;\n}\n.p-splitter-horizontal.p-splitter-resizing {\n    cursor: col-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-horizontal > .p-splitter-gutter > .p-splitter-gutter-handle {\n    height: 24px;\n    width: 100%;\n}\n.p-splitter-horizontal > .p-splitter-gutter {\n    cursor: col-resize;\n}\n.p-splitter-vertical.p-splitter-resizing {\n    cursor: row-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-vertical > .p-splitter-gutter {\n    cursor: row-resize;\n}\n.p-splitter-vertical > .p-splitter-gutter > .p-splitter-gutter-handle {\n    width: 24px;\n    height: 100%;\n}\n";
+styleInject$4(css_248z$9);
+script$M.render = render$8;
 
-var script$J = {
+var script$L = {
   name: 'SplitterPanel',
   props: {
     size: {
@@ -39116,16 +39056,16 @@ var script$J = {
   }
 };
 
-function render$8(_ctx, _cache, $props, $setup, $data, $options) {
+function render$7(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     ref: "container",
     class: normalizeClass($options.containerClass)
   }, [renderSlot(_ctx.$slots, "default")], 2);
 }
 
-script$J.render = render$8;
+script$L.render = render$7;
 
-var script$I = {
+var script$K = {
   props: {
         model : String,
         id : Number
@@ -39141,7 +39081,7 @@ return (_ctx, _cache) => {
     to: { name : 'primary', params : {'model' : __props.model, 'id' : __props.id }}
   }, {
     default: withCtx(({isActive, href, navigate}) => [
-      createVNode(unref(script$1J), {
+      createVNode(unref(script$1C), {
         icon: "pi pi-chevron-right",
         class: "p-button-rounded p-button-success mr-2"
       })
@@ -39153,9 +39093,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$I.__file = "presstojam/src/components/actions/primary-action.vue";
+script$K.__file = "presstojam/src/components/actions/primary-action.vue";
 
-var script$H = {
+var script$J = {
   props: {
     value : [Number, String],
     field : Object
@@ -39173,16 +39113,16 @@ return (_ctx, _cache) => {
 
 };
 
-script$H.__file = "presstojam/src/components/view/number.vue";
+script$J.__file = "presstojam/src/components/view/number.vue";
 
-const _hoisted_1$k = {
+const _hoisted_1$h = {
   key: 0,
   class: "pi pi-check"
 };
 const _hoisted_2$e = { key: 1 };
 
 
-var script$G = {
+var script$I = {
   props: {
     value : [Number, Boolean],
     field : Object
@@ -39195,19 +39135,19 @@ inject("client");
 
 return (_ctx, _cache) => {
   return (__props.field.useIcons() && __props.value)
-    ? (openBlock(), createElementBlock("i", _hoisted_1$k))
+    ? (openBlock(), createElementBlock("i", _hoisted_1$h))
     : (openBlock(), createElementBlock("span", _hoisted_2$e, toDisplayString$1(__props.field.display(__props.value)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$G.__file = "presstojam/src/components/view/flag.vue";
+script$I.__file = "presstojam/src/components/view/flag.vue";
 
-const _hoisted_1$j = { key: 1 };
+const _hoisted_1$g = { key: 1 };
 
 
-var script$F = {
+var script$H = {
   props: {
     value : [Number, String ],
     field : Object,
@@ -39221,7 +39161,7 @@ const props = __props;
 
 
 let show_route = false;
-if (props.field.reference_type == ReferenceTypes.REFERENCE && hasRoute(props.field.reference) && props.value) {
+if (props.field.reference_type == ReferenceTypes.REFERENCE && hasEntity(props.field.reference) && props.value) {
     show_route = true;
 }
 
@@ -39237,10 +39177,10 @@ let display = computed(() => {
             }
         } else {
             
-            const ref_route = getRoute(props.field.reference);
+            const ref_route = getModel(props.field.reference);
             
-            for(const i in ref_route.schema) {
-                if (ref_route.schema[i].summary) {
+            for(const i in ref_route.fields) {
+                if (ref_route.fields[i].summary) {
                     data.push(props.row[props.field.name + "/" + i]);
                 }
             }
@@ -39266,15 +39206,15 @@ return (_ctx, _cache) => {
         ]),
         _: 1 /* STABLE */
       }, 8 /* PROPS */, ["to"]))
-    : (openBlock(), createElementBlock("span", _hoisted_1$j, toDisplayString$1(unref(display)), 1 /* TEXT */))
+    : (openBlock(), createElementBlock("span", _hoisted_1$g, toDisplayString$1(unref(display)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$F.__file = "presstojam/src/components/view/id.vue";
+script$H.__file = "presstojam/src/components/view/id.vue";
 
-var script$E = {
+var script$G = {
   props: {
     value : [Number, String],
     field : Object
@@ -39299,13 +39239,13 @@ return (_ctx, _cache) => {
 
 };
 
-script$E.__file = "presstojam/src/components/view/time.vue";
+script$G.__file = "presstojam/src/components/view/time.vue";
 
-const _hoisted_1$i = { key: 0 };
+const _hoisted_1$f = { key: 0 };
 const _hoisted_2$d = { key: 1 };
 
 
-var script$D = {
+var script$F = {
   props: {
     value : [String],
     field : Object
@@ -39329,22 +39269,22 @@ const tag = computed(() => {
 
 return (_ctx, _cache) => {
   return (unref(tag)=='textarea')
-    ? (openBlock(), createElementBlock("div", _hoisted_1$i, toDisplayString$1(__props.value), 1 /* TEXT */))
+    ? (openBlock(), createElementBlock("div", _hoisted_1$f, toDisplayString$1(__props.value), 1 /* TEXT */))
     : (openBlock(), createElementBlock("span", _hoisted_2$d, toDisplayString$1(props.field.clean(__props.value)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$D.__file = "presstojam/src/components/view/string.vue";
+script$F.__file = "presstojam/src/components/view/string.vue";
 
-const _hoisted_1$h = /*#__PURE__*/createElementVNode("i", { class: "pi pi-download" }, null, -1 /* HOISTED */);
+const _hoisted_1$e = /*#__PURE__*/createElementVNode("i", { class: "pi pi-download" }, null, -1 /* HOISTED */);
 const _hoisted_2$c = [
-  _hoisted_1$h
+  _hoisted_1$e
 ];
 
 
-var script$C = {
+var script$E = {
   props: {
     value : String,
     field : Object,
@@ -39389,13 +39329,13 @@ return (_ctx, _cache) => {
 
 };
 
-script$C.__file = "presstojam/src/components/view/asset.vue";
+script$E.__file = "presstojam/src/components/view/asset.vue";
 
-const _hoisted_1$g = { key: 0 };
+const _hoisted_1$d = { key: 0 };
 const _hoisted_2$b = { key: 1 };
 
 
-var script$B = {
+var script$D = {
   props: {
     value : [Object, String],
     field : Object
@@ -39413,13 +39353,13 @@ const jsonVal = props.field.clean(props.value);
 
 return (_ctx, _cache) => {
   return (__props.field.fields.length > 0)
-    ? (openBlock(), createElementBlock("div", _hoisted_1$g, [
+    ? (openBlock(), createElementBlock("div", _hoisted_1$d, [
         (openBlock(true), createElementBlock(Fragment, null, renderList(__props.field.fields, (field) => {
           return (openBlock(), createElementBlock("div", {
             key: field.name
           }, [
             createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + field.model + ".fields." + field.name + ".label")), 1 /* TEXT */),
-            createVNode(script$A, {
+            createVNode(script$C, {
               field: field,
               value: unref(jsonVal)[field.name]
             }, null, 8 /* PROPS */, ["field", "value"])
@@ -39439,9 +39379,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$B.__file = "presstojam/src/components/view/json.vue";
+script$D.__file = "presstojam/src/components/view/json.vue";
 
-var script$A = {
+var script$C = {
   props: {
     field : Object,
     row : [Array,Object],
@@ -39452,47 +39392,47 @@ var script$A = {
 
 return (_ctx, _cache) => {
   return (__props.field.type=='number')
-    ? (openBlock(), createBlock(script$H, {
+    ? (openBlock(), createBlock(script$J, {
         key: 0,
-        value: __props.row[__props.field.name],
+        value: __props.row[__props.field.slug],
         field: __props.field
       }, null, 8 /* PROPS */, ["value", "field"]))
     : (__props.field.type=='flag')
-      ? (openBlock(), createBlock(script$G, {
+      ? (openBlock(), createBlock(script$I, {
           key: 1,
-          value: __props.row[__props.field.name],
+          value: __props.row[__props.field.slug],
           field: __props.field
         }, null, 8 /* PROPS */, ["value", "field"]))
       : (__props.field.type=='id')
-        ? (openBlock(), createBlock(script$F, {
+        ? (openBlock(), createBlock(script$H, {
             key: 2,
-            value: __props.row[__props.field.name],
+            value: __props.row[__props.field.slug],
             field: __props.field,
             row: __props.row
           }, null, 8 /* PROPS */, ["value", "field", "row"]))
         : (__props.field.type=='asset')
-          ? (openBlock(), createBlock(script$C, {
+          ? (openBlock(), createBlock(script$E, {
               key: 3,
-              value: __props.row[__props.field.name],
+              value: __props.row[__props.field.slug],
               field: __props.field,
               id: __props.row['--id']
             }, null, 8 /* PROPS */, ["value", "field", "id"]))
           : (__props.field.type=='time')
-            ? (openBlock(), createBlock(script$E, {
+            ? (openBlock(), createBlock(script$G, {
                 key: 4,
-                value: __props.row[__props.field.name],
+                value: __props.row[__props.field.slug],
                 field: __props.field
               }, null, 8 /* PROPS */, ["value", "field"]))
             : (__props.field.type=='json')
-              ? (openBlock(), createBlock(script$B, {
+              ? (openBlock(), createBlock(script$D, {
                   key: 5,
-                  value: __props.row[__props.field.name],
+                  value: __props.row[__props.field.slug],
                   field: __props.field
                 }, null, 8 /* PROPS */, ["value", "field"]))
               : (__props.field.type=='string')
-                ? (openBlock(), createBlock(script$D, {
+                ? (openBlock(), createBlock(script$F, {
                     key: 6,
-                    value: __props.row[__props.field.name],
+                    value: __props.row[__props.field.slug],
                     field: __props.field
                   }, null, 8 /* PROPS */, ["value", "field"]))
                 : createCommentVNode("v-if", true)
@@ -39501,20 +39441,865 @@ return (_ctx, _cache) => {
 
 };
 
-script$A.__file = "presstojam/src/components/view/view-field.vue";
+script$C.__file = "presstojam/src/components/view/view-field.vue";
 
 var viewField = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$A
+    'default': script$C
 });
 
-const _hoisted_1$f = { class: "p-inputgroup" };
-const _hoisted_2$a = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "min", -1 /* HOISTED */);
-const _hoisted_3$a = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, " - ", -1 /* HOISTED */);
-const _hoisted_4$9 = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "max", -1 /* HOISTED */);
+var script$B = {
+  props: {
+       name : String
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+    const repo = getStore(props.name);
+    const store = repo.store;
 
 
+    const data = {};
+    if (store.parent_id) data["--parent"] = store.parent_id;
+
+  
+    subscribe("form_saved", "create", (response, method, model) => {
+        if (model.name == store.name && method == "post") {
+            repo.append(response);
+            trigger("effect_created", props.name);
+        }
+    });
+
+    onBeforeUnmount(() => {
+        unsubscribe("form_saved", "create");
+    });
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(script$18, {
+    model: unref(store),
+    data: data
+  }, null, 8 /* PROPS */, ["model"]))
+}
+}
+
+};
+
+script$B.__file = "presstojam/src/components/effects/create-effect.vue";
+
+var script$A = {
+  props: {
+       name : String,
+       parent: String
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+    const i18n = inject("i18n");
+    const t = i18n.t;
+
+    const header = (props.parent) 
+        ? "Add " + t("models." + props.name + ".title", 1) + " to " + t("models." + props.parent + ".title", 1)
+        : "Create " + t("models." + props.name + ".title", 1);
+
+
+    function createRow() {
+      trigger("dialog_open",
+        script$B, 
+        {
+            name : props.name,
+        }, 
+        header);
+    }
+    
+ 
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1C), {
+    label: "New",
+    icon: "pi pi-plus",
+    class: "p-button-success mr-2",
+    onClick: createRow
+  }))
+}
+}
+
+};
+
+script$A.__file = "presstojam/src/components/actions/create-action.vue";
+
+const _hoisted_1$c = /*#__PURE__*/createElementVNode("p", null, "Are you sure you want to delete:", -1 /* HOISTED */);
+const _hoisted_2$a = /*#__PURE__*/createTextVNode("Type ");
+const _hoisted_3$a = /*#__PURE__*/createTextVNode(" in the box below");
+const _hoisted_4$9 = { class: "p-inputgroup" };
+const _hoisted_5$7 = /*#__PURE__*/createTextVNode("Delete");
+ 
+    
 var script$z = {
+  props: {
+        name : String,
+        data : Array,
+    },
+  setup(__props) {
+
+const props = __props;
+
+    const client = inject("client");
+
+    
+
+
+    const repo = getStore(props.name);
+    const check_str = "delete";
+
+    let delval = ref("");
+
+    const disabled = computed(() => {
+        return (delval.value == check_str) ? false : true;
+    });
+
+
+    function del() {
+        let params = {};
+        const keys = [];
+     
+        for(const row of props.data) {
+            keys.push(row['--id']);
+        }
+        params["--id"] = keys;
+       
+
+        client.delete("/data/" +repo.store.name, params)
+        .then(() => {
+            repo.remove(keys);
+            trigger("effect_deleted", props.name);
+        })
+        .catch(e => console.log(e));
+    }
+    
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    _hoisted_1$c,
+    createElementVNode("ul", null, [
+      (openBlock(true), createElementBlock(Fragment, null, renderList(__props.data, (item) => {
+        return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).model.fields, item)), 1 /* TEXT */))
+      }), 256 /* UNKEYED_FRAGMENT */))
+    ]),
+    createElementVNode("p", null, [
+      _hoisted_2$a,
+      createElementVNode("i", null, toDisplayString$1(check_str)),
+      _hoisted_3$a
+    ]),
+    createElementVNode("div", _hoisted_4$9, [
+      createVNode(unref(script$1B), {
+        placeholder: check_str,
+        modelValue: unref(delval),
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(delval) ? (delval).value = $event : delval = $event))
+      }, null, 8 /* PROPS */, ["modelValue"]),
+      createVNode(unref(script$1C), {
+        label: "Delete",
+        disabled: unref(disabled),
+        icon: "pi pi-trash",
+        onClick: del,
+        class: "p-button-danger"
+      }, {
+        default: withCtx(() => [
+          _hoisted_5$7
+        ]),
+        _: 1 /* STABLE */
+      }, 8 /* PROPS */, ["disabled"])
+    ])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$z.__file = "presstojam/src/components/effects/delete-effect.vue";
+
+var script$y = {
+  props: {
+        name : String,
+        data : [Object, Array]
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+
+    function delRow() {
+
+        const arg_data = (Array.isArray(props.data)) ? props.data : [props.data];
+        trigger(
+            "dialog_open",
+            script$z, 
+            {
+                name : props.name,
+                data : arg_data
+            }, 
+            "Delete");
+    }
+
+    const disabled = computed(() => {
+        return (!props.data) ? true : false;
+    });
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1C), {
+    label: "Delete",
+    icon: "pi pi-trash",
+    class: "p-button-danger",
+    disabled: unref(disabled),
+    onClick: delRow
+  }, null, 8 /* PROPS */, ["disabled"]))
+}
+}
+
+};
+
+script$y.__file = "presstojam/src/components/actions/delete-action.vue";
+
+var script$x = {
+  props: {
+        model : Object,
+        data : Object
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+
+    subscribe("form_saved", "update", (response, method, model) => {
+        if (model.name == props.model.name && method == "put") {
+            const repo = getStore(props.model.name);
+
+            //build the full value
+            const obj = response.original;
+            for(const x in response.data) {
+                obj[x] = response.data[x];
+            }
+            repo.overwrite(obj);
+            trigger("effect_edited", props.model.name);
+        }
+    });
+
+    onBeforeUnmount(() => {
+        unsubscribe("form_saved", "update");
+    });
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(script$18, {
+    model: __props.model,
+    data: __props.data,
+    method: "put",
+    key: "edit"
+  }, null, 8 /* PROPS */, ["model", "data"]))
+}
+}
+
+};
+
+script$x.__file = "presstojam/src/components/effects/edit-effect.vue";
+
+var script$w = {
+  name: 'Column',
+  props: {
+    columnKey: {
+      type: null,
+      default: null
+    },
+    field: {
+      type: [String, Function],
+      default: null
+    },
+    sortField: {
+      type: [String, Function],
+      default: null
+    },
+    filterField: {
+      type: [String, Function],
+      default: null
+    },
+    dataType: {
+      type: String,
+      default: 'text'
+    },
+    sortable: {
+      type: Boolean,
+      default: false
+    },
+    header: {
+      type: null,
+      default: null
+    },
+    footer: {
+      type: null,
+      default: null
+    },
+    style: {
+      type: null,
+      default: null
+    },
+    class: {
+      type: String,
+      default: null
+    },
+    headerStyle: {
+      type: null,
+      default: null
+    },
+    headerClass: {
+      type: String,
+      default: null
+    },
+    bodyStyle: {
+      type: null,
+      default: null
+    },
+    bodyClass: {
+      type: String,
+      default: null
+    },
+    footerStyle: {
+      type: null,
+      default: null
+    },
+    footerClass: {
+      type: String,
+      default: null
+    },
+    showFilterMenu: {
+      type: Boolean,
+      default: true
+    },
+    showFilterOperator: {
+      type: Boolean,
+      default: true
+    },
+    showClearButton: {
+      type: Boolean,
+      default: true
+    },
+    showApplyButton: {
+      type: Boolean,
+      default: true
+    },
+    showFilterMatchModes: {
+      type: Boolean,
+      default: true
+    },
+    showAddButton: {
+      type: Boolean,
+      default: true
+    },
+    filterMatchModeOptions: {
+      type: Array,
+      default: null
+    },
+    maxConstraints: {
+      type: Number,
+      default: 2
+    },
+    excludeGlobalFilter: {
+      type: Boolean,
+      default: false
+    },
+    filterHeaderClass: {
+      type: String,
+      default: null
+    },
+    filterHeaderStyle: {
+      type: null,
+      default: null
+    },
+    filterMenuClass: {
+      type: String,
+      default: null
+    },
+    filterMenuStyle: {
+      type: null,
+      default: null
+    },
+    selectionMode: {
+      type: String,
+      default: null
+    },
+    expander: {
+      type: Boolean,
+      default: false
+    },
+    colspan: {
+      type: Number,
+      default: null
+    },
+    rowspan: {
+      type: Number,
+      default: null
+    },
+    rowReorder: {
+      type: Boolean,
+      default: false
+    },
+    rowReorderIcon: {
+      type: String,
+      default: 'pi pi-bars'
+    },
+    reorderableColumn: {
+      type: Boolean,
+      default: true
+    },
+    rowEditor: {
+      type: Boolean,
+      default: false
+    },
+    frozen: {
+      type: Boolean,
+      default: false
+    },
+    alignFrozen: {
+      type: String,
+      default: 'left'
+    },
+    exportable: {
+      type: Boolean,
+      default: true
+    },
+    exportHeader: {
+      type: String,
+      default: null
+    },
+    exportFooter: {
+      type: String,
+      default: null
+    },
+    filterMatchMode: {
+      type: String,
+      default: null
+    },
+    hidden: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  render() {
+    return null;
+  }
+
+};
+
+var script$v = {
+  props: {
+    model : {
+        type : Object,
+        required : true
+    },
+    id : {
+        type : Number,
+        required : true
+    }
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const client = inject("client");
+const data = ref([]);
+client.get("/audit/" + props.model.name + "/" + props.id)
+.then(response => {
+    for(const obj of response) {
+        if (obj.action == "POST") obj.action = "Created";
+        else if (obj.action == "PUT") obj.action = "Updated";
+        else if (obj.action == "DELETE") obj.action = "Deleted";
+        //obj['--created'] = (!obj['--created']) ? obj['--created'] : obj['--created'].toLocaleDateString("en-UK");
+    }
+    data.value = response;
+});
+
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$Z), { value: data.value }, {
+    default: withCtx(() => [
+      createVNode(unref(script$w), {
+        field: "user-login-id/name",
+        header: "User"
+      }),
+      createVNode(unref(script$w), {
+        field: "action",
+        header: "Type"
+      }),
+      createVNode(unref(script$w), {
+        field: "log",
+        header: "Values"
+      }, {
+        body: withCtx((slotProps) => [
+          createElementVNode("ul", null, [
+            (openBlock(true), createElementBlock(Fragment, null, renderList(slotProps.data.log, (log, key) => {
+              return (openBlock(), createElementBlock("li", null, toDisplayString$1(key) + ": " + toDisplayString$1(log), 1 /* TEXT */))
+            }), 256 /* UNKEYED_FRAGMENT */))
+          ])
+        ]),
+        _: 1 /* STABLE */
+      }),
+      createVNode(unref(script$w), {
+        field: "--created",
+        header: "Date"
+      })
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["value"]))
+}
+}
+
+};
+
+script$v.__file = "presstojam/src/components/effects/audit-effect.vue";
+
+var script$u = {
+  props: {
+        model : Object,
+        data : Object,
+        long : false
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+    function showAudit() {
+        trigger(
+            "dialog_open",    
+            script$v, 
+            {model : props.model, id : props.data['--id']}, 
+            "Audit Log");
+    }
+
+    const label = (props.long) ? "Audit" : "";
+    const classes = (props.long) ? "p-button-help" : "p-button-rounded p-button-success";
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1C), {
+    icon: "pi pi-history",
+    class: normalizeClass(["mr-2", unref(classes)]),
+    label: unref(label),
+    onClick: _cache[0] || (_cache[0] = $event => (showAudit()))
+  }, null, 8 /* PROPS */, ["class", "label"]))
+}
+}
+
+};
+
+script$u.__file = "presstojam/src/components/actions/audit-action.vue";
+
+const _hoisted_1$b = /*#__PURE__*/createTextVNode("New row created");
+const _hoisted_2$9 = /*#__PURE__*/createTextVNode("Rows removed");
+const _hoisted_3$9 = /*#__PURE__*/createTextVNode("Saved");
+
+
+var script$t = {
+  props: {
+    name : {
+      type : String,
+      required : true
+    }
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const repo = getStore(props.name);
+const store = repo.store;
+
+
+const expanded = ref(false);
+const delrow = ref(false);
+const newrow = ref(false);
+store.fields['--sort'];
+const saved = ref(false);
+
+
+store.setTableCells();
+const cells = store.getEnabledSummaryCells();
+
+const selected = ref(null);
+
+const data = ref([]);
+const active = ref({});
+
+repo.load()
+.then(response => {
+   data.value = toTree(response, store.fields);
+});
+
+
+repo.active.value['--recursive'] = 0;
+
+const expandedKeys = ref({});
+
+const collapseAll = () => {
+    expandedKeys.value = {};
+    expanded.value = false;
+};
+
+const expandAll = () => {
+    for (let node of data.value) {
+        expandNode(node);
+    }
+    expandedKeys.value = {...expandedKeys.value};
+    expanded.value = true;
+};
+
+const expandNode = (node) => {
+    if (node.children && node.children.length) {
+      expandedKeys.value[node.key] = true;
+      for (let child of node.children) {
+          expandNode(child);
+      }
+    }
+};
+
+
+function setActive(node) {
+  active.value = node.data;
+  saved.value = false;
+}
+
+function reload() {
+  repo.selected.value = [];
+  repo.reload()
+  .then(response => {
+    data.value = toTree(response, store.fields);
+  });
+  newrow.value = true;
+}
+
+
+subscribe("effect_created", props.name, name => {
+    if (props.name == name) {
+        newrow.value = true;
+        repo.load()
+        .then(response => {
+          data.value = response;
+        });
+        trigger("dialog_close");
+    }
+});
+
+subscribe("effect_deleted", props.name, name => {
+    if (props.name == name) {
+        delrow.value = true;
+        repo.load()
+        .then(response => {
+          data.value = response;
+        });
+        trigger("dialog_close");
+    }
+});
+
+
+subscribe("effect_updated", props.name, name => {
+    if (props.name == name) {
+        saved.value = true;
+        repo.load()
+        .then(response => {
+          data.value = response;
+        });
+    }
+});
+
+onBeforeUnmount(() => {
+  unsubscribe("effect_created", props.name);
+  unsubscribe("effect_updated", props.name);
+  unsubscribe("effect_deleted", props.name);
+});
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$M), null, {
+    default: withCtx(() => [
+      createVNode(unref(script$L), null, {
+        default: withCtx(() => [
+          (newrow.value)
+            ? (openBlock(), createBlock(unref(script$1j), {
+                key: 0,
+                severity: "success"
+              }, {
+                default: withCtx(() => [
+                  _hoisted_1$b
+                ]),
+                _: 1 /* STABLE */
+              }))
+            : createCommentVNode("v-if", true),
+          (delrow.value)
+            ? (openBlock(), createBlock(unref(script$1j), {
+                key: 1,
+                severity: "success"
+              }, {
+                default: withCtx(() => [
+                  _hoisted_2$9
+                ]),
+                _: 1 /* STABLE */
+              }))
+            : createCommentVNode("v-if", true),
+          createVNode(unref(script$N), { class: "mb-4" }, {
+            start: withCtx(() => [
+              (expanded.value)
+                ? (openBlock(), createBlock(unref(script$1C), {
+                    key: 0,
+                    type: "button",
+                    icon: "pi pi-minus",
+                    label: "Collapse All",
+                    onClick: collapseAll
+                  }))
+                : (openBlock(), createBlock(unref(script$1C), {
+                    key: 1,
+                    type: "button",
+                    icon: "pi pi-plus",
+                    label: "Expand All",
+                    onClick: expandAll
+                  }))
+            ]),
+            end: withCtx(() => [
+              (unref(store).perms.includes('post'))
+                ? (openBlock(), createBlock(script$A, {
+                    key: 0,
+                    name: __props.name,
+                    onOnSave: reload
+                  }, null, 8 /* PROPS */, ["name"]))
+                : createCommentVNode("v-if", true)
+            ]),
+            _: 1 /* STABLE */
+          }),
+          createVNode(unref(script$1w), {
+            value: data.value,
+            selectionMode: "single",
+            onNodeSelect: setActive,
+            filter: true,
+            filterMode: "lenient",
+            selectionKeys: selected.value,
+            "onUpdate:selectionKeys": _cache[0] || (_cache[0] = $event => ((selected).value = $event)),
+            expandedKeys: expandedKeys.value
+          }, {
+            default: withCtx((slotProps) => [
+              (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
+                return (openBlock(), createBlock(script$C, {
+                  row: slotProps.node.data,
+                  field: cell
+                }, null, 8 /* PROPS */, ["row", "field"]))
+              }), 256 /* UNKEYED_FRAGMENT */))
+            ]),
+            _: 1 /* STABLE */
+          }, 8 /* PROPS */, ["value", "selectionKeys", "expandedKeys"])
+        ]),
+        _: 1 /* STABLE */
+      }),
+      createVNode(unref(script$L), null, {
+        default: withCtx(() => [
+          (active.value['--id'])
+            ? (openBlock(), createBlock(unref(script$1D), {
+                header: _ctx.$t('models.' +unref(store).name + '.title'),
+                key: active.value['--id']
+              }, {
+                icons: withCtx(() => [
+                  (unref(store).audit)
+                    ? (openBlock(), createBlock(script$u, {
+                        key: 0,
+                        model: unref(store),
+                        data: active.value,
+                        long: true
+                      }, null, 8 /* PROPS */, ["model", "data"]))
+                    : createCommentVNode("v-if", true),
+                  (unref(store).perms.includes('delete'))
+                    ? (openBlock(), createBlock(script$y, {
+                        key: 1,
+                        name: __props.name,
+                        data: active.value
+                      }, null, 8 /* PROPS */, ["name", "data"]))
+                    : createCommentVNode("v-if", true),
+                  createVNode(script$K, {
+                    model: unref(store).name,
+                    id: active.value['--id']
+                  }, null, 8 /* PROPS */, ["model", "id"]),
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
+                    return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({ data: active.value }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
+                  }), 256 /* UNKEYED_FRAGMENT */))
+                ]),
+                default: withCtx(() => [
+                  (saved.value)
+                    ? (openBlock(), createBlock(unref(script$1j), {
+                        key: 0,
+                        severity: "success"
+                      }, {
+                        default: withCtx(() => [
+                          _hoisted_3$9
+                        ]),
+                        _: 1 /* STABLE */
+                      }))
+                    : createCommentVNode("v-if", true),
+                  (active.value['--id'])
+                    ? (openBlock(), createBlock(script$x, {
+                        key: 1,
+                        model: unref(store),
+                        data: active.value
+                      }, null, 8 /* PROPS */, ["model", "data"]))
+                    : createCommentVNode("v-if", true)
+                ]),
+                _: 1 /* STABLE */
+              }, 8 /* PROPS */, ["header"]))
+            : createCommentVNode("v-if", true)
+        ]),
+        _: 1 /* STABLE */
+      })
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+var css_248z$8 = "\n.tree-vue-vue-type-style-index-0-id-49a3d7ba-scoped-true-lang_wrapper__KEFQt[data-v-49a3d7ba] {\r\n  display : grid;\r\n  margin-left : 0;\r\n  margin-right : 0;\r\n  box-sizing : content-box;\n}\r\n\r\n";
+styleInject$t(css_248z$8);
+
+script$t.__scopeId = "data-v-49a3d7ba";
+script$t.__file = "presstojam/src/components/tree/tree.vue";
+
+var tree = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    'default': script$t
+});
+
+const _hoisted_1$a = { class: "p-inputgroup" };
+const _hoisted_2$8 = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "min", -1 /* HOISTED */);
+const _hoisted_3$8 = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, " - ", -1 /* HOISTED */);
+const _hoisted_4$8 = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "max", -1 /* HOISTED */);
+
+
+var script$s = {
   props: {
     modelValue : [Object],
     field : Object
@@ -39576,25 +40361,25 @@ const atts = computed(() => {
 });
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", _hoisted_1$f, [
-    _hoisted_2$a,
-    createVNode(unref(script$1H), mergeProps({
+  return (openBlock(), createElementBlock("div", _hoisted_1$a, [
+    _hoisted_2$8,
+    createVNode(unref(script$1A), mergeProps({
       name: __props.field.name,
       modelValue: unref(min),
       "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(min) ? (min).value = $event : null))
     }, unref(atts), {
       onBlur: _cache[1] || (_cache[1] = $event => (__props.field.validateon = true))
     }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
-    _hoisted_3$a,
-    createVNode(unref(script$1H), mergeProps({
+    _hoisted_3$8,
+    createVNode(unref(script$1A), mergeProps({
       name: __props.field.name,
       modelValue: unref(max),
       "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(max) ? (max).value = $event : null))
     }, unref(atts), {
       onBlur: _cache[3] || (_cache[3] = $event => (__props.field.validateon = true))
     }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
-    _hoisted_4$9,
-    createVNode(unref(script$1J), {
+    _hoisted_4$8,
+    createVNode(unref(script$1C), {
       label: "clear",
       onClick: clear
     })
@@ -39604,9 +40389,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$z.__file = "presstojam/src/components/filter/number-filter.vue";
+script$s.__file = "presstojam/src/components/filter/number-filter.vue";
 
-var script$y = {
+var script$r = {
   props: {
     modelValue : [Number, Boolean],
     field : Object
@@ -39638,7 +40423,7 @@ const value = computed({
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1b), {
+  return (openBlock(), createBlock(unref(script$14), {
     name: __props.field.name,
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -39654,9 +40439,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$y.__file = "presstojam/src/components/filter/flag-filter.vue";
+script$r.__file = "presstojam/src/components/filter/flag-filter.vue";
 
-var script$x = {
+var script$q = {
   name: 'Chips',
   emits: ['update:modelValue', 'add', 'remove', 'focus', 'blur'],
   props: {
@@ -39924,19 +40709,19 @@ var script$x = {
 
   }
 };
-const _hoisted_1$e = ["aria-labelledby", "aria-label", "aria-activedescendant"];
-const _hoisted_2$9 = ["id", "aria-label", "aria-setsize", "aria-posinset"];
-const _hoisted_3$9 = {
+const _hoisted_1$9 = ["aria-labelledby", "aria-label", "aria-activedescendant"];
+const _hoisted_2$7 = ["id", "aria-label", "aria-setsize", "aria-posinset"];
+const _hoisted_3$7 = {
   class: "p-chips-token-label"
 };
-const _hoisted_4$8 = ["onClick"];
+const _hoisted_4$7 = ["onClick"];
 const _hoisted_5$6 = {
   class: "p-chips-input-token",
   role: "option"
 };
-const _hoisted_6$5 = ["id", "disabled", "placeholder"];
+const _hoisted_6$6 = ["id", "disabled", "placeholder"];
 
-function render$7(_ctx, _cache, $props, $setup, $data, $options) {
+function render$6(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
   }, [createElementVNode("ul", {
@@ -39966,11 +40751,11 @@ function render$7(_ctx, _cache, $props, $setup, $data, $options) {
       "aria-posinset": i + 1
     }, [renderSlot(_ctx.$slots, "chip", {
       value: val
-    }, () => [createElementVNode("span", _hoisted_3$9, toDisplayString$1(val), 1)]), createElementVNode("span", {
+    }, () => [createElementVNode("span", _hoisted_3$7, toDisplayString$1(val), 1)]), createElementVNode("span", {
       class: normalizeClass(['p-chips-token-icon', $props.removeTokenIcon]),
       onClick: $event => $options.removeItem($event, i),
       "aria-hidden": "true"
-    }, null, 10, _hoisted_4$8)], 10, _hoisted_2$9);
+    }, null, 10, _hoisted_4$7)], 10, _hoisted_2$7);
   }), 128)), createElementVNode("li", _hoisted_5$6, [createElementVNode("input", mergeProps({
     ref: "input",
     id: $props.inputId,
@@ -39984,10 +40769,10 @@ function render$7(_ctx, _cache, $props, $setup, $data, $options) {
     onInput: _cache[2] || (_cache[2] = (...args) => $options.onInput && $options.onInput(...args)),
     onKeydown: _cache[3] || (_cache[3] = $event => $options.onKeyDown($event)),
     onPaste: _cache[4] || (_cache[4] = $event => $options.onPaste($event))
-  }, $props.inputProps), null, 16, _hoisted_6$5)])], 40, _hoisted_1$e)], 2);
+  }, $props.inputProps), null, 16, _hoisted_6$6)])], 40, _hoisted_1$9)], 2);
 }
 
-function styleInject$4(css, ref) {
+function styleInject$3(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -40016,11 +40801,11 @@ function styleInject$4(css, ref) {
   }
 }
 
-var css_248z$9 = "\n.p-chips {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-chips-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-chips-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-token-icon {\n    cursor: pointer;\n}\n.p-chips-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-chips {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$4(css_248z$9);
-script$x.render = render$7;
+var css_248z$7 = "\n.p-chips {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-chips-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-chips-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-token-icon {\n    cursor: pointer;\n}\n.p-chips-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-chips {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$3(css_248z$7);
+script$q.render = render$6;
 
-var script$w = {
+var script$p = {
   props: {
     modelValue : [Array],
     field : Object
@@ -40048,21 +40833,21 @@ const value = computed({
 });
 
 const model = inject("model");
-const store = getStoreById(model);
+const store = getModel(model);
 const id = (store.active_id) ? store.active_id : store.parent_id;
-
+const client = inject("client");
 
 const options = ref([]);
 
 if (props.field.reference || props.field.recursive) {
     onMounted(() => {
-        props.field.getOptions(model, id)
+        props.field.getOptions(client, model, id)
         .then(response => options.value =response);
     });
 } else if (props.field.name == '--id') {
     let vals = [];
     for(let row of store.data) {
-        vals.push({'key' : row['--id'], value : getLabel(active_store.store.route.schema, row) });
+        vals.push({'key' : row['--id'], value : getLabel(store.fields, row) });
     }
     options.value = vals;
 }
@@ -40071,7 +40856,7 @@ if (props.field.reference || props.field.recursive) {
 
 return (_ctx, _cache) => {
   return (__props.field.reference || __props.field.name =='--id')
-    ? (openBlock(), createBlock(unref(script$$), {
+    ? (openBlock(), createBlock(unref(script$16), {
         key: 0,
         placeholder: "Please Select",
         field: __props.field,
@@ -40081,7 +40866,7 @@ return (_ctx, _cache) => {
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null))
       }, null, 8 /* PROPS */, ["field", "options", "modelValue"]))
-    : (openBlock(), createBlock(unref(script$x), {
+    : (openBlock(), createBlock(unref(script$q), {
         key: 1,
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
@@ -40091,9 +40876,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$w.__file = "presstojam/src/components/filter/id-filter.vue";
+script$p.__file = "presstojam/src/components/filter/id-filter.vue";
 
-var script$v = {
+var script$o = {
   props: {
     modelValue : [Object],
     field : Object
@@ -40135,7 +40920,7 @@ const value = computed({
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1u), {
+  return (openBlock(), createBlock(unref(script$1o), {
     id: "range",
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -40148,9 +40933,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$v.__file = "presstojam/src/components/filter/time-filter.vue";
+script$o.__file = "presstojam/src/components/filter/time-filter.vue";
 
-var script$u = {
+var script$n = {
   props: {
     modelValue : [Array],
     field : Object
@@ -40206,7 +40991,7 @@ if (props.field.isEnum()) {
 
 return (_ctx, _cache) => {
   return (unref(tag)=='select')
-    ? (openBlock(), createBlock(unref(script$$), {
+    ? (openBlock(), createBlock(unref(script$16), {
         key: 0,
         display: "chip",
         placeholder: "Please Select",
@@ -40217,7 +41002,7 @@ return (_ctx, _cache) => {
         optionValue: "value"
       }, null, 8 /* PROPS */, ["modelValue", "options"]))
     : (unref(tag)=='input')
-      ? (openBlock(), createBlock(unref(script$x), {
+      ? (openBlock(), createBlock(unref(script$q), {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
@@ -40228,9 +41013,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$u.__file = "presstojam/src/components/filter/string-filter.vue";
+script$n.__file = "presstojam/src/components/filter/string-filter.vue";
 
-var script$t = {
+var script$m = {
   props: {
     field : Object,
     modelValue : [String, Number, Boolean, null, Array, Object]
@@ -40257,35 +41042,35 @@ const value = computed({
 
 return (_ctx, _cache) => {
   return (__props.field.type=='number')
-    ? (openBlock(), createBlock(script$z, {
+    ? (openBlock(), createBlock(script$s, {
         key: 0,
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
         field: __props.field
       }, null, 8 /* PROPS */, ["modelValue", "field"]))
     : (__props.field.type=='flag')
-      ? (openBlock(), createBlock(script$y, {
+      ? (openBlock(), createBlock(script$r, {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null)),
           field: __props.field
         }, null, 8 /* PROPS */, ["modelValue", "field"]))
       : (__props.field.type=='id')
-        ? (openBlock(), createBlock(script$w, {
+        ? (openBlock(), createBlock(script$p, {
             key: 2,
             modelValue: unref(value),
             "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
             field: __props.field
           }, null, 8 /* PROPS */, ["modelValue", "field"]))
         : (__props.field.type=='time')
-          ? (openBlock(), createBlock(script$v, {
+          ? (openBlock(), createBlock(script$o, {
               key: 3,
               modelValue: unref(value),
               "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => (isRef(value) ? (value).value = $event : null)),
               field: __props.field
             }, null, 8 /* PROPS */, ["modelValue", "field"]))
           : (__props.field.type=='string')
-            ? (openBlock(), createBlock(script$u, {
+            ? (openBlock(), createBlock(script$n, {
                 key: 4,
                 modelValue: unref(value),
                 "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -40297,14 +41082,14 @@ return (_ctx, _cache) => {
 
 };
 
-script$t.__file = "presstojam/src/components/filter/filter-field.vue";
+script$m.__file = "presstojam/src/components/filter/filter-field.vue";
 
-const _hoisted_1$d = { class: "ptj-filter" };
+const _hoisted_1$8 = { class: "ptj-filter" };
    
    
-var script$s = {
+var script$l = {
   props: {
-    field : {
+    bind : {
         type : Object,
         required : true
     }
@@ -40316,35 +41101,26 @@ const props = __props;
    
    
 
+   const model = inject("model");
+  
    let overlay = new ref();
 
-   const model = inject("model");
-   const store = getStoreById(model);
-
-   const errors = reactive({});
-
+  
    const val = computed({
         get() {
-            return store.filters[props.field.name];
+            return props.bind.value;
         },
         set(val) {
-            let result = 0;
             if(Array.isArray(val)) {
                 for(let vl of val) {
-                    const res = props.field.validate(vl);
+                    const res = props.bind.cell.validate(vl);
                     if (res) {
-                        result = res;
                         break;
                     }
                 }
             } else {
-                result = props.field.validate(val);
+                props.bind.cell.validate(val);
             }
-        
-            if (result) {
-                errors[props.field.name] = result;
-            }
-            store.filters[props.field.name] = val;
         }
     });
 
@@ -40354,8 +41130,8 @@ const props = __props;
    }
 
    const badge = computed(() => {
-        if (store.filters[props.field.name]) {
-            if (Array.isArray(store.filters[props.field.name])) return store.filters[props.field.name].length.toString();
+        if (props.bind.value) {
+            if (Array.isArray(props.bind.value)) return props.bind.value.length.toString();
             else return "1";
         } else {
             return "";
@@ -40365,29 +41141,29 @@ const props = __props;
    
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", _hoisted_1$d, [
-    createVNode(unref(script$1J), {
+  return (openBlock(), createElementBlock("div", _hoisted_1$8, [
+    createVNode(unref(script$1C), {
       type: "button",
-      label: _ctx.$t('models.' + __props.field.model + '.fields.' + __props.field.name + '.filterlabel'),
+      label: _ctx.$t('models.' + unref(model) + '.fields.' + __props.bind.cell.name + '.filterlabel'),
       onClick: toggle,
       "aria-haspopup": "true",
       "aria-controls": "overlay",
       badge: unref(badge),
       class: "p-button-secondary"
     }, null, 8 /* PROPS */, ["label", "badge"]),
-    createVNode(unref(script$13), {
+    createVNode(unref(script$1G), {
       ref_key: "overlay",
       ref: overlay,
       appendTo: "body",
       showCloseIcon: true,
-      id: 'overlay_' + __props.field.name,
+      id: 'overlay_' + __props.bind.cell.name,
       style: {"width":"450px"},
       breakpoints: {'960px': '75vw'}
     }, {
       default: withCtx(() => [
         createElementVNode("div", null, [
-          createVNode(script$t, {
-            field: __props.field,
+          createVNode(script$m, {
+            field: __props.bind.cell,
             modelValue: unref(val),
             "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(val) ? (val).value = $event : null))
           }, null, 8 /* PROPS */, ["field", "modelValue"])
@@ -40401,20 +41177,20 @@ return (_ctx, _cache) => {
 
 };
 
-script$s.__file = "presstojam/src/components/filter/filter.vue";
+script$l.__file = "presstojam/src/components/filter/filter.vue";
 
 var filter = /*#__PURE__*/Object.freeze({
     __proto__: null,
-    'default': script$s
+    'default': script$l
 });
 
-const _hoisted_1$c = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
-const _hoisted_2$8 = /*#__PURE__*/createTextVNode(" Filters ");
-const _hoisted_3$8 = { class: "p-buttonset" };
-const _hoisted_4$7 = { style: {"text-align":"right"} };
+const _hoisted_1$7 = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
+const _hoisted_2$6 = /*#__PURE__*/createTextVNode(" Filters ");
+const _hoisted_3$6 = { class: "p-buttonset" };
+const _hoisted_4$6 = { style: {"text-align":"right"} };
 
 
-var script$r = {
+var script$k = {
   props: {
     store : Object
 },
@@ -40425,14 +41201,17 @@ const props = __props;
 
 
 
-provide("model", props.store.model);
+provide("model", props.store.model.name);
+
+new BindGroup();
 
 const filtercells = computed(() => {
     let filter_cells = {};
-    for(let i in props.store.route.schema) {
-        if (props.store.route.schema[i].background) continue;
-        if (props.store.route.schema[i].type == "asset" || props.store.route.schema[i].type == "json") continue;
-        filter_cells[i] = props.store.route.schema[i];
+    for(let i in props.store.fields) {
+        const field = props.store.fields[i];
+        if (field.background) continue;
+        if (field.type == "asset" || field.type == "json") continue;
+        filter_cells[i] = new Bind(field, '');
     }
     return filter_cells;
 });
@@ -40443,26 +41222,26 @@ function submit() {
 }
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1k), {
+  return (openBlock(), createBlock(unref(script$1e), {
     toggleable: true,
     collapsed: true
   }, {
     legend: withCtx(() => [
-      _hoisted_1$c,
-      _hoisted_2$8
+      _hoisted_1$7,
+      _hoisted_2$6
     ]),
     default: withCtx(() => [
-      createElementVNode("span", _hoisted_3$8, [
+      createElementVNode("span", _hoisted_3$6, [
         (openBlock(true), createElementBlock(Fragment, null, renderList(unref(filtercells), (field) => {
-          return (openBlock(), createBlock(script$s, {
+          return (openBlock(), createBlock(script$l, {
             class: "ptj-filter",
-            field: field,
+            bind: field,
             key: field.name
-          }, null, 8 /* PROPS */, ["field"]))
+          }, null, 8 /* PROPS */, ["bind"]))
         }), 128 /* KEYED_FRAGMENT */))
       ]),
-      createElementVNode("p", _hoisted_4$7, [
-        createVNode(unref(script$1J), {
+      createElementVNode("p", _hoisted_4$6, [
+        createVNode(unref(script$1C), {
           label: _ctx.$t('btns.filter'),
           onClick: submit
         }, null, 8 /* PROPS */, ["label"])
@@ -40475,111 +41254,10 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$8 = "\n.filter-form-vue-vue-type-style-index-0-id-46638ba7-lang_ptj-filter__24-2N { \r\n    display : inline-block;\n}\r\n";
-styleInject$b(css_248z$8);
+var css_248z$6 = "\n.filter-form-vue-vue-type-style-index-0-id-46638ba7-lang_ptj-filter__24-2N { \r\n    display : inline-block;\n}\r\n";
+styleInject$t(css_248z$6);
 
-script$r.__file = "presstojam/src/components/filter/filter-form.vue";
-
-var script$q = {
-  props: {
-    pagination : Object
-},
-  emits: ["reload"],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-computed(() => {
-    return ceil(props.pagination.count / props.pagination.rows_per_page);
-});
-
-
-
-function onPage(event) {
-    emits("reload", event.first);
-}
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1a), {
-    rows: __props.pagination.rows_per_page,
-    totalRecords: parseInt(__props.pagination.count),
-    paginatorTemplate: "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown",
-    currentPageReportTemplate: "Showing {first} to {last} of {totalRecords}",
-    onPage: _cache[0] || (_cache[0] = $event => (onPage($event)))
-  }, null, 8 /* PROPS */, ["rows", "totalRecords"]))
-}
-}
-
-};
-
-script$q.__file = "presstojam/src/components/paginator/pagination.vue";
-
-var pagination = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': script$q
-});
-
-var script$p = {
-  name: 'Toolbar',
-  props: {
-    'aria-labelledby': {
-      type: String,
-      default: null
-    }
-  }
-};
-const _hoisted_1$b = ["aria-labelledby"];
-const _hoisted_2$7 = {
-  class: "p-toolbar-group-left"
-};
-const _hoisted_3$7 = {
-  class: "p-toolbar-group-right"
-};
-
-function render$6(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: "p-toolbar p-component",
-    role: "toolbar",
-    "aria-labelledby": _ctx.ariaLabelledby
-  }, [createElementVNode("div", _hoisted_2$7, [renderSlot(_ctx.$slots, "start")]), createElementVNode("div", _hoisted_3$7, [renderSlot(_ctx.$slots, "end")])], 8, _hoisted_1$b);
-}
-
-function styleInject$3(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$7 = "\n.p-toolbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-toolbar-group-left,\n.p-toolbar-group-right {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
-styleInject$3(css_248z$7);
-script$p.render = render$6;
+script$k.__file = "presstojam/src/components/filter/filter-form.vue";
 
 //download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
 // v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
@@ -40715,195 +41393,113 @@ function download(data, strFileName, strMimeType) {
   return true;
 }
 
-var script$o = {
+function buildData(data, headers) {
+  let value = "";
+
+  for (const rowObj of data) {
+    for (const x in headers) {
+      const header = headers[x].key;
+      let new_val = rowObj[header];
+      if (new_val) new_val = new_val.toString().replace(/\,/g, '');
+      value += new_val; //add value to build an array.
+
+      value += x < headers.length - 1 ? "," : "\n";
+    }
+  }
+
+  return value;
+}
+
+function exportCSV(name) {
+  const repo = getStore(name);
+  const store = repo.store;
+  const cells = store.fields;
+  const i18n = useI18n();
+  const t = i18n.global.t;
+  getClient();
+  const headers = [];
+
+  if (store.export_fields) {
+    if (Array.isArray(store.export_fields)) {
+      for (const index in store.export_fields) {
+        headers.push({
+          key: store.export_fields[index],
+          label: t("models." + store.name + ".fields." + store.export_fields[index] + ".label")
+        });
+      }
+    } else {
+      for (const key in store.export_fields) {
+        headers.push({
+          key: key,
+          label: store.export_fields[key]
+        });
+      }
+    }
+  } else {
+    for (const key in cells) {
+      if (key == "--owner" || key == "--parent") continue;
+      headers.push({
+        key: key,
+        label: t("models." + store.name + ".fields." + key + ".label")
+      });
+    }
+  }
+
+  let value = "";
+
+  for (const x in headers) {
+    value += headers[x].label;
+    value += x < headers.length - 1 ? "," : "\n";
+  }
+
+  if (repo.pagination.count) {
+    //need to load all data
+    repo.loadAll().then(data => {
+      value += buildData(data, headers);
+      download(value, store.name + '.csv');
+    }).catch(e => console.log(e));
+  } else {
+    repo.load().then(data => {
+      value += buildData(data, headers);
+      download(value, store.name + '.csv');
+    });
+  }
+}
+
+var script$j = {
   props: {
     name : String
 },
   setup(__props) {
 
-const props = __props;
-
-const { t } = useI18n();
-const client = inject("client");
-
-
-
-const repo = getStore(props.name);
-const store = repo.store;
-
-
-const data = repo.data.value;
-const cells = store.route.schema;
-const settings = store.route.settings;
-
-
-function buildData(data, headers) {
-	let value = "";
-	for(const rowObj of data){
-        for(const x in headers) {
-            const header = headers[x].key;
-            value += rowObj[header];
-            //add value to build an array.
-            value += (x < headers.length - 1) ? "," : "\n";
-        }
-    }
-	return value;
-}
-
-
-function exportCSV() {
-
-
-    const headers = [];
-    if (settings.export_fields) {
-        if (Array.isArray(settings.export_fields)) {
-            for(const index in settings.export_fields){
-                headers.push({ key : settings.export_fields[index], label :  t("models." + store.model +  ".fields." +settings.export_fields[index] + ".label") });
-            }
-        } else {
-            for(const key in settings.export_fields){
-                headers.push({ key : key, label :  settings.export_fields[key] });
-            }
-        }
-    } else {
-        for(const key in cells) {
-            if (key == "--owner" || key == "--parent") continue;
-            headers.push({ key : key, label : t("models." + store.model +  ".fields." + headers[key] + ".label") });
-        }
-    }
-
-    let value = "";
-    for(const x in headers) {
-        value += headers[x].label;
-        value += (x < headers.length - 1) ? "," : "\n";
-    }
-
-
-	if (repo.pagination && repo.pagination.count) {
-		//need to load all data
-		let tstore = createTemporaryStore(client, store.model);
-		tstore.parent_id = store.parent_id;
-		let temp_repo = createRepoStore(tstore);
-		tstore.limit = 0; //reset any limits so no pagination
-		temp_repo.load()
-		.then(() => {
-			value += buildData(temp_repo.data.value, headers);
-			download(value, store.model + '.csv');
-		})
-		.catch(e => console.log(e));
-	} else {
-		value += buildData(data, headers);
-		download(value, store.model + '.csv');
-	}
-}
-
 
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1J), {
+  return (openBlock(), createBlock(unref(script$1C), {
     label: "Export",
     icon: "pi pi-external-link",
     class: "p-button-help mr-2",
-    onClick: exportCSV
+    onClick: _cache[0] || (_cache[0] = $event => (unref(exportCSV)(__props.name)))
   }))
 }
 }
 
 };
 
-script$o.__file = "presstojam/src/components/actions/export-action.vue";
+script$j.__file = "presstojam/src/components/actions/export-action.vue";
 
-var script$n = {
-  props: {
-       name : String,
-       parentlabel : String
-    },
-  emits: [
-        'onSave', 'dataChanged'
-    ],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-    const i18n = inject("i18n");
-    const t = i18n.t;
-   
-    
-
-    const repo = getStore(props.name);
-    const store = repo.store;
-
-    
-
-    const dialog = ref(false);
-
-    const data = {};
-    if (store.parent_id) data["--parent"] = store.parent_id;
-
-    const header = (store.parent_store) 
-        ? "Add " + t("models." + store.model + ".title", 1) + " to " + props.parentlabel  
-        : "Create " + t("models." + store.model + ".title", 1);
-
-    function createRow() {
-        dialog.value =true;
-    }
-
-    function onSave() {
-        dialog.value = false;
-        emits('onSave');
-    }
-
-
-    function dataChanged(obj) {
-        emits('dataChanged', obj);
-    }
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1J), {
-      label: "New",
-      icon: "pi pi-plus",
-      class: "p-button-success mr-2",
-      onClick: createRow
-    }),
-    createVNode(unref(script$1z), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
-      header: unref(header),
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        createVNode(script$1d, {
-          schema: unref(store).route.schema,
-          model: unref(store).model,
-          data: data,
-          onSaved: onSave,
-          onDataChanged: dataChanged
-        }, null, 8 /* PROPS */, ["schema", "model"])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible", "header"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$n.__file = "presstojam/src/components/actions/create-action.vue";
-
-const _hoisted_1$a = { key: 0 };
-const _hoisted_2$6 = /*#__PURE__*/createElementVNode("h3", null, "Column Headers", -1 /* HOISTED */);
-const _hoisted_3$6 = { class: "p-inputgroup" };
-const _hoisted_4$6 = ["onUpdate:modelValue"];
+const _hoisted_1$6 = { key: 0 };
+const _hoisted_2$5 = /*#__PURE__*/createElementVNode("h3", null, "Column Headers", -1 /* HOISTED */);
+const _hoisted_3$5 = { class: "p-inputgroup" };
+const _hoisted_4$5 = ["onUpdate:modelValue"];
 const _hoisted_5$5 = { class: "p-inputgroup-addon" };
-const _hoisted_6$4 = ["onClick"];
+const _hoisted_6$5 = ["onClick"];
 const _hoisted_7$2 = { key: 1 };
 const _hoisted_8$2 = /*#__PURE__*/createElementVNode("h3", null, "Results", -1 /* HOISTED */);
 
 
-var script$m = {
+var script$i = {
   props: {
     name : String
 },
@@ -40925,8 +41521,8 @@ const failed = ref(0);
 
 let headers = [];
 const oheaders = [];
-for(let i in store.route.schema) {
-    if (!store.route.schema[i].system) {
+for(let i in store.fields) {
+    if (!store.fields[i].system) {
         headers.push(i);
         oheaders.push(i);
     }
@@ -40957,19 +41553,19 @@ function refreshHeader(key, headers) {
 
 return (_ctx, _cache) => {
   return (is_passed.value == false)
-    ? (openBlock(), createElementBlock("div", _hoisted_1$a, [
-        _hoisted_2$6,
+    ? (openBlock(), createElementBlock("div", _hoisted_1$6, [
+        _hoisted_2$5,
         createElementVNode("table", null, [
           (openBlock(true), createElementBlock(Fragment, null, renderList(unref(headers), (header, key) => {
             return (openBlock(), createElementBlock("tr", null, [
               createElementVNode("td", null, toDisplayString$1((key + 1)) + ".", 1 /* TEXT */),
               createElementVNode("td", null, [
-                createElementVNode("div", _hoisted_3$6, [
+                createElementVNode("div", _hoisted_3$5, [
                   withDirectives(createElementVNode("input", {
                     type: "text",
                     "onUpdate:modelValue": $event => ((unref(headers)[key]) = $event),
                     class: "form-control"
-                  }, null, 8 /* PROPS */, _hoisted_4$6), [
+                  }, null, 8 /* PROPS */, _hoisted_4$5), [
                     [vModelText, unref(headers)[key]]
                   ]),
                   createElementVNode("span", _hoisted_5$5, [
@@ -40977,7 +41573,7 @@ return (_ctx, _cache) => {
                       class: "pi pi-refresh",
                       onClick: $event => (refreshHeader(key, unref(headers))),
                       style: {"cursor":"pointer"}
-                    }, null, 8 /* PROPS */, _hoisted_6$4)
+                    }, null, 8 /* PROPS */, _hoisted_6$5)
                   ])
                 ])
               ])
@@ -40985,7 +41581,7 @@ return (_ctx, _cache) => {
           }), 256 /* UNKEYED_FRAGMENT */))
         ]),
         createElementVNode("div", null, [
-          createVNode(unref(script$1m), {
+          createVNode(unref(script$1g), {
             name: "file",
             mode: "basic",
             customUpload: true,
@@ -41004,12 +41600,13 @@ return (_ctx, _cache) => {
 
 };
 
-script$m.__file = "presstojam/src/components/import/import.vue";
+script$i.__file = "presstojam/src/components/import/import.vue";
 
-const _hoisted_1$9 = /*#__PURE__*/createTextVNode("Import");
+const _hoisted_1$5 = /*#__PURE__*/createTextVNode("Import");
+
 
     
-var script$l = {
+var script$h = {
   props: {
         name : String
     },
@@ -41017,63 +41614,141 @@ var script$l = {
 
 const props = __props;
 
-    const dialog = ref(false);
-
     
 
-    const repo = getStore(props.name);
 
     function toggleImport() {
-        dialog.value = (dialog.value) ? false : true;
+        trigger(
+            "dialog_open",
+            script$i, 
+            {
+                name : props.name,
+            },
+            "Import"
+        );
     }
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1J), {
-      icon: "pi pi-upload",
-      class: "mr-2",
-      onClick: toggleImport
-    }, {
-      default: withCtx(() => [
-        _hoisted_1$9
-      ]),
-      _: 1 /* STABLE */
-    }),
-    createVNode(unref(script$1z), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
-      header: 'Import ' + _ctx.$t('models.' + unref(repo).store.model + '.title', 1),
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        createVNode(script$m, { name: __props.name }, null, 8 /* PROPS */, ["name"])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible", "header"])
-  ], 64 /* STABLE_FRAGMENT */))
+  return (openBlock(), createBlock(unref(script$1C), {
+    icon: "pi pi-upload",
+    class: "mr-2",
+    onClick: toggleImport
+  }, {
+    default: withCtx(() => [
+      _hoisted_1$5
+    ]),
+    _: 1 /* STABLE */
+  }))
 }
 }
 
 };
 
-script$l.__file = "presstojam/src/components/actions/import-action.vue";
+script$h.__file = "presstojam/src/components/actions/import-action.vue";
+
+var script$g = {
+  props: {
+        model : Object,
+        data : Object
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+
+
+    function editRow() {
+        trigger(
+            "dialog_open",
+            script$x, 
+            {
+                model : props.model,
+                data : props.data
+            },
+            "Edit"
+        );
+    }
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1C), {
+    icon: "pi pi-pencil",
+    class: "p-button-rounded p-button-success mr-2",
+    onClick: editRow
+  }))
+}
+}
+
+};
+
+script$g.__file = "presstojam/src/components/actions/edit-action.vue";
+
+var script$f = {
+  props: {
+    name : String,
+    parent_id : Number
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+let key = ref(0);
+
+function loadChild(new_val, old_val) {
+    if (new_val == old_val) return;
+    const name = props.name + "-" + new_val;
+    key = name;
+    let repo;
+    if (hasStore(name)) {
+        repo = getStore(name);
+    } else {
+        repo = createRepoStore(getModel(props.name, true));
+        repo.parent_id = new_val;
+        regStore(name, repo);
+    }
+    
+    repo.load();
+}
+
+watch(() => props.parent_id, loadChild);
+
+loadChild(props.parent_id, 0);
+
+
+return (_ctx, _cache) => {
+  return (unref(key))
+    ? (openBlock(), createBlock(script$e, {
+        name: unref(key),
+        key: unref(key)
+      }, null, 8 /* PROPS */, ["name"]))
+    : createCommentVNode("v-if", true)
+}
+}
+
+};
+
+script$f.__file = "presstojam/src/components/table/child-table.vue";
 
 const _withScopeId$1 = n => (pushScopeId("data-v-29f6384d"),n=n(),popScopeId(),n);
-const _hoisted_1$8 = /*#__PURE__*/createTextVNode("New row created");
-const _hoisted_2$5 = /*#__PURE__*/createTextVNode("Rows removed");
-const _hoisted_3$5 = {
+const _hoisted_1$4 = /*#__PURE__*/createTextVNode("New row created");
+const _hoisted_2$4 = /*#__PURE__*/createTextVNode("Rows removed");
+const _hoisted_3$4 = /*#__PURE__*/createTextVNode("Row Updated");
+const _hoisted_4$4 = {
   key: 0,
   class: "p-input-icon-left mr-2"
 };
-const _hoisted_4$5 = /*#__PURE__*/ _withScopeId$1(() => /*#__PURE__*/createElementVNode("i", { class: "pi pi-search" }, null, -1 /* HOISTED */));
-const _hoisted_5$4 = { key: 3 };
+const _hoisted_5$4 = /*#__PURE__*/ _withScopeId$1(() => /*#__PURE__*/createElementVNode("i", { class: "pi pi-search" }, null, -1 /* HOISTED */));
+const _hoisted_6$4 = { key: 4 };
 
 
 
 
-
-var script$k = {
+var script$e = {
   props: {
     name : {
       type : String,
@@ -41087,47 +41762,58 @@ const props = __props;
 
 
 
+
+const group = ref();
+const data = ref([]);
+const selected = ref([]);
+const search = ref();
+const active_options = ref();
+const newrow = ref(false);
+const delrow = ref(false);
+const editrow = ref(false);
+
+
 const repo = getStore(props.name);
 const store = repo.store;
 
+const max_cols = (!store.max_cols) ? 10 : store.max_cols;
 
-const max_cols = (!store.route.settings.max_cols) ? 10 : store.route.settings.max_cols;
-const has_export =store.route.export;
-const has_import = store.route.import;//store.route.import;
-
+//setup cells
 //const has_export = true;
-const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
+store.setTableCells();
+const cells = store.getEnabledCells();
+const col_expandable = (Object.keys(cells).length > max_cols) ? true : false;
 const fixed_fields = [];
 const optional_fields = [];
 
 
-const search = ref();
-const dt = ref();
 
-const active_options = ref();
-const newrow = ref(false);
-const delrow = ref(false);
+
+
+repo.load()
+.then(rows => {
+    data.value = rows;
+});
 
 
 
 const fields = computed(() => {
-    const cells = {};
+    const fcells = {};
     for(let i of fixed_fields) {
-        cells[i] = store.route.schema[i];
+        fcells[i] = cells[i];
     }
 
     if (active_options.value) {
         for(let i of active_options.value) {
-            cells[i] = store.route.schema[i];
+            fcells[i] = cells[i];
         }
     }
 
-    return cells;
+    return fcells;
 });
 
 
-for(let i in store.route.schema) {
-    if (store.route.schema[i].background) continue;
+for(let i in cells) {
     if (!col_expandable || fixed_fields.length < max_cols)  
         fixed_fields.push(i);
     else if (col_expandable) 
@@ -41135,256 +41821,96 @@ for(let i in store.route.schema) {
 }
 
 
-function reloadPage(offset) {
-    repo.pagination.offset = offset;
-    repo.paginate();
-}
 
 
-function onRowReorder(rows) {
-    repo.data.value =rows;
-    saveOrder(store.model, rows);
-}
-
-
-
-function onSave() {
-    repo.reload();
-    newrow.value = true;
-}
-
-
-function onDel() {
-    repo.reload();
-    delrow.value = true;
-}
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    (unref(repo).pagination && !unref(store).route.settings.nofilter)
-      ? (openBlock(), createBlock(script$r, {
-          key: 0,
-          store: unref(store)
-        }, null, 8 /* PROPS */, ["store"]))
-      : createCommentVNode("v-if", true),
-    (newrow.value)
-      ? (openBlock(), createBlock(unref(script$1p), {
-          key: 1,
-          severity: "success"
-        }, {
-          default: withCtx(() => [
-            _hoisted_1$8
-          ]),
-          _: 1 /* STABLE */
-        }))
-      : createCommentVNode("v-if", true),
-    (delrow.value)
-      ? (openBlock(), createBlock(unref(script$1p), {
-          key: 2,
-          severity: "success"
-        }, {
-          default: withCtx(() => [
-            _hoisted_2$5
-          ]),
-          _: 1 /* STABLE */
-        }))
-      : createCommentVNode("v-if", true),
-    createVNode(unref(script$p), { class: "mb-4" }, {
-      start: withCtx(() => [
-        (!unref(repo).pagination)
-          ? (openBlock(), createElementBlock("span", _hoisted_3$5, [
-              _hoisted_4$5,
-              createVNode(unref(script$1I), {
-                modelValue: search.value,
-                "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((search).value = $event)),
-                placeholder: "Keyword Search"
-              }, null, 8 /* PROPS */, ["modelValue"])
-            ]))
-          : createCommentVNode("v-if", true),
-        (unref(col_expandable))
-          ? (openBlock(), createBlock(unref(script$$), {
-              key: 1,
-              modelValue: active_options.value,
-              "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((active_options).value = $event)),
-              options: optional_fields,
-              placeholder: "Select Columns",
-              style: {"width":"20em"}
-            }, null, 8 /* PROPS */, ["modelValue"]))
-          : createCommentVNode("v-if", true)
-      ]),
-      end: withCtx(() => [
-        (unref(has_import))
-          ? (openBlock(), createBlock(script$l, {
-              key: 0,
-              name: __props.name
-            }, null, 8 /* PROPS */, ["name"]))
-          : createCommentVNode("v-if", true),
-        (unref(has_export))
-          ? (openBlock(), createBlock(script$o, {
-              key: 1,
-              name: __props.name
-            }, null, 8 /* PROPS */, ["name"]))
-          : createCommentVNode("v-if", true),
-        (unref(store).route.perms.includes('post'))
-          ? (openBlock(), createBlock(script$n, {
-              key: 2,
-              name: __props.name,
-              onOnSave: onSave
-            }, null, 8 /* PROPS */, ["name"]))
-          : createCommentVNode("v-if", true),
-        (unref(store).route.perms.includes('delete'))
-          ? (openBlock(), createBlock(script$1c, {
-              key: 3,
-              name: __props.name,
-              onOnDel: onDel
-            }, null, 8 /* PROPS */, ["name"]))
-          : createCommentVNode("v-if", true)
-      ]),
-      _: 1 /* STABLE */
-    }),
-    (unref(repo).pagination)
-      ? (openBlock(), createElementBlock("p", _hoisted_5$4, "Total Rows: " + toDisplayString$1(unref(repo).pagination.count), 1 /* TEXT */))
-      : createCommentVNode("v-if", true),
-    createVNode(script$i, {
-      ref_key: "dt",
-      ref: dt,
-      name: __props.name,
-      fields: unref(fields),
-      search: search.value,
-      onReorder: onRowReorder
-    }, null, 8 /* PROPS */, ["name", "fields", "search"]),
-    (unref(repo).pagination)
-      ? (openBlock(), createBlock(script$q, {
-          key: 4,
-          pagination: unref(repo).pagination,
-          onReload: reloadPage
-        }, null, 8 /* PROPS */, ["pagination"]))
-      : createCommentVNode("v-if", true)
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-var css_248z$6 = "\ntable[data-v-29f6384d], thead[data-v-29f6384d], tbody[data-v-29f6384d], tr[data-v-29f6384d] {\r\n    width : 100%;\n}\n.table-display-vue-vue-type-style-index-0-id-29f6384d-scoped-true-lang_ptj-table-wrapper__fKjz7[data-v-29f6384d] {\r\n    position : relative;\n}\r\n\r\n\r\n";
-styleInject$b(css_248z$6);
-
-script$k.__scopeId = "data-v-29f6384d";
-script$k.__file = "presstojam/src/components/table/table-display.vue";
-
-var tableDisplay = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    'default': script$k
+subscribe("effect_created", props.name, name => {
+    if (props.name == name) {
+        newrow.value = true;
+        repo.load()
+       .then(response => {
+         data.value = response;
+       });
+        trigger("dialog_close");
+    }
 });
 
-var script$j = {
-  props: {
-    name : String,
-    parent_id : Number
-},
-  setup(__props) {
 
-const props = __props;
-
-
-
-const client = inject("client");
-
-let childrepo = null;
-const childstore = createDataStore(client, props.name);
-let model = ref(null);
-
-function loadChild(new_val, old_val) {
-    if (new_val == old_val) return;
-    childrepo = null;
-    let key = childstore.model + "-" + props.parent_id;
-    childstore.parent_id = props.parent_id;
-    childrepo = createRepoStore(childstore);
-    regStore(key, childrepo);
-    childrepo.reload();
-    model.value = key;
-}
-
-watch(() => props.parent_id, loadChild);
-
-loadChild(props.parent_id, 0);
-
-
-return (_ctx, _cache) => {
-  return (unref(model))
-    ? (openBlock(), createBlock(script$k, {
-        key: 0,
-        name: unref(model)
-      }, null, 8 /* PROPS */, ["name"]))
-    : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$j.__file = "presstojam/src/components/table/child-table.vue";
-
-var script$i = {
-  props: {
-    name : String,
-    fields : Object,
-    search : [Object, String],
-    nosort : {
-        type : Boolean,
-        default : false
+subscribe("effect_edited", props.name, name => {
+    if (props.name == name) {
+        editrow.value = true;
+        trigger("dialog_close");
+        repo.load()
+       .then(response => {
+         data.value = response;
+       });
     }
-},
-  emits: [
-    "reorder",
-    "edit"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
+});
 
 
+subscribe("effect_deleted", props.name, name => {
+    if (props.name == name) {
+        delrow.value = true;
+        trigger("dialog_close");
+        repo.load()
+       .then(response => {
+         data.value = response;
+       });
+    }
+});
 
 
+onBeforeUnmount(() => {
+    unsubscribe("effect_created", props.name);
+    unsubscribe("effect_updated", props.name);
+    unsubscribe("effect_delete", props.name);
+});
 
 
-
-const repo = getStore(props.name);
-const store = repo.store;
-
-const group = ref();
-const show_edit = ref(false);
-const show_audit = ref(false);
-
-
-const children = (store.route.schema['--id']) ? store.route.schema['--id'].reference : [];
+const children = (store.fields['--id']) ? store.fields['--id'].reference : [];
 const has_primary = (children.length > 1) ? true : false;
 const has_expandable = (children.length == 1) ? true : false;
-const has_sort = store.route.schema['--sort'];
-const sortable = (!props.nosort && !repo.pagination && !has_sort) ? true : false;
+const has_sort = store.fields['--sort'];
+const sortable = (!props.nosort && !repo.hasPagination() && !has_sort) ? true : false;
 const global_filter_fields = [];
-if (!repo.pagination) {
+if (!repo.hasPagination()) {
     for(let field in props.fields) {
         global_filter_fields.push(field);
     }
 }
 
 const atts = {};
+const events = {};
 let groupcell;
-if (store.route.settings.group) {
+if (store.group) {
     atts.rowGroupMode = "subheader";
-    atts.groupRowsBy=store.route.settings.group;
-   // atts.sortMode="single";
-   // atts.sortField = store.route.settings.group;
-   // atts.sortOrder=1;
-} else if (store.route.settings.distinguish) {
-    let id = store.route.settings.distinguish;
+    atts.groupRowsBy=store.group;
+} else if (store.distinguish) {
+    let id = store.distinguish;
     atts.rowClass = function(data) {
         return id + "-" + data[id];
     };
 }
 
-groupcell = props.fields[store.route.settings.group];
+
+const total_records = computed(() => {
+    return repo.pagination.count.value;
+});
+
+
+if (repo.hasPagination()) {
+    atts.lazy = true;
+    atts.paginator = true;
+    atts.rows = repo.pagination.rows_per_page;
+    atts.paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink";
+    events.page = function(evt) {
+        repo.setPagination(evt.page)
+        .then(response => {
+            data.value = response;
+        });
+    };
+}
+
+groupcell = fields[store.group];
 
 const filters = computed(() => {
     if (!props.search) return {};
@@ -41394,37 +41920,11 @@ const filters = computed(() => {
 
 
 
-function updated(data) {
-    repo.overwrite(data);
-} 
-
-function onRowReorder(e) {
-   //need to emit
-   emits('reorder', e.value);
-}
-
-function hideEdit() {
-    show_edit.value = false;
-}
-
-function showEdit(data) {
-    repo.active.value = data;
-    show_edit.value = true;
-}
-
-
-function showAudit(data) {
-    repo.active.value = data;
-    show_audit.value = (show_audit.value) ? false : true;
-}
-
-
-
 
 function rowClass(data) {
     let classes = [];
-    if (store.route.settings.classes) {
-        for(let cls of store.route.settings.classes) {
+    if (store.classes) {
+        for(let cls of store.classes) {
             if (data[cls.att] == cls.value) classes.push(cls.class);
         }
     }
@@ -41444,8 +41944,17 @@ const onRowCollapse = (event) => {
 };
 
 
+
+
+function onRowReorder(e) {
+   //need to emit
+   store.saveOrder(e.value);
+}
+
+
+
 onMounted (() => {
-    const groupclasses = store.route.settings.groupclasses;
+    const groupclasses = store.groupclasses;
     if (groupclasses) {
         for(const cls in groupclasses) {
             const val = groupclasses[cls];
@@ -41466,667 +41975,256 @@ onMounted (() => {
             }
         }
     }
+
 });
 
 
 
+
+
+
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", {
-    ref_key: "group",
-    ref: group
-  }, [
-    createVNode(unref(script$19), mergeProps({
-      value: unref(repo).data.value,
-      selection: unref(repo).selected.value,
-      "onUpdate:selection": _cache[0] || (_cache[0] = $event => ((unref(repo).selected.value) = $event)),
-      dataKey: "--id",
-      rowClass: rowClass,
-      responsiveLayout: "stack",
-      loading: unref(repo).is_loading.value,
-      rowHover: true,
-      onRowReorder: onRowReorder,
-      onRowExpand: onRowExpand,
-      onRowCollapse: onRowCollapse,
-      expandedRows: expandedRows.value,
-      "onUpdate:expandedRows": _cache[1] || (_cache[1] = $event => ((expandedRows).value = $event)),
-      globalFilterFields: global_filter_fields,
-      filters: unref(filters)
-    }, atts), createSlots({
-      expansion: withCtx((slotProps) => [
-        createVNode(unref(script$R), null, {
-          title: withCtx(() => [
-            createTextVNode(toDisplayString$1(_ctx.$t("models." + unref(store).route.children[0] + ".title")), 1 /* TEXT */)
+  return (openBlock(), createElementBlock(Fragment, null, [
+    (unref(repo).pagination.rows_per_page && !unref(store).no_filter)
+      ? (openBlock(), createBlock(script$k, {
+          key: 0,
+          store: unref(repo)
+        }, null, 8 /* PROPS */, ["store"]))
+      : createCommentVNode("v-if", true),
+    (newrow.value)
+      ? (openBlock(), createBlock(unref(script$1j), {
+          key: 1,
+          severity: "success"
+        }, {
+          default: withCtx(() => [
+            _hoisted_1$4
           ]),
-          content: withCtx(() => [
-            (openBlock(), createBlock(script$j, {
-              name: unref(store).route.children[0],
-              parent_id: slotProps.data['--id'],
-              key: slotProps.data['--id']
-            }, null, 8 /* PROPS */, ["name", "parent_id"]))
+          _: 1 /* STABLE */
+        }))
+      : createCommentVNode("v-if", true),
+    (delrow.value)
+      ? (openBlock(), createBlock(unref(script$1j), {
+          key: 2,
+          severity: "success"
+        }, {
+          default: withCtx(() => [
+            _hoisted_2$4
           ]),
-          _: 2 /* DYNAMIC */
-        }, 1024 /* DYNAMIC_SLOTS */)
-      ]),
-      default: withCtx(() => [
-        (unref(has_expandable))
-          ? (openBlock(), createBlock(unref(script$18), {
-              key: 0,
-              expander: true,
-              headerStyle: "width: 3rem"
-            }))
+          _: 1 /* STABLE */
+        }))
+      : createCommentVNode("v-if", true),
+    (editrow.value)
+      ? (openBlock(), createBlock(unref(script$1j), {
+          key: 3,
+          severity: "success"
+        }, {
+          default: withCtx(() => [
+            _hoisted_3$4
+          ]),
+          _: 1 /* STABLE */
+        }))
+      : createCommentVNode("v-if", true),
+    createVNode(unref(script$N), { class: "mb-4" }, {
+      start: withCtx(() => [
+        (!unref(repo).pagination.rows_per_page)
+          ? (openBlock(), createElementBlock("span", _hoisted_4$4, [
+              _hoisted_5$4,
+              createVNode(unref(script$1B), {
+                modelValue: search.value,
+                "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((search).value = $event)),
+                placeholder: "Keyword Search"
+              }, null, 8 /* PROPS */, ["modelValue"])
+            ]))
           : createCommentVNode("v-if", true),
-        (unref(has_sort))
-          ? (openBlock(), createBlock(unref(script$18), {
+        (unref(col_expandable))
+          ? (openBlock(), createBlock(unref(script$16), {
               key: 1,
-              rowReorder: true,
-              headerStyle: "width: 3rem",
-              reorderableColumn: false
-            }))
+              modelValue: active_options.value,
+              "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((active_options).value = $event)),
+              options: optional_fields,
+              placeholder: "Select Columns",
+              style: {"width":"20em"}
+            }, null, 8 /* PROPS */, ["modelValue"]))
+          : createCommentVNode("v-if", true)
+      ]),
+      end: withCtx(() => [
+        (unref(store).import)
+          ? (openBlock(), createBlock(script$h, {
+              key: 0,
+              name: __props.name
+            }, null, 8 /* PROPS */, ["name"]))
           : createCommentVNode("v-if", true),
-        (unref(store).route.perms.includes('delete'))
-          ? (openBlock(), createBlock(unref(script$18), {
+        (unref(store).export)
+          ? (openBlock(), createBlock(script$j, {
+              key: 1,
+              name: __props.name
+            }, null, 8 /* PROPS */, ["name"]))
+          : createCommentVNode("v-if", true),
+        (unref(store).perms.includes('post'))
+          ? (openBlock(), createBlock(script$A, {
               key: 2,
-              selectionMode: "multiple",
-              style: {"width":"3rem"},
-              exportable: false
-            }))
+              name: __props.name,
+              parent: unref(store).parent
+            }, null, 8 /* PROPS */, ["name", "parent"]))
           : createCommentVNode("v-if", true),
-        (openBlock(true), createElementBlock(Fragment, null, renderList(__props.fields, (cell) => {
-          return (openBlock(), createBlock(unref(script$18), {
-            field: cell.name,
-            sortable: unref(sortable),
-            header: _ctx.$t('models.' + cell.model + '.fields.' + cell.name + '.label'),
-            key: cell.name
-          }, {
-            body: withCtx((slotProps) => [
-              createVNode(script$A, {
-                row: slotProps.data,
-                field: cell
-              }, null, 8 /* PROPS */, ["row", "field"])
+        (unref(store).perms.includes('delete'))
+          ? (openBlock(), createBlock(script$y, {
+              key: 3,
+              name: __props.name,
+              data: selected.value.value
+            }, null, 8 /* PROPS */, ["name", "data"]))
+          : createCommentVNode("v-if", true)
+      ]),
+      _: 1 /* STABLE */
+    }),
+    (unref(repo).pagination.rows_per_page)
+      ? (openBlock(), createElementBlock("p", _hoisted_6$4, "Total Rows: " + toDisplayString$1(unref(repo).pagination.count), 1 /* TEXT */))
+      : createCommentVNode("v-if", true),
+    createElementVNode("div", {
+      ref_key: "group",
+      ref: group
+    }, [
+      createVNode(unref(script$Z), mergeProps({
+        value: data.value,
+        selection: selected.value.value,
+        "onUpdate:selection": _cache[2] || (_cache[2] = $event => ((selected.value.value) = $event)),
+        dataKey: "--id",
+        rowClass: rowClass,
+        responsiveLayout: "stack",
+        loading: unref(repo).is_loading.value,
+        rowHover: true,
+        onRowReorder: onRowReorder,
+        onRowExpand: onRowExpand,
+        onRowCollapse: onRowCollapse,
+        expandedRows: expandedRows.value,
+        "onUpdate:expandedRows": _cache[3] || (_cache[3] = $event => ((expandedRows).value = $event)),
+        globalFilterFields: global_filter_fields,
+        totalRecords: unref(total_records),
+        filters: unref(filters)
+      }, atts, toHandlers(events)), createSlots({
+        expansion: withCtx((slotProps) => [
+          createVNode(unref(script$V), null, {
+            title: withCtx(() => [
+              createTextVNode(toDisplayString$1(_ctx.$t("models." + unref(store).children_models[0] + ".title")), 1 /* TEXT */)
+            ]),
+            content: withCtx(() => [
+              (openBlock(), createBlock(script$f, {
+                name: unref(store).children_models[0],
+                parent_id: slotProps.data['--id'],
+                key: slotProps.data['--id']
+              }, null, 8 /* PROPS */, ["name", "parent_id"]))
             ]),
             _: 2 /* DYNAMIC */
-          }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["field", "sortable", "header"]))
-        }), 128 /* KEYED_FRAGMENT */)),
-        createVNode(unref(script$18), {
-          exportable: false,
-          style: {"min-width":"8rem"}
-        }, {
-          body: withCtx((slotProps) => [
-            (unref(has_primary))
-              ? (openBlock(), createBlock(script$I, {
-                  key: 0,
-                  model: unref(store).model,
-                  id: slotProps.data['--id']
-                }, null, 8 /* PROPS */, ["model", "id"]))
-              : createCommentVNode("v-if", true),
-            (unref(store).route.perms.includes('put'))
-              ? (openBlock(), createBlock(unref(script$1J), {
-                  key: 1,
-                  icon: "pi pi-pencil",
-                  class: "p-button-rounded p-button-success mr-2",
-                  onClick: $event => (showEdit(slotProps.data))
-                }, null, 8 /* PROPS */, ["onClick"]))
-              : createCommentVNode("v-if", true),
-            (unref(store).route.audit)
-              ? (openBlock(), createBlock(unref(script$1J), {
-                  key: 2,
-                  icon: "pi pi-history",
-                  class: "mr-2 p-button-rounded p-button-success",
-                  onClick: $event => (showAudit(slotProps.data))
-                }, null, 8 /* PROPS */, ["onClick"]))
-              : createCommentVNode("v-if", true),
-            (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).route.settings.actions, (component) => {
-              return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps(component.atts, {
-                data: slotProps.data,
-                short: true
-              }), null, 16 /* FULL_PROPS */, ["data"]))
-            }), 256 /* UNKEYED_FRAGMENT */))
-          ]),
-          _: 1 /* STABLE */
-        })
-      ]),
-      _: 2 /* DYNAMIC */
-    }, [
-      (atts.groupRowsBy)
-        ? {
-            name: "groupheader",
-            fn: withCtx((slotProps) => [
-              createElementVNode("div", {
-                class: normalizeClass(["ptj-group", slotProps.data[unref(groupcell).name]])
-              }, [
-                createVNode(script$A, {
-                  row: slotProps.data,
-                  field: unref(groupcell)
-                }, null, 8 /* PROPS */, ["row", "field"])
-              ], 2 /* CLASS */)
-            ])
-          }
-        : undefined
-    ]), 1040 /* FULL_PROPS, DYNAMIC_SLOTS */, ["value", "selection", "loading", "expandedRows", "filters"]),
-    (unref(store).route.audit)
-      ? (openBlock(), createBlock(unref(script$1z), {
-          key: 0,
-          visible: show_audit.value,
-          "onUpdate:visible": _cache[2] || (_cache[2] = $event => ((show_audit).value = $event)),
-          header: "Audit",
-          modal: true,
-          class: "p-fluid"
-        }, {
-          default: withCtx(() => [
-            createVNode(script$17, {
-              repo: unref(repo),
-              id: unref(repo).active.value['--id']
-            }, null, 8 /* PROPS */, ["repo", "id"])
-          ]),
-          _: 1 /* STABLE */
-        }, 8 /* PROPS */, ["visible"]))
-      : createCommentVNode("v-if", true),
-    (unref(store).route.perms.includes('put'))
-      ? (openBlock(), createBlock(unref(script$1z), {
-          key: 1,
-          visible: show_edit.value,
-          "onUpdate:visible": _cache[4] || (_cache[4] = $event => ((show_edit).value = $event)),
-          header: 'Edit ' + _ctx.$t('models.' + unref(store).model + '.title', 1),
-          modal: true,
-          class: "p-fluid"
-        }, {
-          default: withCtx(() => [
-            createVNode(script$1d, {
-              schema: unref(store).route.schema,
-              data: unref(repo).active.value,
-              model: unref(store).model,
-              onSaved: _cache[3] || (_cache[3] = $event => (hideEdit())),
-              onDataChanged: updated,
-              method: "put"
-            }, null, 8 /* PROPS */, ["schema", "data", "model"])
-          ]),
-          _: 1 /* STABLE */
-        }, 8 /* PROPS */, ["visible", "header"]))
-      : createCommentVNode("v-if", true)
-  ], 512 /* NEED_PATCH */))
-}
-}
-
-};
-
-script$i.__file = "presstojam/src/components/table/table.vue";
-
-const _hoisted_1$7 = { key: 0 };
-    
-    
-var script$h = {
-  props: {
-        name : {
-            type : String,
-            required : true
-        }
-    },
-  emits: ['onMove'],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-    const client = inject("client");
-
-    
-
-    
-
-    const repo = getStore(props.name);
-    const store = repo.store;
-    
-    provide("model", store.model);
-
-   
-    const bind = createBind(store.route.schema['--recursive'], 0);
-
-
-    function submit() {
-        let promise = [];
-        for(const row of repo.selected.value) {
-            const obj = {"--id" : row['--id'], "--recursive" : bind.value.value };
-            promise.push(client.put("/data/" + store.model, obj));
-        }
-
-        return Promise.all(promise)
-        .then(() => {
-            emits("onMove");
-        })
-        .catch(e => console.log(e));
-    }
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    (unref(bind))
-      ? (openBlock(), createElementBlock("div", _hoisted_1$7, [
-          createVNode(script$1v, { bind: unref(bind) }, null, 8 /* PROPS */, ["bind"])
-        ]))
-      : createCommentVNode("v-if", true),
-    createVNode(unref(script$1J), {
-      label: _ctx.$t('btns.save'),
-      onClick: submit
-    }, null, 8 /* PROPS */, ["label"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$h.__file = "presstojam/src/components/effects/move-action.vue";
-
-const _hoisted_1$6 = /*#__PURE__*/createElementVNode("p", null, "Moving", -1 /* HOISTED */);
-
-    
-var script$g = {
-  props: {
-        name : {
-            type : String,
-            required : true
-        }
-    },
-  emits: ['onMove'],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-    
-
-    
-
-    const repo = getStore(props.name);
-    const store = repo.store;
-
-    
-    const dialog = ref(false);
-
-    function moveRow() {
-        dialog.value =true;
-    }
-
-    function onMove() {
-        dialog.value = false;
-        emits("onMove");
-    }
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1J), {
-      icon: "pi pi-pencil",
-      class: "p-button-success mr-2",
-      label: "move",
-      onClick: moveRow,
-      disabled: !unref(repo).selected.value.length
-    }, null, 8 /* PROPS */, ["disabled"]),
-    createVNode(unref(script$1z), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
-      header: 'Move ' + _ctx.$t('models.' + unref(store).model + '.title', 2),
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        _hoisted_1$6,
-        createElementVNode("ul", null, [
-          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(repo).selected.value, (item) => {
-            return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).store.route.schema, item)), 1 /* TEXT */))
-          }), 256 /* UNKEYED_FRAGMENT */))
+          }, 1024 /* DYNAMIC_SLOTS */)
         ]),
-        createVNode(script$h, {
-          name: __props.name,
-          onOnMove: _cache[0] || (_cache[0] = $event => (onMove()))
-        }, null, 8 /* PROPS */, ["name"])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible", "header"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$g.__file = "presstojam/src/components/actions/move-action.vue";
-
-const _hoisted_1$5 = ["schema", "data", "model"];
-
-    
-var script$f = {
-  props: {
-        store : Object,
-        data : Object
-    },
-  emits: [
-        'onSave'
-    ],
-  setup(__props, { emit: emits }) {
-
-    
-
-    
-
-    const dialog = ref(false);
-
-    function editRow() {
-        dialog.value =true;
-    }
-
-    function onSave() {
-        dialog.value = false;
-        emits('onSave');
-    }
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1J), {
-      icon: "pi pi-pencil",
-      class: "p-button-rounded p-button-success mr-2",
-      onClick: editRow
-    }),
-    createVNode(unref(script$1z), {
-      visible: dialog.value,
-      "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialog).value = $event)),
-      header: 'Edit ' + _ctx.$t('models.' + __props.store.model + '.title', 1),
-      modal: true,
-      class: "p-fluid"
-    }, {
-      default: withCtx(() => [
-        createElementVNode("form", {
-          schema: __props.store.route.schema,
-          data: __props.data,
-          model: __props.store.model,
-          onSaved: onSave,
-          method: "put"
-        }, null, 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$5)
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["visible", "header"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$f.__file = "presstojam/src/components/actions/edit-action.vue";
-
-const _hoisted_1$4 = {
-  class: "wrapper",
-  style: {"display":"grid"}
-};
-const _hoisted_2$4 = /*#__PURE__*/createTextVNode("New row created");
-const _hoisted_3$4 = /*#__PURE__*/createTextVNode("Rows removed");
-const _hoisted_4$4 = { style: {"overflow-x":"scroll"} };
-
-
-
-
-
-var script$e = {
-  props: {
-    name : {
-      type : String,
-      required : true
-    }
-},
-  emits: ["onMove"],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const repo = getStore(props.name);
-const store = repo.store;
-
-const client = inject("client");
-
-
-const has_primary = (store.route.children.length > 1) ? true : false;
-const expanded = ref(false);
-//const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
-const delrow = ref(false);
-const newrow = ref(false);
-const childRepo = createRepoStore(store);
-regStore(props.name + "_selected", childRepo);
-childRepo.parent_id = repo.parent_id;
-ref([]);
-
-
-const nodes = computed(() => {
-  const data= toTree(repo.data.value, store.route.schema);
-  return data;
-});
-
-
-let fields = computed(() => {
-    return getForegroundCells(store.route.schema);
-});
-
-
-function reorderRows(rows) {
-  childRepo.data.value = rows;
-  saveOrder(store.model, rows, client);
-}
-
-repo.load()
-.then(response => {
-  childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-});
-
-
-repo.active.value['--recursive'] = 0;
-
-const expandedKeys = ref({});
-const selectedKey = ref();
-
-const collapseAll = () => {
-    expandedKeys.value = {};
-    expanded.value = false;
-};
-
-const expandAll = () => {
-    for (let node of nodes.value) {
-        expandNode(node);
-    }
-    expandedKeys.value = {...expandedKeys.value};
-    expanded.value = true;
-};
-
-const expandNode = (node) => {
-    if (node.children && node.children.length) {
-      expandedKeys.value[node.key] = true;
-      for (let child of node.children) {
-          expandNode(child);
-      }
-    }
-};
-
-function onDel() {
-    repo.reload()
-    .then(() => {
-      childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-    });
-    delrow.value = true;
-}
-
-const label = computed(() => {
-  return getLabel(store.route.schema, repo.active.value);
-});
-
-const onNodeSelect = (node) => {
-   repo.active.value = node.data;
-   childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == node.key);
-};
-
-const onNodeClear = (node) => {
-  repo.active.value = {};
-  childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-};
-
-
-
-function reload() {
-  repo.selected.value = [];
-  repo.reload()
-  .then(() => {
-    childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-  });
-  newrow.value = true;
-}
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$K), null, {
-    default: withCtx(() => [
-      createVNode(unref(script$J), {
-        size: 20,
-        style: {"padding":"10px"}
-      }, {
         default: withCtx(() => [
-          createVNode(unref(script$p), { class: "mb-4" }, {
-            start: withCtx(() => [
-              (expanded.value)
-                ? (openBlock(), createBlock(unref(script$1J), {
+          (unref(has_expandable))
+            ? (openBlock(), createBlock(unref(script$w), {
+                key: 0,
+                expander: true,
+                headerStyle: "width: 3rem"
+              }))
+            : createCommentVNode("v-if", true),
+          (unref(has_sort))
+            ? (openBlock(), createBlock(unref(script$w), {
+                key: 1,
+                rowReorder: true,
+                headerStyle: "width: 3rem",
+                reorderableColumn: false
+              }))
+            : createCommentVNode("v-if", true),
+          (unref(store).perms.includes('delete'))
+            ? (openBlock(), createBlock(unref(script$w), {
+                key: 2,
+                selectionMode: "multiple",
+                style: {"width":"3rem"},
+                exportable: false
+              }))
+            : createCommentVNode("v-if", true),
+          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(fields), (cell) => {
+            return (openBlock(), createBlock(unref(script$w), {
+              field: cell.slug,
+              sortable: unref(sortable),
+              header: _ctx.$t('models.' + cell.model + '.fields.' + cell.name + '.label'),
+              key: cell.name
+            }, {
+              body: withCtx((slotProps) => [
+                createVNode(script$C, {
+                  row: slotProps.data,
+                  field: cell
+                }, null, 8 /* PROPS */, ["row", "field"])
+              ]),
+              _: 2 /* DYNAMIC */
+            }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["field", "sortable", "header"]))
+          }), 128 /* KEYED_FRAGMENT */)),
+          createVNode(unref(script$w), {
+            exportable: false,
+            style: {"min-width":"8rem"}
+          }, {
+            body: withCtx((slotProps) => [
+              (unref(has_primary))
+                ? (openBlock(), createBlock(script$K, {
                     key: 0,
-                    type: "button",
-                    icon: "pi pi-minus",
-                    label: "Collapse All",
-                    onClick: collapseAll
-                  }))
-                : (openBlock(), createBlock(unref(script$1J), {
+                    model: unref(store).name,
+                    id: slotProps.data['--id']
+                  }, null, 8 /* PROPS */, ["model", "id"]))
+                : createCommentVNode("v-if", true),
+              (unref(store).perms.includes('put'))
+                ? (openBlock(), createBlock(script$g, {
                     key: 1,
-                    type: "button",
-                    icon: "pi pi-plus",
-                    label: "Expand All",
-                    onClick: expandAll
-                  }))
+                    data: slotProps.data,
+                    model: unref(store)
+                  }, null, 8 /* PROPS */, ["data", "model"]))
+                : createCommentVNode("v-if", true),
+              (unref(store).audit)
+                ? (openBlock(), createBlock(script$u, {
+                    key: 2,
+                    data: slotProps.data,
+                    model: unref(store)
+                  }, null, 8 /* PROPS */, ["data", "model"]))
+                : createCommentVNode("v-if", true),
+              (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
+                return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps(component.atts, {
+                  data: slotProps.data,
+                  short: true
+                }), null, 16 /* FULL_PROPS */, ["data"]))
+              }), 256 /* UNKEYED_FRAGMENT */))
             ]),
             _: 1 /* STABLE */
-          }),
-          createVNode(unref(script$1D), {
-            value: unref(nodes),
-            filter: true,
-            filterMode: "lenient",
-            selectionMode: "single",
-            expandedKeys: expandedKeys.value,
-            onNodeSelect: onNodeSelect,
-            selectionKeys: selectedKey.value,
-            "onUpdate:selectionKeys": _cache[0] || (_cache[0] = $event => ((selectedKey).value = $event))
-          }, null, 8 /* PROPS */, ["value", "expandedKeys", "selectionKeys"])
+          })
         ]),
-        _: 1 /* STABLE */
-      }),
-      createVNode(unref(script$J), {
-        size: 80,
-        style: {"padding":"10px"}
-      }, {
-        default: withCtx(() => [
-          createElementVNode("div", _hoisted_1$4, [
-            (newrow.value)
-              ? (openBlock(), createBlock(unref(script$1p), {
-                  key: 0,
-                  severity: "success"
-                }, {
-                  default: withCtx(() => [
-                    _hoisted_2$4
-                  ]),
-                  _: 1 /* STABLE */
-                }))
-              : createCommentVNode("v-if", true),
-            (delrow.value)
-              ? (openBlock(), createBlock(unref(script$1p), {
-                  key: 1,
-                  severity: "success"
-                }, {
-                  default: withCtx(() => [
-                    _hoisted_3$4
-                  ]),
-                  _: 1 /* STABLE */
-                }))
-              : createCommentVNode("v-if", true),
-            createVNode(unref(script$p), null, {
-              start: withCtx(() => [
-                (unref(repo).active.value['--id'])
-                  ? (openBlock(), createBlock(unref(script$1J), {
-                      key: 0,
-                      icon: "pi pi-times",
-                      class: "p-button-rounded p-button-success",
-                      onClick: onNodeClear
-                    }))
-                  : createCommentVNode("v-if", true),
-                (unref(has_primary) && unref(repo).active.value['--id'])
-                  ? (openBlock(), createBlock(script$I, {
-                      key: 1,
-                      model: unref(store).model,
-                      id: unref(repo).active.value['--id']
-                    }, null, 8 /* PROPS */, ["model", "id"]))
-                  : createCommentVNode("v-if", true),
-                (unref(repo).active.value['--id'])
-                  ? (openBlock(), createBlock(script$f, {
-                      key: 2,
-                      store: unref(store),
-                      data: unref(repo).active.value
-                    }, null, 8 /* PROPS */, ["store", "data"]))
-                  : createCommentVNode("v-if", true),
-                createTextVNode(" " + toDisplayString$1(unref(label)), 1 /* TEXT */)
-              ]),
-              end: withCtx(() => [
-                (unref(store).route.perms.includes('put'))
-                  ? (openBlock(), createBlock(script$g, {
-                      key: 0,
-                      name: __props.name + '_selected',
-                      onOnMove: reload
-                    }, null, 8 /* PROPS */, ["name"]))
-                  : createCommentVNode("v-if", true),
-                (unref(store).route.perms.includes('post'))
-                  ? (openBlock(), createBlock(script$n, {
-                      key: 1,
-                      name: __props.name,
-                      onOnSave: reload
-                    }, null, 8 /* PROPS */, ["name"]))
-                  : createCommentVNode("v-if", true),
-                (unref(store).route.perms.includes('delete'))
-                  ? (openBlock(), createBlock(script$1c, {
-                      key: 2,
-                      name: __props.name + '_selected',
-                      onOnDel: onDel
-                    }, null, 8 /* PROPS */, ["name"]))
-                  : createCommentVNode("v-if", true)
-              ]),
-              _: 1 /* STABLE */
-            }),
-            createElementVNode("div", _hoisted_4$4, [
-              createVNode(script$i, {
-                name: __props.name + '_selected',
-                fields: unref(fields),
-                onReorder: reorderRows
-              }, null, 8 /* PROPS */, ["name", "fields"])
-            ])
-          ])
-        ]),
-        _: 1 /* STABLE */
-      })
-    ]),
-    _: 1 /* STABLE */
-  }))
+        _: 2 /* DYNAMIC */
+      }, [
+        (atts.groupRowsBy)
+          ? {
+              name: "groupheader",
+              fn: withCtx((slotProps) => [
+                createElementVNode("div", {
+                  class: normalizeClass(["ptj-group", slotProps.data[unref(groupcell).name]])
+                }, [
+                  createVNode(script$C, {
+                    row: slotProps.data,
+                    field: unref(groupcell)
+                  }, null, 8 /* PROPS */, ["row", "field"])
+                ], 2 /* CLASS */)
+              ])
+            }
+          : undefined
+      ]), 1040 /* FULL_PROPS, DYNAMIC_SLOTS */, ["value", "selection", "loading", "expandedRows", "totalRecords", "filters"])
+    ], 512 /* NEED_PATCH */)
+  ], 64 /* STABLE_FRAGMENT */))
 }
 }
 
 };
 
-var css_248z$5 = "\n.tree-vue-vue-type-style-index-0-id-49a3d7ba-scoped-true-lang_wrapper__KEFQt[data-v-49a3d7ba] {\r\n  display : grid;\r\n  margin-left : 0;\r\n  margin-right : 0;\r\n  box-sizing : content-box;\n}\r\n\r\n";
-styleInject$b(css_248z$5);
+var css_248z$5 = "\ntable[data-v-29f6384d], thead[data-v-29f6384d], tbody[data-v-29f6384d], tr[data-v-29f6384d] {\r\n    width : 100%;\n}\n.table-display-vue-vue-type-style-index-0-id-29f6384d-scoped-true-lang_ptj-table-wrapper__fKjz7[data-v-29f6384d] {\r\n    position : relative;\n}\r\n\r\n\r\n";
+styleInject$t(css_248z$5);
 
-script$e.__scopeId = "data-v-49a3d7ba";
-script$e.__file = "presstojam/src/components/tree/tree.vue";
+script$e.__scopeId = "data-v-29f6384d";
+script$e.__file = "presstojam/src/components/table/table-display.vue";
 
-var tree = /*#__PURE__*/Object.freeze({
+var tableDisplay = /*#__PURE__*/Object.freeze({
     __proto__: null,
     'default': script$e
 });
@@ -42147,41 +42245,36 @@ const props = __props;
 
 
 
+const repo = getStore(props.model);
+const store =repo.store;
 
-const store = getStoreById(props.model);
-const repo = createRepoStore(store);
-regStore(props.model, repo);
 repo.load();
 
 
 const recursive = computed(() => {
-    for(let i in store.route.schema) {
-        if (store.route.schema[i].recursive) return true;
+    for(let i in store.fields) {
+        if (store.fields[i].recursive) return true;
     }
     return false;
 });
 
-if (store.route && store.route.settings.repo && store.route.settings.repo.mounted) {
-    onMounted(() => {
-        store.route.settings.repo.mounted(store);
-    });
-}
+repo.trigger("mounted");
 
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$11, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$1K), {
-      header: unref(store).route.title,
+    createVNode(script$1E, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$1D), {
+      header: unref(store).title,
       class: normalizeClass(["gc-repo", __props.model])
     }, {
       default: withCtx(() => [
         (unref(recursive))
-          ? (openBlock(), createBlock(script$e, {
+          ? (openBlock(), createBlock(script$t, {
               key: 0,
               name: __props.model
             }, null, 8 /* PROPS */, ["name"]))
-          : (openBlock(), createBlock(script$k, {
+          : (openBlock(), createBlock(script$e, {
               key: 1,
               name: __props.model
             }, null, 8 /* PROPS */, ["name"]))
@@ -42195,7 +42288,7 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$4 = "\ntable[data-v-e5ad478c], thead[data-v-e5ad478c], tbody[data-v-e5ad478c], tr[data-v-e5ad478c] {\r\n    width : 100%;\n}\n.repo-vue-vue-type-style-index-0-id-e5ad478c-scoped-true-lang_ptj-table-wrapper__8hxfO[data-v-e5ad478c] {\r\n    position : relative;\n}\r\n\r\n";
-styleInject$b(css_248z$4);
+styleInject$t(css_248z$4);
 
 script$d.__scopeId = "data-v-e5ad478c";
 script$d.__file = "presstojam/src/components/repo/repo.vue";
@@ -42210,39 +42303,36 @@ const props = __props;
 
 
 
-const store = getStoreById(props.model);
 
-const repo = createRepoStore(store);
-regStore(props.model, repo);
+const repo = getStore(props.model);
+const store =repo.store;
 repo.load();
 
 const component = computed(() => {
     if (!store) return "";
-    else if (!store.route) return "";
-    else if (store.route.schema["--recursive"]) return "recursive";
-    else if (store.route.singleton) return "form";
+    else if (store.fields["--recursive"]) return "recursive";
+    else if (store.singleton) return "form";
     else return "table";
 });
-
 
 function reload() {
     store.value.reload();
 }
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1K), {
+  return (openBlock(), createBlock(unref(script$1D), {
     header: _ctx.$t('models.' + __props.model + '.title', 2),
     class: normalizeClass(["gc-child", __props.model])
   }, {
     default: withCtx(() => [
       (unref(component) == 'recursive')
-        ? (openBlock(), createBlock(script$e, {
+        ? (openBlock(), createBlock(script$t, {
             key: 0,
             name: props.model,
             onOnMove: reload
           }, null, 8 /* PROPS */, ["name"]))
         : (unref(component) == 'table')
-          ? (openBlock(), createBlock(script$k, {
+          ? (openBlock(), createBlock(script$e, {
               key: 1,
               name: props.model
             }, null, 8 /* PROPS */, ["name"]))
@@ -42745,51 +42835,80 @@ const t = i18n.t;
 
 
 
-/*
-<TabPanel v-for="child in store.route.children" :header="child">
-            <PtjChildPanel :parent="store.active['--id']" :model="child" />
-        </TabPanel>
-*/
 
 
+const repo = getStore(props.model);
+const store =repo.store;
 
-const store = getStoreById(props.model);
-
-const repo = createActiveStore(store);
-regStore(props.model, repo);
+const data = ref({});
 repo.load()
+.then(response => {
+    data.value = response;
+})
 .catch(e => console.log(e));
 
 
 const label = computed(() => {
-    return t('models.' + props.model + '.title') + ': ' + repo.label.value;
+    return t('models.' + props.model + '.title') + ': ' + getLabel(store.fields, data.value);
 });
 
-if (store.route && store.route.settings.active && store.route.settings.active.mounted) {
+subscribe("form_saved", repo.active_id, response => {
+    console.log(response, arguments);
+});
+
+if (store.route && store.active && store.active.mounted) {
     onMounted(() => {
-        store.route.settings.active.mounted(store);
+        store.active.mounted(store);
     });
 }
 
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$11, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$1K), { header: unref(label) }, {
+    createVNode(script$1E, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$1D), { header: unref(label) }, {
       default: withCtx(() => [
-        createVNode(unref(script$b), null, {
+        createVNode(unref(script$b), { lazy: "" }, {
           default: withCtx(() => [
             createVNode(unref(script$a), {
-              header: unref(repo).label.value
+              header: unref(getLabel)(unref(store).fields, data.value)
             }, {
               default: withCtx(() => [
-                createVNode(script$15, {
-                  name: props.model
-                }, null, 8 /* PROPS */, ["name"])
+                createVNode(unref(script$1D), {
+                  header: _ctx.$t('models.' +unref(store).name + '.title')
+                }, {
+                  icons: withCtx(() => [
+                    (unref(store).audit)
+                      ? (openBlock(), createBlock(script$u, {
+                          key: 0,
+                          model: unref(store),
+                          data: data.value,
+                          long: true
+                        }, null, 8 /* PROPS */, ["model", "data"]))
+                      : createCommentVNode("v-if", true),
+                    createVNode(script$y, {
+                      name: unref(store).name,
+                      data: data.value
+                    }, null, 8 /* PROPS */, ["name", "data"]),
+                    (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
+                      return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({ data: data.value }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
+                    }), 256 /* UNKEYED_FRAGMENT */))
+                  ]),
+                  default: withCtx(() => [
+                    (data.value['--id'])
+                      ? (openBlock(), createBlock(script$x, {
+                          key: 0,
+                          model: unref(store),
+                          data: data.value
+                        }, null, 8 /* PROPS */, ["model", "data"]))
+                      : createCommentVNode("v-if", true)
+                  ]),
+                  _: 1 /* STABLE */
+                }, 8 /* PROPS */, ["header"])
               ]),
               _: 1 /* STABLE */
             }, 8 /* PROPS */, ["header"]),
-            (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).route.schema['--id'].reference, (child) => {
+            (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).fields['--id'].reference, (child) => {
               return (openBlock(), createBlock(unref(script$a), {
                 header: _ctx.$t('models.' + child + '.title', 2)
               }, {
@@ -42829,41 +42948,53 @@ const props = __props;
 
 
 
- 
+const ready = ref(false);
 
 const component = computed(() => {
-    return (props.is_active) ? script$9 : script$d;
+    if (!ready.value) return null;
+    else return (props.is_active) ? script$9 : script$d;
 });
 
 
-const client = inject("client");
+async function setupModel() {
 
-function setupModel() {
-
-    clearDataCache();
+    clearModelCache();
     clearStores();
 
-    const store = createDataStore(client, props.model);
+    const store = getModel(props.model);
 
 
     if (props.is_active) {
-        for(const child of store.route.schema["--id"].reference) {
-            const child_store = createDataStore(client, child);
-            child_store.parent_id = props.id;
+        const active = createActiveStore(store, props.id);
+        regStore(props.model, active);
+
+        for(const child of store.fields["--id"].reference) {
+            const child_store = getModel(child);
+            const repo = createRepoStore(child_store);
+            repo.parent_id = props.id;
+            regStore(child, repo);
         }
-                    
-        store.active_id = props.id;
-    
     } else {
-        store.parent_id = props.id;
+        const repo = createRepoStore(store);
+        repo.parent_id = props.id;
+        regStore(props.model, repo);
+        if (repo.pagination.rows_per_page) {
+            await repo.count();
+        }
     }
+    ready.value = true;
 }
 
 setupModel();
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock("div", null, [
-    (openBlock(), createBlock(resolveDynamicComponent(unref(component)), { model: __props.model }, null, 8 /* PROPS */, ["model"]))
+    (unref(component))
+      ? (openBlock(), createBlock(resolveDynamicComponent(unref(component)), {
+          key: 0,
+          model: __props.model
+        }, null, 8 /* PROPS */, ["model"]))
+      : createCommentVNode("v-if", true)
   ]))
 }
 }
@@ -43271,7 +43402,7 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$1 = "\nth[data-v-70986bd9] { text-align : left;}\r\n";
-styleInject$b(css_248z$1);
+styleInject$t(css_248z$1);
 
 script$5.__scopeId = "data-v-70986bd9";
 script$5.__file = "presstojam/src/components/dev/sitemap-node.vue";
@@ -43279,11 +43410,11 @@ script$5.__file = "presstojam/src/components/dev/sitemap-node.vue";
 var script$4 = {
   setup(__props) {
 
-const routes = getRoutes();
+const routes = getEntities();
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1K), { header: "Routes" }, {
+  return (openBlock(), createBlock(unref(script$1D), { header: "Routes" }, {
     default: withCtx(() => [
       createVNode(unref(script$7), null, {
         default: withCtx(() => [
@@ -43321,8 +43452,9 @@ script$3.__file = "presstojam/src/components/statuspages/missing-page.vue";
 var script$2 = {
   setup(__props) {
 
+
 const base = configs.get("base");
-location.href = base + "/data/" + getDefaultRoute();
+location.href = base + "/data/" + defaultEntity();
  
 
 return (_ctx, _cache) => {
@@ -43667,7 +43799,7 @@ var index$1 = {
 
     croutes.push({
       path: base + "/user-login",
-      component: script$Q,
+      component: script$U,
       name: 'login',
       props: {}
     });
@@ -43692,7 +43824,7 @@ var index$1 = {
     });
     croutes.push({
       path: base + "/data/single/:model/:id?",
-      component: script$10,
+      component: script$17,
       name: 'single',
       props: route => ({
         model: route.params.model,
@@ -43701,7 +43833,7 @@ var index$1 = {
     });
     croutes.push({
       path: base + "/reports/:model/:id?",
-      component: script$S,
+      component: script$W,
       name: 'report',
       props: route => ({
         model: route.params.model,
@@ -43729,40 +43861,14 @@ var index$1 = {
     });
     app.use(router);
     app.provide("router", router);
-    const dateTimeFormats = {
-      'en': {
-        short: {
-          year: 'numeric',
-          day: 'numeric',
-          month: 'short',
-          timeZone: 'GMT'
-        },
-        long: {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          weekday: 'long',
-          hour: 'numeric',
-          minute: 'numeric',
-          timeZone: 'GMT'
-        }
-      }
-    };
-    let messages = options.i18n && options.i18n.messages ? options.i18n.messages : {};
-    const i18n = createI18n({
-      locale: 'en',
-      messages,
-      silentTranslationWarn: true,
-      legacy: false,
-      dateTimeFormats
-    });
+    const i18n = createI18n(options);
     app.provide("i18n", i18n.global);
     app.use(i18n);
     app.config.globalProperties.translate = i18n.global;
     app.use(PrimeVue);
-    let client = createClient();
+    let client = getClient();
     app.provide("client", client);
-    app.component("Controller", script$L);
+    app.component("Controller", script$O);
   }
 };
 
@@ -61990,4 +62096,4 @@ var auto = /*#__PURE__*/Object.freeze({
     scales: scales
 });
 
-export { script$L as Controller, dispatchResponse as Dispatch, filter as Filter, flow as Flow, form as Form, login as Login, pagination as Paginator, report as Report, tableDisplay as Table, tree as Tree, viewField as ViewField, createClient, index$1 as default, download, initConfigs, slugTrail as slugtrail };
+export { script$O as Controller, filter as Filter, flow as Flow, form as Form, login as Login, report as Report, tableDisplay as Table, tree as Tree, viewField as ViewField, index$1 as default, download, getClient, initConfigs, slugTrail as slugtrail };

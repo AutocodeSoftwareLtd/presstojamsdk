@@ -4,7 +4,7 @@
 </template>
 <script setup>
     import Button from "primevue/button"
-    import { toggleDialog } from "./../../js/bus/dialog.js"
+    import { trigger } from "./../../js/bus/bus.js"
     import CreateEffect from "./../effects/create-effect.vue"
     import { inject } from "vue"
 
@@ -22,9 +22,13 @@
 
 
     function createRow() {
-        toggleDialog(CreateEffect, {
+      trigger("dialog_open",
+        CreateEffect, 
+        {
             name : props.name,
-        }, header);
+        }, 
+        header);
     }
+    
  
 </script>

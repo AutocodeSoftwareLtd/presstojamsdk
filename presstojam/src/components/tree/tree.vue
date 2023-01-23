@@ -37,7 +37,7 @@
 <script setup>
 import Button from "primevue/button"
 import Tree from 'primevue/tree';
-import { computed, ref, onBeforeUnmount } from "vue"
+import { ref, onBeforeUnmount } from "vue"
 import Toolbar from 'primevue/Toolbar'
 import { toTree } from "../../js/helperfunctions.js" 
 import Splitter from 'primevue/splitter';
@@ -51,7 +51,7 @@ import PtjDeleteAction from "../actions/delete-action.vue"
 import EditEffect from "../effects/edit-effect.vue"
 import AuditAction from "../actions/audit-action.vue"
 import Panel from "primevue/panel"
-import { subscribe, unsubscribe } from "./../../js/bus/bus.js"
+import { subscribe, unsubscribe, trigger } from "./../../js/bus/bus.js"
 
 const props = defineProps({
     name : {
@@ -63,7 +63,6 @@ const props = defineProps({
 const repo = getStore(props.name);
 const store = repo.store;
 
-console.log("Audit is", store.audit, store);
 
 const expanded = ref(false);
 const delrow = ref(false);
@@ -119,18 +118,8 @@ const expandNode = (node) => {
     }
 };
 
-function onDel() {
-    repo.reload()
-    .then(() => {
-      childRepo.data.value = repo.data.value.filter(obj => obj['--recursive'] == 0);
-    });
-    delrow.value = true;
-}
-
-
 
 function setActive(node) {
-  console.log("Data is", data);
   active.value = node.data;
   saved.value = false;
 }
@@ -145,12 +134,43 @@ function reload() {
 }
 
 
-subscribe("form_edit", "tree", response => {
-  saved.value = true;
+subscribe("effect_created", props.name, name => {
+    if (props.name == name) {
+        newrow.value = true;
+        repo.load()
+        .then(response => {
+          data.value = response;
+        });
+        trigger("dialog_close");
+    }
+});
+
+subscribe("effect_deleted", props.name, name => {
+    if (props.name == name) {
+        delrow.value = true;
+        repo.load()
+        .then(response => {
+          data.value = response;
+        });
+        trigger("dialog_close");
+    }
+});
+
+
+subscribe("effect_updated", props.name, name => {
+    if (props.name == name) {
+        saved.value = true;
+        repo.load()
+        .then(response => {
+          data.value = response;
+        });
+    }
 });
 
 onBeforeUnmount(() => {
-  unsubscribe("form_edit", "tree");
+  unsubscribe("effect_created", props.name);
+  unsubscribe("effect_updated", props.name);
+  unsubscribe("effect_deleted", props.name);
 });
 
 </script>

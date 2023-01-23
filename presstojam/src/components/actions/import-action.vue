@@ -5,7 +5,7 @@
 <script setup>
     import Button from "primevue/button"
     import PtjImport from "./../import/import.vue"
-    import { toggleDialog } from "./../../js/bus/dialog.js"
+    import { trigger } from "./../../js/bus/bus.js"
 
 
     const props = defineProps({
@@ -14,8 +14,13 @@
 
 
     function toggleImport() {
-        toggleDialog(PtjImport, {
-            name : props.name,
-        });
+        trigger(
+            "dialog_open",
+            PtjImport, 
+            {
+                name : props.name,
+            },
+            "Import"
+        );
     }
 </script>

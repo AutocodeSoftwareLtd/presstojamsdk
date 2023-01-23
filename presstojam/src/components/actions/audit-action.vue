@@ -7,7 +7,7 @@
 </template>
 <script setup>
     import Button from "primevue/button"
-    import { toggleDialog } from "./../../js/bus/dialog.js"
+    import { trigger } from "./../../js/bus/bus.js"
     import AuditEffect from "./../effects/audit-effect.vue"
   
     const props = defineProps({
@@ -17,7 +17,11 @@
     });
 
     function showAudit() {
-        toggleDialog(AuditEffect, {model : props.model, id : props.data['--id']}, "Audit Log");
+        trigger(
+            "dialog_open",    
+            AuditEffect, 
+            {model : props.model, id : props.data['--id']}, 
+            "Audit Log");
     }
 
     const label = (props.long) ? "Audit" : "";

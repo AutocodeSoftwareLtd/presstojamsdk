@@ -1,19 +1,17 @@
-import { ref } from "vue"
+import { ref, computed } from "vue"
 
 export class Bind {
     
     constructor(cell, value) {
         this._cell = cell;
         this._value = value;
-        this._error = 0;
+        this._error = ref(0);
         this._is_dirty = false;
         this._bind_group; 
         this._active = ref(true);
+        this._show_error = ref(false);
     }
 
-    get error() {
-        return this._error;
-    }
 
     get cell() {
         return this._cell;
@@ -27,12 +25,12 @@ export class Bind {
         return this._is_dirty;
     }
 
-    get active_validation() {
-        return this._bind_group.getActiveValidation();
+    get error() {
+        return this._error;
     }
 
-    set active_validation(val) {
-        this._bind_group.setActiveValidation(val);
+    set error(err) {
+        this._error.value =err;
     }
 
     set active(active) {
@@ -42,15 +40,30 @@ export class Bind {
     get active() {
         return this._active;
     }
-    
-    setError(error) {
-        this._error = error;
+      
+
+    get show_error() {
+        return this._show_error;
     }
 
 
+    get classes() {
+        if (this._error.value) {
+            return "p-invalid";
+        } else {
+            return "";
+        }
+    }
+
+    setShowError(val) {
+        if (this._cell.type == "json") return;
+        this._show_error.value = val;
+    }
+
+    
     setValue(val) {
         val = this._cell.clean(val);
-        this._error = this._cell.validate(val);
+        this._error.value = this._cell.validate(val);
         this._value = val;
         this.setDirty(true)
         this._bind_group.trigger(this._cell.name, this._value);

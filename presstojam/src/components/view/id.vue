@@ -36,8 +36,8 @@ let display = computed(() => {
             
             const ref_route = getModel(props.field.reference);
             
-            for(const i in ref_route.schema) {
-                if (ref_route.schema[i].summary) {
+            for(const i in ref_route.fields) {
+                if (ref_route.fields[i].summary) {
                     data.push(props.row[props.field.name + "/" + i]);
                 }
             }

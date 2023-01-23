@@ -24,21 +24,12 @@ const props = defineProps({
 });
 
 
-const value = computed({
-    get() {
-        return bind.value.value;
-    },
-    set(val) {
-        bind.setValue(val);
-    }
-});
-
 
 function onUpload(e) {
     if (e.files.length == 0) {
-        value.value = null;
+        props.bind.value = null;
     } else {
-        value.value = e.files[0];
+        props.bind.setValue(e.files[0]);
     }
 }
 

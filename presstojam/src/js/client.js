@@ -13,12 +13,12 @@ export class Client {
     }
 
 
-    createClientException(type, detail, response) {
+    createClientException(type, detail, status, response) {
         return { 
             "origin" : "client",
             type,
             detail,
-            "status" : response.status,
+            status,
             response 
         };
     }
@@ -69,7 +69,9 @@ export class Client {
             if (response.ok) {
                 return response.json();
             } else {
-                throw this.createClientException("error", "apierror", response);
+                return response.json().then(json => {
+                    throw this.createClientException("error", "apierror", response.status, json);
+                });
             }
         });
     }

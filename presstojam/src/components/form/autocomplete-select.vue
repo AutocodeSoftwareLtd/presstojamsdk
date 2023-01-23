@@ -8,10 +8,10 @@
         :suggestions="filtered_options"
         placeholder="Please Select"
         class="focus:border-primary"
-        :class="errClass"
+        :class="bind.classes"
         :multiple="bind.cell.multiple"
         @complete="searchOptions($event)"
-         @blur="bind.active_validation = true"
+         @blur="bind.setShowError(true)"
         />
 </template>
 <script setup>
@@ -27,14 +27,21 @@ const props = defineProps({
 const filtered_options = ref([]);
 
 
-let cvalue = ref(props.bind.value);
+let cvalue = ref({ value : 0, label : 'None'});
+
+const def = props.options.filter(opt => opt.value == props.bind.value);
+
+if (def.length > 0) {
+    cvalue.value = def[0];
+}
+
 
 const value = computed({
     get() {
         return cvalue.value;
     },
     set(val) {
-        cvalue.value = val.value;
+        cvalue.value = val;
         props.bind.setValue(val.value);
     }
 });
@@ -53,7 +60,4 @@ watch(() => props.options, () => {
     searchOptions();
 });
 
-const errClass = computed(() => {
-    return (props.bind.active_validation && props.bind.error) ? "p-invalid" : "";
-});
 </script>

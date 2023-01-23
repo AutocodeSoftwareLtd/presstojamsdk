@@ -121,7 +121,9 @@ let settings = {
             "domain" : "Domain",
             "hosting-status" : "Hosting Status"
            },
+         
            "limit" : 2,
+           "no_filter" : false,
            "order":{
             "hosting-status" : "desc"
            },

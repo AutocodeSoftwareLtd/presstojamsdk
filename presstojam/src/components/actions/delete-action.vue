@@ -6,7 +6,7 @@
 <script setup>
     import Button from "primevue/button"
     import DeleteEffect from "../effects/delete-effect.vue"
-    import { toggleDialog } from "./../../js/bus/dialog.js"
+    import { trigger } from "./../../js/bus/bus.js"
     import { computed } from "vue"
   
  
@@ -17,10 +17,16 @@
 
 
     function delRow() {
-        toggleDialog(DeleteEffect, {
-            name : props.name,
-            data : props.data
-        }, "Delete");
+
+        const arg_data = (Array.isArray(props.data)) ? props.data : [props.data];
+        trigger(
+            "dialog_open",
+            DeleteEffect, 
+            {
+                name : props.name,
+                data : arg_data
+            }, 
+            "Delete");
     }
 
     const disabled = computed(() => {

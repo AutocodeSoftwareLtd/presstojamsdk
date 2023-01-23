@@ -1,6 +1,6 @@
 <template>
 
- <form @submit.prevent="submit" class="card needs-validation" novalidate>
+ <form v-show="processing == false" @submit.prevent="submit" class="card needs-validation" novalidate>
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
     <div v-if="parent" class="form-group">
         <label>{{ $t("models." + store.parent + ".title")}}</label>
@@ -9,24 +9,25 @@
     <ptj-edit-field :bind="bindGroup.getBind(cell.name)" v-for="cell in cells" :key="cell.name"/>
     <Button :label="$t('btns.save')" @click="submit" />
   </form>
-  <Dialog v-model:visible="dispatch" :modal="true" class="p-fluid" >
-    <ptj-dispatch v-if="dispatchid != 0" @complete="dispatchComplete" @failed="dispatchFailed" :id="dispatchid" />
-  </Dialog>
-</template>
+  <Panel v-show="processing" Panel header="Processing">
+        <p>Please do not refresh or close the browser until complete</p>
+        <p>Status: {{ status }}</p>
+        <p style='text-align:center;'><ProgressSpinner /></p>
+    </Panel>
+  </template>
 
 <script setup>
 
-import { provide, ref, computed, inject } from "vue" 
+import { provide, ref, inject } from "vue" 
 import PtjEditField from "./edit-field.vue"
 import Button from 'primevue/button'
-
 import Message from 'primevue/message';
 import PtjParentSelect from "./parent-select.vue"
 import { BindGroup } from "../../js/binds/bindgroup.js"
 import { Bind } from "../../js/binds/bind.js"
-import PtjDispatch from "../dispatch/dispatch-response.vue"
-import Dialog from 'primevue/dialog'
 import { trigger } from "../../js/bus/bus.js"
+import Panel from 'primevue/panel'
+import ProgressSpinner from 'primevue/progressspinner'
 
 const Client = inject("client");
 
@@ -44,16 +45,17 @@ const props = defineProps({
 
 
 const global_error = ref("");
-const dispatch = ref(false);
-const dispatchid=ref(0);
+const processing = ref(false);
+const status = ref(0);
 
 provide("model", props.model.name);
 
 
-if (props.stype == 'put') props.model.setEditableCells();
+if (props.method == 'put') props.model.setEditableCells();
 else props.model.setCreateCells();
 
 const cells = props.model.getEnabledCells();
+
 
 const bindGroup = new BindGroup();
 
@@ -78,12 +80,13 @@ bindGroup.setInitActive();
 
 
 function setErrors(err) {
-    if (typeof err.error == "string") {
-        global_error.value = err.error;
-    } else {
-        for(let i in err.response) {
-            if (bindGroup.binds[i]) bindGroup.binds[i].setError(err[i]);
-        }
+    if (typeof err === 'string' || err instanceof String) {
+        err = JSON.parse(err);
+    }
+    for(let i in err) {
+        const bind = bindGroup.getBind(i);
+        console.log("Setting err for ", i, err[i][0]);
+        bind.error = err[i][0];
     }
 }
 
@@ -104,16 +107,19 @@ function serializeData() {
 
 function submit() {
 
-    bindGroup.setActiveValidation(true);
-    if (bindGroup.hasErrors()) return;
-
+    
+    bindGroup.showValidation(true);
+    if (bindGroup.hasErrors()) {
+        global_error.value = "Some fields have errors, please correct and resubmit";
+        return;
+    }
+    processing.value = true;
     const data = serializeData();
     if (props.method == "put") {
         data.append("--id", props.data['--id']);
     } else if (props.method == "post" && props.data['--parent']) {
         data.append("--parent", props.data['--parent']);
-    }
-         
+    }         
 
     return Client[props.method]("/data/" + props.model.name, data)
     .then(response => {
@@ -124,41 +130,41 @@ function submit() {
     })
     .then(response => {
         if (response['--dispatchid']) {
-            dispatchid.value = response['--dispatchid'];
-            dispatch.value = true;
+            runDispatch(response['--dispatchid'], response);
         } else {
-            if (props.method == "put") {
-                trigger("form_edited", response);
-            } else {
-                trigger("form_created", response);
-            }
+            trigger("form_saved", response, props.method, props.model);
         }
         return response;
     })
     .catch(err => {
-        if (err.status == 402) setErrors(err.response);
-        else console.log(err);
+        console.log(err);
+        processing.value = false;
+        if (err.status == 422) {
+            global_error.value = "Some fields have errors, please correct and resubmit";
+            setErrors(err.response.error);
+        } else global_error.value = err.response.error;
     });
-    
 }
 
-function dispatchFailed(response) {
-    setErrors(err.response);
-    dispatch.value = false;
-    trigger("dispatch_failed", response, props.model, props.method);
-}
 
-function dispatchComplete(response) {
-    dispatch.value = false;
-    saved.value = true;
-    if (props.method == "put") {
-        trigger("form_edited", response);
-    } else {
-        trigger("form_created", response);
+function runDispatch(id, oresponse) {
+    const delay = 1000;
+   
+    function chkProgress() {
+        Client.get("/dispatch/status/" + id)
+        .then(response => {
+            if (response.progress == "FAILED") {
+                trigger("dispatch_failed", oresponse, props.method, props.model, response);
+            } else if (response.progress == "PROCESSED" || !response.progress) {
+                trigger("form_saved", oresponse, props.method, props.model, response)
+            } else {
+                status.value = response.progress;
+                setTimeout(chkProgress, delay);
+            }
+        });
     }
+    chkProgress();
 }
-
-
 
 
 </script>

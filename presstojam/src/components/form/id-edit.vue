@@ -8,8 +8,8 @@
         <ptj-reference-create :cell="bind.cell" :store="store"  />
     </Dialog>
   </div>
-  <TreeSelect v-else-if="bind.cell.recursive" v-model="value" :options="options" placeholder="Select Item" />
-  <InputNumber v-else :name="bind.cell.name" v-model="value" :disabled="true" />
+  <TreeSelect v-else-if="bind.cell.recursive" v-model="value" :options="options" placeholder="Select Item" @blur="bind.setShowError(true)"/>
+  <InputNumber v-else :name="bind.cell.name" v-model="value" :disabled="true" @blur="bind.setShowError(true)"/>
   
 </template>
 

@@ -71,7 +71,6 @@ export {
   initConfigs
 }
 
-export * as Dispatch from "./components/dispatch/dispatch-response.vue"
 export * as Filter from "./components/filter/filter.vue"
 export * as Form from "./components/form/form.vue"
 export * as slugtrail from "./components/slugtrail/slug-trail.vue"

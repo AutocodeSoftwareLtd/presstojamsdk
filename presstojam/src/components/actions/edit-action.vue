@@ -4,7 +4,7 @@
 <script setup>
     import EditEffect from "../effects/edit-effect.vue"
     import Button from "primevue/button"
-    import { toggleDialog } from "./../../js/bus/dialog.js"
+    import { trigger } from "./../../js/bus/bus.js"
  
 
     const props = defineProps({
@@ -15,10 +15,15 @@
 
 
     function editRow() {
-        toggleDialog(EditEffect, {
-            model : props.model,
-            data : props.data
-        });
+        trigger(
+            "dialog_open",
+            EditEffect, 
+            {
+                model : props.model,
+                data : props.data
+            },
+            "Edit"
+        );
     }
 
 </script>

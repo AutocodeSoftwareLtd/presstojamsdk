@@ -1,13 +1,13 @@
 <template>
     <div>
-        <component :is="component" :model="model" />
+        <component v-if="component" :is="component" :model="model" />
     </div>
 </template>
 <script setup>
 
 import { getModel, clearModelCache } from "../js/models/modelmanager.js"
 import { clearStores, regStore, createActiveStore, createRepoStore } from "../js/data/storemanager.js";
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import PtjRepo from "./repo/repo.vue"
 import PtjActive from "./active/active.vue"
 
@@ -21,13 +21,15 @@ const props = defineProps({
     }
 });
 
+const ready = ref(false);
 
 const component = computed(() => {
-    return (props.is_active) ? PtjActive : PtjRepo;
+    if (!ready.value) return null;
+    else return (props.is_active) ? PtjActive : PtjRepo;
 });
 
 
-function setupModel() {
+async function setupModel() {
 
     clearModelCache();
     clearStores();
@@ -49,7 +51,11 @@ function setupModel() {
         const repo = createRepoStore(store);
         repo.parent_id = props.id;
         regStore(props.model, repo);
+        if (repo.pagination.rows_per_page) {
+            await repo.count();
+        }
     }
+    ready.value = true;
 }
 
 setupModel();

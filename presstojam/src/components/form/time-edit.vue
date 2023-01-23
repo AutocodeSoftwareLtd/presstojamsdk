@@ -3,15 +3,17 @@
         id="range" v-model="value"  
         :disabledDates="bind.cell.invalid_dates"
         :manualInput="false" 
-        :class="errClass"
+        :class="bind.classes"
         class="focus:border-primary" 
-        dateFormat="dd/mm/yy"/>
+        dateFormat="dd/mm/yy"
+        @blur="bind.setShowError(true)"
+        />
     <span v-else>{{value }}</span>
 </template>
 
 <script setup>
 import Calendar from "primevue/Calendar"
-import { computed } from "vue"
+import { computed, ref } from "vue"
 
 const props = defineProps({
     bind : {
@@ -20,21 +22,18 @@ const props = defineProps({
     }
 });
 
-
+let cvalue = ref(props.bind.value);
 
 const value = computed({
     get() {
-        return props.bind.value;
+        return cvalue.value;
     },
     set(val) {
         props.bind.setValue(val);
+        cvalue.value = props.bind.value;
     }
 });
 
 const disabled = (props.bind.cell.system) ? true : false;
-
-const errClass = computed(() => {
-    return (props.bind.active_validation && props.bind.error) ? "p-invalid" : "";
-});
 
 </script>

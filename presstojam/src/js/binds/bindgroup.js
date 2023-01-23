@@ -1,8 +1,15 @@
+import { ref, computed } from "vue"
+
 export class BindGroup {
 
     constructor() {
         this._binds = {};
-        this._show_validation = false;
+    }
+
+    showValidation(val) {
+        for(const i in this._binds) {
+            this._binds[i].setShowError(val);
+        }
     }
 
     regBind(i, bind) {
@@ -24,13 +31,6 @@ export class BindGroup {
         }
     }
 
-    setActiveValidation(val) {
-        this._show_validation = val;
-    }
-
-    getActiveValidation() {
-        return this._show_validation;
-    }
 
     setInitActive() {
         for(let i in this._binds) {
@@ -40,7 +40,7 @@ export class BindGroup {
 
     hasErrors() {
         for(let i in this._binds) {
-            if (this._binds[i].error) return true;
+            if (this._binds[i].error.value) return true;
         }
     }
 

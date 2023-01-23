@@ -20,9 +20,11 @@
     if (store.parent_id) data["--parent"] = store.parent_id;
 
   
-    subscribe("form_saved", "create", response => {
-        repo.append(response);
-        trigger("dialog_close");
+    subscribe("form_saved", "create", (response, method, model) => {
+        if (model.name == store.name && method == "post") {
+            repo.append(response);
+            trigger("effect_created", props.name);
+        }
     });
 
     onBeforeUnmount(() => {

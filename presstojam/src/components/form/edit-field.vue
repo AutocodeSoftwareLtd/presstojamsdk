@@ -2,7 +2,7 @@
     <div class="form-check field-checkbox" v-if="bind.cell.type=='flag'">
         <Flag :bind="bind" />
         <label :for="bind.cell.name" class="form-check-label">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
-        <Error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" />
+        <Error v-if="bind.show_error" :bind="bind" />
 
     </div>
     <div class="json-group" v-else-if="bind.cell.type=='json'">
@@ -16,7 +16,7 @@
         <Time v-else-if="bind.cell.type=='time'" :bind="bind" class="col"/>
         <PtjJson v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" class="col"/>
         <PtjString v-else :bind="bind" class="col"/>
-        <Error :field="bind.cell" v-if="bind.active_validation.value && bind.error.value && bind.cell.type!='json'" :error="bind.error.value" class="col"/>
+        <Error v-if="bind.show_error" :bind="bind" class="col"/>
     </div>
 </template>
 <script setup>
@@ -28,6 +28,7 @@
  import Asset from "./asset-edit.vue"
  import PtjJson from "./json-edit.vue"
  import Error from "./error.vue"
+ import { computed } from "vue"
 
 
 const props = defineProps({
@@ -38,5 +39,11 @@ const props = defineProps({
 const emits = defineEmits([
     "update:modelValue"
 ]);
+
+const error = computed(() => {
+    if (props.bind.show_error) return props.error;
+    else return 0;
+});
+
 
 </script>

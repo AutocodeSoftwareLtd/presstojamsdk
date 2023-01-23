@@ -113,6 +113,7 @@ export class Model {
             if (!this._limited_fields || this._limited_fields.includes(slug + i)) {
                 this._fields[slug + i] = Object.assign(Object.create(fields[i]), fields[i]);
                 this._fields[slug + i].slug = slug + i;
+                if (slug) this._fields[slug + i].summary = false; //set summary to false for anything that isn't the base
                 if (fields[i].type == "id" && fields[i].reference_type == ReferenceTypes.REFERENCE ) {
                     this.loadFields(getEntity(fields[i].reference), slug + i + "/");
                 }
@@ -209,11 +210,13 @@ export class Model {
                 continue;
             }
                 //check if limited
-            if (this._editable_fields && !this._editable_fields.includes(schema[i].slug)) {
+
+            if (this._editable_fields.length && !this._editable_fields.includes(i)) {
                 schema[i].disabled = true;
                 continue;
             }
-            
+    
+    
             if (schema[i].type == "json") {
                 this.setEditableCells(schema[i].fields);
             } 
@@ -246,6 +249,11 @@ export class Model {
         if (!schema) schema = this._fields;
         for(let i in schema) {
             schema[i].disabled = false;
+
+            if (schema[i].background) {
+                schema[i].disabled = true;
+                continue;
+            }
 
             if (schema[i].type == "id" && schema[i].reference_type == ReferenceTypes.PARENT) {
                 schema[i].disabled = true;
