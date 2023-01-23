@@ -1,6 +1,6 @@
 <template>
     <ptj-slug-trail :name="model" />
-    <Panel :header="store.route.title" class="gc-repo" :class="model">
+    <Panel :header="store.title" class="gc-repo" :class="model">
 
         <PtjTree v-if="recursive" :name="model" />
         <PtjTableDisplay v-else :name="model"  />
@@ -10,9 +10,8 @@
 
 <script setup>
 import Panel from 'primevue/panel'
-import { computed, onMounted } from "vue"
-import { getStoreById } from "../../js/datastore.js"
-import { createRepoStore, regStore } from "../../js/reactivestores.js"
+import { computed } from "vue"
+import { getStore } from "../../js/data/storemanager.js"
 import PtjTree from "../tree/tree.vue"
 import PtjTableDisplay from '../table/table-display.vue'
 import PtjSlugTrail from "../slugtrail/slug-trail.vue"
@@ -26,25 +25,20 @@ const props = defineProps({
 });
 
 
+const repo = getStore(props.model);
+const store =repo.store;
 
-const store = getStoreById(props.model);
-const repo = createRepoStore(store);
-regStore(props.model, repo);
 repo.load();
 
 
 const recursive = computed(() => {
-    for(let i in store.route.schema) {
-        if (store.route.schema[i].recursive) return true;
+    for(let i in store.fields) {
+        if (store.fields[i].recursive) return true;
     }
     return false;
 })
 
-if (store.route && store.route.settings.repo && store.route.settings.repo.mounted) {
-    onMounted(() => {
-        store.route.settings.repo.mounted(store);
-    })
-}
+repo.trigger("mounted");
 
 </script>
 

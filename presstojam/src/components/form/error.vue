@@ -1,17 +1,16 @@
 <template>
-    <small class="form-text text-muted p-invalid" v-if="error == 1">{{ $t("errors.min",  { min : field.min })}}</small>
-    <small class="form-text text-muted p-invalid" v-else-if="error == 2">{{ $t("errors.max", { max : field.max }) }}</small>
-    <small class="form-text text-muted p-invalid" v-else-if="error == 3">{{ $t("errors.contains", { char : field.contains }) }}</small>
-    <small class="form-text text-muted p-invalid" v-else-if="error == 4">{{ $t("errors.notcontains",  { char : field.notcontains }) }}</small>
-    <small class="form-text text-muted p-invalid" v-else-if="error == 5">{{ $t("errors.unique") }}</small>
-    <small class="form-text text-muted p-invalid" v-else-if="error == 6">{{ $t("errors.null") }}</small>
+    <small class="form-text text-muted p-invalid alert-danger">{{ err_message}}</small>
 </template>
 
 <script setup>
 
+import { computed } from "vue"
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 const props = defineProps({
-  error : Number,
-  field : Object
+  bind :Object
 });
 
 /*
@@ -23,5 +22,14 @@ const props = defineProps({
     const Unique = 5;
     const NullViolation = 6;
 */
+
+const err_message = computed(() => {
+  if (props.bind.error.value == 1) return t("errors.min",  { min : props.bind.cell.min });
+  else if (props.bind.error.value == 2) return t("errors.max", { max : props.bind.cell.max });
+  else if (props.bind.error.value == 3) return t("errors.contains", { char : props.bind.cell.contains });
+  else if (props.bind.error.value == 4) return t("errors.notcontains",  { char : props.bind.cell.notcontains });
+  else if (props.bind.error.value == 5) return t("errors.unique");
+  else return "";
+});
 
 </script>

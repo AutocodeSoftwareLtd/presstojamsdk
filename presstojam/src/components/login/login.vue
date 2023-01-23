@@ -134,7 +134,7 @@ function submit() {
     store.globalerror = "";
     if (store.state == "login") {
         login(store.email, store.password)
-        .then(() => {
+        .then(response => {
             location.href = base + "/";
         })
         .catch(e => {

@@ -17,6 +17,9 @@ export class Field {
         this._system = false;
         this._summary = false;
         this._where = null;
+        this._entity = null;
+        this._slug;
+        this._disabled = false;
     }
 
     buildGetterSetters() {

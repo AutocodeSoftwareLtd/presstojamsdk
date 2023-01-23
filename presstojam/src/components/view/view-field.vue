@@ -1,11 +1,11 @@
  <template>
-    <ptj-number v-if="field.type=='number'" :value="row[field.name]" :field="field" />
-    <ptj-flag v-else-if="field.type=='flag'"  :value="row[field.name]" :field="field"/>
-    <ptj-id v-else-if="field.type=='id'" :value="row[field.name]" :field="field" :row="row" />
-    <ptj-asset v-else-if="field.type=='asset'" :value="row[field.name]" :field="field" :id="row['--id']" />
-    <ptj-time v-else-if="field.type=='time'" :value="row[field.name]" :field="field" />
-    <ptj-json v-else-if="field.type=='json'" :value="row[field.name]" :field="field" />
-    <ptj-string v-else-if="field.type=='string'" :value="row[field.name]" :field="field" />
+    <ptj-number v-if="field.type=='number'" :value="row[field.slug]" :field="field" />
+    <ptj-flag v-else-if="field.type=='flag'"  :value="row[field.slug]" :field="field"/>
+    <ptj-id v-else-if="field.type=='id'" :value="row[field.slug]" :field="field" :row="row" />
+    <ptj-asset v-else-if="field.type=='asset'" :value="row[field.slug]" :field="field" :id="row['--id']" />
+    <ptj-time v-else-if="field.type=='time'" :value="row[field.slug]" :field="field" />
+    <ptj-json v-else-if="field.type=='json'" :value="row[field.slug]" :field="field" />
+    <ptj-string v-else-if="field.type=='string'" :value="row[field.slug]" :field="field" />
 </template>
 <script setup>
  import PtjNumber from "./number.vue"

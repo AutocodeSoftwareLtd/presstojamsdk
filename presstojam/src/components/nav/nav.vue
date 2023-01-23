@@ -32,12 +32,12 @@
     </Menubar>
 </template>
 <script setup>
-import { getRoutes } from "./../../js/routes.js"
 import Menubar from 'primevue/menubar';
 import { ref, inject } from "vue"
 import Menu from 'primevue/menu';
 import Button from "primevue/button"
 import configs from "./../../js/configs.js"
+import { getEntities } from "./../../js/entity/entitymanager.js"
 
 const props = defineProps({
     name : [String, Object]
@@ -52,7 +52,7 @@ const report_items = ref([]);
 const menu = ref();
 const report_menu = ref();
 
-let routes = getRoutes();
+let routes = getEntities();
 
 let arr = [];
 let carr = [];
@@ -60,14 +60,14 @@ let carr = [];
 for(const i in routes) {
     const route = routes[i];
     if (!route.parent) {
-        if (route.min_rows == 1 && route.max_rows == 1 && route.schema['--owner'] && route.schema['--owner'].reference == _profile) {
+        if (route.min_rows == 1 && route.max_rows == 1 && route.cells['--owner'] && route.cells['--owner'].reference == _profile) {
             carr.push({
                 label : route.name,
                 model : i,
                 is_report : false
             });
             
-            for(const x of route.schema['--id'].reference) {
+            for(const x of route.cells['--id'].reference) {
                 const croute = routes[x];
                 arr.push({
                     label : croute.name,

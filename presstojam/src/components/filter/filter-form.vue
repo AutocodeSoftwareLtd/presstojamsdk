@@ -6,7 +6,7 @@
         <span class="p-buttonset">
     <ptj-filter 
         class="ptj-filter" 
-        v-for="field in filtercells" :field="field" :key="field.name" />
+        v-for="field in filtercells" :bind="field" :key="field.name" />
         </span>
         <p style="text-align:right">
         <Button :label="$t('btns.filter')" @click="submit" />
@@ -20,19 +20,24 @@ import PtjFilter from "./filter.vue"
 import { computed, provide } from "vue"
 import Button from 'primevue/button'
 import Fieldset from 'primevue/fieldset';
+import { BindGroup } from "./../../js/binds/bindgroup.js"
+import { Bind } from "./../../js/binds/bind.js"
 
 const props = defineProps({
     store : Object
 });
 
-provide("model", props.store.model);
+provide("model", props.store.model.name);
+
+const group = new BindGroup();
 
 const filtercells = computed(() => {
     let filter_cells = {};
-    for(let i in props.store.route.schema) {
-        if (props.store.route.schema[i].background) continue;
-        if (props.store.route.schema[i].type == "asset" || props.store.route.schema[i].type == "json") continue;
-        filter_cells[i] = props.store.route.schema[i];
+    for(let i in props.store.fields) {
+        const field = props.store.fields[i];
+        if (field.background) continue;
+        if (field.type == "asset" || field.type == "json") continue;
+        filter_cells[i] = new Bind(field, '');
     }
     return filter_cells;
 });

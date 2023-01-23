@@ -1,5 +1,5 @@
 <template>
-    <Breadcrumb :home="home" :model="crumbs">
+    <Breadcrumb :model="crumbs">
         <template #item="{item}">
             <ptj-crumb :item="item" />
         </template>
@@ -7,9 +7,9 @@
 </template>
 <script setup>
 import { ref, computed, inject } from "vue";
-import { getRouteStructure} from "../../js/routes.js"
 import { rowToTree } from "../../js/helperfunctions.js"
-import { getStore } from "../../js/reactivestores.js"
+import { getStore } from "../../js/data/storemanager.js"
+import { getEntity } from "../../js/entity/entitymanager.js"
 import configs from "../../js/configs.js"
 
 import Breadcrumb from "primevue/breadcrumb"
@@ -23,43 +23,63 @@ const t = i18n.t;
 
 
 const props = defineProps({
-    name : String
+    name : String,
+    parent_id : Number
 });
 
 const repo = getStore(props.name);
 const store = repo.store;
-const home = {icon: 'pi pi-home', to: configs.get("base")};
 
-const routes = ref(getRouteStructure(store.model));
+let parent_id;
 
-const slug_trail = ref(null);
+let entity = getEntity(store.name);
+let structure = [];
+const parent = entity.parent;
+if (repo.type == "active") {
+    structure.push(entity);
+}
+
+while(entity.parent) {
+    const parent = getEntity(entity.parent);
+    structure.push(parent);
+    entity = parent;
+}
+structure = structure.reverse();
 
 
-if (store.route.parent) { 
-    if (repo.active_id) {
+
+async function getData() {
+    if (parent) {
+      if (repo.type == "active") {
+        const data = await 
         repo.load()
-        .then(() => {
-            const id = repo.data.value['--parent'];
-            return Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
-        }).then(response => {
-            slug_trail.value = rowToTree(response, store.route.parent);
-        }).catch(e => console.log(e));
-    } else {
-        const id = repo.parent_id;
-        Client.get("/data/" + store.route.parent + "/active?__to=*&--id=" + id)
         .then(response => {
-            slug_trail.value = rowToTree(response, store.route.parent);
-        }).catch(e => console.log(e));
+            parent_id = response["--parent"];
+            return Client.get("/data/" + parent + "/active?__to=*&--id=" + response['--parent'])
+        }).then(response => {
+            return rowToTree(response, parent)
+        });
+        return data;
+      } else {
+        const data = await Client.get("/data/" + parent + "/active?__to=*&--id=" + repo.parent_id)
+        .then(response => {
+            return rowToTree(response, parent)
+        });
+        return data;
+      }
+    } else {
+        return {};
     }
-} 
- 
+}
+
+const trail = await getData();
 
 function trailRouteInfo(trail, route) {
     let info = [];
     let summary = [];
     for(let i in trail[route.name]) {
-        if (route.schema[i].background) continue;
-        if (route.schema[i].summary) summary.push(trail[route.name][i]);
+        if (route.cells[i].background) continue;
+        if (route.cells[i].summary) summary.push(trail[route.name][i]);
         info.push({label : t("models." + route.name + ".fields." + i + ".label"), value : trail[route.name][i]});
     }
     
@@ -72,24 +92,25 @@ function trailRouteInfo(trail, route) {
 
 let crumbs = computed(() => {
     let arr = [];
-    if (!slug_trail.value) return arr;
+    for(const entity of structure) {
+        //add an entity repo route
+        //need to get the parent id
 
-    let trail = slug_trail.value;
-
-    for(let route of routes.value) {
-        if (!trail[route.name]) continue;
-        //set multiple route
-        const obj = { label : route.name, to : { name : "repo", params : { model : route.name } } };
+        const obj = { label : entity.name, to : { name : "repo", params : { model : entity.name } } };
         
-        if (trail[route.name] && trail[route.name]["--parent"]) obj.to.params.id = trail[route.name]["--parent"]
+        if (entity.parent) {
+            if (trail[entity.name]) obj.to.params.id = trail[entity.name]["--parent"]
+            else obj.to.params.id = parent_id;
+        }
+         
         arr.push(obj);
         
-        //set child route
-        if (trail[route.name]) {
-            const { label, info } = trailRouteInfo(trail, route);
+        //set the active route
+        if (trail[entity.name]) {
+            const { label, info } = trailRouteInfo(trail, entity);
             const obj = {
                 label : label,
-                to : { name : "primary", params : { model : route.name, id : trail[route.name]["--id"]} }
+                to : { name : "primary", params : { model : entity.name, id : trail[entity.name]["--id"]} }
             }
             if (info.length > 0) obj.info = info;
             
@@ -98,8 +119,6 @@ let crumbs = computed(() => {
     }
     return arr;
 });
-
-
 
 </script>
 <style scoped>

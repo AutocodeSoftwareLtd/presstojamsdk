@@ -9,7 +9,6 @@
 <script setup>
 import Fieldset from 'primevue/fieldset';
 import PtjEditField from "./edit-field.vue"
-import PtjError from "./error.vue"
 import { computed } from "vue"
 
 
@@ -20,12 +19,16 @@ const props = defineProps({
     }
 });
 
+let group = props.bind.getGroup();
+
+
 
 const binds = computed(() => {
     const arr = [];
-    for(let i in props.bind.children.binds) {
-        if (props.bind.children.binds[i].active.value) {
-            arr.push(props.bind.children.binds[i]);
+    for(let i in props.bind.cell.fields) {
+        const gbind = group.getBind(props.bind.cell.name + "-" + i);
+        if (gbind.active.value) {
+            arr.push(gbind);
         } 
     }
     return arr;

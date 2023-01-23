@@ -5,6 +5,7 @@ import 'primevue/resources/primevue.min.css'
 import 'primevue/resources/themes/bootstrap4-light-blue/theme.css'
 import 'primeflex/primeflex.css'
 import Schema from "./schema.vue";
+import TestVue from "./testvue.vue"
 import { createApp } from 'vue'
 import container from "./index.js";
 
@@ -120,11 +121,21 @@ let settings = {
             "domain" : "Domain",
             "hosting-status" : "Hosting Status"
            },
+         
            "limit" : 2,
+           "no_filter" : false,
            "order":{
             "hosting-status" : "desc"
            },
            "distinguish" : "hosting-status",
+           "actions" : [
+            {
+                "component" : TestVue, 
+                "atts" : {
+                    type : "test"
+                }
+            }
+           ]
            //"groupclasses" : { "active" : "redbackground"}
           // "export_fields" : ["cfdist-id", "domain", "hosting-status"]
       },

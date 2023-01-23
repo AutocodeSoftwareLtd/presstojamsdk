@@ -9,24 +9,22 @@ export class JsonGroup extends Field {
         if (obj) this.apply(obj);
     }
 
-   
+ 
 
-    buildJSONFromGroup(bindGroup) {
+    buildJSON(bind) {
         let obj = {};
-        for(let i in bindGroup.binds) {
-            const cbind = bindGroup.binds[i];
+        const group = bind.getGroup();
+
+        for(const i in this._fields) {
+            const cbind = group.getBind(i);
             if (!cbind.active.value) continue;
-            if (cbind.children) {
-                obj[i] = this.buildJSONFromGroup(cbind.children);
+            if (cbind.cell.type() == "json") {
+                obj[i] = this.cbind.cell.buildJSON(cbind);
             } else {
-                obj[i] = cbind.value.value;
+                obj[i] = cbind.value;
             }
         }
         return obj;
-    }
-
-    buildJSON(bind) {
-        return this.buildJSONFromGroup(bind.children);
     }
 
 

@@ -4,6 +4,7 @@
         <Nav :name="name" v-if="no_nav == false"/>
         
         <PtjRoutes />
+        <PtjDialog />
     </div>
 </template>
 <script setup>
@@ -11,11 +12,12 @@
 import { ref, inject } from 'vue';
 import configs from "../js/configs.js"
 
-import { loadSiteMap } from "../js/routes.js"
+import { loadSiteMap } from "../js/entity/entitymanager.js"
 
 import PtjAccountHandler from "./login/login.vue"
 import PtjRoutes from './routes.vue'
 import Nav from "./nav/nav.vue"
+import PtjDialog from "./effects/dialog.vue"
 
 
 const _profile = configs.get("profile");
@@ -58,7 +60,7 @@ function loadRoutes() {
 
 
 function loadDictionary() {
-    client.get("/user/dictionary")
+    return client.get("/user/dictionary")
     .then(response => {
         for(let i in response) {
             i18n.setLocaleMessage(i, response[i]);
@@ -67,7 +69,7 @@ function loadDictionary() {
 }
 
 function loadUser() {
-    client.get("/user/details")
+    return client.get("/user/details")
     .then(response => {
         name.value = (response.name) ? response.name : response.email;
     });  

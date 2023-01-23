@@ -14,8 +14,8 @@
 <script setup>
 
 import { inject } from "vue"
-import { getStoreById } from "../../js/datastore.js"
-import { createRepoStore } from "../../js/reactivestores.js"
+import { getModel } from "../../js/models/modelmanager.js"
+import { createRepoStore } from "../../js/data/storemanager.js"
 import Overlays from "./overlays.vue"
 import Scales from "./scales.vue"
 import AggregateType from "./aggregate-type.vue"
@@ -30,10 +30,10 @@ const props = defineProps({
 
 const model = inject("model");
 
-const store = getStoreById(model);
+const store = getModel(model);
 const repo = createRepoStore(store);
 
-const schema = store.route.schema;
+const schema = store.fields;
 
 const x_axes = [];
 

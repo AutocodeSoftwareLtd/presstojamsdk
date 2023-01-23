@@ -1,11 +1,11 @@
 <template>
-    <TableDisplay v-if="model" :name="model"/>
+    <TableDisplay v-if="key" :name="key" :key="key"/>
 </template>
 <script setup>
-import { watch, ref, inject } from 'vue';
+import { watch, ref } from 'vue';
 import TableDisplay from "./table-display.vue"
-import {  createDataStore } from "../../js/datastore.js"
-import { createRepoStore, regStore } from "../../js/reactivestores.js"
+import {  getModel } from "../../js/models/modelmanager.js"
+import { getStore, hasStore, createRepoStore, regStore } from "../../js/data/storemanager.js"
 
 
 const props = defineProps({
@@ -13,21 +13,23 @@ const props = defineProps({
     parent_id : Number
 });
 
-const client = inject("client");
 
-let childrepo = null;
-const childstore = createDataStore(client, props.name);
-let model = ref(null);
+let key = ref(0);
 
 function loadChild(new_val, old_val) {
     if (new_val == old_val) return;
-    childrepo = null;
-    let key = childstore.model + "-" + props.parent_id;
-    childstore.parent_id = props.parent_id;
-    childrepo = createRepoStore(childstore);
-    regStore(key, childrepo);
-    childrepo.reload();
-    model.value = key;
+    const name = props.name + "-" + new_val;
+    key = name;
+    let repo;
+    if (hasStore(name)) {
+        repo = getStore(name);
+    } else {
+        repo = createRepoStore(getModel(props.name, true));
+        repo.parent_id = new_val;
+        regStore(name, repo);
+    }
+    
+    repo.load();
 }
 
 watch(() => props.parent_id, loadChild);

@@ -51,49 +51,8 @@ export function getLabel(schema, data) {
     return label.join(" ");
 };
 
-export function getForegroundCells(schema) {
-    let cells = {};
-    for(let i in schema) {
-        if (!schema[i].background) cells[i] = schema[i];
-    }
-    return cells;
-}
-
-export function getSummaryCells(schema) {
-    let cells = {};
-    for(let i in schema) {
-        if (schema[i].summary) cells[i] = schema[i];
-    }
-    return cells;
-}
 
 
-
-export function getMutableCells(schema) {
-    let cells = {};
-    for(let i in schema) {
-        if (schema[i].type == "json") {
-            schema[i].cells = getMutableCells(schema[i].fields);
-            cells[i] = schema[i];
-        } else {
-            if (!schema[i].system && !schema[i].immutable) cells[i] = schema[i];
-        }
-    }
-    return cells;
-}
-
-export function getImmutableCells(schema) {
-    let cells = {};
-    for(let i in schema) {
-        if (schema[i].type == "json") {
-            schema[i].cells = getImmutableCells(schema[i].fields);
-            cells[i] = schema[i];
-        } else {
-            if (!schema[i].system) cells[i] = schema[i];
-        }
-    }
-    return cells;
-}
 
 export async function getCellComponent(name, type = null) {
     if (type) type = "-" + type;
@@ -151,10 +110,3 @@ export function commonParent(struc, struc1) {
 }
 
 
-export function saveOrder(model, rows, client) {
-    const vals = [];
-    for(let i in rows) {
-        vals.push({'--id' : rows[i]['--id'], '--sort' : i});
-    }
-    return client.put("/data/" + model + "/resort", { "_rows" : vals});
-}

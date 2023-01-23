@@ -2,11 +2,18 @@
     <ptj-slug-trail :name="model" />
     <Panel :header="label">
     
-   <TabView>
-        <TabPanel :header="repo.label.value">
-		    <display :name="props.model" />
+   <TabView lazy>
+        <TabPanel :header="getLabel(store.fields, data)">
+		    <Panel :header="$t('models.' +store.name + '.title')">
+            <template #icons>
+                <audit-action v-if="store.audit" :model="store" :data="data" :long="true" />
+                <ptj-delete-action :name="store.name" :data="data"/>
+                <component v-for="component in store.actions" :is="component.component" :data="data" v-bind="component.atts"/>
+            </template>
+            <edit-effect v-if="data['--id']" :model="store" :data="data" />
+            </Panel>
 	    </TabPanel>
-        <TabPanel v-for="child in store.route.schema['--id'].reference" :header="$t('models.' + child + '.title', 2)">
+        <TabPanel v-for="child in store.fields['--id'].reference" :header="$t('models.' + child + '.title', 2)">
             <PtjChildPanel :model="child" />
         </TabPanel>
    </TabView>
@@ -14,47 +21,51 @@
 </template>
 
 <script setup>
-import { computed, onMounted, inject } from "vue"
-import { getStoreById } from "../../js/datastore.js"
-import { createActiveStore, regStore } from "../../js/reactivestores.js"
-import Display from "../display.vue"
+import { computed, onMounted, inject, ref } from "vue"
+import { getStore } from "../../js/data/storemanager.js"
+import { getLabel } from "../../js/helperfunctions.js"
 import PtjChildPanel from  "./child-panel.vue"
 import PtjSlugTrail from "./../slugtrail/slug-trail.vue"
 import TabView from "primevue/tabview"
 import TabPanel from "primevue/tabpanel"
 import Panel from "primevue/panel"
+import EditEffect from "../effects/edit-effect.vue"
+import AuditAction from "../actions/audit-action.vue"
+import PtjDeleteAction from "../actions/delete-action.vue"
+import { subscribe, unsubscribe } from "../../js/bus/bus.js"
 
 const i18n = inject("i18n");
 const t = i18n.t;
 
 
-
-/*
-<TabPanel v-for="child in store.route.children" :header="child">
-            <PtjChildPanel :parent="store.active['--id']" :model="child" />
-        </TabPanel>
-*/
 const props = defineProps({
     model : String,
     base : String
 });
 
 
-const store = getStoreById(props.model);
+const repo = getStore(props.model);
+const store =repo.store;
 
-const repo = createActiveStore(store);
-regStore(props.model, repo);
+const data = ref({});
 repo.load()
+.then(response => {
+    data.value = response;
+})
 .catch(e => console.log(e));
 
 
 const label = computed(() => {
-    return t('models.' + props.model + '.title') + ': ' + repo.label.value;
+    return t('models.' + props.model + '.title') + ': ' + getLabel(store.fields, data.value);
 });
 
-if (store.route && store.route.settings.active && store.route.settings.active.mounted) {
+subscribe("form_saved", repo.active_id, response => {
+    console.log(response, arguments);
+});
+
+if (store.route && store.active && store.active.mounted) {
     onMounted(() => {
-        store.route.settings.active.mounted(store);
+        store.active.mounted(store);
     })
 }
 

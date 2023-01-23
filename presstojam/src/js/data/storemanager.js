@@ -1,25 +1,14 @@
 import { reactive, ref } from "vue"
-import { getLabel } from "../js/helperfunctions";
+import { getLabel } from "../helperfunctions";
+import { RepoData } from "./repodata.js"
+import { ActiveData } from "./activedata.js" 
 
 let stores = {};
 
-export function clearStores() {
-    stores = {};
-}
 
-export function regStore(name, store) {
-    stores[name] = store;
-}
-
-
-export function getStore(name) {
-    if (!stores[name]) {
-        throw "Can't get reactive store of " + name;
-    }
-    return stores[name];
-}
 
 export function createRepoStore(store) {
+    return new RepoData(store);
     const obj = {
         parent_id : ref(store.parent_id),
         store : store,
@@ -104,8 +93,9 @@ export function createRepoStore(store) {
 
 
 
-export function createActiveStore(store) {
-    return {
+export function createActiveStore(store, active_id) {
+    return new ActiveData(store, active_id);
+    /*return {
         parent_id : ref(0),
         store : store,
         active_id : store.active_id,
@@ -131,12 +121,15 @@ export function createActiveStore(store) {
                 this.data.value[x] = obj[x];
             }
         } 
-    }
+    }*/
 }
 
 
 export function createFirstStore(store) {
-    return {
+    store.limit = 1;
+    store.order = ["--id", "ASC"];
+    return new RepoData(store);
+    /*return {
         parent_id : ref(0),
         store : store,
         active_id : 0,
@@ -166,7 +159,27 @@ export function createFirstStore(store) {
                 this.data.value[x] = obj[x];
             }
         } 
-    }
+    }*/
 }
 
 
+export function clearStores() {
+    stores = {};
+}
+
+export function regStore(name, store) {
+    stores[name] = store;
+}
+
+
+export function getStore(name) {
+    if (!stores[name]) {
+        throw "Can't get reactive store of " + name;
+    }
+    return stores[name];
+}
+
+
+export function hasStore(name) {
+    return (stores[name]) ? true : false;
+}

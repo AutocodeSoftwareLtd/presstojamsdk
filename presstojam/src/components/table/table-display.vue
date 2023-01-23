@@ -1,10 +1,11 @@
 <template>
-    <ptj-filter-form v-if="repo.pagination && !store.route.settings.nofilter"  :store="store" />
+    <ptj-filter-form v-if="repo.pagination.rows_per_page && !store.no_filter"  :store="repo" />
     <Message severity="success" v-if="newrow">New row created</Message>
     <Message severity="success" v-if="delrow">Rows removed</Message>
+    <Message severity="success" v-if="editrow">Row Updated</Message>
     <Toolbar class="mb-4">
                 <template #start>
-                    <span class="p-input-icon-left mr-2" v-if="!repo.pagination">
+                    <span class="p-input-icon-left mr-2" v-if="!repo.pagination.rows_per_page">
                         <i class="pi pi-search" />
                         <InputText v-model="search" placeholder="Keyword Search" />
                     </span>
@@ -17,34 +18,81 @@
                 </template>
 
                 <template #end>
-                    <ptj-import-action v-if="has_import" :name="name" />
-                    <ptj-export-action v-if="has_export" :name="name" />
-                    <ptj-create-action v-if="store.route.perms.includes('post')" :name="name" @onSave="onSave" /> 
-                    <ptj-delete-action v-if="store.route.perms.includes('delete')" :name="name" @onDel="onDel"/>
+                    <ptj-import-action v-if="store.import" :name="name" />
+                    <ptj-export-action v-if="store.export" :name="name" />
+                    <ptj-create-action v-if="store.perms.includes('post')" :name="name" :parent="store.parent" /> 
+                    <ptj-delete-action :name="name" :data="selected.value" v-if="store.perms.includes('delete')"/>
                 </template>
     </Toolbar>
-    <p v-if="repo.pagination">Total Rows: {{ repo.pagination.count }}</p>
-    <ptj-table ref="dt" :name="name" :fields="fields" :search="search" @reorder="onRowReorder" />
-    <ptj-pagination v-if="repo.pagination" :pagination="repo.pagination" @reload="reloadPage" />
+    <p v-if="repo.pagination.rows_per_page">Total Rows: {{ repo.pagination.count }}</p>
+    <div ref="group">
+    <DataTable :value="data" v-model:selection="selected.value" 
+                dataKey="--id" :rowClass="rowClass"
+                responsiveLayout="stack" :loading="repo.is_loading.value" 
+                :rowHover="true" @rowReorder="onRowReorder" 
+                @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" 
+                v-model:expandedRows="expandedRows" 
+                :globalFilterFields="global_filter_fields"
+                :totalRecords="total_records"
+                :filters="filters" v-bind="atts" v-on="events">
+        <Column v-if="has_expandable" :expander="true" headerStyle="width: 3rem" />
+        <Column v-if="has_sort" :rowReorder="true" headerStyle="width: 3rem" :reorderableColumn="false" />
+        <Column v-if="store.perms.includes('delete')" selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+        <Column v-for="cell in fields" :field="cell.slug" :sortable="sortable"
+                    :header="$t('models.' + cell.model + '.fields.' + cell.name + '.label')"
+                    :key="cell.name">
+            <template #body="slotProps">
+                <ptj-view-field :row="slotProps.data" :field="cell" />
+            </template>
+        </Column>
+        <Column :exportable="false" style="min-width:8rem">
+            <template #body="slotProps">
+                <ptj-primary-action v-if="has_primary" :model="store.name" :id="slotProps.data['--id']" />
+                <edit-action v-if="store.perms.includes('put')" :data="slotProps.data" :model="store" />
+                <audit-action v-if="store.audit" :data="slotProps.data" :model="store" />
+                <component v-for="component in store.actions" :is="component.component" v-bind="component.atts" :data="slotProps.data" :short="true" />
+            </template>
+        </Column>
+        <template v-if="atts.groupRowsBy" #groupheader="slotProps">
+            <div class="ptj-group" :class="slotProps.data[groupcell.name]"><ptj-view-field :row="slotProps.data" :field="groupcell" /></div>
+        </template>
+        <template #expansion="slotProps">
+            <Card>
+                <template #title>
+                    {{ $t("models." + store.children_models[0] + ".title") }}
+                </template>
+                <template #content>
+                    <ChildTable :name="store.children_models[0]" :parent_id="slotProps.data['--id']" :key="slotProps.data['--id']" />
+                </template>
+            </Card>
+        </template>
+    </DataTable>
+    </div>
 </template>
 
 <script setup>
 
-import { ref, computed } from "vue"
+import { ref, computed, onBeforeUnmount, onMounted } from "vue"
 import PtjFilterForm from "../filter/filter-form.vue"
-import PtjPagination from "../paginator/pagination.vue";
 import MultiSelect from 'primevue/multiselect';
 import Toolbar from 'primevue/Toolbar';
-import PtjTable from "./table.vue"
 import Message from 'primevue/message';
-import  {saveOrder } from "../../js/helperfunctions.js" 
 import InputText from 'primevue/inputtext'
-import { getStore } from "../../js/reactivestores.js"
+import { getStore } from "../../js/data/storemanager.js"
 import PtjExportAction from '../actions/export-action.vue'
 import PtjCreateAction from '../actions/create-action.vue'
 import PtjDeleteAction from '../actions/delete-action.vue'
 import PtjImportAction from '../actions/import-action.vue'
-
+import { subscribe, unsubscribe, trigger } from "../../js/bus/bus.js"
+import Column from 'primevue/column';
+import Card from 'primevue/card';
+import { FilterMatchMode } from 'primevue/api';
+import EditAction from "../actions/edit-action.vue"
+import AuditAction from "../actions/audit-action.vue"
+import PtjPrimaryAction from "../actions/primary-action.vue"
+import PtjViewField from "../view/view-field.vue"
+import DataTable from "primevue/DataTable"
+import ChildTable from "./child-table.vue"
 
 
 
@@ -55,47 +103,58 @@ const props = defineProps({
     }
 });
 
+
+const group = ref();
+const data = ref([]);
+const selected = ref([]);
+const search = ref();
+const active_options = ref();
+const newrow = ref(false);
+const delrow = ref(false);
+const editrow = ref(false);
+
+
 const repo = getStore(props.name);
 const store = repo.store;
 
+const max_cols = (!store.max_cols) ? 10 : store.max_cols;
 
-const max_cols = (!store.route.settings.max_cols) ? 10 : store.route.settings.max_cols;
-const has_export =store.route.export;
-const has_import = store.route.import;//store.route.import;
-
+//setup cells
 //const has_export = true;
-const col_expandable = (Object.keys(store.route.schema).length > max_cols) ? true : false;
+store.setTableCells();
+const cells = store.getEnabledCells();
+const col_expandable = (Object.keys(cells).length > max_cols) ? true : false;
 const fixed_fields = [];
 const optional_fields = [];
 
 
-const search = ref();
-const dt = ref();
 
-const active_options = ref();
-const newrow = ref(false);
-const delrow = ref(false);
+
+
+repo.load()
+.then(rows => {
+    data.value = rows;
+});
 
 
 
 const fields = computed(() => {
-    const cells = {};
+    const fcells = {};
     for(let i of fixed_fields) {
-        cells[i] = store.route.schema[i];
+        fcells[i] = cells[i];
     }
 
     if (active_options.value) {
         for(let i of active_options.value) {
-            cells[i] = store.route.schema[i];
+            fcells[i] = cells[i];
         }
     }
 
-    return cells;
+    return fcells;
 });
 
 
-for(let i in store.route.schema) {
-    if (store.route.schema[i].background) continue;
+for(let i in cells) {
     if (!col_expandable || fixed_fields.length < max_cols)  
         fixed_fields.push(i);
     else if (col_expandable) 
@@ -103,29 +162,170 @@ for(let i in store.route.schema) {
 }
 
 
-function reloadPage(offset) {
-    repo.pagination.offset = offset;
-    repo.paginate();
+
+
+subscribe("effect_created", props.name, name => {
+    if (props.name == name) {
+        newrow.value = true;
+        repo.load()
+       .then(response => {
+         data.value = response;
+       });
+        trigger("dialog_close");
+    }
+});
+
+
+subscribe("effect_edited", props.name, name => {
+    if (props.name == name) {
+        editrow.value = true;
+        trigger("dialog_close");
+        repo.load()
+       .then(response => {
+         data.value = response;
+       });
+    }
+});
+
+
+subscribe("effect_deleted", props.name, name => {
+    if (props.name == name) {
+        delrow.value = true;
+        trigger("dialog_close");
+        repo.load()
+       .then(response => {
+         data.value = response;
+       });
+    }
+});
+
+
+onBeforeUnmount(() => {
+    unsubscribe("effect_created", props.name);
+    unsubscribe("effect_updated", props.name);
+    unsubscribe("effect_delete", props.name)
+});
+
+
+const children = (store.fields['--id']) ? store.fields['--id'].reference : [];
+const has_primary = (children.length > 1) ? true : false;
+const has_expandable = (children.length == 1) ? true : false;
+const has_sort = store.fields['--sort'];
+const sortable = (!props.nosort && !repo.hasPagination() && !has_sort) ? true : false;
+const global_filter_fields = [];
+if (!repo.hasPagination()) {
+    for(let field in props.fields) {
+        global_filter_fields.push(field);
+    }
+}
+
+const atts = {};
+const events = {};
+let groupcell;
+if (store.group) {
+    atts.rowGroupMode = "subheader";
+    atts.groupRowsBy=store.group;
+} else if (store.distinguish) {
+    let id = store.distinguish;
+    atts.rowClass = function(data) {
+        return id + "-" + data[id];
+    }
 }
 
 
-function onRowReorder(rows) {
-    repo.data.value =rows;
-    saveOrder(store.model, rows);
+const total_records = computed(() => {
+    return repo.pagination.count.value;
+});
+
+
+if (repo.hasPagination()) {
+    atts.lazy = true;
+    atts.paginator = true;
+    atts.rows = repo.pagination.rows_per_page;
+    atts.paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+    events.page = function(evt) {
+        repo.setPagination(evt.page)
+        .then(response => {
+            data.value = response;
+        });
+    }
+}
+
+groupcell = fields[store.group];
+
+const filters = computed(() => {
+    if (!props.search) return {};
+    let filters = { 'global' : {  value : props.search, matchMode: FilterMatchMode.CONTAINS } };
+    return filters;
+});
+
+
+
+
+function rowClass(data) {
+    let classes = [];
+    if (store.classes) {
+        for(let cls of store.classes) {
+            if (data[cls.att] == cls.value) classes.push(cls.class);
+        }
+    }
+    return (classes.length) ? classes.join(" ") : null;
+}
+
+
+const table_atts = {};
+if (has_expandable) table_atts["v-model:expandedRows"] ="expandedRows";
+
+//expandable rows function
+const expandedRows = ref([]);
+const onRowExpand = (event) => {
+    //expandedRows.value = [{"Time":"Coming"}];
+    event.data.children = [];
+    repo.active.value = event.data;
+};
+
+const onRowCollapse = (event) => {
+   event.data.children = [];
+};
+
+
+
+
+function onRowReorder(e) {
+   //need to emit
+   store.saveOrder(e.value);
 }
 
 
 
-function onSave() {
-    repo.reload()
-    newrow.value = true;
-}
+onMounted (() => {
+    const groupclasses = store.groupclasses
+    if (groupclasses) {
+        for(const cls in groupclasses) {
+            const val = groupclasses[cls]
+            
+            //apply to the rows retroactively
+            let tgs = group.value.getElementsByClassName(cls);
+            for(let el of tgs) {
+                if (el.classList.contains("ptj-group")) {
+                    let pel=el.closest(".p-rowgroup-header");
+                    pel.classList.add(val);
+                    while(pel=pel.nextElementSibling) {
+                        if (pel.classList.contains('p-rowgroup-header')) {
+                            break;
+                        }
+                        pel.classList.add(val);
+                    }
+                }
+            }
+        }
+    }
+
+});
 
 
-function onDel() {
-    repo.reload();
-    delrow.value = true;
-}
+
+
 
 </script>
 

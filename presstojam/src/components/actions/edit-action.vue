@@ -1,35 +1,29 @@
 <template>
     <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editRow" />
-    <Dialog v-model:visible="dialog" :header="'Edit ' + $t('models.' + store.model + '.title', 1)" :modal="true" class="p-fluid">
-        <form :schema="store.route.schema" :data="data" :model="store.model" @saved="onSave" method="put"/>
-    </Dialog>
-
 </template>
 <script setup>
-    import { ref } from "vue"
-    import Dialog from 'primevue/dialog'
+    import EditEffect from "../effects/edit-effect.vue"
     import Button from "primevue/button"
-    import Form from "./../form/form.vue"
+    import { trigger } from "./../../js/bus/bus.js"
+ 
 
     const props = defineProps({
-        store : Object,
+        model : Object,
         data : Object
     });
 
-    const emits = defineEmits([
-        'onSave'
-    ])
 
-    const dialog = ref(false);
 
     function editRow() {
-        dialog.value =true;
+        trigger(
+            "dialog_open",
+            EditEffect, 
+            {
+                model : props.model,
+                data : props.data
+            },
+            "Edit"
+        );
     }
-
-    function onSave() {
-        dialog.value = false;
-        emits('onSave');
-    }
-
 
 </script>

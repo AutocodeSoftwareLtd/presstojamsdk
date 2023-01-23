@@ -2,10 +2,10 @@
    <InputNumber
         class="focus:border-primary"
         :name="bind.cell.name" 
-        :class="errClass"
+        :class="bind.classes"
         v-model="value" 
         v-bind="atts"
-        @blur="bind.active_validation.value = true" />
+        @blur="bind.active_validation = true" />
 </template>
 
 <script setup>
@@ -22,7 +22,7 @@ const props = defineProps({
 
 const value = computed({
     get() {
-        return props.bind.value.value;
+        return props.bind.value;
     },
     set(val) {
         props.bind.setValue(val);
@@ -42,8 +42,4 @@ if (cell.round) {
     atts["step"]  = parseInt(step);
 }
 
-
-const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
-});
 </script>

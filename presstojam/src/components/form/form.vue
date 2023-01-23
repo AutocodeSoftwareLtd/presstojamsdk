@@ -1,109 +1,104 @@
 <template>
 
- <form @submit.prevent="submit" class="card needs-validation" novalidate>
-    <Message severity="success" v-if="saved">Saved</Message>
+ <form v-show="processing == false" @submit.prevent="submit" class="card needs-validation" novalidate>
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
     <div v-if="parent" class="form-group">
-        <label>{{ $t("models." + store.route.parent + ".title")}}</label>
-        <ptj-parent-select v-model="proxy_values['--parent']" :model="store.route.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
+        <label>{{ $t("models." + store.parent + ".title")}}</label>
+        <ptj-parent-select v-model="proxy_values['--parent']" :model="store.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
     </div>
-    <ptj-edit-field :bind="bind" v-for="bind in binds" :key="bind.cell.name"/>
+    <ptj-edit-field :bind="bindGroup.getBind(cell.name)" v-for="cell in cells" :key="cell.name"/>
     <Button :label="$t('btns.save')" @click="submit" />
   </form>
-  <Dialog v-model:visible="dispatch" :modal="true" class="p-fluid" >
-    <ptj-dispatch v-if="dispatchid != 0" @complete="dispatchComplete" @failed="dispatchFailed" :id="dispatchid" />
-  </Dialog>
-</template>
+  <Panel v-show="processing" Panel header="Processing">
+        <p>Please do not refresh or close the browser until complete</p>
+        <p>Status: {{ status }}</p>
+        <p style='text-align:center;'><ProgressSpinner /></p>
+    </Panel>
+  </template>
 
 <script setup>
 
-import { provide, ref, computed, inject } from "vue" 
+import { provide, ref, inject } from "vue" 
 import PtjEditField from "./edit-field.vue"
 import Button from 'primevue/button'
-
-import { getMutableCells, getImmutableCells } from "../../js/helperfunctions.js"
 import Message from 'primevue/message';
 import PtjParentSelect from "./parent-select.vue"
-import { createBind, createBindGroup } from "../../js/binds.js"
-import PtjDispatch from "../dispatch/dispatch-response.vue"
-import Dialog from 'primevue/dialog'
-
-
+import { BindGroup } from "../../js/binds/bindgroup.js"
+import { Bind } from "../../js/binds/bind.js"
+import { trigger } from "../../js/bus/bus.js"
+import Panel from 'primevue/panel'
+import ProgressSpinner from 'primevue/progressspinner'
 
 const Client = inject("client");
 
 const props = defineProps({
-    schema : Object,
     data : Object,
-    model : String,
-    parent : Boolean,
+    model : Object,
     method : {
         type : String,
         default : 'post'
-    }
+    },
+    parent : Boolean
 });
 
-const emits = defineEmits([
-    "saved", "dataChanged"
-]);
 
-const saved = ref(false);
+
+
 const global_error = ref("");
-const dispatch = ref(false);
-const dispatchid=ref(0);
+const processing = ref(false);
+const status = ref(0);
 
-provide("model", props.model);
-
-
-let cells;
-if (props.stype == 'put') cells = getMutableCells(props.schema);
-else cells = getImmutableCells(props.schema);
+provide("model", props.model.name);
 
 
-const bindGroup = createBindGroup();
+if (props.method == 'put') props.model.setEditableCells();
+else props.model.setCreateCells();
+
+const cells = props.model.getEnabledCells();
+
+
+const bindGroup = new BindGroup();
 
 
 if (props.parent) {
-    bindGroup.addBind("--parent", createBind(props.schema["--parent"], props.data["--parent"]));
+    bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.data["--parent"]));
 }
 
 
 for(const field in cells) {
-    bindGroup.addBind(field, createBind(props.schema[field], props.data[field]));
+    bindGroup.regBind(field, new Bind(cells[field], props.data[field]));
+    if (cells[field].type == "json") {
+        for(let ocell in cells[field].fields) {
+            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (props.data[field]) ? props.data[field][ocell] : null));
+        }
+    } 
 }
 
 
 bindGroup.setInitActive();
 
-const binds = computed(() => {
-    const arr = [];
-    for(let i in bindGroup.binds) {
-        if (bindGroup.binds[i].active.value) {
-            arr.push(bindGroup.binds[i]);
-        } 
-    }
-    return arr;
-});
+
 
 function setErrors(err) {
-    if (typeof err.error == "string") {
-        global_error.value = err.error;
-    } else {
-        for(let i in err.response) {
-            if (bindGroup.binds[i]) bindGroup.binds[i].setError(err[i]);
-        }
+    if (typeof err === 'string' || err instanceof String) {
+        err = JSON.parse(err);
+    }
+    for(let i in err) {
+        const bind = bindGroup.getBind(i);
+        console.log("Setting err for ", i, err[i][0]);
+        bind.error = err[i][0];
     }
 }
 
 function serializeData() {
     const formData = new FormData();
-    for(const i in bindGroup.binds) {
-        const bind = bindGroup.binds[i];
+    for(const i in cells) {
+        const bind = bindGroup.getBind(i);
         if (bind.is_dirty ) {
             const field = bind.cell;
-            if (field.type == "time") formData.append(i, bind.cell.buildString(bind.value.value));
+            if (field.type == "time") formData.append(i, bind.cell.buildString(bind.value));
             else if (field.type == "json") formData.append(i, JSON.stringify(bind.cell.buildJSON(bind)));
-            else formData.append(i, bind.value.value);
+            else formData.append(i, bind.value);
         }
     } 
     return formData;
@@ -111,56 +106,65 @@ function serializeData() {
 
 
 function submit() {
-    saved.value = false;
-    bindGroup.activateValidation();
-    if (bindGroup.hasErrors()) return;
 
+    
+    bindGroup.showValidation(true);
+    if (bindGroup.hasErrors()) {
+        global_error.value = "Some fields have errors, please correct and resubmit";
+        return;
+    }
+    processing.value = true;
     const data = serializeData();
     if (props.method == "put") {
         data.append("--id", props.data['--id']);
     } else if (props.method == "post" && props.data['--parent']) {
         data.append("--parent", props.data['--parent']);
-    }
-         
+    }         
 
-    return Client[props.method]("/data/" + props.model, data)
+    return Client[props.method]("/data/" + props.model.name, data)
     .then(response => {
-        if (props.method == 'post') {
-            emits("dataChanged", response);
-        } else if (props.method == "put") {
+        if (props.method == "put") {
             response.data["--id"] = props.data["--id"];
-            emits("dataChanged", response.data);
         }
         return response;
     })
     .then(response => {
         if (response['--dispatchid']) {
-            dispatchid.value = response['--dispatchid'];
-            dispatch.value = true;
+            runDispatch(response['--dispatchid'], response);
         } else {
-            saved.value = true;
-            emits("saved");
+            trigger("form_saved", response, props.method, props.model);
         }
+        return response;
     })
     .catch(err => {
-        if (err.status == 402) setErrors(err.response);
-        else console.log(err);
+        console.log(err);
+        processing.value = false;
+        if (err.status == 422) {
+            global_error.value = "Some fields have errors, please correct and resubmit";
+            setErrors(err.response.error);
+        } else global_error.value = err.response.error;
     });
-    
-}
-
-function dispatchFailed(response) {
-    setErrors(err.response);
-    dispatch.value = false;
-}
-
-function dispatchComplete() {
-    dispatch.value = false;
-    saved.value = true;
-    emits("saved");
 }
 
 
+function runDispatch(id, oresponse) {
+    const delay = 1000;
+   
+    function chkProgress() {
+        Client.get("/dispatch/status/" + id)
+        .then(response => {
+            if (response.progress == "FAILED") {
+                trigger("dispatch_failed", oresponse, props.method, props.model, response);
+            } else if (response.progress == "PROCESSED" || !response.progress) {
+                trigger("form_saved", oresponse, props.method, props.model, response)
+            } else {
+                status.value = response.progress;
+                setTimeout(chkProgress, delay);
+            }
+        });
+    }
+    chkProgress();
+}
 
 
 </script>

@@ -1,17 +1,18 @@
 <template>
-    <Password v-if="bind.cell.encrypted" v-model="value" class="focus:border-primary" :class="errClass"/>
-   <Textarea v-else-if="tag=='textarea'" v-model="value" rows="5" :class="errClass"/>
+    <Password v-if="bind.cell.encrypted" v-model="value" class="focus:border-primary" :class="bind.classes" @blur="bind.setShowError(true)"/>
+   <Textarea v-else-if="tag=='textarea'" v-model="value" rows="5" :class="bind.classes" @blur="bind.setShowError(true)"/>
   <AutocompleteSelect v-else-if="tag=='select'" 
        :bind="bind"
        :options="options"
-       :class="errClass"
+       :class="bind.classes"
+       @blur="bind.setShowError(true)"
         />
   <InputText v-else v-bind="atts"
         :name="bind.cell.name"
         class="focus:border-primary form-control"
         v-model="value" 
-        :class="errClass"
-        @blur="bind.active_validation.value = true" />
+        :class="bind.classes"
+        @blur="bind.setShowError(true)" />
 </template>
 
 <script setup>
@@ -32,7 +33,7 @@ const props = defineProps({
 
 const value = computed({
     get() {
-        return props.bind.value.value;
+        return props.bind.value;
     },
     set(val) {
         props.bind.setValue(val);
@@ -79,8 +80,4 @@ if (cell.contains.includes("html")) {
 }
 
 
-
-const errClass = computed(() => {
-    return (props.bind.active_validation.value && props.bind.error.value) ? "p-invalid" : "";
-});
 </script>
