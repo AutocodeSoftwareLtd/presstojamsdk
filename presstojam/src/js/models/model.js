@@ -60,6 +60,7 @@ export class Model {
         return this._fields["--id"].reference;
     }
 
+   
     getSettings() {
         let settings = configs.get("models");
         if (settings[this._name]) {

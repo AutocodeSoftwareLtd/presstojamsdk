@@ -36,6 +36,8 @@ async function setupModel() {
 
     const store = getModel(props.model);
 
+    
+
 
     if (props.is_active) {
         const active = createActiveStore(store, props.id);

@@ -5,6 +5,7 @@
     import EditEffect from "../effects/edit-effect.vue"
     import Button from "primevue/button"
     import { trigger } from "./../../js/bus/bus.js"
+    import { inject } from "vue"
  
 
     const props = defineProps({
@@ -12,6 +13,10 @@
         data : Object
     });
 
+    const i18n = inject("i18n");
+    const t = i18n.t;
+
+    const header = "Edit " + t("models." + props.model.name + ".title", 1);
 
 
     function editRow() {
@@ -22,7 +27,7 @@
                 model : props.model,
                 data : props.data
             },
-            "Edit"
+            header
         );
     }
 

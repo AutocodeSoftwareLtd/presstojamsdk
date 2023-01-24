@@ -27,7 +27,7 @@ const props = defineProps({
 const filtered_options = ref([]);
 
 
-let cvalue = ref({ value : 0, label : 'None'});
+let cvalue = ref({ value : props.bind.value, label : ''});
 
 const def = props.options.filter(opt => opt.value == props.bind.value);
 
@@ -47,7 +47,7 @@ const value = computed({
 });
 
 function searchOptions(e) {
-    const active = props.options.filter(opt => opt.value == cvalue.value);
+    const active = props.options.filter(opt => opt.value == cvalue.value.value);
     if (active.length > 0) cvalue.value = active[0];
     let vl = (!e || !e.query) ? "" : e.query.trim().toLowerCase();
     filtered_options.value = props.options.filter((opt) => {

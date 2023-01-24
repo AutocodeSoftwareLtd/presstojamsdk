@@ -1,8 +1,8 @@
 <template>
     <PtjAccountHandler v-if="require_login" />
+    <min-data v-else-if="integrity_check == false"/>
     <div v-else>
         <Nav :name="name" v-if="no_nav == false"/>
-        
         <PtjRoutes />
         <PtjDialog />
     </div>
@@ -11,13 +11,13 @@
 
 import { ref, inject } from 'vue';
 import configs from "../js/configs.js"
-
 import { loadSiteMap } from "../js/entity/entitymanager.js"
-
-import PtjAccountHandler from "./login/login.vue"
+import PtjAccountHandler from "./account/account.vue"
 import PtjRoutes from './routes.vue'
 import Nav from "./nav/nav.vue"
 import PtjDialog from "./effects/dialog.vue"
+import MinData from "./dataintegrity/mindata.vue"
+import { subscribe } from "./../js/bus/bus.js"
 
 
 const _profile = configs.get("profile");
@@ -30,9 +30,9 @@ const i18n = inject("i18n");
 const router = inject("router");
 
 const require_login = ref(false);
+const integrity_check = ref(false);
 
 const no_nav = configs.get("no_nav", false);
-
 
 
 function loadRoutes() {
@@ -90,6 +90,11 @@ await client.get("/user/check-user")
         promises.push(loadRoutes());
         return Promise.all(promises);
     }    
+});
+
+
+subscribe("integrity_min_data", "user", (model, check) => {
+    if (!model) integrity_check.value = check;
 });
 
 

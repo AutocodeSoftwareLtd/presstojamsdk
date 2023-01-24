@@ -1,7 +1,7 @@
 {
   "name": "@presstojam/presstojamsdk",
   "description": "Javascript SDK designed to run with PressToJam API's. Builds beautiful front end displays and forms for any PressToJam API",
-  "version": "3.2.46",
+  "version": "3.2.49",
   "public": true,
   "main": "dist/presstojam.min.mjs",
   "module": "dist/presstojam.mjs",

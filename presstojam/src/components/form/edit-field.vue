@@ -11,7 +11,7 @@
     <div class="form-group field row" v-else>
         <label :for="bind.cell.name" class="form-label">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }} </label>
         <Number v-if="bind.cell.type=='number'" :bind="bind" class="col"/>
-        <Id v-else-if="bind.cell.type=='id'" :bind="bind" class="col"/>
+        <Id v-else-if="bind.cell.type=='id'" :bind="bind" class="col" :data="data"/>
         <Asset v-else-if="bind.cell.type=='asset'" :bind="bind" class="col"/>
         <Time v-else-if="bind.cell.type=='time'" :bind="bind" class="col"/>
         <PtjJson v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" class="col"/>
@@ -33,7 +33,8 @@
 
 const props = defineProps({
     bind : Object,
-    active_validation : Boolean
+    active_validation : Boolean,
+    data : Object
 });
 
 const emits = defineEmits([

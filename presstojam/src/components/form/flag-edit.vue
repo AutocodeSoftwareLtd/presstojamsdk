@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import Checkbox from 'primevue/checkbox';
+import Checkbox from 'primevue/checkbox'
 import { computed, ref } from "vue"
 
 const props = defineProps({

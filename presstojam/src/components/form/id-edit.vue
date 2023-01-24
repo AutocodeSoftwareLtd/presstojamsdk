@@ -18,7 +18,7 @@
 import { inject, ref, onMounted, computed } from "vue"
 import InputNumber from "primevue/inputnumber"
 import TreeSelect from 'primevue/treeselect';
-import { getStore } from "../../js/data/storemanager.js"
+import { getModel } from "../../js/models/modelmanager.js"
 import PtjReferenceCreate from "../actions/reference-create.vue"
 import Dialog from 'primevue/dialog'
 import AutocompleteSelect from "./autocomplete-select.vue"
@@ -28,14 +28,13 @@ const props = defineProps({
     bind : {
         type : Object,
         required : true
-    }
+    },
+    data : Object
 });
 
 const model = inject("model");
 
-const repo = getStore(model);
-
-const store = repo.store;
+const store = getModel(model);
 
 const client = inject("client");
 
@@ -45,35 +44,22 @@ const dialog = ref(false);
 
 const options = ref([]);
 let value;
-let id = 0;
 
-const parent_id = 0;
-if (repo.type == "active") {
-    (async() => {
-        await repo.load()
-        .then(response => {
-            if (response['--parent']) {
-                id = response['--parent'];
-            }
-        });
-    });
-} else {
-    id = repo.parent_id;
-}
-
+const parent_id =(props.data['--parent']) ? props.data["--parent"] : 0;
 
 const cell = props.bind.cell;
 
+
+
 if (cell.isReferenceType()) {
-    onMounted(() => {
-        cell.getOptions(client, model, id)
+        cell.getOptions(client, model, parent_id)
         .then(response => {
             let arr = [...response];
             arr.unshift({value:0,label:"None"})
             options.value = arr;
         })
         .catch(e => console.log(e));
-    });  
+    
 
     value = computed({
         get() {
@@ -85,15 +71,13 @@ if (cell.isReferenceType()) {
     });
 
 } else if (cell.recursive) {
-    onMounted(() => {
-       cell.getRecursiveOptions(client, model, id, store.fields)
+       cell.getRecursiveOptions(client, model, parent_id, store.fields)
        .then(response => {
         let arr = [...response];
         arr.unshift({key : "0", label : 'None' , "--recursive" : 0});
         options.value =arr;
        })
        .catch(e => console.log(e));
-    });  
 
     value = computed({
         get() {

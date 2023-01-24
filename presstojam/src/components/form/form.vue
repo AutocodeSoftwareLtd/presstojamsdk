@@ -6,7 +6,7 @@
         <label>{{ $t("models." + store.parent + ".title")}}</label>
         <ptj-parent-select v-model="proxy_values['--parent']" :model="store.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
     </div>
-    <ptj-edit-field :bind="bindGroup.getBind(cell.name)" v-for="cell in cells" :key="cell.name"/>
+    <ptj-edit-field v-for="cell in cells" :bind="bindGroup.getBind(cell.name)" :key="cell.name" :data="data"/>
     <Button :label="$t('btns.save')" @click="submit" />
   </form>
   <Panel v-show="processing" Panel header="Processing">
@@ -85,7 +85,6 @@ function setErrors(err) {
     }
     for(let i in err) {
         const bind = bindGroup.getBind(i);
-        console.log("Setting err for ", i, err[i][0]);
         bind.error = err[i][0];
     }
 }
