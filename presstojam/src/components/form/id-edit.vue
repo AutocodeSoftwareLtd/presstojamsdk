@@ -32,9 +32,7 @@ const props = defineProps({
     data : Object
 });
 
-const model = inject("model");
-
-const store = getModel(model);
+const store = inject("model");
 
 const client = inject("client");
 

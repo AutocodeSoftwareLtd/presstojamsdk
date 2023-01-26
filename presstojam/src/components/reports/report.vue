@@ -1,32 +1,35 @@
 <template>
-    <ReportGroup group="all" />
-    <ReportGroup v-for="group in groups" :key="group" :group="group" />
+    <div>
+    <div v-for="obj in report_models" :key="obj.name">
+        <h2>Reports For {{$t("models." + obj.name + ".title", 1) }}</h2>
+        <report-display  :schema="obj" /> 
+    </div>
+    </div>
 </template>
 <script setup>
-import { getModel, clearModelCache } from "../../js/models/modelmanager.js"
-import ReportGroup from "./report-group.vue"
-import { provide, inject } from "vue"
-import { ReferenceTypes } from "../../js/entity/id";
+import { getRoot, getEntities } from "../../js/entity/entitymanager.js"
+import ReportDisplay from "./report-display.vue"
+
 
 const props = defineProps({
-    model : String,
-    id : String,
-    atts : Object
+    model : String
 });
 
-provide("model", props.model);
+const entities = getEntities();
 
+const report_models = [];
 
-clearModelCache();
-const store = getModel(props.model);
-
-const groups = [];
-for(const field_name in store.fields) {
-    const field = store.fields[field_name];
-    if (field.type == "id" && field.reference_type == ReferenceTypes.REFERENCE) {
-        groups.push(field);
-    } else if (field.type == "string" && field.isEnum()) {
-        groups.push(field);
+for(let i in entities) {
+    const entity = entities[i];
+    const parent = getRoot(entity);
+    if (parent.name == props.model) {
+        const obj = {name : entity.name, numeric : []};
+        for(const field in entity.cells) {
+            if (entity.cells[field].type == "number") {
+                obj.numeric.push(field);
+            }
+        }
+        report_models.push(obj);
     }
 }
 

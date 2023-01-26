@@ -10,22 +10,28 @@
 
     const props = defineProps({
        name : String,
-       parent: String
+       model : Object,
+       parent_id : Number
     });
 
     const i18n = inject("i18n");
     const t = i18n.t;
 
-    const header = (props.parent) 
-        ? "Add " + t("models." + props.name + ".title", 1) + " to " + t("models." + props.parent + ".title", 1)
-        : "Create " + t("models." + props.name + ".title", 1);
+ 
+    const header = (props.model.parent) 
+        ? "Add " + t("models." + props.model.name + ".title", 1) + " to " + t("models." + props.model.parent + ".title", 1)
+        : "Create " + t("models." + props.model.name + ".title", 1);
 
+    const data = {};
+    if (props.parent_id) data["--parent"] = props.parent_id;
 
     function createRow() {
       trigger("dialog_open",
         CreateEffect, 
         {
             name : props.name,
+            model : props.model,
+            data : data
         }, 
         header);
     }

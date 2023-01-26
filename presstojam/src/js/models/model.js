@@ -3,6 +3,7 @@ import { getEntity } from "../entity/entitymanager.js"
 import { ReferenceTypes } from "./../entity/id.js"
 import { getClient } from "./../client.js"
 
+
 export class Model {
 
     constructor(name, debug = false) {
@@ -157,11 +158,23 @@ export class Model {
         return client.get("/data/" + this._name + "/active", this.buildParams(filters));
     }
 
+    reloadRow(id) {
+        const client = getClient();
+        return client.get("/data/" + this._name + "/active", {"--id" : id});
+    }
+
     loadFirst(filters) {
         const client = getClient();
         return client.get("/data/" + this._name + "/first", this.buildParams(filters))
     }
 
+
+    loadReport(filters, field = null, aggregate = null) {
+        let url = "/reports/" + this._name;
+        if (field) url += "/" + field + "/" + aggregate;
+        const client = getClient();
+        return client.get( url, this.buildParams(filters));
+    }
 
     saveOrder(rows) {
         const client = getClient();
@@ -178,6 +191,7 @@ export class Model {
         if (this._to) params.__to = this._to;
         if (this._group) params.__group = this._group;
         if (this._limited_fields) params.__fields = this._limited_fields;
+        if (this._order) params.__order = this._order;
      
         if (this._limit) {
             params.__limit = this._limit;

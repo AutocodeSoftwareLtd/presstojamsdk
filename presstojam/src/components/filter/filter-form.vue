@@ -17,34 +17,38 @@
 <script setup>
 
 import PtjFilter from "./filter.vue"
-import { computed, provide } from "vue"
+import { computed, provide, ref } from "vue"
 import Button from 'primevue/button'
 import Fieldset from 'primevue/fieldset';
-import { BindGroup } from "./../../js/binds/bindgroup.js"
 import { Bind } from "./../../js/binds/bind.js"
 
 const props = defineProps({
-    store : Object
+    model : Object,
+    data : Object,
+    name : String
 });
 
-provide("model", props.store.model.name);
+provide("model", props.model.name);
 
-const group = new BindGroup();
 
 const filtercells = computed(() => {
     let filter_cells = {};
-    for(let i in props.store.fields) {
-        const field = props.store.fields[i];
+    for(let i in props.model.fields) {
+        const field = props.model.fields[i];
         if (field.background) continue;
         if (field.type == "asset" || field.type == "json") continue;
-        filter_cells[i] = new Bind(field, '');
+        filter_cells[i] = new Bind(field, props.data[i]);
     }
     return filter_cells;
 });
 
 
 function submit() {
-    props.store.reload();
+    const filters = {};
+    for(let i in filter_cells) {
+        filters[i] = filter_cells[i].value;
+    }
+    trigger("filter_form", props.name, filters);
 }
 </script>
 <style>

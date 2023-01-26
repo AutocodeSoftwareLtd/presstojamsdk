@@ -1,5 +1,5 @@
 <template>
-    <ptj-filter-form v-if="repo.pagination.rows_per_page && !store.no_filter"  :store="repo" />
+    <ptj-filter-form v-if="repo.pagination.rows_per_page && !store.no_filter"  :model="repo.store" :data="repo.filters" />
     <Message severity="success" v-if="newrow">New row created</Message>
     <Message severity="success" v-if="delrow">Rows removed</Message>
     <Message severity="success" v-if="editrow">Row Updated</Message>
@@ -20,7 +20,7 @@
                 <template #end>
                     <ptj-import-action v-if="store.import" :name="name" />
                     <ptj-export-action v-if="store.export" :name="name" />
-                    <ptj-create-action v-if="store.perms.includes('post')" :name="name" :parent="store.parent" /> 
+                    <ptj-create-action v-if="store.perms.includes('post')" :name="name" :model="store" :parent_id="parseInt(repo.parent_id)"/> 
                     <ptj-delete-action :name="name" :data="selected.value" v-if="store.perms.includes('delete')"/>
                 </template>
     </Toolbar>
@@ -48,7 +48,7 @@
         <Column :exportable="false" style="min-width:8rem">
             <template #body="slotProps">
                 <ptj-primary-action v-if="has_primary" :model="store.name" :id="slotProps.data['--id']" />
-                <edit-action v-if="store.perms.includes('put')" :data="slotProps.data" :model="store" />
+                <edit-action v-if="store.perms.includes('put')" :data="slotProps.data" :model="store" :name="name"/>
                 <audit-action v-if="store.audit" :data="slotProps.data" :model="store" />
                 <component v-for="component in store.actions" :is="component.component" v-bind="component.atts" :data="slotProps.data" :short="true" />
             </template>
@@ -102,7 +102,6 @@ const props = defineProps({
       required : true
     }
 });
-
 
 const group = ref();
 const data = ref([]);
@@ -162,28 +161,30 @@ for(let i in cells) {
 }
 
 
-
-
-subscribe("effect_created", props.name, name => {
+subscribe("effect_created", props.name, (name, response) => {
     if (props.name == name) {
         newrow.value = true;
-        repo.load()
-       .then(response => {
-         data.value = response;
+        repo.loadRow(response)
+       .then(obj => {
+         data.value.push(obj);
        });
         trigger("dialog_close");
     }
 });
 
 
-subscribe("effect_edited", props.name, name => {
+subscribe("effect_edited", props.name, (name, response) => {
     if (props.name == name) {
-        editrow.value = true;
-        trigger("dialog_close");
-        repo.load()
-       .then(response => {
-         data.value = response;
-       });
+        repo.loadRow(response)
+        .then(obj => {
+            for(const i in data.value) {
+                if (data.value[i]['--id'] == response['--id']) {
+                    data.value[i] = obj;
+                }
+            }
+            editrow.value = true;
+            trigger("dialog_close");
+        });
     }
 });
 
@@ -194,7 +195,7 @@ subscribe("effect_deleted", props.name, name => {
         trigger("dialog_close");
         repo.load()
        .then(response => {
-         data.value = response;
+         data.value[0] = response;
        });
     }
 });

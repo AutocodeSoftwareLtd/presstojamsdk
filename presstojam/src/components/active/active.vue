@@ -19,7 +19,6 @@
    </TabView>
    </Panel>
 </template>
-
 <script setup>
 import { computed, onMounted, inject, ref } from "vue"
 import { getStore } from "../../js/data/storemanager.js"
@@ -59,8 +58,14 @@ const label = computed(() => {
     return t('models.' + props.model + '.title') + ': ' + getLabel(store.fields, data.value);
 });
 
-subscribe("form_saved", repo.active_id, response => {
-    console.log(response, arguments);
+subscribe("form_saved", repo.active_id, (response, method, model) => {
+    if (model.name == props.model.name) {
+        repo.reload()
+        .then(response => {
+            data.value = response;
+        })
+        .catch(e => console.log(e));
+    }
 });
 
 if (store.route && store.active && store.active.mounted) {

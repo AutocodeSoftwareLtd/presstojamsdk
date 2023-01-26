@@ -1,4 +1,4 @@
-/*! DS Library v3.2.49 */
+/*! DS Library v3.2.53 */
 
 import { h, getCurrentInstance, inject, onMounted, onUnmounted, shallowRef, ref, computed, onBeforeMount, watch, Fragment, effectScope, isRef, createVNode, Text, reactive, openBlock, createElementBlock, renderSlot, createCommentVNode, createElementVNode, normalizeClass, resolveDirective, withDirectives, toDisplayString as toDisplayString$1, createBlock, Transition, withCtx, vShow, unref, createTextVNode, mergeProps, resolveComponent, resolveDynamicComponent, renderList, normalizeStyle, Teleport, onBeforeUnmount, normalizeProps, guardReactiveProps, createSlots, toHandlers, vModelText, withKeys, provide, withModifiers, withAsyncContext, Suspense, nextTick, defineComponent, watchEffect, pushScopeId, popScopeId } from 'vue';
 
@@ -9477,18 +9477,25 @@ function defaultEntity() {
     return name;
   }
 }
+function getRoot(entity) {
+  while (entity.parent) {
+    entity = getEntity(entity.parent);
+  }
 
-var script$1O = {
+  return entity;
+}
+
+var script$1M = {
   name: 'Card'
 };
-const _hoisted_1$Z = {
+const _hoisted_1$13 = {
   class: "p-card p-component"
 };
-const _hoisted_2$Q = {
+const _hoisted_2$T = {
   key: 0,
   class: "p-card-header"
 };
-const _hoisted_3$D = {
+const _hoisted_3$E = {
   class: "p-card-body"
 };
 const _hoisted_4$A = {
@@ -9507,11 +9514,11 @@ const _hoisted_7$d = {
   class: "p-card-footer"
 };
 
-function render$G(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$Z, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$Q, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_3$D, [_ctx.$slots.title ? (openBlock(), createElementBlock("div", _hoisted_4$A, [renderSlot(_ctx.$slots, "title")])) : createCommentVNode("", true), _ctx.$slots.subtitle ? (openBlock(), createElementBlock("div", _hoisted_5$t, [renderSlot(_ctx.$slots, "subtitle")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_6$n, [renderSlot(_ctx.$slots, "content")]), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_7$d, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)])]);
+function render$L(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$13, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$T, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_3$E, [_ctx.$slots.title ? (openBlock(), createElementBlock("div", _hoisted_4$A, [renderSlot(_ctx.$slots, "title")])) : createCommentVNode("", true), _ctx.$slots.subtitle ? (openBlock(), createElementBlock("div", _hoisted_5$t, [renderSlot(_ctx.$slots, "subtitle")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_6$n, [renderSlot(_ctx.$slots, "content")]), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_7$d, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)])]);
 }
 
-function styleInject$v(css, ref) {
+function styleInject$w(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -9540,11 +9547,11 @@ function styleInject$v(css, ref) {
   }
 }
 
-var css_248z$G = "\n.p-card-header img {\n    width: 100%;\n}\n";
-styleInject$v(css_248z$G);
-script$1O.render = render$G;
+var css_248z$H = "\n.p-card-header img {\n    width: 100%;\n}\n";
+styleInject$w(css_248z$H);
+script$1M.render = render$L;
 
-var script$1N = {
+var script$1L = {
   name: 'InputText',
   emits: ['update:modelValue'],
   props: {
@@ -9563,19 +9570,19 @@ var script$1N = {
 
   }
 };
-const _hoisted_1$Y = ["value"];
+const _hoisted_1$12 = ["value"];
 
-function render$F(_ctx, _cache, $props, $setup, $data, $options) {
+function render$K(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("input", {
     class: normalizeClass(['p-inputtext p-component', {
       'p-filled': $options.filled
     }]),
     value: $props.modelValue,
     onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
-  }, null, 42, _hoisted_1$Y);
+  }, null, 42, _hoisted_1$12);
 }
 
-script$1N.render = render$F;
+script$1L.render = render$K;
 
 let timeout;
 
@@ -9666,7 +9673,7 @@ const Ripple = {
 
 };
 
-var script$1M = {
+var script$1K = {
   name: 'Button',
   props: {
     label: {
@@ -9742,12 +9749,12 @@ var script$1M = {
     ripple: Ripple
   }
 };
-const _hoisted_1$X = ["aria-label", "disabled"];
-const _hoisted_2$P = {
+const _hoisted_1$11 = ["aria-label", "disabled"];
+const _hoisted_2$S = {
   class: "p-button-label"
 };
 
-function render$E(_ctx, _cache, $props, $setup, $data, $options) {
+function render$J(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return withDirectives((openBlock(), createElementBlock("button", {
@@ -9761,15 +9768,15 @@ function render$E(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 2)) : createCommentVNode("", true), $props.icon ? (openBlock(), createElementBlock("span", {
     key: 1,
     class: normalizeClass($options.iconStyleClass)
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_2$P, toDisplayString$1($props.label || ' '), 1), $props.badge ? (openBlock(), createElementBlock("span", {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_2$S, toDisplayString$1($props.label || ' '), 1), $props.badge ? (openBlock(), createElementBlock("span", {
     key: 2,
     class: normalizeClass($options.badgeStyleClass)
-  }, toDisplayString$1($props.badge), 3)) : createCommentVNode("", true)])], 10, _hoisted_1$X)), [[_directive_ripple]]);
+  }, toDisplayString$1($props.badge), 3)) : createCommentVNode("", true)])], 10, _hoisted_1$11)), [[_directive_ripple]]);
 }
 
-script$1M.render = render$E;
+script$1K.render = render$J;
 
-var script$1L = {
+var script$1J = {
   name: 'Message',
   emits: ['close'],
   props: {
@@ -9840,14 +9847,14 @@ var script$1L = {
     ripple: Ripple
   }
 };
-const _hoisted_1$W = {
+const _hoisted_1$10 = {
   class: "p-message-wrapper"
 };
-const _hoisted_2$O = {
+const _hoisted_2$R = {
   class: "p-message-text"
 };
 
-function render$D(_ctx, _cache, $props, $setup, $data, $options) {
+function render$I(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createBlock(Transition, {
@@ -9857,9 +9864,9 @@ function render$D(_ctx, _cache, $props, $setup, $data, $options) {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
       class: normalizeClass($options.containerClass),
       role: "alert"
-    }, [createElementVNode("div", _hoisted_1$W, [createElementVNode("span", {
+    }, [createElementVNode("div", _hoisted_1$10, [createElementVNode("span", {
       class: normalizeClass($options.iconClass)
-    }, null, 2), createElementVNode("div", _hoisted_2$O, [renderSlot(_ctx.$slots, "default")]), $props.closable ? withDirectives((openBlock(), createElementBlock("button", {
+    }, null, 2), createElementVNode("div", _hoisted_2$R, [renderSlot(_ctx.$slots, "default")]), $props.closable ? withDirectives((openBlock(), createElementBlock("button", {
       key: 0,
       class: "p-message-close p-link",
       onClick: _cache[0] || (_cache[0] = $event => $options.close($event)),
@@ -9871,7 +9878,7 @@ function render$D(_ctx, _cache, $props, $setup, $data, $options) {
   });
 }
 
-function styleInject$u(css, ref) {
+function styleInject$v(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -9900,13 +9907,13 @@ function styleInject$u(css, ref) {
   }
 }
 
-var css_248z$F = "\n.p-message-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-message-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-message-close.p-link {\n    margin-left: auto;\n    overflow: hidden;\n    position: relative;\n}\n.p-message-enter-from {\n    opacity: 0;\n}\n.p-message-enter-active {\n    -webkit-transition: opacity 0.3s;\n    transition: opacity 0.3s;\n}\n.p-message.p-message-leave-from {\n    max-height: 1000px;\n}\n.p-message.p-message-leave-to {\n    max-height: 0;\n    opacity: 0;\n    margin: 0 !important;\n}\n.p-message-leave-active {\n    overflow: hidden;\n    -webkit-transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n    transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n}\n.p-message-leave-active .p-message-close {\n    display: none;\n}\n";
-styleInject$u(css_248z$F);
-script$1L.render = render$D;
+var css_248z$G = "\n.p-message-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-message-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-message-close.p-link {\n    margin-left: auto;\n    overflow: hidden;\n    position: relative;\n}\n.p-message-enter-from {\n    opacity: 0;\n}\n.p-message-enter-active {\n    -webkit-transition: opacity 0.3s;\n    transition: opacity 0.3s;\n}\n.p-message.p-message-leave-from {\n    max-height: 1000px;\n}\n.p-message.p-message-leave-to {\n    max-height: 0;\n    opacity: 0;\n    margin: 0 !important;\n}\n.p-message-leave-active {\n    overflow: hidden;\n    -webkit-transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n    transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n}\n.p-message-leave-active .p-message-close {\n    display: none;\n}\n";
+styleInject$v(css_248z$G);
+script$1J.render = render$I;
 
-const _hoisted_1$V = /*#__PURE__*/createElementVNode("h2", null, "Login", -1 /* HOISTED */);
-const _hoisted_2$N = { class: "field row" };
-const _hoisted_3$C = { class: "p-float-label" };
+const _hoisted_1$$ = /*#__PURE__*/createElementVNode("h2", null, "Login", -1 /* HOISTED */);
+const _hoisted_2$Q = { class: "field row" };
+const _hoisted_3$D = { class: "p-float-label" };
 const _hoisted_4$z = /*#__PURE__*/createElementVNode("label", { for: "lusername" }, "Username", -1 /* HOISTED */);
 const _hoisted_5$s = { class: "field row" };
 const _hoisted_6$m = { class: "p-float-label" };
@@ -9915,7 +9922,7 @@ const _hoisted_8$a = { class: "row" };
 
 
 
-var script$1K = {
+var script$1I = {
   setup(__props) {
 
 const Client = inject("client");
@@ -9948,8 +9955,8 @@ function submit() {
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock("form", null, [
-    _hoisted_1$V,
-    withDirectives(createVNode(unref(script$1L), { severity: "error" }, {
+    _hoisted_1$$,
+    withDirectives(createVNode(unref(script$1J), { severity: "error" }, {
       default: withCtx(() => [
         createTextVNode(toDisplayString$1(error.value), 1 /* TEXT */)
       ]),
@@ -9957,9 +9964,9 @@ return (_ctx, _cache) => {
     }, 512 /* NEED_PATCH */), [
       [vShow, error.value]
     ]),
-    createElementVNode("div", _hoisted_2$N, [
-      createElementVNode("span", _hoisted_3$C, [
-        createVNode(unref(script$1N), {
+    createElementVNode("div", _hoisted_2$Q, [
+      createElementVNode("span", _hoisted_3$D, [
+        createVNode(unref(script$1L), {
           id: "lusername",
           type: "text",
           modelValue: email.value,
@@ -9970,7 +9977,7 @@ return (_ctx, _cache) => {
     ]),
     createElementVNode("div", _hoisted_5$s, [
       createElementVNode("span", _hoisted_6$m, [
-        createVNode(unref(script$1N), {
+        createVNode(unref(script$1L), {
           id: "lpassword",
           type: "password",
           modelValue: password.value,
@@ -9980,7 +9987,7 @@ return (_ctx, _cache) => {
       ])
     ]),
     createElementVNode("div", _hoisted_8$a, [
-      createVNode(unref(script$1M), {
+      createVNode(unref(script$1K), {
         label: _ctx.$t('btns.login'),
         onClick: submit
       }, null, 8 /* PROPS */, ["label"])
@@ -9991,7 +9998,7 @@ return (_ctx, _cache) => {
 
 };
 
-function styleInject$t(css, ref) {
+function styleInject$u(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -10020,12 +10027,12 @@ function styleInject$t(css, ref) {
   }
 }
 
-var css_248z$E = "\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx {\r\n        width : 450px;\r\n        margin-left : auto;\r\n        margin-right : auto;\n}\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx > form > div {\r\n        margin-bottom :28px;\n}\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx input {\r\n        width : 100%;\n}\r\n";
-styleInject$t(css_248z$E);
+var css_248z$F = "\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx {\r\n        width : 450px;\r\n        margin-left : auto;\r\n        margin-right : auto;\n}\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx > form > div {\r\n        margin-bottom :28px;\n}\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx input {\r\n        width : 100%;\n}\r\n";
+styleInject$u(css_248z$F);
 
-script$1K.__file = "presstojam/src/components/account/login.vue";
+script$1I.__file = "presstojam/src/components/account/login.vue";
 
-var script$1J = {
+var script$1H = {
   name: 'Checkbox',
   emits: ['click', 'update:modelValue', 'change', 'input', 'focus', 'blur'],
   props: {
@@ -10137,16 +10144,16 @@ var script$1J = {
 
   }
 };
-const _hoisted_1$U = {
+const _hoisted_1$_ = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$M = ["id", "value", "name", "checked", "tabindex", "disabled", "readonly", "required", "aria-labelledby", "aria-label"];
+const _hoisted_2$P = ["id", "value", "name", "checked", "tabindex", "disabled", "readonly", "required", "aria-labelledby", "aria-label"];
 
-function render$C(_ctx, _cache, $props, $setup, $data, $options) {
+function render$H(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass),
     onClick: _cache[2] || (_cache[2] = $event => $options.onClick($event))
-  }, [createElementVNode("div", _hoisted_1$U, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$_, [createElementVNode("input", mergeProps({
     ref: "input",
     id: $props.inputId,
     type: "checkbox",
@@ -10163,7 +10170,7 @@ function render$C(_ctx, _cache, $props, $setup, $data, $options) {
     "aria-label": _ctx.ariaLabel,
     onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
     onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event))
-  }, $props.inputProps), null, 16, _hoisted_2$M)]), createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$P)]), createElementVNode("div", {
     ref: "box",
     class: normalizeClass(['p-checkbox-box', {
       'p-highlight': $options.checked,
@@ -10177,11 +10184,11 @@ function render$C(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 2)], 2)], 2);
 }
 
-script$1J.render = render$C;
+script$1H.render = render$H;
 
-const _hoisted_1$T = { class: "ptj-register" };
-const _hoisted_2$L = /*#__PURE__*/createElementVNode("h2", null, "Register", -1 /* HOISTED */);
-const _hoisted_3$B = { class: "row" };
+const _hoisted_1$Z = { class: "ptj-register" };
+const _hoisted_2$O = /*#__PURE__*/createElementVNode("h2", null, "Register", -1 /* HOISTED */);
+const _hoisted_3$C = { class: "row" };
 const _hoisted_4$y = { class: "p-float-label" };
 const _hoisted_5$r = /*#__PURE__*/createElementVNode("label", { for: "cusername" }, "Username", -1 /* HOISTED */);
 const _hoisted_6$l = { class: "row" };
@@ -10196,7 +10203,7 @@ const _hoisted_14$4 = { class: "row" };
 
 
    
-var script$1I = {
+var script$1G = {
   setup(__props) {
 
    const Client = inject("client");
@@ -10254,9 +10261,9 @@ var script$1I = {
    } 
    
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("form", _hoisted_1$T, [
-    _hoisted_2$L,
-    withDirectives(createVNode(unref(script$1L), { severity: "error" }, {
+  return (openBlock(), createElementBlock("form", _hoisted_1$Z, [
+    _hoisted_2$O,
+    withDirectives(createVNode(unref(script$1J), { severity: "error" }, {
       default: withCtx(() => [
         createTextVNode(toDisplayString$1(error.value), 1 /* TEXT */)
       ]),
@@ -10264,9 +10271,9 @@ return (_ctx, _cache) => {
     }, 512 /* NEED_PATCH */), [
       [vShow, error.value]
     ]),
-    createElementVNode("div", _hoisted_3$B, [
+    createElementVNode("div", _hoisted_3$C, [
       createElementVNode("span", _hoisted_4$y, [
-        createVNode(unref(script$1N), {
+        createVNode(unref(script$1L), {
           id: "cusername",
           type: "text",
           modelValue: username.value,
@@ -10277,7 +10284,7 @@ return (_ctx, _cache) => {
     ]),
     createElementVNode("div", _hoisted_6$l, [
       createElementVNode("span", _hoisted_7$b, [
-        createVNode(unref(script$1N), {
+        createVNode(unref(script$1L), {
           id: "cpassword",
           type: "password",
           modelValue: password.value,
@@ -10288,7 +10295,7 @@ return (_ctx, _cache) => {
     ]),
     createElementVNode("div", _hoisted_9$6, [
       createElementVNode("span", _hoisted_10$6, [
-        createVNode(unref(script$1N), {
+        createVNode(unref(script$1L), {
           id: "cconfirm_password",
           type: "password",
           modelValue: conf_password.value,
@@ -10298,7 +10305,7 @@ return (_ctx, _cache) => {
       ])
     ]),
     createElementVNode("div", _hoisted_12$6, [
-      createVNode(unref(script$1J), {
+      createVNode(unref(script$1H), {
         modelValue: terms.value,
         "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => ((terms).value = $event)),
         binary: true
@@ -10306,7 +10313,7 @@ return (_ctx, _cache) => {
       _hoisted_13$5
     ]),
     createElementVNode("div", _hoisted_14$4, [
-      createVNode(unref(script$1M), {
+      createVNode(unref(script$1K), {
         label: _ctx.$t('btns.create'),
         onClick: submit
       }, null, 8 /* PROPS */, ["label"])
@@ -10317,21 +10324,21 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$D = "\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- > form > div {\r\n           margin-bottom :28px;\n}\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- input {\r\n           width : 100%;\n}\r\n   ";
-styleInject$t(css_248z$D);
+var css_248z$E = "\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- > form > div {\r\n           margin-bottom :28px;\n}\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- input {\r\n           width : 100%;\n}\r\n   ";
+styleInject$u(css_248z$E);
 
-script$1I.__file = "presstojam/src/components/account/register.vue";
+script$1G.__file = "presstojam/src/components/account/register.vue";
 
-const _hoisted_1$S = { class: "ptj-register" };
-const _hoisted_2$K = /*#__PURE__*/createElementVNode("h2", null, "Forgotten Password", -1 /* HOISTED */);
-const _hoisted_3$A = { class: "row" };
+const _hoisted_1$Y = { class: "ptj-register" };
+const _hoisted_2$N = /*#__PURE__*/createElementVNode("h2", null, "Forgotten Password", -1 /* HOISTED */);
+const _hoisted_3$B = { class: "row" };
 const _hoisted_4$x = { class: "p-float-label" };
 const _hoisted_5$q = /*#__PURE__*/createElementVNode("label", { for: "fusername" }, "Username", -1 /* HOISTED */);
 const _hoisted_6$k = { class: "row" };
    
    
    
-var script$1H = {
+var script$1F = {
   setup(__props) {
 
    const Client = inject("client");
@@ -10355,14 +10362,14 @@ var script$1H = {
     } 
    
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("form", _hoisted_1$S, [
-    _hoisted_2$K,
+  return (openBlock(), createElementBlock("form", _hoisted_1$Y, [
+    _hoisted_2$N,
     withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(error.value), 513 /* TEXT, NEED_PATCH */), [
       [vShow, error.value]
     ]),
-    createElementVNode("div", _hoisted_3$A, [
+    createElementVNode("div", _hoisted_3$B, [
       createElementVNode("span", _hoisted_4$x, [
-        createVNode(unref(script$1N), {
+        createVNode(unref(script$1L), {
           id: "fusername",
           type: "text",
           modelValue: username.value,
@@ -10372,7 +10379,7 @@ return (_ctx, _cache) => {
       ])
     ]),
     createElementVNode("div", _hoisted_6$k, [
-      createVNode(unref(script$1M), {
+      createVNode(unref(script$1K), {
         label: _ctx.$t('btns.forgot', 'send new password'),
         onClick: submit
       }, null, 8 /* PROPS */, ["label"])
@@ -10383,20 +10390,20 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$C = "\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj > form > div {\r\n           margin-bottom :28px;\n}\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj input {\r\n           width : 100%;\n}\r\n   ";
-styleInject$t(css_248z$C);
+var css_248z$D = "\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj > form > div {\r\n           margin-bottom :28px;\n}\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj input {\r\n           width : 100%;\n}\r\n   ";
+styleInject$u(css_248z$D);
 
-script$1H.__file = "presstojam/src/components/account/forgottenpassword.vue";
+script$1F.__file = "presstojam/src/components/account/forgottenpassword.vue";
 
-const _hoisted_1$R = /*#__PURE__*/createTextVNode(" Account ");
-const _hoisted_2$J = { class: "ptj-login" };
-const _hoisted_3$z = { class: "row" };
+const _hoisted_1$X = /*#__PURE__*/createTextVNode(" Account ");
+const _hoisted_2$M = { class: "ptj-login" };
+const _hoisted_3$A = { class: "row" };
 const _hoisted_4$w = /*#__PURE__*/createTextVNode(" | ");
 const _hoisted_5$p = /*#__PURE__*/createTextVNode(" | ");
    
    
    
-var script$1G = {
+var script$1E = {
   setup(__props) {
 
    inject("client");
@@ -10411,22 +10418,22 @@ var script$1G = {
    
    
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1O), null, {
+  return (openBlock(), createBlock(unref(script$1M), null, {
     title: withCtx(() => [
-      _hoisted_1$R
+      _hoisted_1$X
     ]),
     content: withCtx(() => [
-      createElementVNode("div", _hoisted_2$J, [
-        withDirectives(createVNode(script$1K, null, null, 512 /* NEED_PATCH */), [
+      createElementVNode("div", _hoisted_2$M, [
+        withDirectives(createVNode(script$1I, null, null, 512 /* NEED_PATCH */), [
           [vShow, state.value=='login']
         ]),
-        withDirectives(createVNode(script$1I, null, null, 512 /* NEED_PATCH */), [
+        withDirectives(createVNode(script$1G, null, null, 512 /* NEED_PATCH */), [
           [vShow, state.value=='create']
         ]),
-        withDirectives(createVNode(script$1H, null, null, 512 /* NEED_PATCH */), [
+        withDirectives(createVNode(script$1F, null, null, 512 /* NEED_PATCH */), [
           [vShow, state.value=='forgotpassword']
         ]),
-        createElementVNode("div", _hoisted_3$z, [
+        createElementVNode("div", _hoisted_3$A, [
           createElementVNode("a", {
             onClick: _cache[0] || (_cache[0] = $event => (toggleState('login')))
           }, "Login"),
@@ -10448,17 +10455,17 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$B = "\n.account-vue-vue-type-style-index-0-id-4e65ef54-lang_ptj-login__YiA4y {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\r\n   \r\n   ";
-styleInject$t(css_248z$B);
+var css_248z$C = "\n.account-vue-vue-type-style-index-0-id-4e65ef54-lang_ptj-login__YiA4y {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\r\n   \r\n   ";
+styleInject$u(css_248z$C);
 
-script$1G.__file = "presstojam/src/components/account/account.vue";
+script$1E.__file = "presstojam/src/components/account/account.vue";
 
 var account = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  'default': script$1G
+  'default': script$1E
 });
 
-function render$B(_ctx, _cache) {
+function render$G(_ctx, _cache) {
   const _component_router_view = resolveComponent("router-view");
 
   return (openBlock(), createBlock(_component_router_view, null, {
@@ -10480,13 +10487,13 @@ function render$B(_ctx, _cache) {
   }))
 }
 
-var css_248z$A = "\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  transition-property: opacity;\r\n  transition-duration: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs {\r\n  transition-delay: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter__T5pru, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  opacity: 0\n}\r\n";
-styleInject$t(css_248z$A);
+var css_248z$B = "\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  transition-property: opacity;\r\n  transition-duration: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs {\r\n  transition-delay: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter__T5pru, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  opacity: 0\n}\r\n";
+styleInject$u(css_248z$B);
 
-const script$1F = {};
+const script$1D = {};
 
-script$1F.render = render$B;
-script$1F.__file = "presstojam/src/components/routes.vue";
+script$1D.render = render$G;
+script$1D.__file = "presstojam/src/components/routes.vue";
 
 var script$1$7 = {
   name: 'MenubarSub',
@@ -10753,7 +10760,7 @@ function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$7.render = render$1$7;
-var script$1E = {
+var script$1C = {
   name: 'Menubar',
   emits: ['focus', 'blur'],
   props: {
@@ -11404,29 +11411,29 @@ var script$1E = {
     MenubarSub: script$1$7
   }
 };
-const _hoisted_1$Q = {
+const _hoisted_1$W = {
   key: 0,
   class: "p-menubar-start"
 };
-const _hoisted_2$I = ["aria-haspopup", "aria-expanded", "aria-controls", "aria-label"];
+const _hoisted_2$L = ["aria-haspopup", "aria-expanded", "aria-controls", "aria-label"];
 
-const _hoisted_3$y = /*#__PURE__*/createElementVNode("i", {
+const _hoisted_3$z = /*#__PURE__*/createElementVNode("i", {
   class: "pi pi-bars"
 }, null, -1);
 
-const _hoisted_4$v = [_hoisted_3$y];
+const _hoisted_4$v = [_hoisted_3$z];
 const _hoisted_5$o = {
   key: 2,
   class: "p-menubar-end"
 };
 
-function render$A(_ctx, _cache, $props, $setup, $data, $options) {
+function render$F(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_MenubarSub = resolveComponent("MenubarSub");
 
   return openBlock(), createElementBlock("div", {
     ref: $options.containerRef,
     class: normalizeClass($options.containerClass)
-  }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_1$Q, [renderSlot(_ctx.$slots, "start")])) : createCommentVNode("", true), $props.model.length > 0 ? (openBlock(), createElementBlock("a", mergeProps({
+  }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_1$W, [renderSlot(_ctx.$slots, "start")])) : createCommentVNode("", true), $props.model.length > 0 ? (openBlock(), createElementBlock("a", mergeProps({
     key: 1,
     ref: "menubutton",
     role: "button",
@@ -11438,7 +11445,7 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
     "aria-label": _ctx.$primevue.config.locale.aria.navigation,
     onClick: _cache[0] || (_cache[0] = $event => $options.menuButtonClick($event)),
     onKeydown: _cache[1] || (_cache[1] = $event => $options.menuButtonKeydown($event))
-  }, $props.buttonProps), _hoisted_4$v, 16, _hoisted_2$I)) : createCommentVNode("", true), createVNode(_component_MenubarSub, {
+  }, $props.buttonProps), _hoisted_4$v, 16, _hoisted_2$L)) : createCommentVNode("", true), createVNode(_component_MenubarSub, {
     ref: $options.menubarRef,
     id: $options.id,
     class: "p-menubar-root-list",
@@ -11464,7 +11471,7 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["id", "items", "template", "mobileActive", "aria-activedescendant", "menuId", "focusedItemId", "activeItemPath", "exact", "aria-labelledby", "aria-label", "onFocus", "onBlur", "onKeydown", "onItemClick", "onItemMouseenter"]), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_5$o, [renderSlot(_ctx.$slots, "end")])) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$s(css, ref) {
+function styleInject$t(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -11493,13 +11500,13 @@ function styleInject$s(css, ref) {
   }
 }
 
-var css_248z$z = "\n.p-menubar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-menubar ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menubar .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menubar .p-menuitem-text {\n    line-height: 1;\n}\n.p-menubar .p-menuitem {\n    position: relative;\n}\n.p-menubar-root-list {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-menubar-root-list > li ul {\n    display: none;\n    z-index: 1;\n}\n.p-menubar-root-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n}\n.p-menubar .p-submenu-list {\n    display: none;\n    position: absolute;\n    z-index: 1;\n}\n.p-menubar .p-submenu-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n    left: 100%;\n    top: 0;\n}\n.p-menubar .p-submenu-list .p-menuitem .p-menuitem-content .p-menuitem-link .p-submenu-icon {\n    margin-left: auto;\n}\n.p-menubar .p-menubar-end {\n    margin-left: auto;\n    -ms-flex-item-align: center;\n        align-self: center;\n}\n.p-menubar-button {\n    display: none;\n    cursor: pointer;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    text-decoration: none;\n}\n";
-styleInject$s(css_248z$z);
-script$1E.render = render$A;
+var css_248z$A = "\n.p-menubar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-menubar ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menubar .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menubar .p-menuitem-text {\n    line-height: 1;\n}\n.p-menubar .p-menuitem {\n    position: relative;\n}\n.p-menubar-root-list {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-menubar-root-list > li ul {\n    display: none;\n    z-index: 1;\n}\n.p-menubar-root-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n}\n.p-menubar .p-submenu-list {\n    display: none;\n    position: absolute;\n    z-index: 1;\n}\n.p-menubar .p-submenu-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n    left: 100%;\n    top: 0;\n}\n.p-menubar .p-submenu-list .p-menuitem .p-menuitem-content .p-menuitem-link .p-submenu-icon {\n    margin-left: auto;\n}\n.p-menubar .p-menubar-end {\n    margin-left: auto;\n    -ms-flex-item-align: center;\n        align-self: center;\n}\n.p-menubar-button {\n    display: none;\n    cursor: pointer;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    text-decoration: none;\n}\n";
+styleInject$t(css_248z$A);
+script$1C.render = render$F;
 
 var OverlayEventBus = primebus();
 
-var script$1D = {
+var script$1B = {
   name: 'Portal',
   props: {
     appendTo: {
@@ -11530,7 +11537,7 @@ var script$1D = {
   }
 };
 
-function render$z(_ctx, _cache, $props, $setup, $data, $options) {
+function render$E(_ctx, _cache, $props, $setup, $data, $options) {
   return $options.inline ? renderSlot(_ctx.$slots, "default", {
     key: 0
   }) : $data.mounted ? (openBlock(), createBlock(Teleport, {
@@ -11539,7 +11546,7 @@ function render$z(_ctx, _cache, $props, $setup, $data, $options) {
   }, [renderSlot(_ctx.$slots, "default")], 8, ["to"])) : createCommentVNode("", true);
 }
 
-script$1D.render = render$z;
+script$1B.render = render$E;
 
 var script$1$6 = {
   name: 'Menuitem',
@@ -11674,7 +11681,7 @@ function render$1$6(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$6.render = render$1$6;
-var script$1C = {
+var script$1A = {
   name: 'Menu',
   inheritAttrs: false,
   emits: ['show', 'hide', 'focus', 'blur'],
@@ -12053,14 +12060,14 @@ var script$1C = {
   },
   components: {
     PVMenuitem: script$1$6,
-    Portal: script$1D
+    Portal: script$1B
   }
 };
-const _hoisted_1$P = ["id"];
-const _hoisted_2$H = ["id", "tabindex", "aria-activedescendant", "aria-label", "aria-labelledby"];
-const _hoisted_3$x = ["id"];
+const _hoisted_1$V = ["id"];
+const _hoisted_2$K = ["id", "tabindex", "aria-activedescendant", "aria-label", "aria-labelledby"];
+const _hoisted_3$y = ["id"];
 
-function render$y(_ctx, _cache, $props, $setup, $data, $options) {
+function render$D(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_PVMenuitem = resolveComponent("PVMenuitem");
 
   const _component_Portal = resolveComponent("Portal");
@@ -12106,7 +12113,7 @@ function render$y(_ctx, _cache, $props, $setup, $data, $options) {
           role: "none"
         }, [renderSlot(_ctx.$slots, "item", {
           item: item
-        }, () => [createTextVNode(toDisplayString$1($options.label(item)), 1)])], 8, _hoisted_3$x)) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(item.items, (child, j) => {
+        }, () => [createTextVNode(toDisplayString$1($options.label(item)), 1)])], 8, _hoisted_3$y)) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(item.items, (child, j) => {
           return openBlock(), createElementBlock(Fragment, {
             key: child.label + i + '_' + j
           }, [$options.visible(child) && !child.separator ? (openBlock(), createBlock(_component_PVMenuitem, {
@@ -12137,14 +12144,14 @@ function render$y(_ctx, _cache, $props, $setup, $data, $options) {
           focusedOptionId: $options.focusedOptionId,
           onItemClick: $options.itemClick
         }, null, 8, ["id", "item", "template", "exact", "focusedOptionId", "onItemClick"]))], 64);
-      }), 128))], 40, _hoisted_2$H)], 16, _hoisted_1$P)) : createCommentVNode("", true)]),
+      }), 128))], 40, _hoisted_2$K)], 16, _hoisted_1$V)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo", "disabled"]);
 }
 
-function styleInject$r(css, ref) {
+function styleInject$s(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -12173,19 +12180,19 @@ function styleInject$r(css, ref) {
   }
 }
 
-var css_248z$y = "\n.p-menu-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-menu ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menu .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menu .p-menuitem-text {\n    line-height: 1;\n}\n";
-styleInject$r(css_248z$y);
-script$1C.render = render$y;
+var css_248z$z = "\n.p-menu-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-menu ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menu .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menu .p-menuitem-text {\n    line-height: 1;\n}\n";
+styleInject$s(css_248z$z);
+script$1A.render = render$D;
 
-const _hoisted_1$O = ["href", "onClick"];
-const _hoisted_2$G = { key: 1 };
-const _hoisted_3$w = ["href", "onClick"];
+const _hoisted_1$U = ["href", "onClick"];
+const _hoisted_2$J = { key: 1 };
+const _hoisted_3$x = ["href", "onClick"];
 const _hoisted_4$t = ["onClick"];
 const _hoisted_5$m = { key: 1 };
 const _hoisted_6$i = ["onClick"];
 
 
-var script$1B = {
+var script$1z = {
   props: {
     name : [String, Object]
 },
@@ -12285,7 +12292,7 @@ const toggleReports = (event) => {
 return (_ctx, _cache) => {
   const _component_router_link = resolveComponent("router-link");
 
-  return (openBlock(), createBlock(unref(script$1E), { model: items.value }, {
+  return (openBlock(), createBlock(unref(script$1C), { model: items.value }, {
     item: withCtx(({item}) => [
       (item.is_report == false)
         ? (openBlock(), createBlock(_component_router_link, {
@@ -12297,16 +12304,16 @@ return (_ctx, _cache) => {
                 href: href,
                 onClick: navigate,
                 class: normalizeClass(["p-menuitem-link p-menuitem-content", {'active-link': isActive, 'active-link-exact': isExactActive}])
-              }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_1$O)
+              }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_1$U)
             ]),
             _: 2 /* DYNAMIC */
           }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"]))
-        : (openBlock(), createElementBlock("div", _hoisted_2$G, [
+        : (openBlock(), createElementBlock("div", _hoisted_2$J, [
             createElementVNode("a", {
               class: "p-menuitem-link p-menuitem-content",
               onClick: toggleReports
             }, "Reports"),
-            createVNode(unref(script$1C), {
+            createVNode(unref(script$1A), {
               id: "report_menu",
               ref_key: "report_menu",
               ref: report_menu,
@@ -12322,7 +12329,7 @@ return (_ctx, _cache) => {
                       href: href,
                       onClick: navigate,
                       class: normalizeClass(["p-menuitem-link p-menuitem-content", {'active-link': isActive, 'active-link-exact': isExactActive}])
-                    }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_3$w)
+                    }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_3$x)
                   ]),
                   _: 2 /* DYNAMIC */
                 }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"])
@@ -12332,7 +12339,7 @@ return (_ctx, _cache) => {
           ]))
     ]),
     end: withCtx(() => [
-      createVNode(unref(script$1M), {
+      createVNode(unref(script$1K), {
         type: "button",
         label: "Toggle",
         onClick: toggle,
@@ -12344,7 +12351,7 @@ return (_ctx, _cache) => {
         ]),
         _: 1 /* STABLE */
       }),
-      createVNode(unref(script$1C), {
+      createVNode(unref(script$1A), {
         id: "overlay_menu",
         ref_key: "menu",
         ref: menu,
@@ -12382,7 +12389,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$1B.__file = "presstojam/src/components/nav/nav.vue";
+script$1z.__file = "presstojam/src/components/nav/nav.vue";
 
 let element,
     firstVNode,
@@ -12470,7 +12477,7 @@ const FocusTrap = {
 
 };
 
-var script$1A = {
+var script$1y = {
   name: 'Dialog',
   inheritAttrs: false,
   emits: ['update:visible', 'show', 'hide', 'after-hide', 'maximize', 'unmaximize', 'dragend'],
@@ -12954,18 +12961,18 @@ var script$1A = {
     focustrap: FocusTrap
   },
   components: {
-    Portal: script$1D
+    Portal: script$1B
   }
 };
-const _hoisted_1$N = ["aria-labelledby", "aria-modal"];
-const _hoisted_2$F = ["id"];
-const _hoisted_3$v = {
+const _hoisted_1$T = ["aria-labelledby", "aria-modal"];
+const _hoisted_2$I = ["id"];
+const _hoisted_3$w = {
   class: "p-dialog-header-icons"
 };
 const _hoisted_4$s = ["tabindex"];
 const _hoisted_5$l = ["aria-label"];
 
-function render$x(_ctx, _cache, $props, $setup, $data, $options) {
+function render$C(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Portal = resolveComponent("Portal");
 
   const _directive_ripple = resolveDirective("ripple");
@@ -13005,7 +13012,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
         key: 0,
         id: $options.ariaLabelledById,
         class: "p-dialog-title"
-      }, toDisplayString$1($props.header), 9, _hoisted_2$F)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$v, [$props.maximizable ? withDirectives((openBlock(), createElementBlock("button", {
+      }, toDisplayString$1($props.header), 9, _hoisted_2$I)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$w, [$props.maximizable ? withDirectives((openBlock(), createElementBlock("button", {
         key: 0,
         ref: $options.maximizableRef,
         autofocus: "",
@@ -13033,7 +13040,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
         key: 1,
         ref: $options.footerContainerRef,
         class: "p-dialog-footer"
-      }, [renderSlot(_ctx.$slots, "footer", {}, () => [createTextVNode(toDisplayString$1($props.footer), 1)])], 512)) : createCommentVNode("", true)], 16, _hoisted_1$N)), [[_directive_focustrap, {
+      }, [renderSlot(_ctx.$slots, "footer", {}, () => [createTextVNode(toDisplayString$1($props.footer), 1)])], 512)) : createCommentVNode("", true)], 16, _hoisted_1$T)), [[_directive_focustrap, {
         focusTrapDisabled: !$props.modal
       }]]) : createCommentVNode("", true)]),
       _: 3
@@ -13042,7 +13049,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"]);
 }
 
-function styleInject$q(css, ref) {
+function styleInject$r(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -13071,9 +13078,9 @@ function styleInject$q(css, ref) {
   }
 }
 
-var css_248z$x = "\n.p-dialog-mask {\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    pointer-events: none;\n}\n.p-dialog-mask.p-component-overlay {\n    pointer-events: auto;\n}\n.p-dialog {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    pointer-events: auto;\n    max-height: 90%;\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n.p-dialog-content {\n    overflow-y: auto;\n}\n.p-dialog-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog-footer {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog .p-dialog-header-icons {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-dialog .p-dialog-header-icon {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Fluid */\n.p-fluid .p-dialog-footer .p-button {\n    width: auto;\n}\n\n/* Animation */\n/* Center */\n.p-dialog-enter-active {\n    -webkit-transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n}\n.p-dialog-leave-active {\n    -webkit-transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n.p-dialog-enter-from,\n.p-dialog-leave-to {\n    opacity: 0;\n    -webkit-transform: scale(0.7);\n            transform: scale(0.7);\n}\n\n/* Top, Bottom, Left, Right, Top* and Bottom* */\n.p-dialog-top .p-dialog,\n.p-dialog-bottom .p-dialog,\n.p-dialog-left .p-dialog,\n.p-dialog-right .p-dialog,\n.p-dialog-topleft .p-dialog,\n.p-dialog-topright .p-dialog,\n.p-dialog-bottomleft .p-dialog,\n.p-dialog-bottomright .p-dialog {\n    margin: 0.75rem;\n    -webkit-transform: translate3d(0px, 0px, 0px);\n            transform: translate3d(0px, 0px, 0px);\n}\n.p-dialog-top .p-dialog-enter-active,\n.p-dialog-top .p-dialog-leave-active,\n.p-dialog-bottom .p-dialog-enter-active,\n.p-dialog-bottom .p-dialog-leave-active,\n.p-dialog-left .p-dialog-enter-active,\n.p-dialog-left .p-dialog-leave-active,\n.p-dialog-right .p-dialog-enter-active,\n.p-dialog-right .p-dialog-leave-active,\n.p-dialog-topleft .p-dialog-enter-active,\n.p-dialog-topleft .p-dialog-leave-active,\n.p-dialog-topright .p-dialog-enter-active,\n.p-dialog-topright .p-dialog-leave-active,\n.p-dialog-bottomleft .p-dialog-enter-active,\n.p-dialog-bottomleft .p-dialog-leave-active,\n.p-dialog-bottomright .p-dialog-enter-active,\n.p-dialog-bottomright .p-dialog-leave-active {\n    -webkit-transition: all 0.3s ease-out;\n    transition: all 0.3s ease-out;\n}\n.p-dialog-top .p-dialog-enter-from,\n.p-dialog-top .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, -100%, 0px);\n            transform: translate3d(0px, -100%, 0px);\n}\n.p-dialog-bottom .p-dialog-enter-from,\n.p-dialog-bottom .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, 100%, 0px);\n            transform: translate3d(0px, 100%, 0px);\n}\n.p-dialog-left .p-dialog-enter-from,\n.p-dialog-left .p-dialog-leave-to,\n.p-dialog-topleft .p-dialog-enter-from,\n.p-dialog-topleft .p-dialog-leave-to,\n.p-dialog-bottomleft .p-dialog-enter-from,\n.p-dialog-bottomleft .p-dialog-leave-to {\n    -webkit-transform: translate3d(-100%, 0px, 0px);\n            transform: translate3d(-100%, 0px, 0px);\n}\n.p-dialog-right .p-dialog-enter-from,\n.p-dialog-right .p-dialog-leave-to,\n.p-dialog-topright .p-dialog-enter-from,\n.p-dialog-topright .p-dialog-leave-to,\n.p-dialog-bottomright .p-dialog-enter-from,\n.p-dialog-bottomright .p-dialog-leave-to {\n    -webkit-transform: translate3d(100%, 0px, 0px);\n            transform: translate3d(100%, 0px, 0px);\n}\n\n/* Maximize */\n.p-dialog-maximized {\n    -webkit-transition: none;\n    transition: none;\n    -webkit-transform: none;\n            transform: none;\n    width: 100vw !important;\n    height: 100vh !important;\n    top: 0px !important;\n    left: 0px !important;\n    max-height: 100%;\n    height: 100%;\n}\n.p-dialog-maximized .p-dialog-content {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n\n/* Position */\n.p-dialog-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-dialog-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-dialog-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-confirm-dialog .p-dialog-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
-styleInject$q(css_248z$x);
-script$1A.render = render$x;
+var css_248z$y = "\n.p-dialog-mask {\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    pointer-events: none;\n}\n.p-dialog-mask.p-component-overlay {\n    pointer-events: auto;\n}\n.p-dialog {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    pointer-events: auto;\n    max-height: 90%;\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n.p-dialog-content {\n    overflow-y: auto;\n}\n.p-dialog-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog-footer {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog .p-dialog-header-icons {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-dialog .p-dialog-header-icon {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Fluid */\n.p-fluid .p-dialog-footer .p-button {\n    width: auto;\n}\n\n/* Animation */\n/* Center */\n.p-dialog-enter-active {\n    -webkit-transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n}\n.p-dialog-leave-active {\n    -webkit-transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n.p-dialog-enter-from,\n.p-dialog-leave-to {\n    opacity: 0;\n    -webkit-transform: scale(0.7);\n            transform: scale(0.7);\n}\n\n/* Top, Bottom, Left, Right, Top* and Bottom* */\n.p-dialog-top .p-dialog,\n.p-dialog-bottom .p-dialog,\n.p-dialog-left .p-dialog,\n.p-dialog-right .p-dialog,\n.p-dialog-topleft .p-dialog,\n.p-dialog-topright .p-dialog,\n.p-dialog-bottomleft .p-dialog,\n.p-dialog-bottomright .p-dialog {\n    margin: 0.75rem;\n    -webkit-transform: translate3d(0px, 0px, 0px);\n            transform: translate3d(0px, 0px, 0px);\n}\n.p-dialog-top .p-dialog-enter-active,\n.p-dialog-top .p-dialog-leave-active,\n.p-dialog-bottom .p-dialog-enter-active,\n.p-dialog-bottom .p-dialog-leave-active,\n.p-dialog-left .p-dialog-enter-active,\n.p-dialog-left .p-dialog-leave-active,\n.p-dialog-right .p-dialog-enter-active,\n.p-dialog-right .p-dialog-leave-active,\n.p-dialog-topleft .p-dialog-enter-active,\n.p-dialog-topleft .p-dialog-leave-active,\n.p-dialog-topright .p-dialog-enter-active,\n.p-dialog-topright .p-dialog-leave-active,\n.p-dialog-bottomleft .p-dialog-enter-active,\n.p-dialog-bottomleft .p-dialog-leave-active,\n.p-dialog-bottomright .p-dialog-enter-active,\n.p-dialog-bottomright .p-dialog-leave-active {\n    -webkit-transition: all 0.3s ease-out;\n    transition: all 0.3s ease-out;\n}\n.p-dialog-top .p-dialog-enter-from,\n.p-dialog-top .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, -100%, 0px);\n            transform: translate3d(0px, -100%, 0px);\n}\n.p-dialog-bottom .p-dialog-enter-from,\n.p-dialog-bottom .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, 100%, 0px);\n            transform: translate3d(0px, 100%, 0px);\n}\n.p-dialog-left .p-dialog-enter-from,\n.p-dialog-left .p-dialog-leave-to,\n.p-dialog-topleft .p-dialog-enter-from,\n.p-dialog-topleft .p-dialog-leave-to,\n.p-dialog-bottomleft .p-dialog-enter-from,\n.p-dialog-bottomleft .p-dialog-leave-to {\n    -webkit-transform: translate3d(-100%, 0px, 0px);\n            transform: translate3d(-100%, 0px, 0px);\n}\n.p-dialog-right .p-dialog-enter-from,\n.p-dialog-right .p-dialog-leave-to,\n.p-dialog-topright .p-dialog-enter-from,\n.p-dialog-topright .p-dialog-leave-to,\n.p-dialog-bottomright .p-dialog-enter-from,\n.p-dialog-bottomright .p-dialog-leave-to {\n    -webkit-transform: translate3d(100%, 0px, 0px);\n            transform: translate3d(100%, 0px, 0px);\n}\n\n/* Maximize */\n.p-dialog-maximized {\n    -webkit-transition: none;\n    transition: none;\n    -webkit-transform: none;\n            transform: none;\n    width: 100vw !important;\n    height: 100vh !important;\n    top: 0px !important;\n    left: 0px !important;\n    max-height: 100%;\n    height: 100%;\n}\n.p-dialog-maximized .p-dialog-content {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n\n/* Position */\n.p-dialog-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-dialog-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-dialog-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-confirm-dialog .p-dialog-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
+styleInject$r(css_248z$y);
+script$1y.render = render$C;
 
 const _subscriptions = {};
 function subscribe(type, id, callback) {
@@ -13088,7 +13095,7 @@ function unsubscribe(type, id) {
     delete _subscriptions[type][id];
   }
 }
-function trigger(type, ...args) {
+function trigger$1(type, ...args) {
   if (_subscriptions[type]) {
     for (const id in _subscriptions[type]) {
       _subscriptions[type][id](...args);
@@ -13096,7 +13103,7 @@ function trigger(type, ...args) {
   }
 }
 
-var script$1z = {
+var script$1x = {
   setup(__props) {
 
 const component = shallowRef(null);
@@ -13127,7 +13134,7 @@ onBeforeUnmount(() => {
 });
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1A), {
+  return (openBlock(), createBlock(unref(script$1y), {
     visible: dialogswitch.value,
     "onUpdate:visible": _cache[0] || (_cache[0] = $event => ((dialogswitch).value = $event)),
     header: header.value,
@@ -13144,7 +13151,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$1z.__file = "presstojam/src/components/effects/dialog.vue";
+script$1x.__file = "presstojam/src/components/effects/dialog.vue";
 
 class Model {
   constructor(name, debug = false) {
@@ -13294,9 +13301,23 @@ class Model {
     return client.get("/data/" + this._name + "/active", this.buildParams(filters));
   }
 
+  reloadRow(id) {
+    const client = getClient();
+    return client.get("/data/" + this._name + "/active", {
+      "--id": id
+    });
+  }
+
   loadFirst(filters) {
     const client = getClient();
     return client.get("/data/" + this._name + "/first", this.buildParams(filters));
+  }
+
+  loadReport(filters, field = null, aggregate = null) {
+    let url = "/reports/" + this._name;
+    if (field) url += "/" + field + "/" + aggregate;
+    const client = getClient();
+    return client.get(url, this.buildParams(filters));
   }
 
   saveOrder(rows) {
@@ -13320,6 +13341,7 @@ class Model {
     if (this._to) params.__to = this._to;
     if (this._group) params.__group = this._group;
     if (this._limited_fields) params.__fields = this._limited_fields;
+    if (this._order) params.__order = this._order;
 
     if (this._limit) {
       params.__limit = this._limit;
@@ -13596,7 +13618,7 @@ function clearModelCache() {
   cache = {};
 }
 
-var script$1y = {
+var script$1w = {
   name: 'VirtualScroller',
   emits: ['update:numToleratedItems', 'scroll', 'scroll-index-change', 'lazy-load'],
   props: {
@@ -14253,13 +14275,13 @@ var script$1y = {
 
   }
 };
-const _hoisted_1$M = ["tabindex"];
-const _hoisted_2$E = {
+const _hoisted_1$S = ["tabindex"];
+const _hoisted_2$H = {
   key: 1,
   class: "p-virtualscroller-loading-icon pi pi-spinner pi-spin"
 };
 
-function render$w(_ctx, _cache, $props, $setup, $data, $options) {
+function render$B(_ctx, _cache, $props, $setup, $data, $options) {
   return !$props.disabled ? (openBlock(), createElementBlock("div", {
     key: 0,
     ref: $options.elementRef,
@@ -14308,7 +14330,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
         numCols: _ctx.d_numItemsInViewport.cols
       })
     });
-  }), 128)) : (openBlock(), createElementBlock("i", _hoisted_2$E))], 2)) : createCommentVNode("", true)], 46, _hoisted_1$M)) : (openBlock(), createElementBlock(Fragment, {
+  }), 128)) : (openBlock(), createElementBlock("i", _hoisted_2$H))], 2)) : createCommentVNode("", true)], 46, _hoisted_1$S)) : (openBlock(), createElementBlock(Fragment, {
     key: 1
   }, [renderSlot(_ctx.$slots, "default"), renderSlot(_ctx.$slots, "content", {
     items: $props.items,
@@ -14317,7 +14339,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
   })], 64));
 }
 
-function styleInject$p(css, ref) {
+function styleInject$q(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -14346,11 +14368,11 @@ function styleInject$p(css, ref) {
   }
 }
 
-var css_248z$w = "\n.p-virtualscroller {\n    position: relative;\n    overflow: auto;\n    contain: strict;\n    -webkit-transform: translateZ(0);\n            transform: translateZ(0);\n    will-change: scroll-position;\n    outline: 0 none;\n}\n.p-virtualscroller-content {\n    position: absolute;\n    top: 0;\n    left: 0;\n    contain: content;\n    min-height: 100%;\n    min-width: 100%;\n    will-change: transform;\n}\n.p-virtualscroller-spacer {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 1px;\n    -webkit-transform-origin: 0 0;\n            transform-origin: 0 0;\n    pointer-events: none;\n}\n.p-virtualscroller .p-virtualscroller-loader {\n    position: sticky;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n}\n.p-virtualscroller-loader.p-component-overlay {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n";
-styleInject$p(css_248z$w);
-script$1y.render = render$w;
+var css_248z$x = "\n.p-virtualscroller {\n    position: relative;\n    overflow: auto;\n    contain: strict;\n    -webkit-transform: translateZ(0);\n            transform: translateZ(0);\n    will-change: scroll-position;\n    outline: 0 none;\n}\n.p-virtualscroller-content {\n    position: absolute;\n    top: 0;\n    left: 0;\n    contain: content;\n    min-height: 100%;\n    min-width: 100%;\n    will-change: transform;\n}\n.p-virtualscroller-spacer {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 1px;\n    -webkit-transform-origin: 0 0;\n            transform-origin: 0 0;\n    pointer-events: none;\n}\n.p-virtualscroller .p-virtualscroller-loader {\n    position: sticky;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n}\n.p-virtualscroller-loader.p-component-overlay {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n";
+styleInject$q(css_248z$x);
+script$1w.render = render$B;
 
-var script$1x = {
+var script$1v = {
   name: 'Dropdown',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter'],
   props: {
@@ -15305,13 +15327,13 @@ var script$1x = {
     ripple: Ripple
   },
   components: {
-    VirtualScroller: script$1y,
-    Portal: script$1D
+    VirtualScroller: script$1w,
+    Portal: script$1B
   }
 };
-const _hoisted_1$L = ["id"];
-const _hoisted_2$D = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_3$u = ["id", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant", "aria-disabled"];
+const _hoisted_1$R = ["id"];
+const _hoisted_2$G = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_3$v = ["id", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant", "aria-disabled"];
 const _hoisted_4$r = {
   class: "p-dropdown-trigger"
 };
@@ -15353,7 +15375,7 @@ const _hoisted_15$2 = {
   class: "p-hidden-accessible"
 };
 
-function render$v(_ctx, _cache, $props, $setup, $data, $options) {
+function render$A(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
 
   const _component_Portal = resolveComponent("Portal");
@@ -15388,7 +15410,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
     onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[3] || (_cache[3] = (...args) => $options.onEditableInput && $options.onEditableInput(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$D)) : (openBlock(), createElementBlock("span", mergeProps({
+  }, $props.inputProps), null, 16, _hoisted_2$G)) : (openBlock(), createElementBlock("span", mergeProps({
     key: 1,
     ref: "focusInput",
     id: $props.inputId,
@@ -15409,7 +15431,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.inputProps), [renderSlot(_ctx.$slots, "value", {
     value: $props.modelValue,
     placeholder: $props.placeholder
-  }, () => [createTextVNode(toDisplayString$1($options.label === 'p-emptylabel' ? ' ' : $options.label || 'empty'), 1)])], 16, _hoisted_3$u)), $props.showClear && $props.modelValue != null ? (openBlock(), createElementBlock("i", mergeProps({
+  }, () => [createTextVNode(toDisplayString$1($options.label === 'p-emptylabel' ? ' ' : $options.label || 'empty'), 1)])], 16, _hoisted_3$v)), $props.showClear && $props.modelValue != null ? (openBlock(), createElementBlock("i", mergeProps({
     key: 2,
     class: ['p-dropdown-clear-icon', $props.clearIcon],
     onClick: _cache[7] || (_cache[7] = (...args) => $options.onClearClick && $options.onClearClick(...args))
@@ -15548,10 +15570,10 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
       _: 3
     }, 8, ["onEnter", "onAfterEnter", "onLeave", "onAfterLeave"])]),
     _: 3
-  }, 8, ["appendTo"])], 10, _hoisted_1$L);
+  }, 8, ["appendTo"])], 10, _hoisted_1$R);
 }
 
-function styleInject$o(css, ref) {
+function styleInject$p(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -15580,11 +15602,11 @@ function styleInject$o(css, ref) {
   }
 }
 
-var css_248z$v = "\n.p-dropdown {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-dropdown-clear-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-dropdown-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dropdown-label {\n    display: block;\n    white-space: nowrap;\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n    text-overflow: ellipsis;\n    cursor: pointer;\n}\n.p-dropdown-label-empty {\n    overflow: hidden;\n    opacity: 0;\n}\ninput.p-dropdown-label {\n    cursor: default;\n}\n.p-dropdown .p-dropdown-panel {\n    min-width: 100%;\n}\n.p-dropdown-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-dropdown-items-wrapper {\n    overflow: auto;\n}\n.p-dropdown-item {\n    cursor: pointer;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-dropdown-item-group {\n    cursor: auto;\n}\n.p-dropdown-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-dropdown-filter {\n    width: 100%;\n}\n.p-dropdown-filter-container {\n    position: relative;\n}\n.p-dropdown-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-fluid .p-dropdown {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-dropdown .p-dropdown-label {\n    width: 1%;\n}\n";
-styleInject$o(css_248z$v);
-script$1x.render = render$v;
+var css_248z$w = "\n.p-dropdown {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-dropdown-clear-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-dropdown-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dropdown-label {\n    display: block;\n    white-space: nowrap;\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n    text-overflow: ellipsis;\n    cursor: pointer;\n}\n.p-dropdown-label-empty {\n    overflow: hidden;\n    opacity: 0;\n}\ninput.p-dropdown-label {\n    cursor: default;\n}\n.p-dropdown .p-dropdown-panel {\n    min-width: 100%;\n}\n.p-dropdown-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-dropdown-items-wrapper {\n    overflow: auto;\n}\n.p-dropdown-item {\n    cursor: pointer;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-dropdown-item-group {\n    cursor: auto;\n}\n.p-dropdown-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-dropdown-filter {\n    width: 100%;\n}\n.p-dropdown-filter-container {\n    position: relative;\n}\n.p-dropdown-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-fluid .p-dropdown {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-dropdown .p-dropdown-label {\n    width: 1%;\n}\n";
+styleInject$p(css_248z$w);
+script$1v.render = render$A;
 
-var script$1w = {
+var script$1u = {
   name: 'InputNumber',
   emits: ['update:modelValue', 'input', 'focus', 'blur'],
   props: {
@@ -16703,16 +16725,16 @@ var script$1w = {
 
   },
   components: {
-    INInputText: script$1N,
-    INButton: script$1M
+    INInputText: script$1L,
+    INButton: script$1K
   }
 };
-const _hoisted_1$K = {
+const _hoisted_1$Q = {
   key: 0,
   class: "p-inputnumber-button-group"
 };
 
-function render$u(_ctx, _cache, $props, $setup, $data, $options) {
+function render$z(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_INInputText = resolveComponent("INInputText");
 
   const _component_INButton = resolveComponent("INButton");
@@ -16741,7 +16763,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
     onClick: $options.onInputClick,
     onFocus: $options.onInputFocus,
     onBlur: $options.onInputBlur
-  }, $props.inputProps), null, 16, ["id", "class", "style", "value", "aria-valuemin", "aria-valuemax", "aria-valuenow", "disabled", "readonly", "placeholder", "aria-labelledby", "aria-label", "onInput", "onKeydown", "onKeypress", "onPaste", "onClick", "onFocus", "onBlur"]), $props.showButtons && $props.buttonLayout === 'stacked' ? (openBlock(), createElementBlock("span", _hoisted_1$K, [createVNode(_component_INButton, mergeProps({
+  }, $props.inputProps), null, 16, ["id", "class", "style", "value", "aria-valuemin", "aria-valuemax", "aria-valuenow", "disabled", "readonly", "placeholder", "aria-labelledby", "aria-label", "onInput", "onKeydown", "onKeypress", "onPaste", "onClick", "onFocus", "onBlur"]), $props.showButtons && $props.buttonLayout === 'stacked' ? (openBlock(), createElementBlock("span", _hoisted_1$Q, [createVNode(_component_INButton, mergeProps({
     class: $options.upButtonClass,
     icon: $props.incrementButtonIcon
   }, toHandlers($options.upButtonListeners), {
@@ -16774,7 +16796,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.decrementButtonProps), null, 16, ["class", "icon", "disabled"])) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$n(css, ref) {
+function styleInject$o(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -16803,9 +16825,9 @@ function styleInject$n(css, ref) {
   }
 }
 
-var css_248z$u = "\n.p-inputnumber {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-inputnumber-button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button .p-button-label,\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button .p-button-label {\n    display: none;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-input {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    border-bottom-left-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group .p-button.p-inputnumber-button {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-buttons-vertical .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n    text-align: center;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-fluid .p-inputnumber {\n    width: 100%;\n}\n.p-fluid .p-inputnumber .p-inputnumber-input {\n    width: 1%;\n}\n.p-fluid .p-inputnumber-buttons-vertical .p-inputnumber-input {\n    width: 100%;\n}\n";
-styleInject$n(css_248z$u);
-script$1w.render = render$u;
+var css_248z$v = "\n.p-inputnumber {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-inputnumber-button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button .p-button-label,\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button .p-button-label {\n    display: none;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-input {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    border-bottom-left-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group .p-button.p-inputnumber-button {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-buttons-vertical .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n    text-align: center;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-fluid .p-inputnumber {\n    width: 100%;\n}\n.p-fluid .p-inputnumber .p-inputnumber-input {\n    width: 1%;\n}\n.p-fluid .p-inputnumber-buttons-vertical .p-inputnumber-input {\n    width: 100%;\n}\n";
+styleInject$o(css_248z$v);
+script$1u.render = render$z;
 
 var script$9$2 = {
   name: 'CurrentPageReport',
@@ -16852,11 +16874,11 @@ const _hoisted_1$6$2 = {
   class: "p-paginator-current"
 };
 
-function render$9$2(_ctx, _cache, $props, $setup, $data, $options) {
+function render$9$1(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("span", _hoisted_1$6$2, toDisplayString$1($options.text), 1);
 }
 
-script$9$2.render = render$9$2;
+script$9$2.render = render$9$1;
 var script$8$2 = {
   name: 'FirstPageLink',
   computed: {
@@ -16878,7 +16900,7 @@ const _hoisted_1$5$2 = /*#__PURE__*/createElementVNode("span", {
 
 const _hoisted_2$5$2 = [_hoisted_1$5$2];
 
-function render$8$2(_ctx, _cache, $props, $setup, $data, $options) {
+function render$8$1(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return withDirectives((openBlock(), createElementBlock("button", {
@@ -16887,7 +16909,7 @@ function render$8$2(_ctx, _cache, $props, $setup, $data, $options) {
   }, _hoisted_2$5$2, 2)), [[_directive_ripple]]);
 }
 
-script$8$2.render = render$8$2;
+script$8$2.render = render$8$1;
 var script$7$2 = {
   name: 'JumpToPageDropdown',
   inheritAttrs: false,
@@ -16919,11 +16941,11 @@ var script$7$2 = {
 
   },
   components: {
-    JTPDropdown: script$1x
+    JTPDropdown: script$1v
   }
 };
 
-function render$7$2(_ctx, _cache, $props, $setup, $data, $options) {
+function render$7$1(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_JTPDropdown = resolveComponent("JTPDropdown");
 
   return openBlock(), createBlock(_component_JTPDropdown, {
@@ -16937,7 +16959,7 @@ function render$7$2(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["modelValue", "options", "disabled"]);
 }
 
-script$7$2.render = render$7$2;
+script$7$2.render = render$7$1;
 var script$6$2 = {
   name: 'JumpToPageInput',
   inheritAttrs: false,
@@ -16954,11 +16976,11 @@ var script$6$2 = {
 
   },
   components: {
-    JTPInput: script$1w
+    JTPInput: script$1u
   }
 };
 
-function render$6$2(_ctx, _cache, $props, $setup, $data, $options) {
+function render$6$1(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_JTPInput = resolveComponent("JTPInput");
 
   return openBlock(), createBlock(_component_JTPInput, {
@@ -16969,7 +16991,7 @@ function render$6$2(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["modelValue", "disabled"]);
 }
 
-script$6$2.render = render$6$2;
+script$6$2.render = render$6$1;
 var script$5$2 = {
   name: 'LastPageLink',
   computed: {
@@ -17138,7 +17160,7 @@ var script$1$5 = {
 
   },
   components: {
-    RPPDropdown: script$1x
+    RPPDropdown: script$1v
   }
 };
 
@@ -17157,7 +17179,7 @@ function render$1$5(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$5.render = render$1$5;
-var script$1v = {
+var script$1t = {
   name: 'Paginator',
   emits: ['update:first', 'update:rows', 'page'],
   props: {
@@ -17444,19 +17466,19 @@ var script$1v = {
     JumpToPageInput: script$6$2
   }
 };
-const _hoisted_1$J = {
+const _hoisted_1$P = {
   key: 0
 };
-const _hoisted_2$C = {
+const _hoisted_2$F = {
   key: 0,
   class: "p-paginator-left-content"
 };
-const _hoisted_3$t = {
+const _hoisted_3$u = {
   key: 1,
   class: "p-paginator-right-content"
 };
 
-function render$t(_ctx, _cache, $props, $setup, $data, $options) {
+function render$y(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FirstPageLink = resolveComponent("FirstPageLink");
 
   const _component_PrevPageLink = resolveComponent("PrevPageLink");
@@ -17475,13 +17497,13 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
 
   const _component_JumpToPageInput = resolveComponent("JumpToPageInput");
 
-  return ($props.alwaysShow ? true : $options.pageLinks && $options.pageLinks.length > 1) ? (openBlock(), createElementBlock("div", _hoisted_1$J, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.templateItems, (value, key) => {
+  return ($props.alwaysShow ? true : $options.pageLinks && $options.pageLinks.length > 1) ? (openBlock(), createElementBlock("div", _hoisted_1$P, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.templateItems, (value, key) => {
     return openBlock(), createElementBlock("div", {
       key: key,
       ref_for: true,
       ref: "paginator",
       class: normalizeClass(["p-paginator p-component", $options.getPaginatorClasses(key)])
-    }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_2$C, [renderSlot(_ctx.$slots, "start", {
+    }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_2$F, [renderSlot(_ctx.$slots, "start", {
       state: $options.currentState
     })])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(value, item => {
       return openBlock(), createElementBlock(Fragment, {
@@ -17534,13 +17556,13 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
         onPageChange: _cache[7] || (_cache[7] = $event => $options.changePage($event)),
         disabled: $options.empty
       }, null, 8, ["page", "disabled"])) : createCommentVNode("", true)], 64);
-    }), 128)), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_3$t, [renderSlot(_ctx.$slots, "end", {
+    }), 128)), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_3$u, [renderSlot(_ctx.$slots, "end", {
       state: $options.currentState
     })])) : createCommentVNode("", true)], 2);
   }), 128))])) : createCommentVNode("", true);
 }
 
-function styleInject$m(css, ref) {
+function styleInject$n(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -17569,11 +17591,11 @@ function styleInject$m(css, ref) {
   }
 }
 
-var css_248z$t = "\n.p-paginator-default {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-paginator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-paginator-left-content {\n    margin-right: auto;\n}\n.p-paginator-right-content {\n    margin-left: auto;\n}\n.p-paginator-page,\n.p-paginator-next,\n.p-paginator-last,\n.p-paginator-first,\n.p-paginator-prev,\n.p-paginator-current {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    line-height: 1;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-paginator-element:focus {\n    z-index: 1;\n    position: relative;\n}\n";
-styleInject$m(css_248z$t);
-script$1v.render = render$t;
+var css_248z$u = "\n.p-paginator-default {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-paginator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-paginator-left-content {\n    margin-right: auto;\n}\n.p-paginator-right-content {\n    margin-left: auto;\n}\n.p-paginator-page,\n.p-paginator-next,\n.p-paginator-last,\n.p-paginator-first,\n.p-paginator-prev,\n.p-paginator-current {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    line-height: 1;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-paginator-element:focus {\n    z-index: 1;\n    position: relative;\n}\n";
+styleInject$n(css_248z$u);
+script$1t.render = render$y;
 
-var script$1u = {
+var script$1s = {
   name: 'DataView',
   emits: ['update:first', 'update:rows', 'page'],
   props: {
@@ -17750,17 +17772,17 @@ var script$1u = {
 
   },
   components: {
-    DVPaginator: script$1v
+    DVPaginator: script$1t
   }
 };
-const _hoisted_1$I = {
+const _hoisted_1$O = {
   key: 0,
   class: "p-dataview-header"
 };
-const _hoisted_2$B = {
+const _hoisted_2$E = {
   class: "p-dataview-content"
 };
-const _hoisted_3$s = {
+const _hoisted_3$t = {
   class: "p-grid p-nogutter grid grid-nogutter"
 };
 const _hoisted_4$q = {
@@ -17775,12 +17797,12 @@ const _hoisted_6$g = {
   class: "p-dataview-footer"
 };
 
-function render$s(_ctx, _cache, $props, $setup, $data, $options) {
+function render$x(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DVPaginator = resolveComponent("DVPaginator");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_1$I, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DVPaginator, {
+  }, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_1$O, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DVPaginator, {
     key: 1,
     rows: $data.d_rows,
     first: $data.d_first,
@@ -17804,7 +17826,7 @@ function render$s(_ctx, _cache, $props, $setup, $data, $options) {
     name: "end",
     fn: withCtx(() => [renderSlot(_ctx.$slots, "paginatorend")]),
     key: "1"
-  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "class", "alwaysShow"])) : createCommentVNode("", true), createElementVNode("div", _hoisted_2$B, [createElementVNode("div", _hoisted_3$s, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.items, (item, index) => {
+  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "class", "alwaysShow"])) : createCommentVNode("", true), createElementVNode("div", _hoisted_2$E, [createElementVNode("div", _hoisted_3$t, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.items, (item, index) => {
     return openBlock(), createElementBlock(Fragment, {
       key: $options.getKey(item, index)
     }, [_ctx.$slots.list && $props.layout === 'list' ? renderSlot(_ctx.$slots, "list", {
@@ -17843,13 +17865,13 @@ function render$s(_ctx, _cache, $props, $setup, $data, $options) {
   } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "class", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_6$g, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)], 2);
 }
 
-script$1u.render = render$s;
+script$1s.render = render$x;
 
-const _hoisted_1$H = /*#__PURE__*/createTextVNode("Vin: ");
-const _hoisted_2$A = /*#__PURE__*/createTextVNode("Vin: ");
+const _hoisted_1$N = /*#__PURE__*/createTextVNode("Vin: ");
+const _hoisted_2$D = /*#__PURE__*/createTextVNode("Vin: ");
 
 
-var script$1t = {
+var script$1r = {
   props: {
     model : String,
     parent_id : Number
@@ -17862,16 +17884,16 @@ const data = ref([]);
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1u), { value: data.value }, {
+  return (openBlock(), createBlock(unref(script$1s), { value: data.value }, {
     list: withCtx((slotProps) => [
       createElementVNode("div", null, [
-        _hoisted_1$H,
+        _hoisted_1$N,
         createElementVNode("b", null, toDisplayString$1(slotProps.data.vin), 1 /* TEXT */)
       ])
     ]),
     grid: withCtx((slotProps) => [
       createElementVNode("div", null, [
-        _hoisted_2$A,
+        _hoisted_2$D,
         createElementVNode("b", null, toDisplayString$1(slotProps.data.vin), 1 /* TEXT */)
       ])
     ]),
@@ -17882,9 +17904,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1t.__file = "presstojam/src/components/displays/data-display.vue";
+script$1r.__file = "presstojam/src/components/displays/data-display.vue";
 
-var script$1s = {
+var script$1q = {
   props: {
     bind : {
         type : Object,
@@ -17898,12 +17920,15 @@ const props = __props;
 
 
 
+const cvalue = ref(props.bind.value);
+
 const value = computed({
     get() {
-        return props.bind.value;
+        return cvalue.value;
     },
     set(val) {
         props.bind.setValue(val);
+        cvalue.value = val;
     }
 });
 
@@ -17922,7 +17947,7 @@ if (cell.round) {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1w), mergeProps({
+  return (openBlock(), createBlock(unref(script$1u), mergeProps({
     class: ["focus:border-primary", __props.bind.classes],
     name: __props.bind.cell.name,
     modelValue: unref(value),
@@ -17935,9 +17960,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1s.__file = "presstojam/src/components/form/number-edit.vue";
+script$1q.__file = "presstojam/src/components/form/number-edit.vue";
 
-var script$1r = {
+var script$1p = {
   props: {
     bind : {
         type : Object,
@@ -17965,7 +17990,7 @@ const value = computed({
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1J), {
+  return (openBlock(), createBlock(unref(script$1H), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
     binary: true,
@@ -17977,7 +18002,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$1r.__file = "presstojam/src/components/form/flag-edit.vue";
+script$1p.__file = "presstojam/src/components/form/flag-edit.vue";
 
 var script$1$4 = {
   name: 'TreeNode',
@@ -18353,7 +18378,7 @@ function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$4.render = render$1$4;
-var script$1q = {
+var script$1o = {
   name: 'Tree',
   emits: ['node-expand', 'node-collapse', 'update:expandedKeys', 'update:selectionKeys', 'node-select', 'node-unselect'],
   props: {
@@ -18648,15 +18673,15 @@ var script$1q = {
     TreeNode: script$1$4
   }
 };
-const _hoisted_1$G = {
+const _hoisted_1$M = {
   key: 0,
   class: "p-tree-loading-overlay p-component-overlay"
 };
-const _hoisted_2$z = {
+const _hoisted_2$C = {
   key: 1,
   class: "p-tree-filter-container"
 };
-const _hoisted_3$r = ["placeholder"];
+const _hoisted_3$s = ["placeholder"];
 
 const _hoisted_4$p = /*#__PURE__*/createElementVNode("span", {
   class: "p-tree-filter-icon pi pi-search"
@@ -18667,21 +18692,21 @@ const _hoisted_5$i = {
   role: "tree"
 };
 
-function render$r(_ctx, _cache, $props, $setup, $data, $options) {
+function render$w(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_TreeNode = resolveComponent("TreeNode");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [$props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$G, [createElementVNode("i", {
+  }, [$props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$M, [createElementVNode("i", {
     class: normalizeClass($options.loadingIconClass)
-  }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_2$z, [withDirectives(createElementVNode("input", {
+  }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_2$C, [withDirectives(createElementVNode("input", {
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => $data.filterValue = $event),
     type: "text",
     autocomplete: "off",
     class: "p-tree-filter p-inputtext p-component",
     placeholder: $props.filterPlaceholder,
     onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onFilterKeydown && $options.onFilterKeydown(...args))
-  }, null, 40, _hoisted_3$r), [[vModelText, $data.filterValue]]), _hoisted_4$p])) : createCommentVNode("", true), createElementVNode("div", {
+  }, null, 40, _hoisted_3$s), [[vModelText, $data.filterValue]]), _hoisted_4$p])) : createCommentVNode("", true), createElementVNode("div", {
     class: "p-tree-wrapper",
     style: normalizeStyle({
       maxHeight: $props.scrollHeight
@@ -18703,7 +18728,7 @@ function render$r(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128))])], 4)], 2);
 }
 
-function styleInject$l(css, ref) {
+function styleInject$m(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -18732,11 +18757,11 @@ function styleInject$l(css, ref) {
   }
 }
 
-var css_248z$s = "\n.p-tree-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    overflow: auto;\n}\n.p-treenode-children {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-tree-wrapper {\n    overflow: auto;\n}\n.p-treenode-selectable {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-tree-toggler {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treenode-leaf > .p-treenode-content .p-tree-toggler {\n    visibility: hidden;\n}\n.p-treenode-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-tree-filter {\n    width: 100%;\n}\n.p-tree-filter-container {\n    position: relative;\n    display: block;\n    width: 100%;\n}\n.p-tree-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-tree-loading {\n    position: relative;\n    min-height: 4rem;\n}\n.p-tree .p-tree-loading-overlay {\n    position: absolute;\n    z-index: 1;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tree-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-tree-flex-scrollable .p-tree-wrapper {\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n}\n";
-styleInject$l(css_248z$s);
-script$1q.render = render$r;
+var css_248z$t = "\n.p-tree-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    overflow: auto;\n}\n.p-treenode-children {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-tree-wrapper {\n    overflow: auto;\n}\n.p-treenode-selectable {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-tree-toggler {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treenode-leaf > .p-treenode-content .p-tree-toggler {\n    visibility: hidden;\n}\n.p-treenode-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-tree-filter {\n    width: 100%;\n}\n.p-tree-filter-container {\n    position: relative;\n    display: block;\n    width: 100%;\n}\n.p-tree-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-tree-loading {\n    position: relative;\n    min-height: 4rem;\n}\n.p-tree .p-tree-loading-overlay {\n    position: absolute;\n    z-index: 1;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tree-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-tree-flex-scrollable .p-tree-wrapper {\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n}\n";
+styleInject$m(css_248z$t);
+script$1o.render = render$w;
 
-var script$1p = {
+var script$1n = {
   name: 'TreeSelect',
   emits: ['update:modelValue', 'before-show', 'before-hide', 'change', 'show', 'hide', 'node-select', 'node-unselect', 'node-expand', 'node-collapse', 'focus', 'blur'],
   props: {
@@ -19187,18 +19212,18 @@ var script$1p = {
 
   },
   components: {
-    TSTree: script$1q,
-    Portal: script$1D
+    TSTree: script$1o,
+    Portal: script$1B
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$F = {
+const _hoisted_1$L = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$y = ["id", "disabled", "tabindex", "aria-labelledby", "aria-label", "aria-expanded", "aria-controls"];
-const _hoisted_3$q = {
+const _hoisted_2$B = ["id", "disabled", "tabindex", "aria-labelledby", "aria-label", "aria-expanded", "aria-controls"];
+const _hoisted_3$r = {
   class: "p-treeselect-label-container"
 };
 const _hoisted_4$o = {
@@ -19215,7 +19240,7 @@ const _hoisted_7$8 = {
   class: "p-treeselect-empty-message"
 };
 
-function render$q(_ctx, _cache, $props, $setup, $data, $options) {
+function render$v(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_TSTree = resolveComponent("TSTree");
 
   const _component_Portal = resolveComponent("Portal");
@@ -19224,7 +19249,7 @@ function render$q(_ctx, _cache, $props, $setup, $data, $options) {
     ref: "container",
     class: normalizeClass($options.containerClass),
     onClick: _cache[6] || (_cache[6] = (...args) => $options.onClick && $options.onClick(...args))
-  }, [createElementVNode("div", _hoisted_1$F, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$L, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
     type: "text",
@@ -19242,7 +19267,7 @@ function render$q(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
     onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event)),
     onKeydown: _cache[2] || (_cache[2] = $event => $options.onKeyDown($event))
-  }, $props.inputProps), null, 16, _hoisted_2$y)]), createElementVNode("div", _hoisted_3$q, [createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$B)]), createElementVNode("div", _hoisted_3$r, [createElementVNode("div", {
     class: normalizeClass($options.labelClass)
   }, [renderSlot(_ctx.$slots, "value", {
     value: $options.selectedNodes,
@@ -19309,7 +19334,7 @@ function render$q(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$k(css, ref) {
+function styleInject$l(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -19338,11 +19363,11 @@ function styleInject$k(css, ref) {
   }
 }
 
-var css_248z$r = "\n.p-treeselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-treeselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treeselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-treeselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-treeselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-treeselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-treeselect .p-treeselect-panel {\n    min-width: 100%;\n}\n.p-treeselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-treeselect-items-wrapper {\n    overflow: auto;\n}\n.p-fluid .p-treeselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$k(css_248z$r);
-script$1p.render = render$q;
+var css_248z$s = "\n.p-treeselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-treeselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treeselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-treeselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-treeselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-treeselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-treeselect .p-treeselect-panel {\n    min-width: 100%;\n}\n.p-treeselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-treeselect-items-wrapper {\n    overflow: auto;\n}\n.p-fluid .p-treeselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$l(css_248z$s);
+script$1n.render = render$v;
 
-var script$1o = {
+var script$1m = {
   props: {
          cell : Object,
          store : Object
@@ -19381,7 +19406,7 @@ const props = __props;
     }
  
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$14, {
+  return (openBlock(), createBlock(script$12, {
     store: unref(referencestore),
     onSaved: onCreate,
     parent: unref(parent),
@@ -19393,9 +19418,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1o.__file = "presstojam/src/components/actions/reference-create.vue";
+script$1m.__file = "presstojam/src/components/actions/reference-create.vue";
 
-var script$1n = {
+var script$1l = {
   name: 'AutoComplete',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'item-select', 'item-unselect', 'dropdown-click', 'clear', 'complete', 'before-show', 'before-hide', 'show', 'hide'],
   props: {
@@ -20381,17 +20406,17 @@ var script$1n = {
 
   },
   components: {
-    Button: script$1M,
-    VirtualScroller: script$1y,
-    Portal: script$1D
+    Button: script$1K,
+    VirtualScroller: script$1w,
+    Portal: script$1B
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$E = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_2$x = ["aria-activedescendant"];
-const _hoisted_3$p = ["id", "aria-label", "aria-setsize", "aria-posinset"];
+const _hoisted_1$K = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_2$A = ["aria-activedescendant"];
+const _hoisted_3$q = ["id", "aria-label", "aria-setsize", "aria-posinset"];
 const _hoisted_4$n = {
   class: "p-autocomplete-token-label"
 };
@@ -20415,7 +20440,7 @@ const _hoisted_12$4 = {
   class: "p-hidden-accessible"
 };
 
-function render$p(_ctx, _cache, $props, $setup, $data, $options) {
+function render$u(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Button = resolveComponent("Button");
 
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
@@ -20453,7 +20478,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[3] || (_cache[3] = (...args) => $options.onInput && $options.onInput(...args)),
     onChange: _cache[4] || (_cache[4] = (...args) => $options.onChange && $options.onChange(...args))
-  }, $props.inputProps), null, 16, _hoisted_1$E)) : createCommentVNode("", true), $props.multiple ? (openBlock(), createElementBlock("ul", {
+  }, $props.inputProps), null, 16, _hoisted_1$K)) : createCommentVNode("", true), $props.multiple ? (openBlock(), createElementBlock("ul", {
     key: 1,
     ref: "multiContainer",
     class: normalizeClass($options.multiContainerClass),
@@ -20482,7 +20507,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
       class: normalizeClass(['p-autocomplete-token-icon', $props.removeTokenIcon]),
       onClick: $event => $options.removeOption($event, i),
       "aria-hidden": "true"
-    }, null, 10, _hoisted_5$g)], 10, _hoisted_3$p);
+    }, null, 10, _hoisted_5$g)], 10, _hoisted_3$q);
   }), 128)), createElementVNode("li", _hoisted_6$d, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
@@ -20506,7 +20531,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[7] || (_cache[7] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[8] || (_cache[8] = (...args) => $options.onInput && $options.onInput(...args)),
     onChange: _cache[9] || (_cache[9] = (...args) => $options.onChange && $options.onChange(...args))
-  }, $props.inputProps), null, 16, _hoisted_7$7)])], 42, _hoisted_2$x)) : createCommentVNode("", true), $data.searching ? (openBlock(), createElementBlock("i", {
+  }, $props.inputProps), null, 16, _hoisted_7$7)])], 42, _hoisted_2$A)) : createCommentVNode("", true), $data.searching ? (openBlock(), createElementBlock("i", {
     key: 2,
     class: normalizeClass($options.loadingIconClass),
     "aria-hidden": "true"
@@ -20628,7 +20653,7 @@ function render$p(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$j(css, ref) {
+function styleInject$k(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -20657,11 +20682,11 @@ function styleInject$j(css, ref) {
   }
 }
 
-var css_248z$q = "\n.p-autocomplete {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n}\n.p-autocomplete-loader {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-autocomplete-dd .p-autocomplete-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-autocomplete-dd .p-autocomplete-input,\n.p-autocomplete-dd .p-autocomplete-multiple-container {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-autocomplete-dd .p-autocomplete-dropdown {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0px;\n}\n.p-autocomplete .p-autocomplete-panel {\n    min-width: 100%;\n}\n.p-autocomplete-panel {\n    position: absolute;\n    overflow: auto;\n    top: 0;\n    left: 0;\n}\n.p-autocomplete-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-autocomplete-item {\n    cursor: pointer;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-autocomplete-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-autocomplete-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-autocomplete-token-icon {\n    cursor: pointer;\n}\n.p-autocomplete-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-autocomplete-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-autocomplete {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-autocomplete-dd .p-autocomplete-input {\n    width: 1%;\n}\n";
-styleInject$j(css_248z$q);
-script$1n.render = render$p;
+var css_248z$r = "\n.p-autocomplete {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n}\n.p-autocomplete-loader {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-autocomplete-dd .p-autocomplete-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-autocomplete-dd .p-autocomplete-input,\n.p-autocomplete-dd .p-autocomplete-multiple-container {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-autocomplete-dd .p-autocomplete-dropdown {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0px;\n}\n.p-autocomplete .p-autocomplete-panel {\n    min-width: 100%;\n}\n.p-autocomplete-panel {\n    position: absolute;\n    overflow: auto;\n    top: 0;\n    left: 0;\n}\n.p-autocomplete-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-autocomplete-item {\n    cursor: pointer;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-autocomplete-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-autocomplete-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-autocomplete-token-icon {\n    cursor: pointer;\n}\n.p-autocomplete-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-autocomplete-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-autocomplete {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-autocomplete-dd .p-autocomplete-input {\n    width: 1%;\n}\n";
+styleInject$k(css_248z$r);
+script$1l.render = render$u;
 
-var script$1m = {
+var script$1k = {
   props: {
     bind : Object,
     options : Array
@@ -20711,7 +20736,7 @@ watch(() => props.options, () => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1n), {
+  return (openBlock(), createBlock(unref(script$1l), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
     name: __props.bind.cell.name,
@@ -20730,17 +20755,17 @@ return (_ctx, _cache) => {
 
 };
 
-script$1m.__file = "presstojam/src/components/form/autocomplete-select.vue";
+script$1k.__file = "presstojam/src/components/form/autocomplete-select.vue";
 
-const _hoisted_1$D = {
+const _hoisted_1$J = {
   key: 0,
   class: "p-inputgroup"
 };
-const _hoisted_2$w = { class: "p-inputgroup-addon" };
+const _hoisted_2$z = { class: "p-inputgroup-addon" };
 
 
 
-var script$1l = {
+var script$1j = {
   props: {
     bind : {
         type : Object,
@@ -20768,6 +20793,7 @@ const options = ref([]);
 let value;
 
 const parent_id =(props.data['--parent']) ? props.data["--parent"] : 0;
+console.log("Parent data is", props.data);
 
 const cell = props.bind.cell;
 
@@ -20818,19 +20844,19 @@ if (cell.isReferenceType()) {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.isReferenceType())
-    ? (openBlock(), createElementBlock("div", _hoisted_1$D, [
-        createVNode(script$1m, {
+    ? (openBlock(), createElementBlock("div", _hoisted_1$J, [
+        createVNode(script$1k, {
           bind: __props.bind,
           options: options.value
         }, null, 8 /* PROPS */, ["bind", "options"]),
-        createElementVNode("span", _hoisted_2$w, [
+        createElementVNode("span", _hoisted_2$z, [
           createElementVNode("i", {
             class: "pi pi-plus",
             onClick: _cache[0] || (_cache[0] = $event => (dialog.value='true')),
             style: {"cursor":"pointer"}
           })
         ]),
-        createVNode(unref(script$1A), {
+        createVNode(unref(script$1y), {
           visible: dialog.value,
           "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
           header: 'Create ' + _ctx.$t('models.' + unref(cell).reference + '.title', 1),
@@ -20838,7 +20864,7 @@ return (_ctx, _cache) => {
           class: "p-fluid"
         }, {
           default: withCtx(() => [
-            createVNode(script$1o, {
+            createVNode(script$1m, {
               cell: __props.bind.cell,
               store: unref(store)
             }, null, 8 /* PROPS */, ["cell", "store"])
@@ -20847,7 +20873,7 @@ return (_ctx, _cache) => {
         }, 8 /* PROPS */, ["visible", "header"])
       ]))
     : (__props.bind.cell.recursive)
-      ? (openBlock(), createBlock(unref(script$1p), {
+      ? (openBlock(), createBlock(unref(script$1n), {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : value = $event)),
@@ -20855,7 +20881,7 @@ return (_ctx, _cache) => {
           placeholder: "Select Item",
           onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.setShowError(true)))
         }, null, 8 /* PROPS */, ["modelValue", "options"]))
-      : (openBlock(), createBlock(unref(script$1w), {
+      : (openBlock(), createBlock(unref(script$1u), {
           key: 2,
           name: __props.bind.cell.name,
           modelValue: unref(value),
@@ -20868,9 +20894,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1l.__file = "presstojam/src/components/form/id-edit.vue";
+script$1j.__file = "presstojam/src/components/form/id-edit.vue";
 
-var script$1k = {
+var script$1i = {
   name: 'Calendar',
   emits: ['show', 'hide', 'input', 'month-change', 'year-change', 'date-select', 'update:modelValue', 'today-click', 'clear-click', 'focus', 'blur', 'keydown'],
   props: {
@@ -23655,16 +23681,16 @@ var script$1k = {
 
   },
   components: {
-    CalendarButton: script$1M,
-    Portal: script$1D
+    CalendarButton: script$1K,
+    Portal: script$1B
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$C = ["id"];
-const _hoisted_2$v = ["id", "placeholder", "aria-expanded", "aria-controls", "aria-labelledby", "aria-label", "disabled", "readonly"];
-const _hoisted_3$o = ["id", "role", "aria-modal", "aria-label"];
+const _hoisted_1$I = ["id"];
+const _hoisted_2$y = ["id", "placeholder", "aria-expanded", "aria-controls", "aria-labelledby", "aria-label", "disabled", "readonly"];
+const _hoisted_3$p = ["id", "role", "aria-modal", "aria-label"];
 const _hoisted_4$m = {
   class: "p-datepicker-group-container"
 };
@@ -23778,7 +23804,7 @@ const _hoisted_44 = {
   class: "p-datepicker-buttonbar"
 };
 
-function render$o(_ctx, _cache, $props, $setup, $data, $options) {
+function render$t(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_CalendarButton = resolveComponent("CalendarButton");
 
   const _component_Portal = resolveComponent("Portal");
@@ -23813,7 +23839,7 @@ function render$o(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[2] || (_cache[2] = (...args) => $options.onFocus && $options.onFocus(...args)),
     onBlur: _cache[3] || (_cache[3] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$v)) : createCommentVNode("", true), $props.showIcon ? (openBlock(), createBlock(_component_CalendarButton, {
+  }, $props.inputProps), null, 16, _hoisted_2$y)) : createCommentVNode("", true), $props.showIcon ? (openBlock(), createBlock(_component_CalendarButton, {
     key: 1,
     icon: $props.icon,
     class: "p-datepicker-trigger",
@@ -24036,14 +24062,14 @@ function render$o(_ctx, _cache, $props, $setup, $data, $options) {
         onClick: _cache[64] || (_cache[64] = $event => $options.onClearButtonClick($event)),
         class: "p-button-text",
         onKeydown: $options.onContainerButtonKeydown
-      }, null, 8, ["label", "onKeydown"])])) : createCommentVNode("", true), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_3$o)) : createCommentVNode("", true)]),
+      }, null, 8, ["label", "onKeydown"])])) : createCommentVNode("", true), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_3$p)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onAfterEnter", "onAfterLeave", "onLeave"])]),
     _: 3
-  }, 8, ["appendTo", "disabled"])], 10, _hoisted_1$C);
+  }, 8, ["appendTo", "disabled"])], 10, _hoisted_1$I);
 }
 
-function styleInject$i(css, ref) {
+function styleInject$j(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24072,14 +24098,14 @@ function styleInject$i(css, ref) {
   }
 }
 
-var css_248z$p = "\n.p-calendar {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    max-width: 100%;\n}\n.p-calendar .p-inputtext {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-calendar-w-btn .p-inputtext {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-calendar-w-btn .p-datepicker-trigger {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n\n/* Fluid */\n.p-fluid .p-calendar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-calendar .p-inputtext {\n    width: 1%;\n}\n\n/* Datepicker */\n.p-calendar .p-datepicker {\n    min-width: 100%;\n}\n.p-datepicker {\n    width: auto;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-datepicker-inline {\n    display: inline-block;\n    position: static;\n    overflow-x: auto;\n}\n\n/* Header */\n.p-datepicker-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-datepicker-header .p-datepicker-title {\n    margin: 0 auto;\n}\n.p-datepicker-prev,\n.p-datepicker-next {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Multiple Month DatePicker */\n.p-datepicker-multiple-month .p-datepicker-group-container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-datepicker-multiple-month .p-datepicker-group-container .p-datepicker-group {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n\n/* DatePicker Table */\n.p-datepicker table {\n    width: 100%;\n    border-collapse: collapse;\n}\n.p-datepicker td > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    margin: 0 auto;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Month Picker */\n.p-monthpicker-month {\n    width: 33.3%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Year Picker */\n.p-yearpicker-year {\n    width: 50%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/*  Button Bar */\n.p-datepicker-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n\n/* Time Picker */\n.p-timepicker {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-timepicker button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n.p-timepicker > div {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n\n/* Touch UI */\n.p-datepicker-touch-ui,\n.p-calendar .p-datepicker-touch-ui {\n    position: fixed;\n    top: 50%;\n    left: 50%;\n    min-width: 80vw;\n    -webkit-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%);\n}\n";
-styleInject$i(css_248z$p);
-script$1k.render = render$o;
+var css_248z$q = "\n.p-calendar {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    max-width: 100%;\n}\n.p-calendar .p-inputtext {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-calendar-w-btn .p-inputtext {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-calendar-w-btn .p-datepicker-trigger {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n\n/* Fluid */\n.p-fluid .p-calendar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-calendar .p-inputtext {\n    width: 1%;\n}\n\n/* Datepicker */\n.p-calendar .p-datepicker {\n    min-width: 100%;\n}\n.p-datepicker {\n    width: auto;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-datepicker-inline {\n    display: inline-block;\n    position: static;\n    overflow-x: auto;\n}\n\n/* Header */\n.p-datepicker-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-datepicker-header .p-datepicker-title {\n    margin: 0 auto;\n}\n.p-datepicker-prev,\n.p-datepicker-next {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Multiple Month DatePicker */\n.p-datepicker-multiple-month .p-datepicker-group-container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-datepicker-multiple-month .p-datepicker-group-container .p-datepicker-group {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n\n/* DatePicker Table */\n.p-datepicker table {\n    width: 100%;\n    border-collapse: collapse;\n}\n.p-datepicker td > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    margin: 0 auto;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Month Picker */\n.p-monthpicker-month {\n    width: 33.3%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Year Picker */\n.p-yearpicker-year {\n    width: 50%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/*  Button Bar */\n.p-datepicker-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n\n/* Time Picker */\n.p-timepicker {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-timepicker button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n.p-timepicker > div {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n\n/* Touch UI */\n.p-datepicker-touch-ui,\n.p-calendar .p-datepicker-touch-ui {\n    position: fixed;\n    top: 50%;\n    left: 50%;\n    min-width: 80vw;\n    -webkit-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%);\n}\n";
+styleInject$j(css_248z$q);
+script$1i.render = render$t;
 
-const _hoisted_1$B = { key: 1 };
+const _hoisted_1$H = { key: 1 };
 
 
-var script$1j = {
+var script$1h = {
   props: {
     bind : {
         type : Object,
@@ -24109,7 +24135,7 @@ const disabled = (props.bind.cell.system) ? true : false;
 
 return (_ctx, _cache) => {
   return (unref(disabled)==false)
-    ? (openBlock(), createBlock(unref(script$1k), {
+    ? (openBlock(), createBlock(unref(script$1i), {
         key: 0,
         id: "range",
         modelValue: unref(value),
@@ -24120,15 +24146,15 @@ return (_ctx, _cache) => {
         dateFormat: "dd/mm/yy",
         onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.setShowError(true)))
       }, null, 8 /* PROPS */, ["modelValue", "disabledDates", "class"]))
-    : (openBlock(), createElementBlock("span", _hoisted_1$B, toDisplayString$1(unref(value)), 1 /* TEXT */))
+    : (openBlock(), createElementBlock("span", _hoisted_1$H, toDisplayString$1(unref(value)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$1j.__file = "presstojam/src/components/form/time-edit.vue";
+script$1h.__file = "presstojam/src/components/form/time-edit.vue";
 
-var script$1i = {
+var script$1g = {
   name: 'Password',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'invalid'],
   props: {
@@ -24520,23 +24546,23 @@ var script$1i = {
 
   },
   components: {
-    PInputText: script$1N,
-    Portal: script$1D
+    PInputText: script$1L,
+    Portal: script$1B
   }
 };
-const _hoisted_1$A = {
+const _hoisted_1$G = {
   class: "p-hidden-accessible",
   "aria-live": "polite"
 };
-const _hoisted_2$u = ["id"];
-const _hoisted_3$n = {
+const _hoisted_2$x = ["id"];
+const _hoisted_3$o = {
   class: "p-password-meter"
 };
 const _hoisted_4$l = {
   class: "p-password-info"
 };
 
-function render$n(_ctx, _cache, $props, $setup, $data, $options) {
+function render$s(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_PInputText = resolveComponent("PInputText");
 
   const _component_Portal = resolveComponent("Portal");
@@ -24566,7 +24592,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     class: normalizeClass($options.toggleIconClass),
     onClick: _cache[0] || (_cache[0] = (...args) => $options.onMaskToggle && $options.onMaskToggle(...args))
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_1$A, toDisplayString$1($data.infoText), 1), createVNode(_component_Portal, {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_1$G, toDisplayString$1($data.infoText), 1), createVNode(_component_Portal, {
     appendTo: $props.appendTo
   }, {
     default: withCtx(() => [createVNode(Transition, {
@@ -24582,19 +24608,19 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
         class: $options.panelStyleClass,
         style: $props.panelStyle,
         onClick: _cache[1] || (_cache[1] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args))
-      }, $props.panelProps), [renderSlot(_ctx.$slots, "header"), renderSlot(_ctx.$slots, "content", {}, () => [createElementVNode("div", _hoisted_3$n, [createElementVNode("div", {
+      }, $props.panelProps), [renderSlot(_ctx.$slots, "header"), renderSlot(_ctx.$slots, "content", {}, () => [createElementVNode("div", _hoisted_3$o, [createElementVNode("div", {
         class: normalizeClass($options.strengthClass),
         style: normalizeStyle({
           width: $data.meter ? $data.meter.width : ''
         })
-      }, null, 6)]), createElementVNode("div", _hoisted_4$l, toDisplayString$1($data.infoText), 1)]), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_2$u)) : createCommentVNode("", true)]),
+      }, null, 6)]), createElementVNode("div", _hoisted_4$l, toDisplayString$1($data.infoText), 1)]), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_2$x)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$h(css, ref) {
+function styleInject$i(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24623,11 +24649,11 @@ function styleInject$h(css, ref) {
   }
 }
 
-var css_248z$o = "\n.p-password {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-password-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-password .p-password-panel {\n    min-width: 100%;\n}\n.p-password-meter {\n    height: 10px;\n}\n.p-password-strength {\n    height: 100%;\n    width: 0;\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-fluid .p-password {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$h(css_248z$o);
-script$1i.render = render$n;
+var css_248z$p = "\n.p-password {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-password-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-password .p-password-panel {\n    min-width: 100%;\n}\n.p-password-meter {\n    height: 10px;\n}\n.p-password-strength {\n    height: 100%;\n    width: 0;\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-fluid .p-password {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$i(css_248z$p);
+script$1g.render = render$s;
 
-var script$1h = {
+var script$1f = {
   name: 'Textarea',
   emits: ['update:modelValue'],
   props: {
@@ -24677,9 +24703,9 @@ var script$1h = {
 
   }
 };
-const _hoisted_1$z = ["value"];
+const _hoisted_1$F = ["value"];
 
-function render$m(_ctx, _cache, $props, $setup, $data, $options) {
+function render$r(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("textarea", {
     class: normalizeClass(['p-inputtextarea p-inputtext p-component', {
       'p-filled': $options.filled,
@@ -24687,10 +24713,10 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
     }]),
     value: $props.modelValue,
     onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
-  }, null, 42, _hoisted_1$z);
+  }, null, 42, _hoisted_1$F);
 }
 
-function styleInject$g(css, ref) {
+function styleInject$h(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24719,11 +24745,11 @@ function styleInject$g(css, ref) {
   }
 }
 
-var css_248z$n = "\n.p-inputtextarea-resizable {\n    overflow: hidden;\n    resize: none;\n}\n.p-fluid .p-inputtextarea {\n    width: 100%;\n}\n";
-styleInject$g(css_248z$n);
-script$1h.render = render$m;
+var css_248z$o = "\n.p-inputtextarea-resizable {\n    overflow: hidden;\n    resize: none;\n}\n.p-fluid .p-inputtextarea {\n    width: 100%;\n}\n";
+styleInject$h(css_248z$o);
+script$1f.render = render$r;
 
-var script$1g = {
+var script$1e = {
   props: {
     bind : {
         type : Object,
@@ -24788,7 +24814,7 @@ if (cell.contains.includes("html")) {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.encrypted)
-    ? (openBlock(), createBlock(unref(script$1i), {
+    ? (openBlock(), createBlock(unref(script$1g), {
         key: 0,
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -24796,7 +24822,7 @@ return (_ctx, _cache) => {
         onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.setShowError(true)))
       }, null, 8 /* PROPS */, ["modelValue", "class"]))
     : (unref(tag)=='textarea')
-      ? (openBlock(), createBlock(unref(script$1h), {
+      ? (openBlock(), createBlock(unref(script$1f), {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -24805,14 +24831,14 @@ return (_ctx, _cache) => {
           onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.setShowError(true)))
         }, null, 8 /* PROPS */, ["modelValue", "class"]))
       : (unref(tag)=='select')
-        ? (openBlock(), createBlock(script$1m, {
+        ? (openBlock(), createBlock(script$1k, {
             key: 2,
             bind: __props.bind,
             options: unref(options),
             class: normalizeClass(__props.bind.classes),
             onBlur: _cache[4] || (_cache[4] = $event => (__props.bind.setShowError(true)))
           }, null, 8 /* PROPS */, ["bind", "options", "class"]))
-        : (openBlock(), createBlock(unref(script$1N), mergeProps({ key: 3 }, atts, {
+        : (openBlock(), createBlock(unref(script$1L), mergeProps({ key: 3 }, atts, {
             name: __props.bind.cell.name,
             class: ["focus:border-primary form-control", __props.bind.classes],
             modelValue: unref(value),
@@ -24824,9 +24850,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1g.__file = "presstojam/src/components/form/string-edit.vue";
+script$1e.__file = "presstojam/src/components/form/string-edit.vue";
 
-var script$1f = {
+var script$1d = {
   name: 'ProgressBar',
   props: {
     value: {
@@ -24867,12 +24893,12 @@ var script$1f = {
 
   }
 };
-const _hoisted_1$y = ["aria-valuenow"];
-const _hoisted_2$t = {
+const _hoisted_1$E = ["aria-valuenow"];
+const _hoisted_2$w = {
   key: 0,
   class: "p-progressbar-label"
 };
-const _hoisted_3$m = {
+const _hoisted_3$n = {
   key: 1,
   class: "p-progressbar-indeterminate-container"
 };
@@ -24883,7 +24909,7 @@ const _hoisted_4$k = /*#__PURE__*/createElementVNode("div", {
 
 const _hoisted_5$e = [_hoisted_4$k];
 
-function render$l(_ctx, _cache, $props, $setup, $data, $options) {
+function render$q(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     role: "progressbar",
     class: normalizeClass($options.containerClass),
@@ -24894,10 +24920,10 @@ function render$l(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     class: "p-progressbar-value p-progressbar-value-animate",
     style: normalizeStyle($options.progressStyle)
-  }, [$props.value != null && $props.value !== 0 && $props.showValue ? (openBlock(), createElementBlock("div", _hoisted_2$t, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value + '%'), 1)])])) : createCommentVNode("", true)], 4)) : createCommentVNode("", true), $options.indeterminate ? (openBlock(), createElementBlock("div", _hoisted_3$m, _hoisted_5$e)) : createCommentVNode("", true)], 10, _hoisted_1$y);
+  }, [$props.value != null && $props.value !== 0 && $props.showValue ? (openBlock(), createElementBlock("div", _hoisted_2$w, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value + '%'), 1)])])) : createCommentVNode("", true)], 4)) : createCommentVNode("", true), $options.indeterminate ? (openBlock(), createElementBlock("div", _hoisted_3$n, _hoisted_5$e)) : createCommentVNode("", true)], 10, _hoisted_1$E);
 }
 
-function styleInject$f(css, ref) {
+function styleInject$g(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24926,11 +24952,11 @@ function styleInject$f(css, ref) {
   }
 }
 
-var css_248z$m = "\n.p-progressbar {\n    position: relative;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-value {\n    height: 100%;\n    width: 0%;\n    position: absolute;\n    display: none;\n    border: 0 none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-label {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-progressbar-determinate .p-progressbar-value-animate {\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-progressbar-indeterminate .p-progressbar-value::before {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n    animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n}\n.p-progressbar-indeterminate .p-progressbar-value::after {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    -webkit-animation-delay: 1.15s;\n    animation-delay: 1.15s;\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n";
-styleInject$f(css_248z$m);
-script$1f.render = render$l;
+var css_248z$n = "\n.p-progressbar {\n    position: relative;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-value {\n    height: 100%;\n    width: 0%;\n    position: absolute;\n    display: none;\n    border: 0 none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-label {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-progressbar-determinate .p-progressbar-value-animate {\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-progressbar-indeterminate .p-progressbar-value::before {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n    animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n}\n.p-progressbar-indeterminate .p-progressbar-value::after {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    -webkit-animation-delay: 1.15s;\n    animation-delay: 1.15s;\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n";
+styleInject$g(css_248z$n);
+script$1d.render = render$q;
 
-var script$1e = {
+var script$1c = {
   name: 'Badge',
   props: {
     value: null,
@@ -24958,13 +24984,13 @@ var script$1e = {
   }
 };
 
-function render$k(_ctx, _cache, $props, $setup, $data, $options) {
+function render$p(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("span", {
     class: normalizeClass($options.badgeClass)
   }, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value), 1)])], 2);
 }
 
-script$1e.render = render$k;
+script$1c.render = render$p;
 
 var script$1$3 = {
   emits: ['remove'],
@@ -25001,8 +25027,8 @@ var script$1$3 = {
 
   },
   components: {
-    FileUploadButton: script$1M,
-    FileUploadBadge: script$1e
+    FileUploadButton: script$1K,
+    FileUploadBadge: script$1c
   }
 };
 const _hoisted_1$1$3 = ["alt", "src", "width"];
@@ -25047,7 +25073,7 @@ function render$1$3(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$3.render = render$1$3;
-var script$1d = {
+var script$1b = {
   name: 'FileUpload',
   emits: ['select', 'uploader', 'before-upload', 'progress', 'upload', 'error', 'before-send', 'clear', 'remove', 'removeUploadedFile'],
   props: {
@@ -25529,21 +25555,21 @@ var script$1d = {
 
   },
   components: {
-    FileUploadButton: script$1M,
-    FileUploadProgressBar: script$1f,
-    FileUploadMessage: script$1L,
+    FileUploadButton: script$1K,
+    FileUploadProgressBar: script$1d,
+    FileUploadMessage: script$1J,
     FileContent: script$1$3
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$x = {
+const _hoisted_1$D = {
   key: 0,
   class: "p-fileupload p-fileupload-advanced p-component"
 };
-const _hoisted_2$s = ["multiple", "accept", "disabled"];
-const _hoisted_3$l = {
+const _hoisted_2$v = ["multiple", "accept", "disabled"];
+const _hoisted_3$m = {
   class: "p-fileupload-buttonbar"
 };
 const _hoisted_4$j = {
@@ -25562,7 +25588,7 @@ const _hoisted_7$5 = {
 };
 const _hoisted_8$5 = ["accept", "disabled", "multiple"];
 
-function render$j(_ctx, _cache, $props, $setup, $data, $options) {
+function render$o(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FileUploadButton = resolveComponent("FileUploadButton");
 
   const _component_FileUploadProgressBar = resolveComponent("FileUploadProgressBar");
@@ -25573,14 +25599,14 @@ function render$j(_ctx, _cache, $props, $setup, $data, $options) {
 
   const _directive_ripple = resolveDirective("ripple");
 
-  return $options.isAdvanced ? (openBlock(), createElementBlock("div", _hoisted_1$x, [createElementVNode("input", {
+  return $options.isAdvanced ? (openBlock(), createElementBlock("div", _hoisted_1$D, [createElementVNode("input", {
     ref: "fileInput",
     type: "file",
     onChange: _cache[0] || (_cache[0] = (...args) => $options.onFileSelect && $options.onFileSelect(...args)),
     multiple: $props.multiple,
     accept: $props.accept,
     disabled: $options.chooseDisabled
-  }, null, 40, _hoisted_2$s), createElementVNode("div", _hoisted_3$l, [renderSlot(_ctx.$slots, "header", {
+  }, null, 40, _hoisted_2$v), createElementVNode("div", _hoisted_3$m, [renderSlot(_ctx.$slots, "header", {
     files: $data.files,
     uploadedFiles: $data.uploadedFiles,
     chooseCallback: $options.choose,
@@ -25679,7 +25705,7 @@ function render$j(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 40, _hoisted_8$5)) : createCommentVNode("", true)], 38)), [[_directive_ripple]])])) : createCommentVNode("", true);
 }
 
-function styleInject$e(css, ref) {
+function styleInject$f(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25708,15 +25734,15 @@ function styleInject$e(css, ref) {
   }
 }
 
-var css_248z$l = "\n.p-fileupload-content {\n    position: relative;\n}\n.p-fileupload-content .p-progressbar {\n    width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-button.p-fileupload-choose {\n    position: relative;\n    overflow: hidden;\n}\n.p-fileupload-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-fileupload > input[type='file'],\n.p-fileupload-basic input[type='file'] {\n    display: none;\n}\n.p-fluid .p-fileupload .p-button {\n    width: auto;\n}\n.p-fileupload-file {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-fileupload-file-thumbnail {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-fileupload-file-actions {\n    margin-left: auto;\n}\n";
-styleInject$e(css_248z$l);
-script$1d.render = render$j;
+var css_248z$m = "\n.p-fileupload-content {\n    position: relative;\n}\n.p-fileupload-content .p-progressbar {\n    width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-button.p-fileupload-choose {\n    position: relative;\n    overflow: hidden;\n}\n.p-fileupload-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-fileupload > input[type='file'],\n.p-fileupload-basic input[type='file'] {\n    display: none;\n}\n.p-fluid .p-fileupload .p-button {\n    width: auto;\n}\n.p-fileupload-file {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-fileupload-file-thumbnail {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-fileupload-file-actions {\n    margin-left: auto;\n}\n";
+styleInject$f(css_248z$m);
+script$1b.render = render$o;
 
 // accept="image/*" 
 
 
 
-var script$1c = {
+var script$1a = {
   props: {
     bind : {
         type : Object,
@@ -25742,7 +25768,7 @@ function onUpload(e) {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1d), {
+  return (openBlock(), createBlock(unref(script$1b), {
     mode: "basic",
     name: __props.bind.cell.name,
     customUpload: true,
@@ -25754,9 +25780,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1c.__file = "presstojam/src/components/form/asset-edit.vue";
+script$1a.__file = "presstojam/src/components/form/asset-edit.vue";
 
-var script$1b = {
+var script$19 = {
   name: 'Fieldset',
   emits: ['update:collapsed', 'toggle'],
   props: {
@@ -25813,11 +25839,11 @@ var script$1b = {
     ripple: Ripple
   }
 };
-const _hoisted_1$w = {
+const _hoisted_1$C = {
   class: "p-fieldset-legend"
 };
-const _hoisted_2$r = ["id"];
-const _hoisted_3$k = ["id", "aria-controls", "aria-expanded", "aria-label"];
+const _hoisted_2$u = ["id"];
+const _hoisted_3$l = ["id", "aria-controls", "aria-expanded", "aria-label"];
 const _hoisted_4$i = {
   class: "p-fieldset-legend-text"
 };
@@ -25826,19 +25852,19 @@ const _hoisted_6$a = {
   class: "p-fieldset-content"
 };
 
-function render$i(_ctx, _cache, $props, $setup, $data, $options) {
+function render$n(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("fieldset", {
     class: normalizeClass(['p-fieldset p-component', {
       'p-fieldset-toggleable': $props.toggleable
     }])
-  }, [createElementVNode("legend", _hoisted_1$w, [!$props.toggleable ? renderSlot(_ctx.$slots, "legend", {
+  }, [createElementVNode("legend", _hoisted_1$C, [!$props.toggleable ? renderSlot(_ctx.$slots, "legend", {
     key: 0
   }, () => [createElementVNode("span", {
     id: $options.ariaId + '_header',
     class: "p-fieldset-legend-text"
-  }, toDisplayString$1($props.legend), 9, _hoisted_2$r)]) : createCommentVNode("", true), $props.toggleable ? withDirectives((openBlock(), createElementBlock("a", {
+  }, toDisplayString$1($props.legend), 9, _hoisted_2$u)]) : createCommentVNode("", true), $props.toggleable ? withDirectives((openBlock(), createElementBlock("a", {
     key: 1,
     id: $options.ariaId + '_header',
     tabindex: "0",
@@ -25850,7 +25876,7 @@ function render$i(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
   }, [createElementVNode("span", {
     class: normalizeClass($options.iconClass)
-  }, null, 2), renderSlot(_ctx.$slots, "legend", {}, () => [createElementVNode("span", _hoisted_4$i, toDisplayString$1($props.legend), 1)])], 40, _hoisted_3$k)), [[_directive_ripple]]) : createCommentVNode("", true)]), createVNode(Transition, {
+  }, null, 2), renderSlot(_ctx.$slots, "legend", {}, () => [createElementVNode("span", _hoisted_4$i, toDisplayString$1($props.legend), 1)])], 40, _hoisted_3$l)), [[_directive_ripple]]) : createCommentVNode("", true)]), createVNode(Transition, {
     name: "p-toggleable-content"
   }, {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
@@ -25863,7 +25889,7 @@ function render$i(_ctx, _cache, $props, $setup, $data, $options) {
   })], 2);
 }
 
-function styleInject$d(css, ref) {
+function styleInject$e(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25892,11 +25918,11 @@ function styleInject$d(css, ref) {
   }
 }
 
-var css_248z$k = "\n.p-fieldset-legend > a,\n.p-fieldset-legend > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-fieldset-toggleable .p-fieldset-legend a {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n    text-decoration: none;\n}\n.p-fieldset-legend-text {\n    line-height: 1;\n}\n";
-styleInject$d(css_248z$k);
-script$1b.render = render$i;
+var css_248z$l = "\n.p-fieldset-legend > a,\n.p-fieldset-legend > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-fieldset-toggleable .p-fieldset-legend a {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n    text-decoration: none;\n}\n.p-fieldset-legend-text {\n    line-height: 1;\n}\n";
+styleInject$e(css_248z$l);
+script$19.render = render$n;
 
-var script$1a = {
+var script$18 = {
   props: {
     bind : {
         type : Object,
@@ -25926,7 +25952,7 @@ const binds = computed(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1b), {
+  return (openBlock(), createBlock(unref(script$19), {
     legend: _ctx.$t('models.' + __props.bind.cell.model + '.fields.' + __props.bind.cell.name + '.label')
   }, {
     default: withCtx(() => [
@@ -25935,7 +25961,7 @@ return (_ctx, _cache) => {
           class: "field form-group",
           key: jbind.cell.name
         }, [
-          createVNode(script$18, { bind: jbind }, null, 8 /* PROPS */, ["bind"])
+          createVNode(script$16, { bind: jbind }, null, 8 /* PROPS */, ["bind"])
         ]))
       }), 128 /* KEYED_FRAGMENT */))
     ]),
@@ -25946,12 +25972,12 @@ return (_ctx, _cache) => {
 
 };
 
-script$1a.__file = "presstojam/src/components/form/json-edit.vue";
+script$18.__file = "presstojam/src/components/form/json-edit.vue";
 
-const _hoisted_1$v = { class: "form-text text-muted p-invalid alert-danger" };
+const _hoisted_1$B = { class: "form-text text-muted p-invalid alert-danger" };
 
 
-var script$19 = {
+var script$17 = {
   props: {
   bind :Object
 },
@@ -25985,20 +26011,20 @@ const err_message = computed(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("small", _hoisted_1$v, toDisplayString$1(unref(err_message)), 1 /* TEXT */))
+  return (openBlock(), createElementBlock("small", _hoisted_1$B, toDisplayString$1(unref(err_message)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$19.__file = "presstojam/src/components/form/error.vue";
+script$17.__file = "presstojam/src/components/form/error.vue";
 
-const _hoisted_1$u = {
+const _hoisted_1$A = {
   key: 0,
   class: "form-check field-checkbox"
 };
-const _hoisted_2$q = ["for"];
-const _hoisted_3$j = {
+const _hoisted_2$t = ["for"];
+const _hoisted_3$k = {
   key: 1,
   class: "json-group"
 };
@@ -26010,7 +26036,7 @@ const _hoisted_5$b = ["for"];
 
 
 
-var script$18 = {
+var script$16 = {
   props: {
     bind : Object,
     active_validation : Boolean,
@@ -26036,22 +26062,22 @@ computed(() => {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.type=='flag')
-    ? (openBlock(), createElementBlock("div", _hoisted_1$u, [
-        createVNode(script$1r, { bind: __props.bind }, null, 8 /* PROPS */, ["bind"]),
+    ? (openBlock(), createElementBlock("div", _hoisted_1$A, [
+        createVNode(script$1p, { bind: __props.bind }, null, 8 /* PROPS */, ["bind"]),
         createElementVNode("label", {
           for: __props.bind.cell.name,
           class: "form-check-label"
-        }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_2$q),
+        }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_2$t),
         (__props.bind.show_error)
-          ? (openBlock(), createBlock(script$19, {
+          ? (openBlock(), createBlock(script$17, {
               key: 0,
               bind: __props.bind
             }, null, 8 /* PROPS */, ["bind"]))
           : createCommentVNode("v-if", true)
       ]))
     : (__props.bind.cell.type=='json')
-      ? (openBlock(), createElementBlock("div", _hoisted_3$j, [
-          createVNode(script$1a, {
+      ? (openBlock(), createElementBlock("div", _hoisted_3$k, [
+          createVNode(script$18, {
             bind: __props.bind,
             active_validation: __props.active_validation
           }, null, 8 /* PROPS */, ["bind", "active_validation"])
@@ -26062,44 +26088,44 @@ return (_ctx, _cache) => {
             class: "form-label"
           }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_5$b),
           (__props.bind.cell.type=='number')
-            ? (openBlock(), createBlock(script$1s, {
+            ? (openBlock(), createBlock(script$1q, {
                 key: 0,
                 bind: __props.bind,
                 class: "col"
               }, null, 8 /* PROPS */, ["bind"]))
             : (__props.bind.cell.type=='id')
-              ? (openBlock(), createBlock(script$1l, {
+              ? (openBlock(), createBlock(script$1j, {
                   key: 1,
                   bind: __props.bind,
                   class: "col",
                   data: __props.data
                 }, null, 8 /* PROPS */, ["bind", "data"]))
               : (__props.bind.cell.type=='asset')
-                ? (openBlock(), createBlock(script$1c, {
+                ? (openBlock(), createBlock(script$1a, {
                     key: 2,
                     bind: __props.bind,
                     class: "col"
                   }, null, 8 /* PROPS */, ["bind"]))
                 : (__props.bind.cell.type=='time')
-                  ? (openBlock(), createBlock(script$1j, {
+                  ? (openBlock(), createBlock(script$1h, {
                       key: 3,
                       bind: __props.bind,
                       class: "col"
                     }, null, 8 /* PROPS */, ["bind"]))
                   : (__props.bind.cell.type=='json')
-                    ? (openBlock(), createBlock(script$1a, {
+                    ? (openBlock(), createBlock(script$18, {
                         key: 4,
                         bind: __props.bind,
                         active_validation: __props.active_validation,
                         class: "col"
                       }, null, 8 /* PROPS */, ["bind", "active_validation"]))
-                    : (openBlock(), createBlock(script$1g, {
+                    : (openBlock(), createBlock(script$1e, {
                         key: 5,
                         bind: __props.bind,
                         class: "col"
                       }, null, 8 /* PROPS */, ["bind"])),
           (__props.bind.show_error)
-            ? (openBlock(), createBlock(script$19, {
+            ? (openBlock(), createBlock(script$17, {
                 key: 6,
                 bind: __props.bind,
                 class: "col"
@@ -26111,9 +26137,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$18.__file = "presstojam/src/components/form/edit-field.vue";
+script$16.__file = "presstojam/src/components/form/edit-field.vue";
 
-var script$17 = {
+var script$15 = {
   props: {
     modelValue : [Number, String, Boolean],
     model : String,
@@ -26147,7 +26173,7 @@ let value;
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1p), {
+  return (openBlock(), createBlock(unref(script$1n), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : value = $event)),
     options: options.value,
@@ -26158,7 +26184,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$17.__file = "presstojam/src/components/form/parent-select.vue";
+script$15.__file = "presstojam/src/components/form/parent-select.vue";
 
 class BindGroup {
   constructor() {
@@ -26285,7 +26311,7 @@ class Bind {
 
 }
 
-var script$16 = {
+var script$14 = {
   name: 'Panel',
   emits: ['update:collapsed', 'toggle'],
   props: {
@@ -26341,11 +26367,11 @@ var script$16 = {
     ripple: Ripple
   }
 };
-const _hoisted_1$t = {
+const _hoisted_1$z = {
   class: "p-panel-header"
 };
-const _hoisted_2$p = ["id"];
-const _hoisted_3$i = {
+const _hoisted_2$s = ["id"];
+const _hoisted_3$j = {
   class: "p-panel-icons"
 };
 const _hoisted_4$g = ["id", "aria-label", "aria-controls", "aria-expanded"];
@@ -26354,16 +26380,16 @@ const _hoisted_6$9 = {
   class: "p-panel-content"
 };
 
-function render$h(_ctx, _cache, $props, $setup, $data, $options) {
+function render$m(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [createElementVNode("div", _hoisted_1$t, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
+  }, [createElementVNode("div", _hoisted_1$z, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
     key: 0,
     id: $options.ariaId + '_header',
     class: "p-panel-title"
-  }, toDisplayString$1($props.header), 9, _hoisted_2$p)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$i, [renderSlot(_ctx.$slots, "icons"), $props.toggleable ? withDirectives((openBlock(), createElementBlock("button", {
+  }, toDisplayString$1($props.header), 9, _hoisted_2$s)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$j, [renderSlot(_ctx.$slots, "icons"), $props.toggleable ? withDirectives((openBlock(), createElementBlock("button", {
     key: 0,
     id: $options.ariaId + '_header',
     type: "button",
@@ -26390,6 +26416,87 @@ function render$h(_ctx, _cache, $props, $setup, $data, $options) {
     }, [createElementVNode("div", _hoisted_6$9, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$a), [[vShow, !$data.d_collapsed]])]),
     _: 3
   })], 2);
+}
+
+function styleInject$d(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$k = "\n.p-panel-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-panel-title {\n    line-height: 1;\n}\n.p-panel-header-icon {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n";
+styleInject$d(css_248z$k);
+script$14.render = render$m;
+
+var script$13 = {
+  name: 'ProgressSpinner',
+  props: {
+    strokeWidth: {
+      type: String,
+      default: '2'
+    },
+    fill: {
+      type: String,
+      default: 'none'
+    },
+    animationDuration: {
+      type: String,
+      default: '2s'
+    }
+  },
+  computed: {
+    svgStyle() {
+      return {
+        'animation-duration': this.animationDuration
+      };
+    }
+
+  }
+};
+const _hoisted_1$y = {
+  class: "p-progress-spinner",
+  role: "alert",
+  "aria-busy": "true"
+};
+const _hoisted_2$r = ["fill", "stroke-width"];
+
+function render$l(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$y, [(openBlock(), createElementBlock("svg", {
+    class: "p-progress-spinner-svg",
+    viewBox: "25 25 50 50",
+    style: normalizeStyle($options.svgStyle)
+  }, [createElementVNode("circle", {
+    class: "p-progress-spinner-circle",
+    cx: "50",
+    cy: "50",
+    r: "20",
+    fill: $props.fill,
+    "stroke-width": $props.strokeWidth,
+    strokeMiterlimit: "10"
+  }, null, 8, _hoisted_2$r)], 4))]);
 }
 
 function styleInject$c(css, ref) {
@@ -26421,101 +26528,20 @@ function styleInject$c(css, ref) {
   }
 }
 
-var css_248z$j = "\n.p-panel-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-panel-title {\n    line-height: 1;\n}\n.p-panel-header-icon {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n";
+var css_248z$j = "\n.p-progress-spinner {\n    position: relative;\n    margin: 0 auto;\n    width: 100px;\n    height: 100px;\n    display: inline-block;\n}\n.p-progress-spinner::before {\n    content: '';\n    display: block;\n    padding-top: 100%;\n}\n.p-progress-spinner-svg {\n    -webkit-animation: p-progress-spinner-rotate 2s linear infinite;\n            animation: p-progress-spinner-rotate 2s linear infinite;\n    height: 100%;\n    -webkit-transform-origin: center center;\n            transform-origin: center center;\n    width: 100%;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    margin: auto;\n}\n.p-progress-spinner-circle {\n    stroke-dasharray: 89, 200;\n    stroke-dashoffset: 0;\n    stroke: #d62d20;\n    -webkit-animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n            animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n    stroke-linecap: round;\n}\n@-webkit-keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@-webkit-keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@-webkit-keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n@keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n";
 styleInject$c(css_248z$j);
-script$16.render = render$h;
+script$13.render = render$l;
 
-var script$15 = {
-  name: 'ProgressSpinner',
-  props: {
-    strokeWidth: {
-      type: String,
-      default: '2'
-    },
-    fill: {
-      type: String,
-      default: 'none'
-    },
-    animationDuration: {
-      type: String,
-      default: '2s'
-    }
-  },
-  computed: {
-    svgStyle() {
-      return {
-        'animation-duration': this.animationDuration
-      };
-    }
-
-  }
-};
-const _hoisted_1$s = {
-  class: "p-progress-spinner",
-  role: "alert",
-  "aria-busy": "true"
-};
-const _hoisted_2$o = ["fill", "stroke-width"];
-
-function render$g(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$s, [(openBlock(), createElementBlock("svg", {
-    class: "p-progress-spinner-svg",
-    viewBox: "25 25 50 50",
-    style: normalizeStyle($options.svgStyle)
-  }, [createElementVNode("circle", {
-    class: "p-progress-spinner-circle",
-    cx: "50",
-    cy: "50",
-    r: "20",
-    fill: $props.fill,
-    "stroke-width": $props.strokeWidth,
-    strokeMiterlimit: "10"
-  }, null, 8, _hoisted_2$o)], 4))]);
-}
-
-function styleInject$b(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$i = "\n.p-progress-spinner {\n    position: relative;\n    margin: 0 auto;\n    width: 100px;\n    height: 100px;\n    display: inline-block;\n}\n.p-progress-spinner::before {\n    content: '';\n    display: block;\n    padding-top: 100%;\n}\n.p-progress-spinner-svg {\n    -webkit-animation: p-progress-spinner-rotate 2s linear infinite;\n            animation: p-progress-spinner-rotate 2s linear infinite;\n    height: 100%;\n    -webkit-transform-origin: center center;\n            transform-origin: center center;\n    width: 100%;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    margin: auto;\n}\n.p-progress-spinner-circle {\n    stroke-dasharray: 89, 200;\n    stroke-dashoffset: 0;\n    stroke: #d62d20;\n    -webkit-animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n            animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n    stroke-linecap: round;\n}\n@-webkit-keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@-webkit-keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@-webkit-keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n@keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n";
-styleInject$b(css_248z$i);
-script$15.render = render$g;
-
-const _hoisted_1$r = ["onSubmit"];
-const _hoisted_2$n = {
+const _hoisted_1$x = ["onSubmit"];
+const _hoisted_2$q = {
   key: 0,
   class: "form-group"
 };
-const _hoisted_3$h = /*#__PURE__*/createElementVNode("p", null, "Please do not refresh or close the browser until complete", -1 /* HOISTED */);
+const _hoisted_3$i = /*#__PURE__*/createElementVNode("p", null, "Please do not refresh or close the browser until complete", -1 /* HOISTED */);
 const _hoisted_4$f = { style: {"text-align":"center"} };
 
 
-var script$14 = {
+var script$12 = {
   props: {
     data : Object,
     model : Object,
@@ -26607,12 +26633,14 @@ function submit() {
     }
     processing.value = true;
     const data = serializeData();
+ 
     if (props.method == "put") {
         data.append("--id", props.data['--id']);
     } else if (props.method == "post" && props.data['--parent']) {
         data.append("--parent", props.data['--parent']);
     }         
 
+    //return;
     return Client[props.method]("/data/" + props.model.name, data)
     .then(response => {
         if (props.method == "put") {
@@ -26624,7 +26652,7 @@ function submit() {
         if (response['--dispatchid']) {
             runDispatch(response['--dispatchid'], response);
         } else {
-            trigger("form_saved", response, props.method, props.model);
+            trigger$1("form_saved", response, props.method, props.model);
         }
         return response;
     })
@@ -26646,9 +26674,9 @@ function runDispatch(id, oresponse) {
         Client.get("/dispatch/status/" + id)
         .then(response => {
             if (response.progress == "FAILED") {
-                trigger("dispatch_failed", oresponse, props.method, props.model, response);
+                trigger$1("dispatch_failed", oresponse, props.method, props.model, response);
             } else if (response.progress == "PROCESSED" || !response.progress) {
-                trigger("form_saved", oresponse, props.method, props.model, response);
+                trigger$1("form_saved", oresponse, props.method, props.model, response);
             } else {
                 status.value = response.progress;
                 setTimeout(chkProgress, delay);
@@ -26667,7 +26695,7 @@ return (_ctx, _cache) => {
       class: "card needs-validation",
       novalidate: ""
     }, [
-      withDirectives(createVNode(unref(script$1L), { severity: "error" }, {
+      withDirectives(createVNode(unref(script$1J), { severity: "error" }, {
         default: withCtx(() => [
           createTextVNode(toDisplayString$1(global_error.value), 1 /* TEXT */)
         ]),
@@ -26676,9 +26704,9 @@ return (_ctx, _cache) => {
         [vShow, global_error.value]
       ]),
       (__props.parent)
-        ? (openBlock(), createElementBlock("div", _hoisted_2$n, [
+        ? (openBlock(), createElementBlock("div", _hoisted_2$q, [
             createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + _ctx.store.parent + ".title")), 1 /* TEXT */),
-            createVNode(script$17, {
+            createVNode(script$15, {
               modelValue: _ctx.proxy_values['--parent'],
               "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((_ctx.proxy_values['--parent']) = $event)),
               model: _ctx.store.parent,
@@ -26688,28 +26716,28 @@ return (_ctx, _cache) => {
           ]))
         : createCommentVNode("v-if", true),
       (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
-        return (openBlock(), createBlock(script$18, {
+        return (openBlock(), createBlock(script$16, {
           bind: unref(bindGroup).getBind(cell.name),
           key: cell.name,
           data: __props.data
         }, null, 8 /* PROPS */, ["bind", "data"]))
       }), 128 /* KEYED_FRAGMENT */)),
-      createVNode(unref(script$1M), {
+      createVNode(unref(script$1K), {
         label: _ctx.$t('btns.save'),
         onClick: submit
       }, null, 8 /* PROPS */, ["label"])
-    ], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$r), [
+    ], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$x), [
       [vShow, processing.value == false]
     ]),
-    withDirectives(createVNode(unref(script$16), {
+    withDirectives(createVNode(unref(script$14), {
       Panel: "",
       header: "Processing"
     }, {
       default: withCtx(() => [
-        _hoisted_3$h,
+        _hoisted_3$i,
         createElementVNode("p", null, "Status: " + toDisplayString$1(status.value), 1 /* TEXT */),
         createElementVNode("p", _hoisted_4$f, [
-          createVNode(unref(script$15))
+          createVNode(unref(script$13))
         ])
       ]),
       _: 1 /* STABLE */
@@ -26722,14 +26750,14 @@ return (_ctx, _cache) => {
 
 };
 
-script$14.__file = "presstojam/src/components/form/form.vue";
+script$12.__file = "presstojam/src/components/form/form.vue";
 
 var form = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  'default': script$14
+  'default': script$12
 });
 
-var script$13 = {
+var script$11 = {
   props: {
     model : String,
     parent_id : Number
@@ -26768,16 +26796,14 @@ function checkData() {
     .then(checks => {
         for(const i in checks) {
             const entity = getEntity(i);
-            if (entity.min_rows && entity.min_rows >= checks[i]) {
+            if (entity.perms.includes("post") && entity.min_rows && entity.min_rows >= checks[i]) {
                 current_model.value = getModel(i);
                 current_num.value = checks[i];
                 return;
             }
         }
-
-        console.log("No checks are occured");
         //if we get here, then no checks
-        trigger("integrity_min_data", props.model, true);
+        trigger$1("integrity_min_data", props.model, true);
     });
 }
 
@@ -26798,19 +26824,19 @@ checkData();
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
     (current_num.value.value)
-      ? (openBlock(), createBlock(script$1t, {
+      ? (openBlock(), createBlock(script$1r, {
           key: 0,
           model: current_model.value,
           parent_id: __props.parent_id
         }, null, 8 /* PROPS */, ["model", "parent_id"]))
       : createCommentVNode("v-if", true),
     (current_model.value)
-      ? (openBlock(), createBlock(unref(script$1O), { key: 1 }, {
+      ? (openBlock(), createBlock(unref(script$1M), { key: 1 }, {
           header: withCtx(() => [
             createElementVNode("h2", null, toDisplayString$1(unref(header)), 1 /* TEXT */)
           ]),
           content: withCtx(() => [
-            createVNode(script$14, {
+            createVNode(script$12, {
               model: current_model.value,
               data: unref(data)
             }, null, 8 /* PROPS */, ["model", "data"])
@@ -26824,13 +26850,13 @@ return (_ctx, _cache) => {
 
 };
 
-script$13.__file = "presstojam/src/components/dataintegrity/mindata.vue";
+script$11.__file = "presstojam/src/components/dataintegrity/mindata.vue";
 
-const _hoisted_1$q = { key: 2 };
+const _hoisted_1$w = { key: 2 };
 
 
 
-var script$12 = {
+var script$10 = {
   async setup(__props) {
 
 let __temp, __restore;
@@ -26917,34 +26943,34 @@ subscribe("integrity_min_data", "user", (model, check) => {
 
 return (_ctx, _cache) => {
   return (require_login.value)
-    ? (openBlock(), createBlock(script$1G, { key: 0 }))
+    ? (openBlock(), createBlock(script$1E, { key: 0 }))
     : (integrity_check.value == false)
-      ? (openBlock(), createBlock(script$13, { key: 1 }))
-      : (openBlock(), createElementBlock("div", _hoisted_1$q, [
+      ? (openBlock(), createBlock(script$11, { key: 1 }))
+      : (openBlock(), createElementBlock("div", _hoisted_1$w, [
           (unref(no_nav) == false)
-            ? (openBlock(), createBlock(script$1B, {
+            ? (openBlock(), createBlock(script$1z, {
                 key: 0,
                 name: name.value
               }, null, 8 /* PROPS */, ["name"]))
             : createCommentVNode("v-if", true),
-          createVNode(script$1F),
-          createVNode(script$1z)
+          createVNode(script$1D),
+          createVNode(script$1x)
         ]))
 }
 }
 
 };
 
-script$12.__file = "presstojam/src/components/user.vue";
+script$10.__file = "presstojam/src/components/user.vue";
 
-var script$11 = {
+var script$$ = {
   setup(__props) {
 
 
 return (_ctx, _cache) => {
   return (openBlock(), createBlock(Suspense, null, {
     default: withCtx(() => [
-      createVNode(script$12)
+      createVNode(script$10)
     ]),
     _: 1 /* STABLE */
   }))
@@ -26953,7 +26979,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$11.__file = "presstojam/src/components/controller.vue";
+script$$.__file = "presstojam/src/components/controller.vue";
 
 /*!
   * vue-router v4.1.6
@@ -30791,18 +30817,8 @@ class RepoData extends Data {
     return this.load(params);
   }
 
-  overwrite(obj) {
-    this._load_promise = this._load_promise.then(response => {
-      for (const row of response) {
-        if (row['--id'] == obj['--id']) {
-          for (let x in obj) {
-            row[x] = obj[x];
-          }
-        }
-      }
-
-      return response;
-    });
+  loadRow(iobj) {
+    return this._model.reloadRow(iobj['--id']);
   }
 
   remove(ids) {
@@ -30810,14 +30826,6 @@ class RepoData extends Data {
       response.filter(function (item) {
         return !ids.include(item['--id']);
       });
-      return response;
-    });
-  }
-
-  append(obj) {
-    this._load_promise = this._load_promise.then(response => {
-      response.push(obj);
-      ++this._pagination.count.value;
       return response;
     });
   }
@@ -30876,39 +30884,133 @@ class ActiveData extends Data {
 
 }
 
+class ReportStore extends Data {
+  constructor(model, field) {
+    super(model);
+    this._aggregate = null;
+    this._filters = [];
+    this._field = field;
+    this._aggregate = "COUNT";
+    this._groups = [];
+    this._time_group;
+    this._load_line_promise = null;
+  }
+
+  get filters() {
+    return this._filters;
+  }
+
+  set filters(filters) {
+    this._filters = filters;
+  }
+
+  get groups() {
+    return this._groups;
+  }
+
+  set groups(groups) {
+    this._groups = groups;
+  }
+
+  get aggregate() {
+    return this._aggregate;
+  }
+
+  set aggregate(agg) {
+    this._aggregate = agg;
+  }
+
+  set timegroup(timegroup) {
+    this._time_group = timegroup;
+  }
+
+  get field() {
+    return this._field;
+  }
+
+  get type() {
+    return "report";
+  }
+
+  getDataSets(response) {
+    const data_sets = {};
+
+    if (this._groups.length == 0) {
+      data_sets["main"] = [response[0].count];
+    } else {
+      for (const row of response) {
+        let keys = [];
+
+        for (const group of this._groups) {
+          keys.push(group + ":" + row[group]);
+        }
+
+        const key = keys.join(", ");
+        if (!data_sets[key]) data_sets[key] = [];
+        data_sets[key].push(row.count);
+      }
+    }
+
+    console.log("Data Sets are ", data_sets);
+    return data_sets;
+  }
+
+  load(type) {
+    if (!this._load_promise) {
+      this._is_loading.value = true;
+      this._model.limit = 0;
+      const groups = { ...this._groups
+      };
+
+      if (type == 'line') {
+        if (this._time_group) {
+          groups.push({
+            name: '--created',
+            func: 'DATEPART',
+            args: {}
+          });
+        }
+      }
+
+      this._model.group = groups;
+      this._load_promise = this._model.loadReport(this._filters, this._field, this._aggregate).then(response => {
+        const data = this.getDataSets(response);
+        const datasets = [];
+
+        for (const key in data) {
+          datasets.push({
+            label: key,
+            data: data[key]
+          });
+        }
+
+        this._is_loading.value = false;
+        return datasets;
+      }).catch(e => {
+        console.log(e);
+        this._is_loading.value = false;
+        throw e;
+      });
+    }
+
+    return this._load_promise;
+  }
+
+  reload(type) {
+    return this.load(type);
+  }
+
+}
+
 let stores = {};
 function createRepoStore(store) {
   return new RepoData(store);
 }
 function createActiveStore(store, active_id) {
   return new ActiveData(store, active_id);
-  /*return {
-      parent_id : ref(0),
-      store : store,
-      active_id : store.active_id,
-      is_loading : ref(false),
-      selected : ref([]),
-      data : ref({}),
-      label : ref(''),
-      load() {
-          return store.load()
-          .then(response => {
-              this.data.value = response;
-              if (this.data.value['--parentid']) this.parent_id.value = this.data.value['--parentid'];
-              this.is_loading.value = false;
-              this.label.value = getLabel(store.route.schema, this.data.value);
-          })
-          .catch(e => {
-              console.log(e);
-              this.is_loading.value = false;
-          });
-      },
-      overwrite(obj) {
-          for(let x in obj) {
-              this.data.value[x] = obj[x];
-          }
-      } 
-  }*/
+}
+function createReportStore(store) {
+  return new ReportStore(store);
 }
 function createFirstStore(store) {
   store.limit = 1;
@@ -31085,7 +31187,7 @@ function render$1$2(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$2.render = render$1$2;
-var script$10 = {
+var script$_ = {
   name: 'Breadcrumb',
   props: {
     model: {
@@ -31105,24 +31207,24 @@ var script$10 = {
     BreadcrumbItem: script$1$2
   }
 };
-const _hoisted_1$p = {
+const _hoisted_1$v = {
   class: "p-breadcrumb p-component"
 };
-const _hoisted_2$m = {
+const _hoisted_2$p = {
   class: "p-breadcrumb-list"
 };
 
-const _hoisted_3$g = /*#__PURE__*/createElementVNode("li", {
+const _hoisted_3$h = /*#__PURE__*/createElementVNode("li", {
   class: "p-menuitem-separator"
 }, [/*#__PURE__*/createElementVNode("span", {
   class: "pi pi-chevron-right",
   "aria-hidden": "true"
 })], -1);
 
-function render$f(_ctx, _cache, $props, $setup, $data, $options) {
+function render$k(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_BreadcrumbItem = resolveComponent("BreadcrumbItem");
 
-  return openBlock(), createElementBlock("nav", _hoisted_1$p, [createElementVNode("ol", _hoisted_2$m, [$props.home ? (openBlock(), createBlock(_component_BreadcrumbItem, {
+  return openBlock(), createElementBlock("nav", _hoisted_1$v, [createElementVNode("ol", _hoisted_2$p, [$props.home ? (openBlock(), createBlock(_component_BreadcrumbItem, {
     key: 0,
     item: $props.home,
     class: "p-breadcrumb-home",
@@ -31131,7 +31233,7 @@ function render$f(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["item", "template", "exact"])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList($props.model, item => {
     return openBlock(), createElementBlock(Fragment, {
       key: item.label
-    }, [_hoisted_3$g, createVNode(_component_BreadcrumbItem, {
+    }, [_hoisted_3$h, createVNode(_component_BreadcrumbItem, {
       item: item,
       template: _ctx.$slots.item,
       exact: $props.exact
@@ -31139,7 +31241,7 @@ function render$f(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128))])]);
 }
 
-function styleInject$a(css, ref) {
+function styleInject$b(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -31168,11 +31270,11 @@ function styleInject$a(css, ref) {
   }
 }
 
-var css_248z$h = "\n.p-breadcrumb {\n    overflow-x: auto;\n}\n.p-breadcrumb .p-breadcrumb-list {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-breadcrumb .p-menuitem-text {\n    line-height: 1;\n}\n.p-breadcrumb .p-menuitem-link {\n    text-decoration: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb .p-menuitem-separator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb::-webkit-scrollbar {\n    display: none;\n}\n";
-styleInject$a(css_248z$h);
-script$10.render = render$f;
+var css_248z$i = "\n.p-breadcrumb {\n    overflow-x: auto;\n}\n.p-breadcrumb .p-breadcrumb-list {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-breadcrumb .p-menuitem-text {\n    line-height: 1;\n}\n.p-breadcrumb .p-menuitem-link {\n    text-decoration: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb .p-menuitem-separator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb::-webkit-scrollbar {\n    display: none;\n}\n";
+styleInject$b(css_248z$i);
+script$_.render = render$k;
 
-var script$$ = {
+var script$Z = {
   name: 'OverlayPanel',
   inheritAttrs: false,
   emits: ['show', 'hide'],
@@ -31490,19 +31592,19 @@ var script$$ = {
     ripple: Ripple
   },
   components: {
-    Portal: script$1D
+    Portal: script$1B
   }
 };
-const _hoisted_1$o = ["aria-modal"];
-const _hoisted_2$l = ["aria-label"];
+const _hoisted_1$u = ["aria-modal"];
+const _hoisted_2$o = ["aria-label"];
 
-const _hoisted_3$f = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_3$g = /*#__PURE__*/createElementVNode("span", {
   class: "p-overlaypanel-close-icon pi pi-times"
 }, null, -1);
 
-const _hoisted_4$d = [_hoisted_3$f];
+const _hoisted_4$d = [_hoisted_3$g];
 
-function render$e(_ctx, _cache, $props, $setup, $data, $options) {
+function render$j(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Portal = resolveComponent("Portal");
 
   const _directive_ripple = resolveDirective("ripple");
@@ -31538,14 +31640,14 @@ function render$e(_ctx, _cache, $props, $setup, $data, $options) {
         autofocus: "",
         onClick: _cache[3] || (_cache[3] = (...args) => $options.hide && $options.hide(...args)),
         onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onButtonKeydown && $options.onButtonKeydown(...args))
-      }, _hoisted_4$d, 40, _hoisted_2$l)), [[_directive_ripple]]) : createCommentVNode("", true)], 16, _hoisted_1$o)), [[_directive_focustrap]]) : createCommentVNode("", true)]),
+      }, _hoisted_4$d, 40, _hoisted_2$o)), [[_directive_ripple]]) : createCommentVNode("", true)], 16, _hoisted_1$u)), [[_directive_focustrap]]) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo"]);
 }
 
-function styleInject$9(css, ref) {
+function styleInject$a(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -31574,17 +31676,17 @@ function styleInject$9(css, ref) {
   }
 }
 
-var css_248z$g = "\n.p-overlaypanel {\n    position: absolute;\n    margin-top: 10px;\n    top: 0;\n    left: 0;\n}\n.p-overlaypanel-flipped {\n    margin-top: 0;\n    margin-bottom: 10px;\n}\n.p-overlaypanel-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Animation */\n.p-overlaypanel-enter-from {\n    opacity: 0;\n    -webkit-transform: scaleY(0.8);\n            transform: scaleY(0.8);\n}\n.p-overlaypanel-leave-to {\n    opacity: 0;\n}\n.p-overlaypanel-enter-active {\n    -webkit-transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n}\n.p-overlaypanel-leave-active {\n    -webkit-transition: opacity 0.1s linear;\n    transition: opacity 0.1s linear;\n}\n.p-overlaypanel:after,\n.p-overlaypanel:before {\n    bottom: 100%;\n    left: calc(var(--overlayArrowLeft, 0) + 1.25rem);\n    content: ' ';\n    height: 0;\n    width: 0;\n    position: absolute;\n    pointer-events: none;\n}\n.p-overlaypanel:after {\n    border-width: 8px;\n    margin-left: -8px;\n}\n.p-overlaypanel:before {\n    border-width: 10px;\n    margin-left: -10px;\n}\n.p-overlaypanel-flipped:after,\n.p-overlaypanel-flipped:before {\n    bottom: auto;\n    top: 100%;\n}\n.p-overlaypanel.p-overlaypanel-flipped:after {\n    border-bottom-color: transparent;\n}\n.p-overlaypanel.p-overlaypanel-flipped:before {\n    border-bottom-color: transparent;\n}\n";
-styleInject$9(css_248z$g);
-script$$.render = render$e;
+var css_248z$h = "\n.p-overlaypanel {\n    position: absolute;\n    margin-top: 10px;\n    top: 0;\n    left: 0;\n}\n.p-overlaypanel-flipped {\n    margin-top: 0;\n    margin-bottom: 10px;\n}\n.p-overlaypanel-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Animation */\n.p-overlaypanel-enter-from {\n    opacity: 0;\n    -webkit-transform: scaleY(0.8);\n            transform: scaleY(0.8);\n}\n.p-overlaypanel-leave-to {\n    opacity: 0;\n}\n.p-overlaypanel-enter-active {\n    -webkit-transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n}\n.p-overlaypanel-leave-active {\n    -webkit-transition: opacity 0.1s linear;\n    transition: opacity 0.1s linear;\n}\n.p-overlaypanel:after,\n.p-overlaypanel:before {\n    bottom: 100%;\n    left: calc(var(--overlayArrowLeft, 0) + 1.25rem);\n    content: ' ';\n    height: 0;\n    width: 0;\n    position: absolute;\n    pointer-events: none;\n}\n.p-overlaypanel:after {\n    border-width: 8px;\n    margin-left: -8px;\n}\n.p-overlaypanel:before {\n    border-width: 10px;\n    margin-left: -10px;\n}\n.p-overlaypanel-flipped:after,\n.p-overlaypanel-flipped:before {\n    bottom: auto;\n    top: 100%;\n}\n.p-overlaypanel.p-overlaypanel-flipped:after {\n    border-bottom-color: transparent;\n}\n.p-overlaypanel.p-overlaypanel-flipped:before {\n    border-bottom-color: transparent;\n}\n";
+styleInject$a(css_248z$h);
+script$Z.render = render$j;
 
-const _hoisted_1$n = ["href", "onClick"];
-const _hoisted_2$k = { class: "p-menuitem-text" };
-const _hoisted_3$e = { class: "row" };
+const _hoisted_1$t = ["href", "onClick"];
+const _hoisted_2$n = { class: "p-menuitem-text" };
+const _hoisted_3$f = { class: "row" };
 const _hoisted_4$c = /*#__PURE__*/createTextVNode();
 
 
-var script$_ = {
+var script$Y = {
   props: {
     item : Object
 },
@@ -31624,13 +31726,13 @@ return (_ctx, _cache) => {
                 class: normalizeClass(["pi", __props.item.icon])
               }, null, 2 /* CLASS */))
             : createCommentVNode("v-if", true),
-          createElementVNode("span", _hoisted_2$k, toDisplayString$1(__props.item.label), 1 /* TEXT */)
-        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$n)
+          createElementVNode("span", _hoisted_2$n, toDisplayString$1(__props.item.label), 1 /* TEXT */)
+        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$t)
       ]),
       _: 1 /* STABLE */
     }, 8 /* PROPS */, ["to"]),
     (__props.item.info)
-      ? (openBlock(), createBlock(unref(script$$), {
+      ? (openBlock(), createBlock(unref(script$Z), {
           key: 0,
           ref_key: "info",
           ref: info,
@@ -31639,7 +31741,7 @@ return (_ctx, _cache) => {
           default: withCtx(() => [
             (openBlock(true), createElementBlock(Fragment, null, renderList(__props.item.info, (row) => {
               return (openBlock(), createElementBlock("dl", null, [
-                createElementVNode("div", _hoisted_3$e, [
+                createElementVNode("div", _hoisted_3$f, [
                   createElementVNode("dt", null, toDisplayString$1(row.label), 1 /* TEXT */),
                   _hoisted_4$c,
                   createElementVNode("dd", null, toDisplayString$1(row.value), 1 /* TEXT */)
@@ -31656,13 +31758,13 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$f = "\ndl[data-v-0b46fb32] {\r\n        position : relative;\r\n        display: flex;\r\n        flex-direction: column;\n}\ndt[data-v-0b46fb32] {\r\n        float : left;\r\n        font-weight : 700;\r\n        width : 50%\n}\ndd[data-v-0b46fb32] {\r\n        position : relative;\r\n        margin-left : 50%;\r\n        padding : 2px;\n}\ndl > div[data-v-0b46fb32] {\r\n        position : relative;\r\n        clear : both;\r\n        display : block;\n}\r\n";
-styleInject$t(css_248z$f);
+var css_248z$g = "\ndl[data-v-0b46fb32] {\r\n        position : relative;\r\n        display: flex;\r\n        flex-direction: column;\n}\ndt[data-v-0b46fb32] {\r\n        float : left;\r\n        font-weight : 700;\r\n        width : 50%\n}\ndd[data-v-0b46fb32] {\r\n        position : relative;\r\n        margin-left : 50%;\r\n        padding : 2px;\n}\ndl > div[data-v-0b46fb32] {\r\n        position : relative;\r\n        clear : both;\r\n        display : block;\n}\r\n";
+styleInject$u(css_248z$g);
 
-script$_.__scopeId = "data-v-0b46fb32";
-script$_.__file = "presstojam/src/components/slugtrail/crumb.vue";
+script$Y.__scopeId = "data-v-0b46fb32";
+script$Y.__file = "presstojam/src/components/slugtrail/crumb.vue";
 
-var script$Z = {
+var script$X = {
   props: {
     name : String,
     parent_id : Number
@@ -31781,9 +31883,9 @@ let crumbs = computed(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$10), { model: unref(crumbs) }, {
+  return (openBlock(), createBlock(unref(script$_), { model: unref(crumbs) }, {
     item: withCtx(({item}) => [
-      createVNode(script$_, { item: item }, null, 8 /* PROPS */, ["item"])
+      createVNode(script$Y, { item: item }, null, 8 /* PROPS */, ["item"])
     ]),
     _: 1 /* STABLE */
   }, 8 /* PROPS */, ["model"]))
@@ -31792,18 +31894,57 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$e = "\n.slug-trail-vue-vue-type-style-index-0-id-027b103d-scoped-true-lang_p-breadcrumb__D8PaD[data-v-027b103d] {\r\n    background: #ffffff;\r\n    border: 1px solid #dee2e6;\r\n    border-radius: 6px;\r\n    padding: 1rem;\n}\r\n";
-styleInject$t(css_248z$e);
+var css_248z$f = "\n.slug-trail-vue-vue-type-style-index-0-id-027b103d-scoped-true-lang_p-breadcrumb__D8PaD[data-v-027b103d] {\r\n    background: #ffffff;\r\n    border: 1px solid #dee2e6;\r\n    border-radius: 6px;\r\n    padding: 1rem;\n}\r\n";
+styleInject$u(css_248z$f);
 
-script$Z.__scopeId = "data-v-027b103d";
-script$Z.__file = "presstojam/src/components/slugtrail/slug-trail.vue";
+script$X.__scopeId = "data-v-027b103d";
+script$X.__file = "presstojam/src/components/slugtrail/slug-trail.vue";
 
 var slugTrail = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  'default': script$Z
+  'default': script$X
 });
 
-var script$Y = {
+var script$W = {
+  props: {
+        model : Object,
+        data : Object,
+        name : String
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+ 
+    subscribe("form_saved", "update", (response, method, model) => {
+        if (model.name == props.model.name && method == "put") {
+            trigger$1("effect_edited", props.name, props.data);
+        }
+    });
+
+    onBeforeUnmount(() => {
+        unsubscribe("form_saved", "update");
+    });
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(script$12, {
+    model: __props.model,
+    data: __props.data,
+    method: "put",
+    key: "edit"
+  }, null, 8 /* PROPS */, ["model", "data"]))
+}
+}
+
+};
+
+script$W.__file = "presstojam/src/components/effects/edit-effect.vue";
+
+var script$V = {
   props: {
     model : String,
     base : String
@@ -31835,8 +31976,15 @@ const label = computed(() => {
     return t('models.' + props.model + '.title') + ': ' + repo.label.value;
 });
 
-store.trigger("mounted");
 
+subscribe("effect_edited", props.model.name, response => {
+    console.log(response, arguments);
+});
+
+
+onBeforeUnmount(() => {
+    unsubscribe("effect_edited", props.model_name);
+});
 
 
 return (_ctx, _cache) => {
@@ -31844,8 +31992,8 @@ return (_ctx, _cache) => {
   const _component_ptj_delete_action = resolveComponent("ptj-delete-action");
 
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$Z, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$16), { header: unref(label) }, {
+    createVNode(script$X, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$14), { header: unref(label) }, {
       icons: withCtx(() => [
         (unref(store).audit)
           ? (openBlock(), createBlock(_component_audit_action, {
@@ -31865,11 +32013,10 @@ return (_ctx, _cache) => {
       ]),
       default: withCtx(() => [
         (data.value['--id'])
-          ? (openBlock(), createBlock(script$14, {
+          ? (openBlock(), createBlock(script$W, {
               key: 0,
               model: unref(store),
-              data: data.value,
-              method: "put"
+              data: data.value
             }, null, 8 /* PROPS */, ["model", "data"]))
           : createCommentVNode("v-if", true)
       ]),
@@ -31881,9 +32028,394 @@ return (_ctx, _cache) => {
 
 };
 
-script$Y.__file = "presstojam/src/components/active/single.vue";
+script$V.__file = "presstojam/src/components/active/single.vue";
 
-var script$X = {
+var script$U = {
+  name: 'Chart',
+  emits: ['select', 'loaded'],
+  props: {
+    type: String,
+    data: null,
+    options: null,
+    plugins: null,
+    width: {
+      type: Number,
+      default: 300
+    },
+    height: {
+      type: Number,
+      default: 150
+    }
+  },
+  chart: null,
+  watch: {
+    /*
+     * Use deep watch to enable triggering watch for changes within structure
+     * otherwise the entire data object needs to be replaced to trigger watch
+     */
+    data: {
+      handler() {
+        this.reinit();
+      },
+
+      deep: true
+    },
+
+    type() {
+      this.reinit();
+    },
+
+    options() {
+      this.reinit();
+    }
+
+  },
+
+  mounted() {
+    this.initChart();
+  },
+
+  beforeUnmount() {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+  },
+
+  methods: {
+    initChart() {
+      Promise.resolve().then(function () { return auto; }).then(module => {
+        if (this.chart) {
+          this.chart.destroy();
+          this.chart = null;
+        }
+
+        if (module && module.default) {
+          this.chart = new module.default(this.$refs.canvas, {
+            type: this.type,
+            data: this.data,
+            options: this.options,
+            plugins: this.plugins
+          });
+        }
+
+        this.$emit('loaded', this.chart);
+      });
+    },
+
+    getCanvas() {
+      return this.$canvas;
+    },
+
+    getChart() {
+      return this.chart;
+    },
+
+    getBase64Image() {
+      return this.chart.toBase64Image();
+    },
+
+    refresh() {
+      if (this.chart) {
+        this.chart.update();
+      }
+    },
+
+    reinit() {
+      this.initChart();
+    },
+
+    onCanvasClick(event) {
+      if (this.chart) {
+        const element = this.chart.getElementsAtEventForMode(event, 'nearest', {
+          intersect: true
+        }, false);
+        const dataset = this.chart.getElementsAtEventForMode(event, 'dataset', {
+          intersect: true
+        }, false);
+
+        if (element && element[0] && dataset) {
+          this.$emit('select', {
+            originalEvent: event,
+            element: element[0],
+            dataset: dataset
+          });
+        }
+      }
+    },
+
+    generateLegend() {
+      if (this.chart) {
+        return this.chart.generateLegend();
+      }
+    }
+
+  }
+};
+const _hoisted_1$s = {
+  class: "p-chart"
+};
+const _hoisted_2$m = ["width", "height"];
+
+function render$i(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$s, [createElementVNode("canvas", {
+    ref: "canvas",
+    width: $props.width,
+    height: $props.height,
+    onClick: _cache[0] || (_cache[0] = $event => $options.onCanvasClick($event))
+  }, null, 8, _hoisted_2$m)]);
+}
+
+function styleInject$9(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$e = "\n.p-chart {\n    position: relative;\n}\n";
+styleInject$9(css_248z$e);
+script$U.render = render$i;
+
+var script$T = {
+  props: {
+    data : [Object, Array],
+    type : [String]
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const chart_data = computed(() => {
+    const obj = {
+        labels : ['Count'],
+        datasets : props.data
+    };
+    return obj;
+});
+
+const options = {
+	responsive: true,
+	hoverMode: 'index',
+	stacked: false,
+	/*scales: {
+        yAxes: [{
+            type: 'linear',
+            display: true,
+            position: 'left',
+            id: 'y-axis-1',
+        },
+        {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            id: 'y-axis-2',
+            gridLines: {
+                drawOnChartArea: false
+            }
+        }]
+	}*/
+};
+
+const bar_options = {
+    indexAxis : 'y'
+};
+
+return (_ctx, _cache) => {
+  return (__props.type=='bar')
+    ? (openBlock(), createBlock(unref(script$U), {
+        key: 0,
+        type: "bar",
+        data: unref(chart_data),
+        options: bar_options
+      }, null, 8 /* PROPS */, ["data"]))
+    : (openBlock(), createBlock(unref(script$U), {
+        key: 1,
+        type: "line",
+        data: unref(chart_data),
+        options: options
+      }, null, 8 /* PROPS */, ["data"]))
+}
+}
+
+};
+
+script$T.__file = "presstojam/src/components/reports/report-chart.vue";
+
+const _hoisted_1$r = { class: "p-inputgroup" };
+const _hoisted_2$l = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "min", -1 /* HOISTED */);
+const _hoisted_3$e = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, " - ", -1 /* HOISTED */);
+const _hoisted_4$b = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "max", -1 /* HOISTED */);
+
+
+var script$S = {
+  props: {
+    modelValue : [Object],
+    field : Object
+},
+  emits: [
+    "update:modelValue"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+
+const min = computed({
+    get() {
+        return (props.modelValue) ? props.modelValue.min : null;
+    },
+    set(val) {
+        let max = null;
+        if (props.modelValue) {
+            max = (props.modelValue.max < val) ? val : props.modelValue.max;
+        }
+        emits('update:modelValue', { 'min' : val, 'max' : max });
+    }
+});
+
+const max = computed({
+    get() {
+        return (props.modelValue) ? props.modelValue.max : null;
+    },
+    set(val) {
+        let min = null;
+        if (props.modelValue) {
+            min = (props.modelValue.min > val) ? val : props.modelValue.min;
+        }
+        emits('update:modelValue', { 'min' : min, max : val});
+    }
+}); 
+
+function clear() {
+    emits('update:modelValue', null);
+}
+
+
+
+const atts = computed(() => {
+    let atts = {};
+    if (props.field.round) {
+        let step = "0.";
+        for(let i=0; i<props.field.round - 1; ++i) {
+            step += "0";
+        }
+        step += "1";
+        atts["step"]  = parseInt(step);
+    }
+    return atts;
+});
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("div", _hoisted_1$r, [
+    _hoisted_2$l,
+    createVNode(unref(script$1u), mergeProps({
+      name: __props.field.name,
+      modelValue: unref(min),
+      "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(min) ? (min).value = $event : null))
+    }, unref(atts), {
+      onBlur: _cache[1] || (_cache[1] = $event => (__props.field.validateon = true))
+    }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
+    _hoisted_3$e,
+    createVNode(unref(script$1u), mergeProps({
+      name: __props.field.name,
+      modelValue: unref(max),
+      "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(max) ? (max).value = $event : null))
+    }, unref(atts), {
+      onBlur: _cache[3] || (_cache[3] = $event => (__props.field.validateon = true))
+    }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
+    _hoisted_4$b,
+    createVNode(unref(script$1K), {
+      label: "clear",
+      onClick: clear
+    })
+  ]))
+}
+}
+
+};
+
+script$S.__file = "presstojam/src/components/filter/number-filter.vue";
+
+var script$R = {
+  props: {
+    modelValue : [Number, Boolean],
+    field : Object
+},
+  emits: [
+    "update:modelValue"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+
+const value = computed({
+    get() {
+        if (typeof props.modelValue === 'undefined' || props.modelValue === null) return 0;
+        else if (props.modelValue === 0) return 2;
+        else return props.modelValue;
+    },
+    set(val) {
+        if (val == 0) val = null;
+        else if (val == 2) val = 0;
+        emits('update:modelValue', val);
+    }
+});
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1v), {
+    name: __props.field.name,
+    modelValue: unref(value),
+    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
+    optionLabel: "label",
+    optionValue: "value",
+    options: [
+            {value : 0, label : 'All' }, 
+            { value : 1, label : 'Checked' }, 
+            { value : 2, label : 'Unchecked'}]
+  }, null, 8 /* PROPS */, ["name", "modelValue"]))
+}
+}
+
+};
+
+script$R.__file = "presstojam/src/components/filter/flag-filter.vue";
+
+var script$Q = {
   name: 'MultiSelect',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter', 'selectall-change'],
   props: {
@@ -32966,18 +33498,18 @@ var script$X = {
     ripple: Ripple
   },
   components: {
-    VirtualScroller: script$1y,
-    Portal: script$1D
+    VirtualScroller: script$1w,
+    Portal: script$1B
   }
 };
-const _hoisted_1$m = {
+const _hoisted_1$q = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$j = ["id", "disabled", "placeholder", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_2$k = ["id", "disabled", "placeholder", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
 const _hoisted_3$d = {
   class: "p-multiselect-label-container"
 };
-const _hoisted_4$b = {
+const _hoisted_4$a = {
   class: "p-multiselect-token-label"
 };
 const _hoisted_5$9 = ["onClick"];
@@ -33032,7 +33564,7 @@ const _hoisted_21 = {
   class: "p-hidden-accessible"
 };
 
-function render$d(_ctx, _cache, $props, $setup, $data, $options) {
+function render$h(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
 
   const _component_Portal = resolveComponent("Portal");
@@ -33043,7 +33575,7 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
     ref: "container",
     class: normalizeClass($options.containerClass),
     onClick: _cache[15] || (_cache[15] = (...args) => $options.onContainerClick && $options.onContainerClick(...args))
-  }, [createElementVNode("div", _hoisted_1$m, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$q, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
     type: "text",
@@ -33061,7 +33593,7 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[0] || (_cache[0] = (...args) => $options.onFocus && $options.onFocus(...args)),
     onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$j)]), createElementVNode("div", _hoisted_3$d, [createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$k)]), createElementVNode("div", _hoisted_3$d, [createElementVNode("div", {
     class: normalizeClass($options.labelClass)
   }, [renderSlot(_ctx.$slots, "value", {
     value: $props.modelValue,
@@ -33076,7 +33608,7 @@ function render$d(_ctx, _cache, $props, $setup, $data, $options) {
       class: "p-multiselect-token"
     }, [renderSlot(_ctx.$slots, "chip", {
       value: item
-    }, () => [createElementVNode("span", _hoisted_4$b, toDisplayString$1($options.getLabelByValue(item)), 1)]), !$props.disabled ? (openBlock(), createElementBlock("span", {
+    }, () => [createElementVNode("span", _hoisted_4$a, toDisplayString$1($options.getLabelByValue(item)), 1)]), !$props.disabled ? (openBlock(), createElementBlock("span", {
       key: 0,
       class: normalizeClass(['p-multiselect-token-icon', $props.removeTokenIcon]),
       onClick: $event => $options.removeOption($event, item)
@@ -33288,297 +33820,337 @@ function styleInject$8(css, ref) {
 
 var css_248z$d = "\n.p-multiselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-multiselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-multiselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-multiselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-multiselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-multiselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-multiselect-token-icon {\n    cursor: pointer;\n}\n.p-multiselect .p-multiselect-panel {\n    min-width: 100%;\n}\n.p-multiselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-multiselect-items-wrapper {\n    overflow: auto;\n}\n.p-multiselect-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-multiselect-item {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-multiselect-item-group {\n    cursor: auto;\n}\n.p-multiselect-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-multiselect-filter-container {\n    position: relative;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-multiselect-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-multiselect-filter-container .p-inputtext {\n    width: 100%;\n}\n.p-multiselect-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    overflow: hidden;\n    position: relative;\n    margin-left: auto;\n}\n.p-fluid .p-multiselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
 styleInject$8(css_248z$d);
-script$X.render = render$d;
+script$Q.render = render$h;
 
-var script$W = {
+var script$P = {
+  name: 'Chips',
+  emits: ['update:modelValue', 'add', 'remove', 'focus', 'blur'],
   props: {
-    report : Object
-},
-  emits: [
-    "changed"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const overlay = computed({
-    get() {
-        return props.report.active;
+    modelValue: {
+      type: Array,
+      default: null
     },
-    set(val) {
-        props.report.active = val;
-    }
-});
-
-
-const options = [];
-for(let i in props.report.results) {
-    options.push({
-        name : i,
-        code : i
-    });
-}
-
-function onChange() {
-    emits("changed");
-}
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$X), {
-    modelValue: unref(overlay),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(overlay) ? (overlay).value = $event : null)),
-    options: options,
-    optionLabel: "name",
-    onChange: onChange
-  }, null, 8 /* PROPS */, ["modelValue"]))
-}
-}
-
-};
-
-script$W.__file = "presstojam/src/components/reports/overlays.vue";
-
-var script$V = {
-  props: {
-    report : Object
-},
-  emits: [
-    "changed"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const scale = computed({
-    get() {
-        return props.report.scale;
-    },
-    set(val) {
-        props.report.active = scale;
-    }
-});
-
-
-const options = [];
-for(let i in props.report.fields) {
-    if (props.report.fields[i].type == "time") {
-        options.push({
-            name : i,
-            code : i
-        });
-    }
-}
-
-function onChange() {
-    emits("changed");
-}
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1x), {
-    modelValue: unref(scale),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(scale) ? (scale).value = $event : null)),
-    options: options,
-    onChange: onChange
-  }, null, 8 /* PROPS */, ["modelValue"]))
-}
-}
-
-};
-
-script$V.__file = "presstojam/src/components/reports/scales.vue";
-
-var script$U = {
-  props: {
-    report : Object
-},
-  emits: [
-    "changed"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const type = computed({
-    get() {
-        return props.report.agg_type;
-    },
-    set(val) {
-        props.report.agg_type = val;
-    }
-});
-
-
-function onChange() {
-    emits("changed");
-}
-
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1x), {
-    modelValue: unref(type),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(type) ? (type).value = $event : null)),
-    options: _ctx.types,
-    onChange: onChange
-  }, null, 8 /* PROPS */, ["modelValue", "options"]))
-}
-}
-
-};
-
-script$U.__file = "presstojam/src/components/reports/aggregate-type.vue";
-
-var script$T = {
-  name: 'Chart',
-  emits: ['select', 'loaded'],
-  props: {
-    type: String,
-    data: null,
-    options: null,
-    plugins: null,
-    width: {
+    max: {
       type: Number,
-      default: 300
+      default: null
     },
-    height: {
-      type: Number,
-      default: 150
+    separator: {
+      type: [String, Object],
+      default: null
+    },
+    addOnBlur: {
+      type: Boolean,
+      default: null
+    },
+    allowDuplicate: {
+      type: Boolean,
+      default: true
+    },
+    placeholder: {
+      type: String,
+      default: null
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    inputId: {
+      type: String,
+      default: null
+    },
+    inputClass: {
+      type: String,
+      default: null
+    },
+    inputStyle: {
+      type: null,
+      default: null
+    },
+    inputProps: {
+      type: null,
+      default: null
+    },
+    removeTokenIcon: {
+      type: String,
+      default: 'pi pi-times-circle'
+    },
+    'aria-labelledby': {
+      type: String,
+      default: null
+    },
+    'aria-label': {
+      type: String,
+      default: null
     }
   },
-  chart: null,
-  watch: {
-    /*
-     * Use deep watch to enable triggering watch for changes within structure
-     * otherwise the entire data object needs to be replaced to trigger watch
-     */
-    data: {
-      handler() {
-        this.reinit();
-      },
 
-      deep: true
-    },
-
-    type() {
-      this.reinit();
-    },
-
-    options() {
-      this.reinit();
-    }
-
-  },
-
-  mounted() {
-    this.initChart();
-  },
-
-  beforeUnmount() {
-    if (this.chart) {
-      this.chart.destroy();
-      this.chart = null;
-    }
+  data() {
+    return {
+      id: UniqueComponentId(),
+      inputValue: null,
+      focused: false,
+      focusedIndex: null
+    };
   },
 
   methods: {
-    initChart() {
-      Promise.resolve().then(function () { return auto; }).then(module => {
-        if (this.chart) {
-          this.chart.destroy();
-          this.chart = null;
-        }
+    onWrapperClick() {
+      this.$refs.input.focus();
+    },
 
-        if (module && module.default) {
-          this.chart = new module.default(this.$refs.canvas, {
-            type: this.type,
-            data: this.data,
-            options: this.options,
-            plugins: this.plugins
-          });
-        }
+    onInput(event) {
+      this.inputValue = event.target.value;
+      this.focusedIndex = null;
+    },
 
-        this.$emit('loaded', this.chart);
+    onFocus(event) {
+      this.focused = true;
+      this.focusedIndex = null;
+      this.$emit('focus', event);
+    },
+
+    onBlur(event) {
+      this.focused = false;
+      this.focusedIndex = null;
+
+      if (this.addOnBlur) {
+        this.addItem(event, event.target.value, false);
+      }
+
+      this.$emit('blur', event);
+    },
+
+    onKeyDown(event) {
+      const inputValue = event.target.value;
+
+      switch (event.code) {
+        case 'Backspace':
+          if (inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
+            if (this.focusedIndex !== null) {
+              this.removeItem(event, this.focusedIndex);
+            } else this.removeItem(event, this.modelValue.length - 1);
+          }
+
+          break;
+
+        case 'Enter':
+          if (inputValue && inputValue.trim().length && !this.maxedOut) {
+            this.addItem(event, inputValue, true);
+          }
+
+          break;
+
+        case 'ArrowLeft':
+          if (inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
+            this.$refs.container.focus();
+          }
+
+          break;
+
+        case 'ArrowRight':
+          event.stopPropagation();
+          break;
+
+        default:
+          if (this.separator) {
+            if (this.separator === event.key || event.key.match(this.separator)) {
+              this.addItem(event, inputValue, true);
+            }
+          }
+
+          break;
+      }
+    },
+
+    onPaste(event) {
+      if (this.separator) {
+        let pastedData = (event.clipboardData || window['clipboardData']).getData('Text');
+
+        if (pastedData) {
+          let value = this.modelValue || [];
+          let pastedValues = pastedData.split(this.separator);
+          pastedValues = pastedValues.filter(val => this.allowDuplicate || value.indexOf(val) === -1);
+          value = [...value, ...pastedValues];
+          this.updateModel(event, value, true);
+        }
+      }
+    },
+
+    onContainerFocus() {
+      this.focused = true;
+    },
+
+    onContainerBlur() {
+      this.focusedIndex = -1;
+      this.focused = false;
+    },
+
+    onContainerKeyDown(event) {
+      switch (event.code) {
+        case 'ArrowLeft':
+          this.onArrowLeftKeyOn(event);
+          break;
+
+        case 'ArrowRight':
+          this.onArrowRightKeyOn(event);
+          break;
+
+        case 'Backspace':
+          this.onBackspaceKeyOn(event);
+          break;
+      }
+    },
+
+    onArrowLeftKeyOn() {
+      if (this.inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
+        this.focusedIndex = this.focusedIndex === null ? this.modelValue.length - 1 : this.focusedIndex - 1;
+        if (this.focusedIndex < 0) this.focusedIndex = 0;
+      }
+    },
+
+    onArrowRightKeyOn() {
+      if (this.inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
+        if (this.focusedIndex === this.modelValue.length - 1) {
+          this.focusedIndex = null;
+          this.$refs.input.focus();
+        } else {
+          this.focusedIndex++;
+        }
+      }
+    },
+
+    onBackspaceKeyOn(event) {
+      if (this.focusedIndex !== null) {
+        this.removeItem(event, this.focusedIndex);
+      }
+    },
+
+    updateModel(event, value, preventDefault) {
+      this.$emit('update:modelValue', value);
+      this.$emit('add', {
+        originalEvent: event,
+        value: value
       });
-    },
+      this.$refs.input.value = '';
+      this.inputValue = '';
+      setTimeout(() => {
+        this.maxedOut && (this.focused = false);
+      }, 0);
 
-    getCanvas() {
-      return this.$canvas;
-    },
-
-    getChart() {
-      return this.chart;
-    },
-
-    getBase64Image() {
-      return this.chart.toBase64Image();
-    },
-
-    refresh() {
-      if (this.chart) {
-        this.chart.update();
+      if (preventDefault) {
+        event.preventDefault();
       }
     },
 
-    reinit() {
-      this.initChart();
-    },
+    addItem(event, item, preventDefault) {
+      if (item && item.trim().length) {
+        let value = this.modelValue ? [...this.modelValue] : [];
 
-    onCanvasClick(event) {
-      if (this.chart) {
-        const element = this.chart.getElementsAtEventForMode(event, 'nearest', {
-          intersect: true
-        }, false);
-        const dataset = this.chart.getElementsAtEventForMode(event, 'dataset', {
-          intersect: true
-        }, false);
-
-        if (element && element[0] && dataset) {
-          this.$emit('select', {
-            originalEvent: event,
-            element: element[0],
-            dataset: dataset
-          });
+        if (this.allowDuplicate || value.indexOf(item) === -1) {
+          value.push(item);
+          this.updateModel(event, value, preventDefault);
         }
       }
     },
 
-    generateLegend() {
-      if (this.chart) {
-        return this.chart.generateLegend();
+    removeItem(event, index) {
+      if (this.disabled) {
+        return;
       }
+
+      let values = [...this.modelValue];
+      const removedItem = values.splice(index, 1);
+      this.focusedIndex = null;
+      this.$refs.input.focus();
+      this.$emit('update:modelValue', values);
+      this.$emit('remove', {
+        originalEvent: event,
+        value: removedItem
+      });
+    }
+
+  },
+  computed: {
+    maxedOut() {
+      return this.max && this.modelValue && this.max === this.modelValue.length;
+    },
+
+    containerClass() {
+      return ['p-chips p-component p-inputwrapper', {
+        'p-disabled': this.disabled,
+        'p-focus': this.focused,
+        'p-inputwrapper-filled': this.modelValue && this.modelValue.length || this.inputValue && this.inputValue.length,
+        'p-inputwrapper-focus': this.focused
+      }];
+    },
+
+    focusedOptionId() {
+      return this.focusedIndex !== null ? `${this.id}_chips_item_${this.focusedIndex}` : null;
     }
 
   }
 };
-const _hoisted_1$l = {
-  class: "p-chart"
+const _hoisted_1$p = ["aria-labelledby", "aria-label", "aria-activedescendant"];
+const _hoisted_2$j = ["id", "aria-label", "aria-setsize", "aria-posinset"];
+const _hoisted_3$c = {
+  class: "p-chips-token-label"
 };
-const _hoisted_2$i = ["width", "height"];
+const _hoisted_4$9 = ["onClick"];
+const _hoisted_5$8 = {
+  class: "p-chips-input-token",
+  role: "option"
+};
+const _hoisted_6$7 = ["id", "disabled", "placeholder"];
 
-function render$c(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$l, [createElementVNode("canvas", {
-    ref: "canvas",
-    width: $props.width,
-    height: $props.height,
-    onClick: _cache[0] || (_cache[0] = $event => $options.onCanvasClick($event))
-  }, null, 8, _hoisted_2$i)]);
+function render$g(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: normalizeClass($options.containerClass)
+  }, [createElementVNode("ul", {
+    ref: "container",
+    class: "p-inputtext p-chips-multiple-container",
+    tabindex: "-1",
+    role: "listbox",
+    "aria-orientation": "horizontal",
+    "aria-labelledby": _ctx.ariaLabelledby,
+    "aria-label": _ctx.ariaLabel,
+    "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
+    onClick: _cache[5] || (_cache[5] = $event => $options.onWrapperClick()),
+    onFocus: _cache[6] || (_cache[6] = (...args) => $options.onContainerFocus && $options.onContainerFocus(...args)),
+    onBlur: _cache[7] || (_cache[7] = (...args) => $options.onContainerBlur && $options.onContainerBlur(...args)),
+    onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onContainerKeyDown && $options.onContainerKeyDown(...args))
+  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.modelValue, (val, i) => {
+    return openBlock(), createElementBlock("li", {
+      key: `${i}_${val}`,
+      id: $data.id + '_chips_item_' + i,
+      role: "option",
+      class: normalizeClass(['p-chips-token', {
+        'p-focus': $data.focusedIndex === i
+      }]),
+      "aria-label": val,
+      "aria-selected": true,
+      "aria-setsize": $props.modelValue.length,
+      "aria-posinset": i + 1
+    }, [renderSlot(_ctx.$slots, "chip", {
+      value: val
+    }, () => [createElementVNode("span", _hoisted_3$c, toDisplayString$1(val), 1)]), createElementVNode("span", {
+      class: normalizeClass(['p-chips-token-icon', $props.removeTokenIcon]),
+      onClick: $event => $options.removeItem($event, i),
+      "aria-hidden": "true"
+    }, null, 10, _hoisted_4$9)], 10, _hoisted_2$j);
+  }), 128)), createElementVNode("li", _hoisted_5$8, [createElementVNode("input", mergeProps({
+    ref: "input",
+    id: $props.inputId,
+    type: "text",
+    class: $props.inputClass,
+    style: $props.inputStyle,
+    disabled: $props.disabled || $options.maxedOut,
+    placeholder: $props.placeholder,
+    onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
+    onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event)),
+    onInput: _cache[2] || (_cache[2] = (...args) => $options.onInput && $options.onInput(...args)),
+    onKeydown: _cache[3] || (_cache[3] = $event => $options.onKeyDown($event)),
+    onPaste: _cache[4] || (_cache[4] = $event => $options.onPaste($event))
+  }, $props.inputProps), null, 16, _hoisted_6$7)])], 40, _hoisted_1$p)], 2);
 }
 
 function styleInject$7(css, ref) {
@@ -33610,66 +34182,2028 @@ function styleInject$7(css, ref) {
   }
 }
 
-var css_248z$c = "\n.p-chart {\n    position: relative;\n}\n";
+var css_248z$c = "\n.p-chips {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-chips-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-chips-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-token-icon {\n    cursor: pointer;\n}\n.p-chips-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-chips {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
 styleInject$7(css_248z$c);
-script$T.render = render$c;
+script$P.render = render$g;
 
-var script$S = {
+var script$O = {
   props: {
-    group : String,
-    field : String,
-    report : Object
+    modelValue : [Array],
+    field : Object
+},
+  emits: [
+    "update:modelValue"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        if (val.length == 0) val =null;
+        emits('update:modelValue', val);
+    }
+});
+
+const model = inject("model");
+const store = getModel(model);
+const id = (store.active_id) ? store.active_id : store.parent_id;
+const client = inject("client");
+
+const options = ref([]);
+
+if (props.field.reference || props.field.recursive) {
+    onMounted(() => {
+        props.field.getOptions(client, model, id)
+        .then(response => options.value =response);
+    });
+} else if (props.field.name == '--id') {
+    let vals = [];
+    for(let row of store.data) {
+        vals.push({'key' : row['--id'], value : getLabel(store.fields, row) });
+    }
+    options.value = vals;
+}
+
+
+
+return (_ctx, _cache) => {
+  return (__props.field.reference || __props.field.name =='--id')
+    ? (openBlock(), createBlock(unref(script$Q), {
+        key: 0,
+        placeholder: "Please Select",
+        field: __props.field,
+        options: options.value,
+        optionLabel: "value",
+        optionValue: "key",
+        modelValue: unref(value),
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null))
+      }, null, 8 /* PROPS */, ["field", "options", "modelValue"]))
+    : (openBlock(), createBlock(unref(script$P), {
+        key: 1,
+        modelValue: unref(value),
+        "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
+      }, null, 8 /* PROPS */, ["modelValue"]))
+}
+}
+
+};
+
+script$O.__file = "presstojam/src/components/filter/id-filter.vue";
+
+var script$N = {
+  props: {
+    modelValue : [Object],
+    field : Object
+},
+  emits: [
+    "update:modelValue"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+
+const value = computed({
+    get() {
+        if (props.modelValue) {
+            const arr = [];
+            if (props.modelValue.min) arr.push(props.field.buildDate(props.modelValue.min));
+            if (props.modelValue.max) arr.push(props.field.buildDate(props.modelValue.max));
+            return arr;
+        } else {
+            return props.modelValue;
+        }
+    },
+    set(val) {
+        let obj = null;
+        if (val) {
+            obj = {};
+            if (val[0]) obj.min = props.field.buildString(val[0]);
+            if (val[1]) obj.max = props.field.buildString(val[1]);
+        }
+        emits('update:modelValue', obj);
+    }
+});
+
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1i), {
+    id: "range",
+    modelValue: unref(value),
+    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
+    selectionMode: "range",
+    showButtonBar: true,
+    manualInput: false
+  }, null, 8 /* PROPS */, ["modelValue"]))
+}
+}
+
+};
+
+script$N.__file = "presstojam/src/components/filter/time-filter.vue";
+
+var script$M = {
+  props: {
+    modelValue : [Array],
+    field : Object
+},
+  emits: [
+    "update:modelValue"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+const options = ref([]);
+
+
+
+const value = computed({
+    get() {
+        let arr = [];
+        if (tag == 'select') {
+            arr = props.modelValue;
+        } else if (props.modelValue) {
+            for(let val of props.modelValue) {
+                arr.push(val.replace(/^%+/, '').replace(/%+$/, ''));
+            }
+        }
+        return arr;
+    },
+    set(val) {
+        let arr = [];
+        for(let vl of val) {
+            arr.push("%" + vl + "%");
+        }
+        if (arr.length == 0) arr = null;
+        emits('update:modelValue', arr);
+    }
+});
+
+const tag = computed(() => {
+if (props.field.isEnum()) {
+    options.value = props.field.setContainsAsOptions();
+    return "select";
+} else if (props.field.encrypted) {
+    return "";
+} else {
+    return "input";
+}
+});
+
+
+
+return (_ctx, _cache) => {
+  return (unref(tag)=='select')
+    ? (openBlock(), createBlock(unref(script$Q), {
+        key: 0,
+        display: "chip",
+        placeholder: "Please Select",
+        modelValue: unref(value),
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
+        options: options.value,
+        optionLabel: "key",
+        optionValue: "value"
+      }, null, 8 /* PROPS */, ["modelValue", "options"]))
+    : (unref(tag)=='input')
+      ? (openBlock(), createBlock(unref(script$P), {
+          key: 1,
+          modelValue: unref(value),
+          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
+        }, null, 8 /* PROPS */, ["modelValue"]))
+      : createCommentVNode("v-if", true)
+}
+}
+
+};
+
+script$M.__file = "presstojam/src/components/filter/string-filter.vue";
+
+var script$L = {
+  props: {
+    field : Object,
+    modelValue : [String, Number, Boolean, null, Array, Object]
+},
+  emits: [
+    "update:modelValue"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+ 
+
+
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        emits('update:modelValue', val);
+    }
+});
+
+return (_ctx, _cache) => {
+  return (__props.field.type=='number')
+    ? (openBlock(), createBlock(script$S, {
+        key: 0,
+        modelValue: unref(value),
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
+        field: __props.field
+      }, null, 8 /* PROPS */, ["modelValue", "field"]))
+    : (__props.field.type=='flag')
+      ? (openBlock(), createBlock(script$R, {
+          key: 1,
+          modelValue: unref(value),
+          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null)),
+          field: __props.field
+        }, null, 8 /* PROPS */, ["modelValue", "field"]))
+      : (__props.field.type=='id')
+        ? (openBlock(), createBlock(script$O, {
+            key: 2,
+            modelValue: unref(value),
+            "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
+            field: __props.field
+          }, null, 8 /* PROPS */, ["modelValue", "field"]))
+        : (__props.field.type=='time')
+          ? (openBlock(), createBlock(script$N, {
+              key: 3,
+              modelValue: unref(value),
+              "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => (isRef(value) ? (value).value = $event : null)),
+              field: __props.field
+            }, null, 8 /* PROPS */, ["modelValue", "field"]))
+          : (__props.field.type=='string')
+            ? (openBlock(), createBlock(script$M, {
+                key: 4,
+                modelValue: unref(value),
+                "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => (isRef(value) ? (value).value = $event : null)),
+                field: __props.field
+              }, null, 8 /* PROPS */, ["modelValue", "field"]))
+            : createCommentVNode("v-if", true)
+}
+}
+
+};
+
+script$L.__file = "presstojam/src/components/filter/filter-field.vue";
+
+const _hoisted_1$o = { class: "ptj-filter" };
+   
+   
+var script$K = {
+  props: {
+    bind : {
+        type : Object,
+        required : true
+    }
+   },
+  setup(__props) {
+
+const props = __props;
+
+   
+   
+
+   const model = inject("model");
+  
+   let overlay = new ref();
+
+  
+   const val = computed({
+        get() {
+            return props.bind.value;
+        },
+        set(val) {
+            if(Array.isArray(val)) {
+                for(let vl of val) {
+                    const res = props.bind.cell.validate(vl);
+                    if (res) {
+                        break;
+                    }
+                }
+            } else {
+                props.bind.cell.validate(val);
+            }
+        }
+    });
+
+
+   function toggle(e) {
+        overlay.value.toggle(e);
+   }
+
+   const badge = computed(() => {
+        if (props.bind.value) {
+            if (Array.isArray(props.bind.value)) return props.bind.value.length.toString();
+            else return "1";
+        } else {
+            return "";
+        }
+   });
+
+   
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("div", _hoisted_1$o, [
+    createVNode(unref(script$1K), {
+      type: "button",
+      label: _ctx.$t('models.' + unref(model) + '.fields.' + __props.bind.cell.name + '.filterlabel'),
+      onClick: toggle,
+      "aria-haspopup": "true",
+      "aria-controls": "overlay",
+      badge: unref(badge),
+      class: "p-button-secondary"
+    }, null, 8 /* PROPS */, ["label", "badge"]),
+    createVNode(unref(script$Z), {
+      ref_key: "overlay",
+      ref: overlay,
+      appendTo: "body",
+      showCloseIcon: true,
+      id: 'overlay_' + __props.bind.cell.name,
+      style: {"width":"450px"},
+      breakpoints: {'960px': '75vw'}
+    }, {
+      default: withCtx(() => [
+        createElementVNode("div", null, [
+          createVNode(script$L, {
+            field: __props.bind.cell,
+            modelValue: unref(val),
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(val) ? (val).value = $event : null))
+          }, null, 8 /* PROPS */, ["field", "modelValue"])
+        ])
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["id"])
+  ]))
+}
+}
+
+};
+
+script$K.__file = "presstojam/src/components/filter/filter.vue";
+
+var filter = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': script$K
+});
+
+const _hoisted_1$n = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
+const _hoisted_2$i = /*#__PURE__*/createTextVNode(" Filters ");
+const _hoisted_3$b = { class: "p-buttonset" };
+const _hoisted_4$8 = { style: {"text-align":"right"} };
+
+
+var script$J = {
+  props: {
+    model : Object,
+    data : Object,
+    name : String
 },
   setup(__props) {
 
+const props = __props;
 
 
 
-const model = inject("model");
 
-const store = getModel(model);
-createRepoStore(store);
+provide("model", props.model.name);
 
-const schema = store.fields;
 
-for(const field in schema) {
-    if (schema[field].type == "time" || schema[field].type == "number") ;
+const filtercells = computed(() => {
+    let filter_cells = {};
+    for(let i in props.model.fields) {
+        const field = props.model.fields[i];
+        if (field.background) continue;
+        if (field.type == "asset" || field.type == "json") continue;
+        filter_cells[i] = new Bind(field, props.data[i]);
+    }
+    return filter_cells;
+});
+
+
+function submit() {
+    const filters = {};
+    for(let i in filter_cells) {
+        filters[i] = filter_cells[i].value;
+    }
+    trigger("filter_form", props.name, filters);
 }
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$19), {
+    toggleable: true,
+    collapsed: true
+  }, {
+    legend: withCtx(() => [
+      _hoisted_1$n,
+      _hoisted_2$i
+    ]),
+    default: withCtx(() => [
+      createElementVNode("span", _hoisted_3$b, [
+        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(filtercells), (field) => {
+          return (openBlock(), createBlock(script$K, {
+            class: "ptj-filter",
+            bind: field,
+            key: field.name
+          }, null, 8 /* PROPS */, ["bind"]))
+        }), 128 /* KEYED_FRAGMENT */))
+      ]),
+      createElementVNode("p", _hoisted_4$8, [
+        createVNode(unref(script$1K), {
+          label: _ctx.$t('btns.filter'),
+          onClick: submit
+        }, null, 8 /* PROPS */, ["label"])
+      ])
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+var css_248z$b = "\n.filter-form-vue-vue-type-style-index-0-id-46638ba7-lang_ptj-filter__24-2N { \r\n    display : inline-block;\n}\r\n";
+styleInject$u(css_248z$b);
+
+script$J.__file = "presstojam/src/components/filter/filter-form.vue";
+
+const _hoisted_1$m = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
+const _hoisted_2$h = /*#__PURE__*/createTextVNode(" Groups ");
+const _hoisted_3$a = { style: {"text-align":"right"} };
+
+
+var script$I = {
+  props: {
+    data : Array,
+    model : Object,
+    name : String
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const groups = ref(props.data);
+
+
+const cells = computed(() => {
+    const group_cells = [];
+    for(let i in props.model.fields) {
+        const field = props.model.fields[i];
+        if (field.type == "id") {
+            if (field.reference_type == ReferenceTypes.REFERENCE) group_cells.push(field);
+        } else if (field.type == "flag" || (field.type == "string" && field.isEnum())) {
+            group_cells.push(field);
+        }
+    }
+    return group_cells;
+});
+
+
+function update() {
+    trigger$1("group_form", props.name, groups.value);
+} 
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$19), {
+    toggleable: true,
+    collapsed: true
+  }, {
+    legend: withCtx(() => [
+      _hoisted_1$m,
+      _hoisted_2$h
+    ]),
+    default: withCtx(() => [
+      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
+        return (openBlock(), createElementBlock("span", null, [
+          createElementVNode("label", null, toDisplayString$1(cell.name), 1 /* TEXT */),
+          createVNode(unref(script$1H), {
+            name: "group",
+            modelValue: groups.value,
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((groups).value = $event)),
+            value: cell.name
+          }, null, 8 /* PROPS */, ["modelValue", "value"])
+        ]))
+      }), 256 /* UNKEYED_FRAGMENT */)),
+      createElementVNode("p", _hoisted_3$a, [
+        createVNode(unref(script$1K), {
+          label: _ctx.$t('btns.filter'),
+          onClick: update
+        }, null, 8 /* PROPS */, ["label"])
+      ])
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+script$I.__file = "presstojam/src/components/group/group-form.vue";
+
+var script$H = {
+  name: 'Divider',
+  props: {
+    align: {
+      type: String,
+      default: null
+    },
+    layout: {
+      type: String,
+      default: 'horizontal'
+    },
+    type: {
+      type: String,
+      default: 'solid'
+    }
+  },
+  computed: {
+    containerClass() {
+      return ['p-divider p-component', 'p-divider-' + this.layout, 'p-divider-' + this.type, {
+        'p-divider-left': this.layout === 'horizontal' && (!this.align || this.align === 'left')
+      }, {
+        'p-divider-center': this.layout === 'horizontal' && this.align === 'center'
+      }, {
+        'p-divider-right': this.layout === 'horizontal' && this.align === 'right'
+      }, {
+        'p-divider-top': this.layout === 'vertical' && this.align === 'top'
+      }, {
+        'p-divider-center': this.layout === 'vertical' && (!this.align || this.align === 'center')
+      }, {
+        'p-divider-bottom': this.layout === 'vertical' && this.align === 'bottom'
+      }];
+    }
+
+  }
+};
+const _hoisted_1$l = ["aria-orientation"];
+const _hoisted_2$g = {
+  key: 0,
+  class: "p-divider-content"
+};
+
+function render$f(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: normalizeClass($options.containerClass),
+    role: "separator",
+    "aria-orientation": $props.layout
+  }, [_ctx.$slots.default ? (openBlock(), createElementBlock("div", _hoisted_2$g, [renderSlot(_ctx.$slots, "default")])) : createCommentVNode("", true)], 10, _hoisted_1$l);
+}
+
+function styleInject$6(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$a = "\n.p-divider-horizontal {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    width: 100%;\n    position: relative;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-divider-horizontal:before {\n    position: absolute;\n    display: block;\n    top: 50%;\n    left: 0;\n    width: 100%;\n    content: '';\n}\n.p-divider-horizontal.p-divider-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-divider-horizontal.p-divider-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-divider-horizontal.p-divider-center {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-divider-content {\n    z-index: 1;\n}\n.p-divider-vertical {\n    min-height: 100%;\n    margin: 0 1rem;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    position: relative;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-divider-vertical:before {\n    position: absolute;\n    display: block;\n    top: 0;\n    left: 50%;\n    height: 100%;\n    content: '';\n}\n.p-divider-vertical.p-divider-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-divider-vertical.p-divider-center {\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-divider-vertical.p-divider-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-divider-solid.p-divider-horizontal:before {\n    border-top-style: solid;\n}\n.p-divider-solid.p-divider-vertical:before {\n    border-left-style: solid;\n}\n.p-divider-dashed.p-divider-horizontal:before {\n    border-top-style: dashed;\n}\n.p-divider-dashed.p-divider-vertical:before {\n    border-left-style: dashed;\n}\n.p-divider-dotted.p-divider-horizontal:before {\n    border-top-style: dotted;\n}\n.p-divider-dotted.p-divider-horizontal:before {\n    border-left-style: dotted;\n}\n";
+styleInject$6(css_248z$a);
+script$H.render = render$f;
+
+var script$G = {
+  name: 'Toolbar',
+  props: {
+    'aria-labelledby': {
+      type: String,
+      default: null
+    }
+  }
+};
+const _hoisted_1$k = ["aria-labelledby"];
+const _hoisted_2$f = {
+  class: "p-toolbar-group-left"
+};
+const _hoisted_3$9 = {
+  class: "p-toolbar-group-right"
+};
+
+function render$e(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: "p-toolbar p-component",
+    role: "toolbar",
+    "aria-labelledby": _ctx.ariaLabelledby
+  }, [createElementVNode("div", _hoisted_2$f, [renderSlot(_ctx.$slots, "start")]), createElementVNode("div", _hoisted_3$9, [renderSlot(_ctx.$slots, "end")])], 8, _hoisted_1$k);
+}
+
+function styleInject$5(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$9 = "\n.p-toolbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-toolbar-group-left,\n.p-toolbar-group-right {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
+styleInject$5(css_248z$9);
+script$G.render = render$e;
+
+const _hoisted_1$j = /*#__PURE__*/createElementVNode("label", null, "Aggregates", -1 /* HOISTED */);
+
+
+var script$F = {
+  props: {
+    schema : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+//set up repos 
+const groups = [];
+const model = getModel(props.schema.name);
+
+const summary_repo = createReportStore(model);
+const summary_data = ref([]);
+summary_repo.load().then(response => summary_data.value = response);
+
+const repos = [];
+for(let i in props.schema.numeric) {
+    const repo = createReportStore(model, props.schema.numeric[i]);
+    const repo_value = ref([]);
+    repo.load().then(response => repo_value.value = response);
+    repos.push({
+        'repo' : repo,
+        'data' : repo_value
+    });
+}
+
+//menu bar functions
+
+const type = ref('bar');
+
+function toggleType(itype) {
+    type.value = itype;
+}
+
+const agg = ref('COUNT');
+const timevalue = ref('daily');
+
+const aggvalue = computed({
+    get() {
+        return agg.value;
+    },
+    set(val) {
+        props.repo.aggregate = val;
+        agg.value = val;
+    }
+});
+
+const aggregates = [
+    { name : 'count', value : 'COUNT'},
+    { name : 'average', value : 'AVG'},
+    { name : 'minimum', value : 'MIN'},
+    { name : 'maximum', value : 'MAX'}
+];
+
+const time_groups = [
+    { name : 'Hourly', value : 'hourly'},
+    { name : 'Daily', value : 'daily'},
+    { name : 'Weekly', value : 'weekly'},
+    { name : 'Monthly', value : 'monthly'},
+    { name : 'Yearly', value : 'yearly'}
+];
+
+
+
+
+//subscribe / unsubscribe
+
+subscribe("group_form", props.schema.name, (name, groups) => {
+    if (name == props.schema.name) {
+        summary_repo.groups = groups;
+        summary_repo.reload(type.value)
+        .then(response => summary_data.value = response);
+         for(const repo of repos) {
+            repo.repo.groups = groups;
+            repo.repo.reload(type.value)
+            .then(response => repo.data.value = response);
+        }
+    }
+});
+
+
+subscribe("filter_form", props.schema.name, (name, filters) => {
+    if (name == props.schema.name) {
+        summary_repo.filters = filters;
+        for(const repo of repos) {
+            repo.filters = filters;
+        }
+    }
+});
+
+onBeforeUnmount(() => {
+    unsubscribe("group_form", props.schema.name);
+    unsubscribe("filter_form", props.schema.name);
+});
+
 
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(unref(script$1E), null, {
+    createVNode(script$J, {
+      model: unref(model),
+      data: {},
+      name: props.schema.name
+    }, null, 8 /* PROPS */, ["model", "name"]),
+    createVNode(script$I, {
+      model: unref(model),
+      data: groups,
+      name: props.schema.name
+    }, null, 8 /* PROPS */, ["model", "name"]),
+    createVNode(unref(script$G), null, {
       start: withCtx(() => [
-        createVNode(script$U, { report: __props.report }, null, 8 /* PROPS */, ["report"]),
-        (__props.report.has_scale)
-          ? (openBlock(), createBlock(script$V, {
-              key: 0,
-              report: __props.report
-            }, null, 8 /* PROPS */, ["report"]))
-          : createCommentVNode("v-if", true)
+        _hoisted_1$j,
+        createVNode(unref(script$1v), {
+          optionValue: "value",
+          optionLabel: "name",
+          modelValue: unref(aggvalue),
+          "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(aggvalue) ? (aggvalue).value = $event : null)),
+          options: aggregates
+        }, null, 8 /* PROPS */, ["modelValue"]),
+        withDirectives(createElementVNode("label", null, "Time Groups", 512 /* NEED_PATCH */), [
+          [vShow, type.value=='line']
+        ]),
+        withDirectives(createVNode(unref(script$1v), {
+          optionValue: "value",
+          optionLabel: "name",
+          modelValue: timevalue.value,
+          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((timevalue).value = $event)),
+          options: time_groups
+        }, null, 8 /* PROPS */, ["modelValue"]), [
+          [vShow, type.value=='line']
+        ])
       ]),
       end: withCtx(() => [
-        createVNode(script$W, { report: __props.report }, null, 8 /* PROPS */, ["report"])
+        (type.value=='bar')
+          ? (openBlock(), createBlock(unref(script$1K), {
+              key: 0,
+              onClick: _cache[2] || (_cache[2] = $event => (toggleType('line'))),
+              label: "Line Chart",
+              icon: "pi pi-chart-line",
+              class: "mr-2"
+            }))
+          : (openBlock(), createBlock(unref(script$1K), {
+              key: 1,
+              onClick: _cache[3] || (_cache[3] = $event => (toggleType('bar'))),
+              label: "Bar Chart",
+              icon: "pi pi-chart-bar",
+              class: "mr-2"
+            }))
       ]),
       _: 1 /* STABLE */
     }),
-    (__props.report.has_scale)
-      ? (openBlock(), createBlock(unref(script$T), {
-          key: 0,
-          type: "line"
-        }))
-      : (openBlock(), createBlock(unref(script$T), {
-          key: 1,
-          type: "bar"
-        }))
+    createVNode(script$T, {
+      data: summary_data.value,
+      type: type.value
+    }, null, 8 /* PROPS */, ["data", "type"]),
+    (__props.schema.numeric.length > 0)
+      ? (openBlock(), createBlock(unref(script$H), { key: 0 }))
+      : createCommentVNode("v-if", true),
+    (openBlock(), createElementBlock(Fragment, null, renderList(repos, (repo, index) => {
+      return createElementVNode("div", null, [
+        createVNode(script$T, {
+          data: repo.data.value,
+          type: type.value
+        }, null, 8 /* PROPS */, ["data", "type"]),
+        (__props.schema.numeric.length > index -1)
+          ? (openBlock(), createBlock(unref(script$H), {
+              key: 0,
+              layout: "vertical"
+            }))
+          : createCommentVNode("v-if", true)
+      ])
+    }), 64 /* STABLE_FRAGMENT */))
   ], 64 /* STABLE_FRAGMENT */))
 }
 }
 
 };
 
-script$S.__file = "presstojam/src/components/reports/numeric-report.vue";
+script$F.__file = "presstojam/src/components/reports/report-display.vue";
+
+var script$E = {
+  props: {
+    model : String
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const entities = getEntities();
+
+const report_models = [];
+
+for(let i in entities) {
+    const entity = entities[i];
+    const parent = getRoot(entity);
+    if (parent.name == props.model) {
+        const obj = {name : entity.name, numeric : []};
+        for(const field in entity.cells) {
+            if (entity.cells[field].type == "number") {
+                obj.numeric.push(field);
+            }
+        }
+        report_models.push(obj);
+    }
+}
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("div", null, [
+    (openBlock(), createElementBlock(Fragment, null, renderList(report_models, (obj) => {
+      return createElementVNode("div", {
+        key: obj.name
+      }, [
+        createElementVNode("h2", null, "Reports For " + toDisplayString$1(_ctx.$t("models." + obj.name + ".title", 1)), 1 /* TEXT */),
+        createVNode(script$F, { schema: obj }, null, 8 /* PROPS */, ["schema"])
+      ])
+    }), 64 /* STABLE_FRAGMENT */))
+  ]))
+}
+}
+
+};
+
+script$E.__file = "presstojam/src/components/reports/report.vue";
+
+var report = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': script$E
+});
+
+var script$D = {
+  name: 'Splitter',
+  emits: ['resizestart', 'resizeend'],
+  props: {
+    layout: {
+      type: String,
+      default: 'horizontal'
+    },
+    gutterSize: {
+      type: Number,
+      default: 4
+    },
+    stateKey: {
+      type: String,
+      default: null
+    },
+    stateStorage: {
+      type: String,
+      default: 'session'
+    },
+    step: {
+      type: Number,
+      default: 5
+    }
+  },
+  dragging: false,
+  mouseMoveListener: null,
+  mouseUpListener: null,
+  touchMoveListener: null,
+  touchEndListener: null,
+  size: null,
+  gutterElement: null,
+  startPos: null,
+  prevPanelElement: null,
+  nextPanelElement: null,
+  nextPanelSize: null,
+  prevPanelSize: null,
+  panelSizes: null,
+  prevPanelIndex: null,
+  timer: null,
+
+  data() {
+    return {
+      prevSize: null
+    };
+  },
+
+  mounted() {
+    if (this.panels && this.panels.length) {
+      let initialized = false;
+
+      if (this.isStateful()) {
+        initialized = this.restoreState();
+      }
+
+      if (!initialized) {
+        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
+        let _panelSizes = [];
+        this.panels.map((panel, i) => {
+          let panelInitialSize = panel.props && panel.props.size ? panel.props.size : null;
+          let panelSize = panelInitialSize || 100 / this.panels.length;
+          _panelSizes[i] = panelSize;
+          children[i].style.flexBasis = 'calc(' + panelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        });
+        this.panelSizes = _panelSizes;
+        this.prevSize = parseFloat(_panelSizes[0]).toFixed(4);
+      }
+    }
+  },
+
+  beforeUnmount() {
+    this.clear();
+    this.unbindMouseListeners();
+  },
+
+  methods: {
+    isSplitterPanel(child) {
+      return child.type.name === 'SplitterPanel';
+    },
+
+    onResizeStart(event, index, isKeyDown) {
+      this.gutterElement = event.currentTarget || event.target.parentElement;
+      this.size = this.horizontal ? DomHandler.getWidth(this.$el) : DomHandler.getHeight(this.$el);
+
+      if (!isKeyDown) {
+        this.dragging = true;
+        this.startPos = this.layout === 'horizontal' ? event.pageX || event.changedTouches[0].pageX : event.pageY || event.changedTouches[0].pageY;
+      }
+
+      this.prevPanelElement = this.gutterElement.previousElementSibling;
+      this.nextPanelElement = this.gutterElement.nextElementSibling;
+
+      if (isKeyDown) {
+        this.prevPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true);
+        this.nextPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true);
+      } else {
+        this.prevPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true)) / this.size;
+        this.nextPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true)) / this.size;
+      }
+
+      this.prevPanelIndex = index;
+      this.$emit('resizestart', {
+        originalEvent: event,
+        sizes: this.panelSizes
+      });
+      DomHandler.addClass(this.gutterElement, 'p-splitter-gutter-resizing');
+      DomHandler.addClass(this.$el, 'p-splitter-resizing');
+    },
+
+    onResize(event, step, isKeyDown) {
+      let newPos, newPrevPanelSize, newNextPanelSize;
+
+      if (isKeyDown) {
+        if (this.horizontal) {
+          newPrevPanelSize = 100 * (this.prevPanelSize + step) / this.size;
+          newNextPanelSize = 100 * (this.nextPanelSize - step) / this.size;
+        } else {
+          newPrevPanelSize = 100 * (this.prevPanelSize - step) / this.size;
+          newNextPanelSize = 100 * (this.nextPanelSize + step) / this.size;
+        }
+      } else {
+        if (this.horizontal) newPos = event.pageX * 100 / this.size - this.startPos * 100 / this.size;else newPos = event.pageY * 100 / this.size - this.startPos * 100 / this.size;
+        newPrevPanelSize = this.prevPanelSize + newPos;
+        newNextPanelSize = this.nextPanelSize - newPos;
+      }
+
+      this.prevSize = parseFloat(newPrevPanelSize).toFixed(4);
+
+      if (this.validateResize(newPrevPanelSize, newNextPanelSize)) {
+        this.prevPanelElement.style.flexBasis = 'calc(' + newPrevPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        this.nextPanelElement.style.flexBasis = 'calc(' + newNextPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        this.panelSizes[this.prevPanelIndex] = newPrevPanelSize;
+        this.panelSizes[this.prevPanelIndex + 1] = newNextPanelSize;
+      }
+    },
+
+    onResizeEnd(event) {
+      if (this.isStateful()) {
+        this.saveState();
+      }
+
+      this.$emit('resizeend', {
+        originalEvent: event,
+        sizes: this.panelSizes
+      });
+      DomHandler.removeClass(this.gutterElement, 'p-splitter-gutter-resizing');
+      DomHandler.removeClass(this.$el, 'p-splitter-resizing');
+      this.clear();
+    },
+
+    repeat(event, index, step) {
+      this.onResizeStart(event, index, true);
+      this.onResize(event, step, true);
+    },
+
+    setTimer(event, index, step) {
+      this.clearTimer();
+      this.timer = setTimeout(() => {
+        this.repeat(event, index, step);
+      }, 40);
+    },
+
+    clearTimer() {
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
+    },
+
+    onGutterKeyUp() {
+      this.clearTimer();
+      this.onResizeEnd();
+    },
+
+    onGutterKeyDown(event, index) {
+      switch (event.code) {
+        case 'ArrowLeft':
+          {
+            if (this.layout === 'horizontal') {
+              this.setTimer(event, index, this.step * -1);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowRight':
+          {
+            if (this.layout === 'horizontal') {
+              this.setTimer(event, index, this.step);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowDown':
+          {
+            if (this.layout === 'vertical') {
+              this.setTimer(event, index, this.step * -1);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowUp':
+          {
+            if (this.layout === 'vertical') {
+              this.setTimer(event, index, this.step);
+            }
+
+            event.preventDefault();
+            break;
+          }
+      }
+    },
+
+    onGutterMouseDown(event, index) {
+      this.onResizeStart(event, index);
+      this.bindMouseListeners();
+    },
+
+    onGutterTouchStart(event, index) {
+      this.onResizeStart(event, index);
+      this.bindTouchListeners();
+      event.preventDefault();
+    },
+
+    onGutterTouchMove(event) {
+      this.onResize(event);
+      event.preventDefault();
+    },
+
+    onGutterTouchEnd(event) {
+      this.onResizeEnd(event);
+      this.unbindTouchListeners();
+      event.preventDefault();
+    },
+
+    bindMouseListeners() {
+      if (!this.mouseMoveListener) {
+        this.mouseMoveListener = event => this.onResize(event);
+
+        document.addEventListener('mousemove', this.mouseMoveListener);
+      }
+
+      if (!this.mouseUpListener) {
+        this.mouseUpListener = event => {
+          this.onResizeEnd(event);
+          this.unbindMouseListeners();
+        };
+
+        document.addEventListener('mouseup', this.mouseUpListener);
+      }
+    },
+
+    bindTouchListeners() {
+      if (!this.touchMoveListener) {
+        this.touchMoveListener = event => this.onResize(event.changedTouches[0]);
+
+        document.addEventListener('touchmove', this.touchMoveListener);
+      }
+
+      if (!this.touchEndListener) {
+        this.touchEndListener = event => {
+          this.resizeEnd(event);
+          this.unbindTouchListeners();
+        };
+
+        document.addEventListener('touchend', this.touchEndListener);
+      }
+    },
+
+    validateResize(newPrevPanelSize, newNextPanelSize) {
+      let prevPanelMinSize = ObjectUtils.getVNodeProp(this.panels[0], 'minSize');
+
+      if (this.panels[0].props && prevPanelMinSize && prevPanelMinSize > newPrevPanelSize) {
+        return false;
+      }
+
+      let newPanelMinSize = ObjectUtils.getVNodeProp(this.panels[1], 'minSize');
+
+      if (this.panels[1].props && newPanelMinSize && newPanelMinSize > newNextPanelSize) {
+        return false;
+      }
+
+      return true;
+    },
+
+    unbindMouseListeners() {
+      if (this.mouseMoveListener) {
+        document.removeEventListener('mousemove', this.mouseMoveListener);
+        this.mouseMoveListener = null;
+      }
+
+      if (this.mouseUpListener) {
+        document.removeEventListener('mouseup', this.mouseUpListener);
+        this.mouseUpListener = null;
+      }
+    },
+
+    unbindTouchListeners() {
+      if (this.touchMoveListener) {
+        document.removeEventListener('touchmove', this.touchMoveListener);
+        this.touchMoveListener = null;
+      }
+
+      if (this.touchEndListener) {
+        document.removeEventListener('touchend', this.touchEndListener);
+        this.touchEndListener = null;
+      }
+    },
+
+    clear() {
+      this.dragging = false;
+      this.size = null;
+      this.startPos = null;
+      this.prevPanelElement = null;
+      this.nextPanelElement = null;
+      this.prevPanelSize = null;
+      this.nextPanelSize = null;
+      this.gutterElement = null;
+      this.prevPanelIndex = null;
+    },
+
+    isStateful() {
+      return this.stateKey != null;
+    },
+
+    getStorage() {
+      switch (this.stateStorage) {
+        case 'local':
+          return window.localStorage;
+
+        case 'session':
+          return window.sessionStorage;
+
+        default:
+          throw new Error(this.stateStorage + ' is not a valid value for the state storage, supported values are "local" and "session".');
+      }
+    },
+
+    saveState() {
+      this.getStorage().setItem(this.stateKey, JSON.stringify(this.panelSizes));
+    },
+
+    restoreState() {
+      const storage = this.getStorage();
+      const stateString = storage.getItem(this.stateKey);
+
+      if (stateString) {
+        this.panelSizes = JSON.parse(stateString);
+        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
+        children.forEach((child, i) => {
+          child.style.flexBasis = 'calc(' + this.panelSizes[i] + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        });
+        return true;
+      }
+
+      return false;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-splitter p-component', 'p-splitter-' + this.layout];
+    },
+
+    panels() {
+      const panels = [];
+      this.$slots.default().forEach(child => {
+        if (this.isSplitterPanel(child)) {
+          panels.push(child);
+        } else if (child.children instanceof Array) {
+          child.children.forEach(nestedChild => {
+            if (this.isSplitterPanel(nestedChild)) {
+              panels.push(nestedChild);
+            }
+          });
+        }
+      });
+      return panels;
+    },
+
+    gutterStyle() {
+      if (this.horizontal) return {
+        width: this.gutterSize + 'px'
+      };else return {
+        height: this.gutterSize + 'px'
+      };
+    },
+
+    horizontal() {
+      return this.layout === 'horizontal';
+    }
+
+  }
+};
+const _hoisted_1$i = ["onMousedown", "onTouchstart", "onTouchmove", "onTouchend"];
+const _hoisted_2$e = ["aria-orientation", "aria-valuenow", "onKeydown"];
+
+function render$d(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: normalizeClass($options.containerClass)
+  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.panels, (panel, i) => {
+    return openBlock(), createElementBlock(Fragment, {
+      key: i
+    }, [(openBlock(), createBlock(resolveDynamicComponent(panel), {
+      tabindex: "-1"
+    })), i !== $options.panels.length - 1 ? (openBlock(), createElementBlock("div", {
+      key: 0,
+      class: "p-splitter-gutter",
+      role: "separator",
+      tabindex: "-1",
+      onMousedown: $event => $options.onGutterMouseDown($event, i),
+      onTouchstart: $event => $options.onGutterTouchStart($event, i),
+      onTouchmove: $event => $options.onGutterTouchMove($event, i),
+      onTouchend: $event => $options.onGutterTouchEnd($event, i)
+    }, [createElementVNode("div", {
+      class: "p-splitter-gutter-handle",
+      tabindex: "0",
+      style: normalizeStyle($options.gutterStyle),
+      "aria-orientation": $props.layout,
+      "aria-valuenow": $data.prevSize,
+      onKeyup: _cache[0] || (_cache[0] = (...args) => $options.onGutterKeyUp && $options.onGutterKeyUp(...args)),
+      onKeydown: $event => $options.onGutterKeyDown($event, i)
+    }, null, 44, _hoisted_2$e)], 40, _hoisted_1$i)) : createCommentVNode("", true)], 64);
+  }), 128))], 2);
+}
+
+function styleInject$4(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$8 = "\n.p-splitter {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-splitter-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-splitter-panel {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n.p-splitter-panel-nested {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-splitter-panel .p-splitter {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n    border: 0 none;\n}\n.p-splitter-gutter {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: col-resize;\n}\n.p-splitter-horizontal.p-splitter-resizing {\n    cursor: col-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-horizontal > .p-splitter-gutter > .p-splitter-gutter-handle {\n    height: 24px;\n    width: 100%;\n}\n.p-splitter-horizontal > .p-splitter-gutter {\n    cursor: col-resize;\n}\n.p-splitter-vertical.p-splitter-resizing {\n    cursor: row-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-vertical > .p-splitter-gutter {\n    cursor: row-resize;\n}\n.p-splitter-vertical > .p-splitter-gutter > .p-splitter-gutter-handle {\n    width: 24px;\n    height: 100%;\n}\n";
+styleInject$4(css_248z$8);
+script$D.render = render$d;
+
+var script$C = {
+  name: 'SplitterPanel',
+  props: {
+    size: {
+      type: Number,
+      default: null
+    },
+    minSize: {
+      type: Number,
+      default: null
+    }
+  },
+  computed: {
+    containerClass() {
+      return ['p-splitter-panel', {
+        'p-splitter-panel-nested': this.isNested
+      }];
+    },
+
+    isNested() {
+      return this.$slots.default().some(child => {
+        return child.type.name === 'Splitter';
+      });
+    }
+
+  }
+};
+
+function render$c(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    ref: "container",
+    class: normalizeClass($options.containerClass)
+  }, [renderSlot(_ctx.$slots, "default")], 2);
+}
+
+script$C.render = render$c;
+
+var script$B = {
+  props: {
+        model : String,
+        id : Number
+    },
+  setup(__props) {
+
+    
+
+return (_ctx, _cache) => {
+  const _component_router_link = resolveComponent("router-link");
+
+  return (openBlock(), createBlock(_component_router_link, {
+    to: { name : 'primary', params : {'model' : __props.model, 'id' : __props.id }}
+  }, {
+    default: withCtx(({isActive, href, navigate}) => [
+      createVNode(unref(script$1K), {
+        icon: "pi pi-chevron-right",
+        class: "p-button-rounded p-button-success mr-2"
+      })
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["to"]))
+}
+}
+
+};
+
+script$B.__file = "presstojam/src/components/actions/primary-action.vue";
+
+var script$A = {
+  props: {
+    value : [Number, String],
+    field : Object
+},
+  setup(__props) {
+
+
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("span", null, toDisplayString$1(__props.value), 1 /* TEXT */))
+}
+}
+
+};
+
+script$A.__file = "presstojam/src/components/view/number.vue";
+
+const _hoisted_1$h = {
+  key: 0,
+  class: "pi pi-check"
+};
+const _hoisted_2$d = { key: 1 };
+
+
+var script$z = {
+  props: {
+    value : [Number, Boolean],
+    field : Object
+},
+  setup(__props) {
+
+inject("client");
+
+
+
+return (_ctx, _cache) => {
+  return (__props.field.useIcons() && __props.value)
+    ? (openBlock(), createElementBlock("i", _hoisted_1$h))
+    : (openBlock(), createElementBlock("span", _hoisted_2$d, toDisplayString$1(__props.field.display(__props.value)), 1 /* TEXT */))
+}
+}
+
+};
+
+script$z.__file = "presstojam/src/components/view/flag.vue";
+
+const _hoisted_1$g = { key: 1 };
+
+
+var script$y = {
+  props: {
+    value : [Number, String ],
+    field : Object,
+    row : Object,
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+let show_route = false;
+if (props.field.reference_type == ReferenceTypes.REFERENCE && hasEntity(props.field.reference) && props.value) {
+    show_route = true;
+}
+
+
+let display = computed(() => {
+    if (props.field.reference_type == ReferenceTypes.REFERENCE) {
+        const data = [];
+    
+
+        if (props.field.custom_fields.length) {
+            for(const field of props.field.custom_fields) {
+                data.push(props.row[props.field.name + "/" + field]);
+            }
+        } else {
+            
+            const ref_route = getModel(props.field.reference);
+            
+            for(const i in ref_route.fields) {
+                if (ref_route.fields[i].summary) {
+                    data.push(props.row[props.field.name + "/" + i]);
+                }
+            }
+        }
+        return data.join(" ");
+    } else {
+        return props.value; 
+    }
+});
+
+
+
+return (_ctx, _cache) => {
+  const _component_router_link = resolveComponent("router-link");
+
+  return (unref(show_route))
+    ? (openBlock(), createBlock(_component_router_link, {
+        key: 0,
+        to: { name : 'primary', params : {'model' : __props.field.reference, 'id' : __props.value }}
+      }, {
+        default: withCtx(() => [
+          createTextVNode(toDisplayString$1(unref(display)), 1 /* TEXT */)
+        ]),
+        _: 1 /* STABLE */
+      }, 8 /* PROPS */, ["to"]))
+    : (openBlock(), createElementBlock("span", _hoisted_1$g, toDisplayString$1(unref(display)), 1 /* TEXT */))
+}
+}
+
+};
+
+script$y.__file = "presstojam/src/components/view/id.vue";
+
+var script$x = {
+  props: {
+    value : [Number, String],
+    field : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const val = computed(() => {
+    var t = props.field.clean(props.value);
+    return (!t) ? t : t.toLocaleDateString("en-UK");
+});
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("span", null, toDisplayString$1(unref(val)), 1 /* TEXT */))
+}
+}
+
+};
+
+script$x.__file = "presstojam/src/components/view/time.vue";
+
+const _hoisted_1$f = { key: 0 };
+const _hoisted_2$c = { key: 1 };
+
+
+var script$w = {
+  props: {
+    value : [String],
+    field : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const tag = computed(() => {
+ if (props.field.html || props.field.max > 300) {
+    return "textarea";
+ } else {
+    return "input";
+ }
+});
+
+
+
+
+return (_ctx, _cache) => {
+  return (unref(tag)=='textarea')
+    ? (openBlock(), createElementBlock("div", _hoisted_1$f, toDisplayString$1(__props.value), 1 /* TEXT */))
+    : (openBlock(), createElementBlock("span", _hoisted_2$c, toDisplayString$1(props.field.clean(__props.value)), 1 /* TEXT */))
+}
+}
+
+};
+
+script$w.__file = "presstojam/src/components/view/string.vue";
+
+const _hoisted_1$e = /*#__PURE__*/createElementVNode("i", { class: "pi pi-download" }, null, -1 /* HOISTED */);
+const _hoisted_2$b = [
+  _hoisted_1$e
+];
+
+
+var script$v = {
+  props: {
+    value : String,
+    field : Object,
+    id : Number
+},
+  setup(__props) {
+
+const props = __props;
+
+const client = inject("client");
+
+
+
+
+function download() {
+    client.getAsset("/asset/" + props.field.model + "/" + props.field.name + "/" + props.id)
+    .then(blob => {
+
+        const anchor = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        anchor.href = url;
+        anchor.download = props.field.val;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    })
+    .catch(e => {
+        console.log(e);
+    });
+}
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("span", null, [
+    createTextVNode(toDisplayString$1(__props.value) + " ", 1 /* TEXT */),
+    createElementVNode("a", {
+      onClick: _cache[0] || (_cache[0] = $event => (download()))
+    }, _hoisted_2$b)
+  ]))
+}
+}
+
+};
+
+script$v.__file = "presstojam/src/components/view/asset.vue";
+
+const _hoisted_1$d = { key: 0 };
+const _hoisted_2$a = { key: 1 };
+
+
+var script$u = {
+  props: {
+    value : [Object, String],
+    field : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const jsonVal = props.field.clean(props.value);
+
+
+
+return (_ctx, _cache) => {
+  return (__props.field.fields.length > 0)
+    ? (openBlock(), createElementBlock("div", _hoisted_1$d, [
+        (openBlock(true), createElementBlock(Fragment, null, renderList(__props.field.fields, (field) => {
+          return (openBlock(), createElementBlock("div", {
+            key: field.name
+          }, [
+            createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + field.model + ".fields." + field.name + ".label")), 1 /* TEXT */),
+            createVNode(script$t, {
+              field: field,
+              value: unref(jsonVal)[field.name]
+            }, null, 8 /* PROPS */, ["field", "value"])
+          ]))
+        }), 128 /* KEYED_FRAGMENT */))
+      ]))
+    : (openBlock(), createElementBlock("div", _hoisted_2$a, [
+        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(jsonVal), (value, field) => {
+          return (openBlock(), createElementBlock("div", { key: field }, [
+            createElementVNode("span", null, toDisplayString$1(field) + ": ", 1 /* TEXT */),
+            createElementVNode("span", null, toDisplayString$1(value), 1 /* TEXT */)
+          ]))
+        }), 128 /* KEYED_FRAGMENT */))
+      ]))
+}
+}
+
+};
+
+script$u.__file = "presstojam/src/components/view/json.vue";
+
+var script$t = {
+  props: {
+    field : Object,
+    row : [Array,Object],
+},
+  setup(__props) {
+
+ 
+
+return (_ctx, _cache) => {
+  return (__props.field.type=='number')
+    ? (openBlock(), createBlock(script$A, {
+        key: 0,
+        value: __props.row[__props.field.slug],
+        field: __props.field
+      }, null, 8 /* PROPS */, ["value", "field"]))
+    : (__props.field.type=='flag')
+      ? (openBlock(), createBlock(script$z, {
+          key: 1,
+          value: __props.row[__props.field.slug],
+          field: __props.field
+        }, null, 8 /* PROPS */, ["value", "field"]))
+      : (__props.field.type=='id')
+        ? (openBlock(), createBlock(script$y, {
+            key: 2,
+            value: __props.row[__props.field.slug],
+            field: __props.field,
+            row: __props.row
+          }, null, 8 /* PROPS */, ["value", "field", "row"]))
+        : (__props.field.type=='asset')
+          ? (openBlock(), createBlock(script$v, {
+              key: 3,
+              value: __props.row[__props.field.slug],
+              field: __props.field,
+              id: __props.row['--id']
+            }, null, 8 /* PROPS */, ["value", "field", "id"]))
+          : (__props.field.type=='time')
+            ? (openBlock(), createBlock(script$x, {
+                key: 4,
+                value: __props.row[__props.field.slug],
+                field: __props.field
+              }, null, 8 /* PROPS */, ["value", "field"]))
+            : (__props.field.type=='json')
+              ? (openBlock(), createBlock(script$u, {
+                  key: 5,
+                  value: __props.row[__props.field.slug],
+                  field: __props.field
+                }, null, 8 /* PROPS */, ["value", "field"]))
+              : (__props.field.type=='string')
+                ? (openBlock(), createBlock(script$w, {
+                    key: 6,
+                    value: __props.row[__props.field.slug],
+                    field: __props.field
+                  }, null, 8 /* PROPS */, ["value", "field"]))
+                : createCommentVNode("v-if", true)
+}
+}
+
+};
+
+script$t.__file = "presstojam/src/components/view/view-field.vue";
+
+var viewField = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': script$t
+});
+
+var script$s = {
+  props: {
+       model : Object,
+       data : Object,
+       name : String
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+      
+    subscribe("form_saved", "create", (response, method, model) => {
+        if (model.name == props.model.name && method == "post") {
+            trigger$1("effect_created", props.name, response);
+        }
+    });
+
+    onBeforeUnmount(() => {
+        unsubscribe("form_saved", "create");
+    });
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(script$12, {
+    model: __props.model,
+    data: __props.data
+  }, null, 8 /* PROPS */, ["model", "data"]))
+}
+}
+
+};
+
+script$s.__file = "presstojam/src/components/effects/create-effect.vue";
+
+var script$r = {
+  props: {
+       name : String,
+       model : Object,
+       parent_id : Number
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+    const i18n = inject("i18n");
+    const t = i18n.t;
+
+ 
+    const header = (props.model.parent) 
+        ? "Add " + t("models." + props.model.name + ".title", 1) + " to " + t("models." + props.model.parent + ".title", 1)
+        : "Create " + t("models." + props.model.name + ".title", 1);
+
+    const data = {};
+    if (props.parent_id) data["--parent"] = props.parent_id;
+
+    function createRow() {
+      trigger$1("dialog_open",
+        script$s, 
+        {
+            name : props.name,
+            model : props.model,
+            data : data
+        }, 
+        header);
+    }
+    
+ 
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1K), {
+    label: "New",
+    icon: "pi pi-plus",
+    class: "p-button-success mr-2",
+    onClick: createRow
+  }))
+}
+}
+
+};
+
+script$r.__file = "presstojam/src/components/actions/create-action.vue";
+
+const _hoisted_1$c = /*#__PURE__*/createElementVNode("p", null, "Are you sure you want to delete:", -1 /* HOISTED */);
+const _hoisted_2$9 = /*#__PURE__*/createTextVNode("Type ");
+const _hoisted_3$8 = /*#__PURE__*/createTextVNode(" in the box below");
+const _hoisted_4$7 = { class: "p-inputgroup" };
+const _hoisted_5$7 = /*#__PURE__*/createTextVNode("Delete");
+ 
+    
+var script$q = {
+  props: {
+        name : String,
+        data : Array,
+    },
+  setup(__props) {
+
+const props = __props;
+
+    const client = inject("client");
+
+    
+
+
+    const repo = getStore(props.name);
+    const check_str = "delete";
+
+    let delval = ref("");
+
+    const disabled = computed(() => {
+        return (delval.value == check_str) ? false : true;
+    });
+
+
+    function del() {
+        let params = {};
+        const keys = [];
+     
+        for(const row of props.data) {
+            keys.push(row['--id']);
+        }
+        params["--id"] = keys;
+       
+
+        client.delete("/data/" +repo.store.name, params)
+        .then(() => {
+            repo.remove(keys);
+            trigger$1("effect_deleted", props.name);
+        })
+        .catch(e => console.log(e));
+    }
+    
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    _hoisted_1$c,
+    createElementVNode("ul", null, [
+      (openBlock(true), createElementBlock(Fragment, null, renderList(__props.data, (item) => {
+        return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).model.fields, item)), 1 /* TEXT */))
+      }), 256 /* UNKEYED_FRAGMENT */))
+    ]),
+    createElementVNode("p", null, [
+      _hoisted_2$9,
+      createElementVNode("i", null, toDisplayString$1(check_str)),
+      _hoisted_3$8
+    ]),
+    createElementVNode("div", _hoisted_4$7, [
+      createVNode(unref(script$1L), {
+        placeholder: check_str,
+        modelValue: unref(delval),
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(delval) ? (delval).value = $event : delval = $event))
+      }, null, 8 /* PROPS */, ["modelValue"]),
+      createVNode(unref(script$1K), {
+        label: "Delete",
+        disabled: unref(disabled),
+        icon: "pi pi-trash",
+        onClick: del,
+        class: "p-button-danger"
+      }, {
+        default: withCtx(() => [
+          _hoisted_5$7
+        ]),
+        _: 1 /* STABLE */
+      }, 8 /* PROPS */, ["disabled"])
+    ])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$q.__file = "presstojam/src/components/effects/delete-effect.vue";
+
+var script$p = {
+  props: {
+        name : String,
+        data : [Object, Array]
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+
+    function delRow() {
+
+        const arg_data = (Array.isArray(props.data)) ? props.data : [props.data];
+        trigger$1(
+            "dialog_open",
+            script$q, 
+            {
+                name : props.name,
+                data : arg_data
+            }, 
+            "Delete");
+    }
+
+    const disabled = computed(() => {
+        return (!props.data) ? true : false;
+    });
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1K), {
+    label: "Delete",
+    icon: "pi pi-trash",
+    class: "p-button-danger",
+    disabled: unref(disabled),
+    onClick: delRow
+  }, null, 8 /* PROPS */, ["disabled"]))
+}
+}
+
+};
+
+script$p.__file = "presstojam/src/components/actions/delete-action.vue";
 
 var script$a$1 = {
   name: 'RowRadioButton',
@@ -33708,13 +36242,13 @@ var script$a$1 = {
 
   }
 };
-const _hoisted_1$a$1 = ["aria-checked"];
+const _hoisted_1$a = ["aria-checked"];
 
-const _hoisted_2$7$1 = /*#__PURE__*/createElementVNode("div", {
+const _hoisted_2$7 = /*#__PURE__*/createElementVNode("div", {
   class: "p-radiobutton-icon"
 }, null, -1);
 
-const _hoisted_3$6$1 = [_hoisted_2$7$1];
+const _hoisted_3$6$1 = [_hoisted_2$7];
 
 function render$a(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
@@ -33735,7 +36269,7 @@ function render$a(_ctx, _cache, $props, $setup, $data, $options) {
     }]),
     role: "radio",
     "aria-checked": $props.checked
-  }, _hoisted_3$6$1, 10, _hoisted_1$a$1)], 34);
+  }, _hoisted_3$6$1, 10, _hoisted_1$a)], 34);
 }
 
 script$a$1.render = render$a;
@@ -33775,9 +36309,9 @@ var script$9$1 = {
 
   }
 };
-const _hoisted_1$9$1 = ["aria-checked", "tabindex"];
+const _hoisted_1$9 = ["aria-checked", "tabindex"];
 
-function render$9$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$9(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass(['p-checkbox p-component', {
       'p-checkbox-focused': $data.focused
@@ -33800,10 +36334,10 @@ function render$9$1(_ctx, _cache, $props, $setup, $data, $options) {
     class: normalizeClass(['p-checkbox-icon', {
       'pi pi-check': $props.checked
     }])
-  }, null, 2)], 42, _hoisted_1$9$1)], 2);
+  }, null, 2)], 42, _hoisted_1$9)], 2);
 }
 
-script$9$1.render = render$9$1;
+script$9$1.render = render$9;
 var script$8$1 = {
   name: 'BodyCell',
   emits: ['cell-edit-init', 'cell-edit-complete', 'cell-edit-cancel', 'row-edit-init', 'row-edit-save', 'row-edit-cancel', 'row-toggle', 'radio-change', 'checkbox-change', 'editing-meta-change'],
@@ -34273,7 +36807,7 @@ var script$8$1 = {
     ripple: Ripple
   }
 };
-const _hoisted_1$8$1 = {
+const _hoisted_1$8 = {
   key: 0,
   class: "p-column-title"
 };
@@ -34296,7 +36830,7 @@ const _hoisted_6$3$1 = /*#__PURE__*/createElementVNode("span", {
 
 const _hoisted_7$1$1 = [_hoisted_6$3$1];
 
-function render$8$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$8(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTRadioButton = resolveComponent("DTRadioButton");
 
   const _component_DTCheckbox = resolveComponent("DTCheckbox");
@@ -34321,7 +36855,7 @@ function render$8$1(_ctx, _cache, $props, $setup, $data, $options) {
     onClick: _cache[6] || (_cache[6] = (...args) => $options.onClick && $options.onClick(...args)),
     onKeydown: _cache[7] || (_cache[7] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     role: "cell"
-  }, [$props.responsiveLayout === 'stack' ? (openBlock(), createElementBlock("span", _hoisted_1$8$1, toDisplayString$1($options.columnProp('header')), 1)) : createCommentVNode("", true), $props.column.children && $props.column.children.body && !$data.d_editing ? (openBlock(), createBlock(resolveDynamicComponent($props.column.children.body), {
+  }, [$props.responsiveLayout === 'stack' ? (openBlock(), createElementBlock("span", _hoisted_1$8, toDisplayString$1($options.columnProp('header')), 1)) : createCommentVNode("", true), $props.column.children && $props.column.children.body && !$data.d_editing ? (openBlock(), createBlock(resolveDynamicComponent($props.column.children.body), {
     key: 1,
     data: $props.rowData,
     column: $props.column,
@@ -34389,7 +36923,7 @@ function render$8$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, [createTextVNode(toDisplayString$1($options.resolveFieldData()), 1)], 64))], 38));
 }
 
-script$8$1.render = render$8$1;
+script$8$1.render = render$8;
 var script$7$1 = {
   name: 'TableBody',
   emits: ['rowgroup-toggle', 'row-click', 'row-dblclick', 'row-rightclick', 'row-touchend', 'row-keydown', 'row-mousedown', 'row-dragstart', 'row-dragover', 'row-dragleave', 'row-dragend', 'row-drop', 'row-toggle', 'radio-change', 'checkbox-change', 'cell-edit-init', 'cell-edit-complete', 'cell-edit-cancel', 'row-edit-init', 'row-edit-save', 'row-edit-cancel', 'editing-meta-change'],
@@ -34938,7 +37472,7 @@ const _hoisted_5$2$1 = {
 };
 const _hoisted_6$2$1 = ["colspan"];
 
-function render$7$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$7(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTBodyCell = resolveComponent("DTBodyCell");
 
   return openBlock(), createElementBlock("tbody", {
@@ -35038,7 +37572,7 @@ function render$7$1(_ctx, _cache, $props, $setup, $data, $options) {
   })) : createCommentVNode("", true)], 8, _hoisted_6$2$1)]))], 4);
 }
 
-script$7$1.render = render$7$1;
+script$7$1.render = render$7;
 var script$6$1 = {
   name: 'FooterCell',
   props: {
@@ -35115,7 +37649,7 @@ var script$6$1 = {
 };
 const _hoisted_1$6$1 = ["colspan", "rowspan"];
 
-function render$6$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$6(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("td", {
     style: normalizeStyle($options.containerStyle),
     class: normalizeClass($options.containerClass),
@@ -35128,7 +37662,7 @@ function render$6$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["column"])) : createCommentVNode("", true), createTextVNode(" " + toDisplayString$1($options.columnProp('footer')), 1)], 14, _hoisted_1$6$1);
 }
 
-script$6$1.render = render$6$1;
+script$6$1.render = render$6;
 var script$5$1 = {
   name: 'TableFooter',
   props: {
@@ -35847,9 +38381,9 @@ var script$3$1 = {
 
   },
   components: {
-    CFDropdown: script$1x,
-    CFButton: script$1M,
-    Portal: script$1D
+    CFDropdown: script$1v,
+    CFButton: script$1K,
+    Portal: script$1B
   }
 };
 const _hoisted_1$3$1 = {
@@ -36615,7 +39149,7 @@ function render$1$1(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$1.render = render$1$1;
-var script$R = {
+var script$o = {
   name: 'DataTable',
   emits: ['value-change', 'update:first', 'update:rows', 'page', 'update:sortField', 'update:sortOrder', 'update:multiSortMeta', 'sort', 'filter', 'row-click', 'row-dblclick', 'update:selection', 'row-select', 'row-unselect', 'update:contextMenuSelection', 'row-contextmenu', 'row-unselect-all', 'row-select-all', 'select-all-change', 'column-resize-end', 'column-reorder', 'row-reorder', 'update:expandedRows', 'row-collapse', 'row-expand', 'update:expandedRowGroups', 'rowgroup-collapse', 'rowgroup-expand', 'update:filters', 'state-restore', 'state-save', 'cell-edit-init', 'cell-edit-complete', 'cell-edit-cancel', 'update:editingRows', 'row-edit-init', 'row-edit-save', 'row-edit-cancel'],
   props: {
@@ -38609,33 +41143,33 @@ var script$R = {
 
   },
   components: {
-    DTPaginator: script$1v,
+    DTPaginator: script$1t,
     DTTableHeader: script$1$1,
     DTTableBody: script$7$1,
     DTTableFooter: script$5$1,
-    DTVirtualScroller: script$1y
+    DTVirtualScroller: script$1w
   }
 };
-const _hoisted_1$k = {
+const _hoisted_1$b = {
   key: 0,
   class: "p-datatable-loading-overlay p-component-overlay"
 };
-const _hoisted_2$h = {
+const _hoisted_2$8 = {
   key: 1,
   class: "p-datatable-header"
 };
-const _hoisted_3$c = {
+const _hoisted_3$7 = {
   key: 4,
   class: "p-datatable-footer"
 };
-const _hoisted_4$a = {
+const _hoisted_4$6 = {
   ref: "resizeHelper",
   class: "p-column-resizer-helper",
   style: {
     "display": "none"
   }
 };
-const _hoisted_5$8 = {
+const _hoisted_5$6 = {
   key: 5,
   ref: "reorderIndicatorUp",
   class: "pi pi-arrow-down p-datatable-reorder-indicator-up",
@@ -38644,7 +41178,7 @@ const _hoisted_5$8 = {
     "display": "none"
   }
 };
-const _hoisted_6$7 = {
+const _hoisted_6$6 = {
   key: 6,
   ref: "reorderIndicatorDown",
   class: "pi pi-arrow-up p-datatable-reorder-indicator-down",
@@ -38668,12 +41202,12 @@ function render$b(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass),
     "data-scrollselectors": ".p-datatable-wrapper"
-  }, [renderSlot(_ctx.$slots, "default"), $props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$k, [_ctx.$slots.loading ? renderSlot(_ctx.$slots, "loading", {
+  }, [renderSlot(_ctx.$slots, "default"), $props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$b, [_ctx.$slots.loading ? renderSlot(_ctx.$slots, "loading", {
     key: 0
   }) : (openBlock(), createElementBlock("i", {
     key: 1,
     class: normalizeClass($options.loadingIconClass)
-  }, null, 2))])) : createCommentVNode("", true), _ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$h, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DTPaginator, {
+  }, null, 2))])) : createCommentVNode("", true), _ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$8, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DTPaginator, {
     key: 2,
     rows: $data.d_rows,
     first: $data.d_first,
@@ -38879,10 +41413,10 @@ function render$b(_ctx, _cache, $props, $setup, $data, $options) {
     name: "end",
     fn: withCtx(() => [renderSlot(_ctx.$slots, "paginatorend")]),
     key: "1"
-  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_3$c, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$a, null, 512), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_5$8, null, 512)) : createCommentVNode("", true), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_6$7, null, 512)) : createCommentVNode("", true)], 2);
+  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_3$7, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$6, null, 512), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_5$6, null, 512)) : createCommentVNode("", true), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_6$6, null, 512)) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$6(css, ref) {
+function styleInject$3(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -38911,1336 +41445,11 @@ function styleInject$6(css, ref) {
   }
 }
 
-var css_248z$b = "\n.p-datatable {\n    position: relative;\n}\n.p-datatable table {\n    border-collapse: collapse;\n    min-width: 100%;\n    table-layout: fixed;\n}\n.p-datatable .p-sortable-column {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-datatable .p-sortable-column .p-column-title,\n.p-datatable .p-sortable-column .p-sortable-column-icon,\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    vertical-align: middle;\n}\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper > table,\n.p-datatable-auto-layout > .p-datatable-wrapper > table {\n    table-layout: auto;\n}\n.p-datatable-hoverable-rows .p-selectable-row {\n    cursor: pointer;\n}\n\n/* Scrollable */\n.p-datatable-scrollable .p-datatable-wrapper {\n    position: relative;\n    overflow: auto;\n}\n.p-datatable-scrollable .p-datatable-thead,\n.p-datatable-scrollable .p-datatable-tbody,\n.p-datatable-scrollable .p-datatable-tfoot {\n    display: block;\n}\n.p-datatable-scrollable .p-datatable-thead > tr,\n.p-datatable-scrollable .p-datatable-tbody > tr,\n.p-datatable-scrollable .p-datatable-tfoot > tr {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n    width: 100%;\n}\n.p-datatable-scrollable .p-datatable-thead > tr > th,\n.p-datatable-scrollable .p-datatable-tbody > tr > td,\n.p-datatable-scrollable .p-datatable-tfoot > tr > td {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 0px;\n            flex: 1 1 0;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable-scrollable .p-datatable-thead {\n    position: sticky;\n    top: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-frozen-tbody {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-tfoot {\n    position: sticky;\n    bottom: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-frozen-column {\n    position: sticky;\n    background: inherit;\n}\n.p-datatable-scrollable th.p-frozen-column {\n    z-index: 1;\n}\n.p-datatable-scrollable-both .p-datatable-thead > tr > th,\n.p-datatable-scrollable-both .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-both .p-datatable-tfoot > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-thead > tr > th .p-datatable-scrollable-horizontal .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-tfoot > tr > td {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 0 auto;\n            flex: 1 0 auto;\n}\n.p-datatable-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    height: 100%;\n}\n.p-datatable-flex-scrollable .p-datatable-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n}\n.p-datatable-scrollable .p-rowgroup-header {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot {\n    display: table;\n    border-collapse: collapse;\n    width: 100%;\n    table-layout: fixed;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr {\n    display: table-row;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr > th,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr > td {\n    display: table-cell;\n}\n.p-datatable-scrollable .p-virtualscroller > .p-datatable-table {\n    display: inline-block; /* For Safari */\n}\n\n/* Resizable */\n.p-datatable-resizable > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-resizable .p-datatable-thead > tr > th,\n.p-datatable-resizable .p-datatable-tfoot > tr > td,\n.p-datatable-resizable .p-datatable-tbody > tr > td {\n    overflow: hidden;\n    white-space: nowrap;\n}\n.p-datatable-resizable .p-resizable-column:not(.p-frozen-column) {\n    background-clip: padding-box;\n    position: relative;\n}\n.p-datatable-resizable-fit .p-resizable-column:last-child .p-column-resizer {\n    display: none;\n}\n.p-datatable .p-column-resizer {\n    display: block;\n    position: absolute !important;\n    top: 0;\n    right: 0;\n    margin: 0;\n    width: 0.5rem;\n    height: 100%;\n    padding: 0px;\n    cursor: col-resize;\n    border: 1px solid transparent;\n}\n.p-datatable .p-column-header-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable .p-column-resizer-helper {\n    width: 1px;\n    position: absolute;\n    z-index: 10;\n    display: none;\n}\n.p-datatable .p-row-editor-init,\n.p-datatable .p-row-editor-save,\n.p-datatable .p-row-editor-cancel {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Expand */\n.p-datatable .p-row-toggler {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Reorder */\n.p-datatable-reorder-indicator-up,\n.p-datatable-reorder-indicator-down {\n    position: absolute;\n    display: none;\n}\n.p-reorderable-column,\n.p-datatable-reorderablerow-handle {\n    cursor: move;\n}\n\n/* Loader */\n.p-datatable .p-datatable-loading-overlay {\n    position: absolute;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    z-index: 2;\n}\n\n/* Filter */\n.p-column-filter-row {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    width: 100%;\n}\n.p-column-filter-menu {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    margin-left: auto;\n}\n.p-column-filter-row .p-column-filter-element {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-column-filter-menu-button,\n.p-column-filter-clear-button {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-column-filter-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-column-filter-row-items {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-column-filter-row-item {\n    cursor: pointer;\n}\n.p-column-filter-add-button,\n.p-column-filter-remove-button {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-column-filter-add-button .p-button-label,\n.p-column-filter-remove-button .p-button-label {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n}\n.p-column-filter-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-column-filter-buttonbar .p-button:not(.p-button-icon-only) {\n    width: auto;\n}\n\n/* Responsive */\n.p-datatable .p-datatable-tbody > tr > td > .p-column-title {\n    display: none;\n}\n\n/* VirtualScroller */\n.p-datatable .p-virtualscroller-loading {\n    -webkit-transform: none !important;\n            transform: none !important;\n    min-height: 0;\n    position: sticky;\n    top: 0;\n    left: 0;\n}\n";
-styleInject$6(css_248z$b);
-script$R.render = render$b;
-
-var script$Q = {
-  props: {
-    group : String
-},
-  setup(__props) {
-
-
-
-const model = inject("model");
-
-const store = getModel(model);
-createRepoStore(store);
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$R)))
-}
-}
-
-};
-
-script$Q.__file = "presstojam/src/components/reports/summary-report.vue";
-
-var script$P = {
-  props: {
-    group : String
-},
-  setup(__props) {
-
-
-
-const model = inject("model");
-
-const store = getModel(model);
-const schema = store.fields;
-
-const numeric_reports = [];
-for(const field in schema) {
-    if (schema[field].type == "number") {
-        numeric_reports.push(field);
-    }
-}
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createElementVNode("h3", null, "Reports For " + toDisplayString$1(__props.group), 1 /* TEXT */),
-    (openBlock(), createElementBlock(Fragment, null, renderList(numeric_reports, (field) => {
-      return createVNode(script$S, {
-        group: __props.group,
-        field: field,
-        key: field
-      }, null, 8 /* PROPS */, ["group", "field"])
-    }), 64 /* STABLE_FRAGMENT */)),
-    createVNode(script$Q, { group: __props.group }, null, 8 /* PROPS */, ["group"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$P.__file = "presstojam/src/components/reports/report-group.vue";
-
-var script$O = {
-  props: {
-    model : String,
-    id : String,
-    atts : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-provide("model", props.model);
-
-
-clearModelCache();
-const store = getModel(props.model);
-
-const groups = [];
-for(const field_name in store.fields) {
-    const field = store.fields[field_name];
-    if (field.type == "id" && field.reference_type == ReferenceTypes.REFERENCE) {
-        groups.push(field);
-    } else if (field.type == "string" && field.isEnum()) {
-        groups.push(field);
-    }
-}
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$P, { group: "all" }),
-    (openBlock(), createElementBlock(Fragment, null, renderList(groups, (group) => {
-      return createVNode(script$P, {
-        key: group,
-        group: group
-      }, null, 8 /* PROPS */, ["group"])
-    }), 64 /* STABLE_FRAGMENT */))
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$O.__file = "presstojam/src/components/reports/report.vue";
-
-var report = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': script$O
-});
-
-var script$N = {
-  name: 'Toolbar',
-  props: {
-    'aria-labelledby': {
-      type: String,
-      default: null
-    }
-  }
-};
-const _hoisted_1$j = ["aria-labelledby"];
-const _hoisted_2$g = {
-  class: "p-toolbar-group-left"
-};
-const _hoisted_3$b = {
-  class: "p-toolbar-group-right"
-};
-
-function render$9(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: "p-toolbar p-component",
-    role: "toolbar",
-    "aria-labelledby": _ctx.ariaLabelledby
-  }, [createElementVNode("div", _hoisted_2$g, [renderSlot(_ctx.$slots, "start")]), createElementVNode("div", _hoisted_3$b, [renderSlot(_ctx.$slots, "end")])], 8, _hoisted_1$j);
-}
-
-function styleInject$5(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$a = "\n.p-toolbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-toolbar-group-left,\n.p-toolbar-group-right {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
-styleInject$5(css_248z$a);
-script$N.render = render$9;
-
-var script$M = {
-  name: 'Splitter',
-  emits: ['resizestart', 'resizeend'],
-  props: {
-    layout: {
-      type: String,
-      default: 'horizontal'
-    },
-    gutterSize: {
-      type: Number,
-      default: 4
-    },
-    stateKey: {
-      type: String,
-      default: null
-    },
-    stateStorage: {
-      type: String,
-      default: 'session'
-    },
-    step: {
-      type: Number,
-      default: 5
-    }
-  },
-  dragging: false,
-  mouseMoveListener: null,
-  mouseUpListener: null,
-  touchMoveListener: null,
-  touchEndListener: null,
-  size: null,
-  gutterElement: null,
-  startPos: null,
-  prevPanelElement: null,
-  nextPanelElement: null,
-  nextPanelSize: null,
-  prevPanelSize: null,
-  panelSizes: null,
-  prevPanelIndex: null,
-  timer: null,
-
-  data() {
-    return {
-      prevSize: null
-    };
-  },
-
-  mounted() {
-    if (this.panels && this.panels.length) {
-      let initialized = false;
-
-      if (this.isStateful()) {
-        initialized = this.restoreState();
-      }
-
-      if (!initialized) {
-        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
-        let _panelSizes = [];
-        this.panels.map((panel, i) => {
-          let panelInitialSize = panel.props && panel.props.size ? panel.props.size : null;
-          let panelSize = panelInitialSize || 100 / this.panels.length;
-          _panelSizes[i] = panelSize;
-          children[i].style.flexBasis = 'calc(' + panelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        });
-        this.panelSizes = _panelSizes;
-        this.prevSize = parseFloat(_panelSizes[0]).toFixed(4);
-      }
-    }
-  },
-
-  beforeUnmount() {
-    this.clear();
-    this.unbindMouseListeners();
-  },
-
-  methods: {
-    isSplitterPanel(child) {
-      return child.type.name === 'SplitterPanel';
-    },
-
-    onResizeStart(event, index, isKeyDown) {
-      this.gutterElement = event.currentTarget || event.target.parentElement;
-      this.size = this.horizontal ? DomHandler.getWidth(this.$el) : DomHandler.getHeight(this.$el);
-
-      if (!isKeyDown) {
-        this.dragging = true;
-        this.startPos = this.layout === 'horizontal' ? event.pageX || event.changedTouches[0].pageX : event.pageY || event.changedTouches[0].pageY;
-      }
-
-      this.prevPanelElement = this.gutterElement.previousElementSibling;
-      this.nextPanelElement = this.gutterElement.nextElementSibling;
-
-      if (isKeyDown) {
-        this.prevPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true);
-        this.nextPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true);
-      } else {
-        this.prevPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true)) / this.size;
-        this.nextPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true)) / this.size;
-      }
-
-      this.prevPanelIndex = index;
-      this.$emit('resizestart', {
-        originalEvent: event,
-        sizes: this.panelSizes
-      });
-      DomHandler.addClass(this.gutterElement, 'p-splitter-gutter-resizing');
-      DomHandler.addClass(this.$el, 'p-splitter-resizing');
-    },
-
-    onResize(event, step, isKeyDown) {
-      let newPos, newPrevPanelSize, newNextPanelSize;
-
-      if (isKeyDown) {
-        if (this.horizontal) {
-          newPrevPanelSize = 100 * (this.prevPanelSize + step) / this.size;
-          newNextPanelSize = 100 * (this.nextPanelSize - step) / this.size;
-        } else {
-          newPrevPanelSize = 100 * (this.prevPanelSize - step) / this.size;
-          newNextPanelSize = 100 * (this.nextPanelSize + step) / this.size;
-        }
-      } else {
-        if (this.horizontal) newPos = event.pageX * 100 / this.size - this.startPos * 100 / this.size;else newPos = event.pageY * 100 / this.size - this.startPos * 100 / this.size;
-        newPrevPanelSize = this.prevPanelSize + newPos;
-        newNextPanelSize = this.nextPanelSize - newPos;
-      }
-
-      this.prevSize = parseFloat(newPrevPanelSize).toFixed(4);
-
-      if (this.validateResize(newPrevPanelSize, newNextPanelSize)) {
-        this.prevPanelElement.style.flexBasis = 'calc(' + newPrevPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        this.nextPanelElement.style.flexBasis = 'calc(' + newNextPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        this.panelSizes[this.prevPanelIndex] = newPrevPanelSize;
-        this.panelSizes[this.prevPanelIndex + 1] = newNextPanelSize;
-      }
-    },
-
-    onResizeEnd(event) {
-      if (this.isStateful()) {
-        this.saveState();
-      }
-
-      this.$emit('resizeend', {
-        originalEvent: event,
-        sizes: this.panelSizes
-      });
-      DomHandler.removeClass(this.gutterElement, 'p-splitter-gutter-resizing');
-      DomHandler.removeClass(this.$el, 'p-splitter-resizing');
-      this.clear();
-    },
-
-    repeat(event, index, step) {
-      this.onResizeStart(event, index, true);
-      this.onResize(event, step, true);
-    },
-
-    setTimer(event, index, step) {
-      this.clearTimer();
-      this.timer = setTimeout(() => {
-        this.repeat(event, index, step);
-      }, 40);
-    },
-
-    clearTimer() {
-      if (this.timer) {
-        clearTimeout(this.timer);
-      }
-    },
-
-    onGutterKeyUp() {
-      this.clearTimer();
-      this.onResizeEnd();
-    },
-
-    onGutterKeyDown(event, index) {
-      switch (event.code) {
-        case 'ArrowLeft':
-          {
-            if (this.layout === 'horizontal') {
-              this.setTimer(event, index, this.step * -1);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowRight':
-          {
-            if (this.layout === 'horizontal') {
-              this.setTimer(event, index, this.step);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowDown':
-          {
-            if (this.layout === 'vertical') {
-              this.setTimer(event, index, this.step * -1);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowUp':
-          {
-            if (this.layout === 'vertical') {
-              this.setTimer(event, index, this.step);
-            }
-
-            event.preventDefault();
-            break;
-          }
-      }
-    },
-
-    onGutterMouseDown(event, index) {
-      this.onResizeStart(event, index);
-      this.bindMouseListeners();
-    },
-
-    onGutterTouchStart(event, index) {
-      this.onResizeStart(event, index);
-      this.bindTouchListeners();
-      event.preventDefault();
-    },
-
-    onGutterTouchMove(event) {
-      this.onResize(event);
-      event.preventDefault();
-    },
-
-    onGutterTouchEnd(event) {
-      this.onResizeEnd(event);
-      this.unbindTouchListeners();
-      event.preventDefault();
-    },
-
-    bindMouseListeners() {
-      if (!this.mouseMoveListener) {
-        this.mouseMoveListener = event => this.onResize(event);
-
-        document.addEventListener('mousemove', this.mouseMoveListener);
-      }
-
-      if (!this.mouseUpListener) {
-        this.mouseUpListener = event => {
-          this.onResizeEnd(event);
-          this.unbindMouseListeners();
-        };
-
-        document.addEventListener('mouseup', this.mouseUpListener);
-      }
-    },
-
-    bindTouchListeners() {
-      if (!this.touchMoveListener) {
-        this.touchMoveListener = event => this.onResize(event.changedTouches[0]);
-
-        document.addEventListener('touchmove', this.touchMoveListener);
-      }
-
-      if (!this.touchEndListener) {
-        this.touchEndListener = event => {
-          this.resizeEnd(event);
-          this.unbindTouchListeners();
-        };
-
-        document.addEventListener('touchend', this.touchEndListener);
-      }
-    },
-
-    validateResize(newPrevPanelSize, newNextPanelSize) {
-      let prevPanelMinSize = ObjectUtils.getVNodeProp(this.panels[0], 'minSize');
-
-      if (this.panels[0].props && prevPanelMinSize && prevPanelMinSize > newPrevPanelSize) {
-        return false;
-      }
-
-      let newPanelMinSize = ObjectUtils.getVNodeProp(this.panels[1], 'minSize');
-
-      if (this.panels[1].props && newPanelMinSize && newPanelMinSize > newNextPanelSize) {
-        return false;
-      }
-
-      return true;
-    },
-
-    unbindMouseListeners() {
-      if (this.mouseMoveListener) {
-        document.removeEventListener('mousemove', this.mouseMoveListener);
-        this.mouseMoveListener = null;
-      }
-
-      if (this.mouseUpListener) {
-        document.removeEventListener('mouseup', this.mouseUpListener);
-        this.mouseUpListener = null;
-      }
-    },
-
-    unbindTouchListeners() {
-      if (this.touchMoveListener) {
-        document.removeEventListener('touchmove', this.touchMoveListener);
-        this.touchMoveListener = null;
-      }
-
-      if (this.touchEndListener) {
-        document.removeEventListener('touchend', this.touchEndListener);
-        this.touchEndListener = null;
-      }
-    },
-
-    clear() {
-      this.dragging = false;
-      this.size = null;
-      this.startPos = null;
-      this.prevPanelElement = null;
-      this.nextPanelElement = null;
-      this.prevPanelSize = null;
-      this.nextPanelSize = null;
-      this.gutterElement = null;
-      this.prevPanelIndex = null;
-    },
-
-    isStateful() {
-      return this.stateKey != null;
-    },
-
-    getStorage() {
-      switch (this.stateStorage) {
-        case 'local':
-          return window.localStorage;
-
-        case 'session':
-          return window.sessionStorage;
-
-        default:
-          throw new Error(this.stateStorage + ' is not a valid value for the state storage, supported values are "local" and "session".');
-      }
-    },
-
-    saveState() {
-      this.getStorage().setItem(this.stateKey, JSON.stringify(this.panelSizes));
-    },
-
-    restoreState() {
-      const storage = this.getStorage();
-      const stateString = storage.getItem(this.stateKey);
-
-      if (stateString) {
-        this.panelSizes = JSON.parse(stateString);
-        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
-        children.forEach((child, i) => {
-          child.style.flexBasis = 'calc(' + this.panelSizes[i] + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        });
-        return true;
-      }
-
-      return false;
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-splitter p-component', 'p-splitter-' + this.layout];
-    },
-
-    panels() {
-      const panels = [];
-      this.$slots.default().forEach(child => {
-        if (this.isSplitterPanel(child)) {
-          panels.push(child);
-        } else if (child.children instanceof Array) {
-          child.children.forEach(nestedChild => {
-            if (this.isSplitterPanel(nestedChild)) {
-              panels.push(nestedChild);
-            }
-          });
-        }
-      });
-      return panels;
-    },
-
-    gutterStyle() {
-      if (this.horizontal) return {
-        width: this.gutterSize + 'px'
-      };else return {
-        height: this.gutterSize + 'px'
-      };
-    },
-
-    horizontal() {
-      return this.layout === 'horizontal';
-    }
-
-  }
-};
-const _hoisted_1$i = ["onMousedown", "onTouchstart", "onTouchmove", "onTouchend"];
-const _hoisted_2$f = ["aria-orientation", "aria-valuenow", "onKeydown"];
-
-function render$8(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: normalizeClass($options.containerClass)
-  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.panels, (panel, i) => {
-    return openBlock(), createElementBlock(Fragment, {
-      key: i
-    }, [(openBlock(), createBlock(resolveDynamicComponent(panel), {
-      tabindex: "-1"
-    })), i !== $options.panels.length - 1 ? (openBlock(), createElementBlock("div", {
-      key: 0,
-      class: "p-splitter-gutter",
-      role: "separator",
-      tabindex: "-1",
-      onMousedown: $event => $options.onGutterMouseDown($event, i),
-      onTouchstart: $event => $options.onGutterTouchStart($event, i),
-      onTouchmove: $event => $options.onGutterTouchMove($event, i),
-      onTouchend: $event => $options.onGutterTouchEnd($event, i)
-    }, [createElementVNode("div", {
-      class: "p-splitter-gutter-handle",
-      tabindex: "0",
-      style: normalizeStyle($options.gutterStyle),
-      "aria-orientation": $props.layout,
-      "aria-valuenow": $data.prevSize,
-      onKeyup: _cache[0] || (_cache[0] = (...args) => $options.onGutterKeyUp && $options.onGutterKeyUp(...args)),
-      onKeydown: $event => $options.onGutterKeyDown($event, i)
-    }, null, 44, _hoisted_2$f)], 40, _hoisted_1$i)) : createCommentVNode("", true)], 64);
-  }), 128))], 2);
-}
-
-function styleInject$4(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$9 = "\n.p-splitter {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-splitter-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-splitter-panel {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n.p-splitter-panel-nested {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-splitter-panel .p-splitter {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n    border: 0 none;\n}\n.p-splitter-gutter {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: col-resize;\n}\n.p-splitter-horizontal.p-splitter-resizing {\n    cursor: col-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-horizontal > .p-splitter-gutter > .p-splitter-gutter-handle {\n    height: 24px;\n    width: 100%;\n}\n.p-splitter-horizontal > .p-splitter-gutter {\n    cursor: col-resize;\n}\n.p-splitter-vertical.p-splitter-resizing {\n    cursor: row-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-vertical > .p-splitter-gutter {\n    cursor: row-resize;\n}\n.p-splitter-vertical > .p-splitter-gutter > .p-splitter-gutter-handle {\n    width: 24px;\n    height: 100%;\n}\n";
-styleInject$4(css_248z$9);
-script$M.render = render$8;
-
-var script$L = {
-  name: 'SplitterPanel',
-  props: {
-    size: {
-      type: Number,
-      default: null
-    },
-    minSize: {
-      type: Number,
-      default: null
-    }
-  },
-  computed: {
-    containerClass() {
-      return ['p-splitter-panel', {
-        'p-splitter-panel-nested': this.isNested
-      }];
-    },
-
-    isNested() {
-      return this.$slots.default().some(child => {
-        return child.type.name === 'Splitter';
-      });
-    }
-
-  }
-};
-
-function render$7(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    ref: "container",
-    class: normalizeClass($options.containerClass)
-  }, [renderSlot(_ctx.$slots, "default")], 2);
-}
-
-script$L.render = render$7;
-
-var script$K = {
-  props: {
-        model : String,
-        id : Number
-    },
-  setup(__props) {
-
-    
-
-return (_ctx, _cache) => {
-  const _component_router_link = resolveComponent("router-link");
-
-  return (openBlock(), createBlock(_component_router_link, {
-    to: { name : 'primary', params : {'model' : __props.model, 'id' : __props.id }}
-  }, {
-    default: withCtx(({isActive, href, navigate}) => [
-      createVNode(unref(script$1M), {
-        icon: "pi pi-chevron-right",
-        class: "p-button-rounded p-button-success mr-2"
-      })
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["to"]))
-}
-}
-
-};
-
-script$K.__file = "presstojam/src/components/actions/primary-action.vue";
-
-var script$J = {
-  props: {
-    value : [Number, String],
-    field : Object
-},
-  setup(__props) {
-
-
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("span", null, toDisplayString$1(__props.value), 1 /* TEXT */))
-}
-}
-
-};
-
-script$J.__file = "presstojam/src/components/view/number.vue";
-
-const _hoisted_1$h = {
-  key: 0,
-  class: "pi pi-check"
-};
-const _hoisted_2$e = { key: 1 };
-
-
-var script$I = {
-  props: {
-    value : [Number, Boolean],
-    field : Object
-},
-  setup(__props) {
-
-inject("client");
-
-
-
-return (_ctx, _cache) => {
-  return (__props.field.useIcons() && __props.value)
-    ? (openBlock(), createElementBlock("i", _hoisted_1$h))
-    : (openBlock(), createElementBlock("span", _hoisted_2$e, toDisplayString$1(__props.field.display(__props.value)), 1 /* TEXT */))
-}
-}
-
-};
-
-script$I.__file = "presstojam/src/components/view/flag.vue";
-
-const _hoisted_1$g = { key: 1 };
-
-
-var script$H = {
-  props: {
-    value : [Number, String ],
-    field : Object,
-    row : Object,
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-let show_route = false;
-if (props.field.reference_type == ReferenceTypes.REFERENCE && hasEntity(props.field.reference) && props.value) {
-    show_route = true;
-}
-
-
-let display = computed(() => {
-    if (props.field.reference_type == ReferenceTypes.REFERENCE) {
-        const data = [];
-    
-
-        if (props.field.custom_fields.length) {
-            for(const field of props.field.custom_fields) {
-                data.push(props.row[props.field.name + "/" + field]);
-            }
-        } else {
-            
-            const ref_route = getModel(props.field.reference);
-            
-            for(const i in ref_route.fields) {
-                if (ref_route.fields[i].summary) {
-                    data.push(props.row[props.field.name + "/" + i]);
-                }
-            }
-        }
-        return data.join(" ");
-    } else {
-        return props.value; 
-    }
-});
-
-
-
-return (_ctx, _cache) => {
-  const _component_router_link = resolveComponent("router-link");
-
-  return (unref(show_route))
-    ? (openBlock(), createBlock(_component_router_link, {
-        key: 0,
-        to: { name : 'primary', params : {'model' : __props.field.reference, 'id' : __props.value }}
-      }, {
-        default: withCtx(() => [
-          createTextVNode(toDisplayString$1(unref(display)), 1 /* TEXT */)
-        ]),
-        _: 1 /* STABLE */
-      }, 8 /* PROPS */, ["to"]))
-    : (openBlock(), createElementBlock("span", _hoisted_1$g, toDisplayString$1(unref(display)), 1 /* TEXT */))
-}
-}
-
-};
-
-script$H.__file = "presstojam/src/components/view/id.vue";
-
-var script$G = {
-  props: {
-    value : [Number, String],
-    field : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const val = computed(() => {
-    var t = props.field.clean(props.value);
-    return (!t) ? t : t.toLocaleDateString("en-UK");
-});
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("span", null, toDisplayString$1(unref(val)), 1 /* TEXT */))
-}
-}
-
-};
-
-script$G.__file = "presstojam/src/components/view/time.vue";
-
-const _hoisted_1$f = { key: 0 };
-const _hoisted_2$d = { key: 1 };
-
-
-var script$F = {
-  props: {
-    value : [String],
-    field : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const tag = computed(() => {
- if (props.field.html || props.field.max > 300) {
-    return "textarea";
- } else {
-    return "input";
- }
-});
-
-
-
-
-return (_ctx, _cache) => {
-  return (unref(tag)=='textarea')
-    ? (openBlock(), createElementBlock("div", _hoisted_1$f, toDisplayString$1(__props.value), 1 /* TEXT */))
-    : (openBlock(), createElementBlock("span", _hoisted_2$d, toDisplayString$1(props.field.clean(__props.value)), 1 /* TEXT */))
-}
-}
-
-};
-
-script$F.__file = "presstojam/src/components/view/string.vue";
-
-const _hoisted_1$e = /*#__PURE__*/createElementVNode("i", { class: "pi pi-download" }, null, -1 /* HOISTED */);
-const _hoisted_2$c = [
-  _hoisted_1$e
-];
-
-
-var script$E = {
-  props: {
-    value : String,
-    field : Object,
-    id : Number
-},
-  setup(__props) {
-
-const props = __props;
-
-const client = inject("client");
-
-
-
-
-function download() {
-    client.getAsset("/asset/" + props.field.model + "/" + props.field.name + "/" + props.id)
-    .then(blob => {
-
-        const anchor = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        anchor.href = url;
-        anchor.download = props.field.val;
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        URL.revokeObjectURL(url);
-    })
-    .catch(e => {
-        console.log(e);
-    });
-}
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("span", null, [
-    createTextVNode(toDisplayString$1(__props.value) + " ", 1 /* TEXT */),
-    createElementVNode("a", {
-      onClick: _cache[0] || (_cache[0] = $event => (download()))
-    }, _hoisted_2$c)
-  ]))
-}
-}
-
-};
-
-script$E.__file = "presstojam/src/components/view/asset.vue";
-
-const _hoisted_1$d = { key: 0 };
-const _hoisted_2$b = { key: 1 };
-
-
-var script$D = {
-  props: {
-    value : [Object, String],
-    field : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const jsonVal = props.field.clean(props.value);
-
-
-
-return (_ctx, _cache) => {
-  return (__props.field.fields.length > 0)
-    ? (openBlock(), createElementBlock("div", _hoisted_1$d, [
-        (openBlock(true), createElementBlock(Fragment, null, renderList(__props.field.fields, (field) => {
-          return (openBlock(), createElementBlock("div", {
-            key: field.name
-          }, [
-            createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + field.model + ".fields." + field.name + ".label")), 1 /* TEXT */),
-            createVNode(script$C, {
-              field: field,
-              value: unref(jsonVal)[field.name]
-            }, null, 8 /* PROPS */, ["field", "value"])
-          ]))
-        }), 128 /* KEYED_FRAGMENT */))
-      ]))
-    : (openBlock(), createElementBlock("div", _hoisted_2$b, [
-        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(jsonVal), (value, field) => {
-          return (openBlock(), createElementBlock("div", { key: field }, [
-            createElementVNode("span", null, toDisplayString$1(field) + ": ", 1 /* TEXT */),
-            createElementVNode("span", null, toDisplayString$1(value), 1 /* TEXT */)
-          ]))
-        }), 128 /* KEYED_FRAGMENT */))
-      ]))
-}
-}
-
-};
-
-script$D.__file = "presstojam/src/components/view/json.vue";
-
-var script$C = {
-  props: {
-    field : Object,
-    row : [Array,Object],
-},
-  setup(__props) {
-
- 
-
-return (_ctx, _cache) => {
-  return (__props.field.type=='number')
-    ? (openBlock(), createBlock(script$J, {
-        key: 0,
-        value: __props.row[__props.field.slug],
-        field: __props.field
-      }, null, 8 /* PROPS */, ["value", "field"]))
-    : (__props.field.type=='flag')
-      ? (openBlock(), createBlock(script$I, {
-          key: 1,
-          value: __props.row[__props.field.slug],
-          field: __props.field
-        }, null, 8 /* PROPS */, ["value", "field"]))
-      : (__props.field.type=='id')
-        ? (openBlock(), createBlock(script$H, {
-            key: 2,
-            value: __props.row[__props.field.slug],
-            field: __props.field,
-            row: __props.row
-          }, null, 8 /* PROPS */, ["value", "field", "row"]))
-        : (__props.field.type=='asset')
-          ? (openBlock(), createBlock(script$E, {
-              key: 3,
-              value: __props.row[__props.field.slug],
-              field: __props.field,
-              id: __props.row['--id']
-            }, null, 8 /* PROPS */, ["value", "field", "id"]))
-          : (__props.field.type=='time')
-            ? (openBlock(), createBlock(script$G, {
-                key: 4,
-                value: __props.row[__props.field.slug],
-                field: __props.field
-              }, null, 8 /* PROPS */, ["value", "field"]))
-            : (__props.field.type=='json')
-              ? (openBlock(), createBlock(script$D, {
-                  key: 5,
-                  value: __props.row[__props.field.slug],
-                  field: __props.field
-                }, null, 8 /* PROPS */, ["value", "field"]))
-              : (__props.field.type=='string')
-                ? (openBlock(), createBlock(script$F, {
-                    key: 6,
-                    value: __props.row[__props.field.slug],
-                    field: __props.field
-                  }, null, 8 /* PROPS */, ["value", "field"]))
-                : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$C.__file = "presstojam/src/components/view/view-field.vue";
-
-var viewField = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': script$C
-});
-
-var script$B = {
-  props: {
-       name : String
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-    const repo = getStore(props.name);
-    const store = repo.store;
-
-
-    const data = {};
-    if (store.parent_id) data["--parent"] = store.parent_id;
-
-  
-    subscribe("form_saved", "create", (response, method, model) => {
-        if (model.name == store.name && method == "post") {
-            repo.append(response);
-            trigger("effect_created", props.name);
-        }
-    });
-
-    onBeforeUnmount(() => {
-        unsubscribe("form_saved", "create");
-    });
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$14, {
-    model: unref(store),
-    data: data
-  }, null, 8 /* PROPS */, ["model"]))
-}
-}
-
-};
-
-script$B.__file = "presstojam/src/components/effects/create-effect.vue";
-
-var script$A = {
-  props: {
-       name : String,
-       parent: String
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-    const i18n = inject("i18n");
-    const t = i18n.t;
-
-    const header = (props.parent) 
-        ? "Add " + t("models." + props.name + ".title", 1) + " to " + t("models." + props.parent + ".title", 1)
-        : "Create " + t("models." + props.name + ".title", 1);
-
-
-    function createRow() {
-      trigger("dialog_open",
-        script$B, 
-        {
-            name : props.name,
-        }, 
-        header);
-    }
-    
- 
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1M), {
-    label: "New",
-    icon: "pi pi-plus",
-    class: "p-button-success mr-2",
-    onClick: createRow
-  }))
-}
-}
-
-};
-
-script$A.__file = "presstojam/src/components/actions/create-action.vue";
-
-const _hoisted_1$c = /*#__PURE__*/createElementVNode("p", null, "Are you sure you want to delete:", -1 /* HOISTED */);
-const _hoisted_2$a = /*#__PURE__*/createTextVNode("Type ");
-const _hoisted_3$a = /*#__PURE__*/createTextVNode(" in the box below");
-const _hoisted_4$9 = { class: "p-inputgroup" };
-const _hoisted_5$7 = /*#__PURE__*/createTextVNode("Delete");
- 
-    
-var script$z = {
-  props: {
-        name : String,
-        data : Array,
-    },
-  setup(__props) {
-
-const props = __props;
-
-    const client = inject("client");
-
-    
-
-
-    const repo = getStore(props.name);
-    const check_str = "delete";
-
-    let delval = ref("");
-
-    const disabled = computed(() => {
-        return (delval.value == check_str) ? false : true;
-    });
-
-
-    function del() {
-        let params = {};
-        const keys = [];
-     
-        for(const row of props.data) {
-            keys.push(row['--id']);
-        }
-        params["--id"] = keys;
-       
-
-        client.delete("/data/" +repo.store.name, params)
-        .then(() => {
-            repo.remove(keys);
-            trigger("effect_deleted", props.name);
-        })
-        .catch(e => console.log(e));
-    }
-    
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    _hoisted_1$c,
-    createElementVNode("ul", null, [
-      (openBlock(true), createElementBlock(Fragment, null, renderList(__props.data, (item) => {
-        return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).model.fields, item)), 1 /* TEXT */))
-      }), 256 /* UNKEYED_FRAGMENT */))
-    ]),
-    createElementVNode("p", null, [
-      _hoisted_2$a,
-      createElementVNode("i", null, toDisplayString$1(check_str)),
-      _hoisted_3$a
-    ]),
-    createElementVNode("div", _hoisted_4$9, [
-      createVNode(unref(script$1N), {
-        placeholder: check_str,
-        modelValue: unref(delval),
-        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(delval) ? (delval).value = $event : delval = $event))
-      }, null, 8 /* PROPS */, ["modelValue"]),
-      createVNode(unref(script$1M), {
-        label: "Delete",
-        disabled: unref(disabled),
-        icon: "pi pi-trash",
-        onClick: del,
-        class: "p-button-danger"
-      }, {
-        default: withCtx(() => [
-          _hoisted_5$7
-        ]),
-        _: 1 /* STABLE */
-      }, 8 /* PROPS */, ["disabled"])
-    ])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$z.__file = "presstojam/src/components/effects/delete-effect.vue";
-
-var script$y = {
-  props: {
-        name : String,
-        data : [Object, Array]
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-
-    function delRow() {
-
-        const arg_data = (Array.isArray(props.data)) ? props.data : [props.data];
-        trigger(
-            "dialog_open",
-            script$z, 
-            {
-                name : props.name,
-                data : arg_data
-            }, 
-            "Delete");
-    }
-
-    const disabled = computed(() => {
-        return (!props.data) ? true : false;
-    });
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1M), {
-    label: "Delete",
-    icon: "pi pi-trash",
-    class: "p-button-danger",
-    disabled: unref(disabled),
-    onClick: delRow
-  }, null, 8 /* PROPS */, ["disabled"]))
-}
-}
-
-};
-
-script$y.__file = "presstojam/src/components/actions/delete-action.vue";
-
-var script$x = {
-  props: {
-        model : Object,
-        data : Object
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-
-    subscribe("form_saved", "update", (response, method, model) => {
-        if (model.name == props.model.name && method == "put") {
-            const repo = getStore(props.model.name);
-
-            //build the full value
-            const obj = response.original;
-            for(const x in response.data) {
-                obj[x] = response.data[x];
-            }
-            repo.overwrite(obj);
-            trigger("effect_edited", props.model.name);
-        }
-    });
-
-    onBeforeUnmount(() => {
-        unsubscribe("form_saved", "update");
-    });
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$14, {
-    model: __props.model,
-    data: __props.data,
-    method: "put",
-    key: "edit"
-  }, null, 8 /* PROPS */, ["model", "data"]))
-}
-}
-
-};
-
-script$x.__file = "presstojam/src/components/effects/edit-effect.vue";
-
-var script$w = {
+var css_248z$7 = "\n.p-datatable {\n    position: relative;\n}\n.p-datatable table {\n    border-collapse: collapse;\n    min-width: 100%;\n    table-layout: fixed;\n}\n.p-datatable .p-sortable-column {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-datatable .p-sortable-column .p-column-title,\n.p-datatable .p-sortable-column .p-sortable-column-icon,\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    vertical-align: middle;\n}\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper > table,\n.p-datatable-auto-layout > .p-datatable-wrapper > table {\n    table-layout: auto;\n}\n.p-datatable-hoverable-rows .p-selectable-row {\n    cursor: pointer;\n}\n\n/* Scrollable */\n.p-datatable-scrollable .p-datatable-wrapper {\n    position: relative;\n    overflow: auto;\n}\n.p-datatable-scrollable .p-datatable-thead,\n.p-datatable-scrollable .p-datatable-tbody,\n.p-datatable-scrollable .p-datatable-tfoot {\n    display: block;\n}\n.p-datatable-scrollable .p-datatable-thead > tr,\n.p-datatable-scrollable .p-datatable-tbody > tr,\n.p-datatable-scrollable .p-datatable-tfoot > tr {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n    width: 100%;\n}\n.p-datatable-scrollable .p-datatable-thead > tr > th,\n.p-datatable-scrollable .p-datatable-tbody > tr > td,\n.p-datatable-scrollable .p-datatable-tfoot > tr > td {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 0px;\n            flex: 1 1 0;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable-scrollable .p-datatable-thead {\n    position: sticky;\n    top: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-frozen-tbody {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-tfoot {\n    position: sticky;\n    bottom: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-frozen-column {\n    position: sticky;\n    background: inherit;\n}\n.p-datatable-scrollable th.p-frozen-column {\n    z-index: 1;\n}\n.p-datatable-scrollable-both .p-datatable-thead > tr > th,\n.p-datatable-scrollable-both .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-both .p-datatable-tfoot > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-thead > tr > th .p-datatable-scrollable-horizontal .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-tfoot > tr > td {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 0 auto;\n            flex: 1 0 auto;\n}\n.p-datatable-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    height: 100%;\n}\n.p-datatable-flex-scrollable .p-datatable-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n}\n.p-datatable-scrollable .p-rowgroup-header {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot {\n    display: table;\n    border-collapse: collapse;\n    width: 100%;\n    table-layout: fixed;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr {\n    display: table-row;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr > th,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr > td {\n    display: table-cell;\n}\n.p-datatable-scrollable .p-virtualscroller > .p-datatable-table {\n    display: inline-block; /* For Safari */\n}\n\n/* Resizable */\n.p-datatable-resizable > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-resizable .p-datatable-thead > tr > th,\n.p-datatable-resizable .p-datatable-tfoot > tr > td,\n.p-datatable-resizable .p-datatable-tbody > tr > td {\n    overflow: hidden;\n    white-space: nowrap;\n}\n.p-datatable-resizable .p-resizable-column:not(.p-frozen-column) {\n    background-clip: padding-box;\n    position: relative;\n}\n.p-datatable-resizable-fit .p-resizable-column:last-child .p-column-resizer {\n    display: none;\n}\n.p-datatable .p-column-resizer {\n    display: block;\n    position: absolute !important;\n    top: 0;\n    right: 0;\n    margin: 0;\n    width: 0.5rem;\n    height: 100%;\n    padding: 0px;\n    cursor: col-resize;\n    border: 1px solid transparent;\n}\n.p-datatable .p-column-header-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable .p-column-resizer-helper {\n    width: 1px;\n    position: absolute;\n    z-index: 10;\n    display: none;\n}\n.p-datatable .p-row-editor-init,\n.p-datatable .p-row-editor-save,\n.p-datatable .p-row-editor-cancel {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Expand */\n.p-datatable .p-row-toggler {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Reorder */\n.p-datatable-reorder-indicator-up,\n.p-datatable-reorder-indicator-down {\n    position: absolute;\n    display: none;\n}\n.p-reorderable-column,\n.p-datatable-reorderablerow-handle {\n    cursor: move;\n}\n\n/* Loader */\n.p-datatable .p-datatable-loading-overlay {\n    position: absolute;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    z-index: 2;\n}\n\n/* Filter */\n.p-column-filter-row {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    width: 100%;\n}\n.p-column-filter-menu {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    margin-left: auto;\n}\n.p-column-filter-row .p-column-filter-element {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-column-filter-menu-button,\n.p-column-filter-clear-button {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-column-filter-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-column-filter-row-items {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-column-filter-row-item {\n    cursor: pointer;\n}\n.p-column-filter-add-button,\n.p-column-filter-remove-button {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-column-filter-add-button .p-button-label,\n.p-column-filter-remove-button .p-button-label {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n}\n.p-column-filter-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-column-filter-buttonbar .p-button:not(.p-button-icon-only) {\n    width: auto;\n}\n\n/* Responsive */\n.p-datatable .p-datatable-tbody > tr > td > .p-column-title {\n    display: none;\n}\n\n/* VirtualScroller */\n.p-datatable .p-virtualscroller-loading {\n    -webkit-transform: none !important;\n            transform: none !important;\n    min-height: 0;\n    position: sticky;\n    top: 0;\n    left: 0;\n}\n";
+styleInject$3(css_248z$7);
+script$o.render = render$b;
+
+var script$n = {
   name: 'Column',
   props: {
     columnKey: {
@@ -40427,7 +41636,7 @@ var script$w = {
 
 };
 
-var script$v = {
+var script$m = {
   props: {
     model : {
         type : Object,
@@ -40461,17 +41670,17 @@ client.get("/audit/" + props.model.name + "/" + props.id)
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$R), { value: data.value }, {
+  return (openBlock(), createBlock(unref(script$o), { value: data.value }, {
     default: withCtx(() => [
-      createVNode(unref(script$w), {
+      createVNode(unref(script$n), {
         field: "user-login-id/name",
         header: "User"
       }),
-      createVNode(unref(script$w), {
+      createVNode(unref(script$n), {
         field: "action",
         header: "Type"
       }),
-      createVNode(unref(script$w), {
+      createVNode(unref(script$n), {
         field: "log",
         header: "Values"
       }, {
@@ -40484,7 +41693,7 @@ return (_ctx, _cache) => {
         ]),
         _: 1 /* STABLE */
       }),
-      createVNode(unref(script$w), {
+      createVNode(unref(script$n), {
         field: "--created",
         header: "Date"
       })
@@ -40496,9 +41705,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$v.__file = "presstojam/src/components/effects/audit-effect.vue";
+script$m.__file = "presstojam/src/components/effects/audit-effect.vue";
 
-var script$u = {
+var script$l = {
   props: {
         model : Object,
         data : Object,
@@ -40511,9 +41720,9 @@ const props = __props;
     
 
     function showAudit() {
-        trigger(
+        trigger$1(
             "dialog_open",    
-            script$v, 
+            script$m, 
             {model : props.model, id : props.data['--id']}, 
             "Audit Log");
     }
@@ -40523,7 +41732,7 @@ const props = __props;
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1M), {
+  return (openBlock(), createBlock(unref(script$1K), {
     icon: "pi pi-history",
     class: normalizeClass(["mr-2", unref(classes)]),
     label: unref(label),
@@ -40534,14 +41743,14 @@ return (_ctx, _cache) => {
 
 };
 
-script$u.__file = "presstojam/src/components/actions/audit-action.vue";
+script$l.__file = "presstojam/src/components/actions/audit-action.vue";
 
-const _hoisted_1$b = /*#__PURE__*/createTextVNode("New row created");
-const _hoisted_2$9 = /*#__PURE__*/createTextVNode("Rows removed");
-const _hoisted_3$9 = /*#__PURE__*/createTextVNode("Saved");
+const _hoisted_1$7 = /*#__PURE__*/createTextVNode("New row created");
+const _hoisted_2$6 = /*#__PURE__*/createTextVNode("Rows removed");
+const _hoisted_3$6 = /*#__PURE__*/createTextVNode("Saved");
 
 
-var script$t = {
+var script$k = {
   props: {
     name : {
       type : String,
@@ -40611,45 +41820,36 @@ function setActive(node) {
   saved.value = false;
 }
 
-function reload() {
-  repo.selected.value = [];
-  repo.reload()
-  .then(response => {
-    data.value = toTree(response, store.fields);
-  });
-  newrow.value = true;
-}
 
-
-subscribe("effect_created", props.name, name => {
+subscribe("effect_created", props.name, (name, response) => {
     if (props.name == name) {
         newrow.value = true;
-        repo.load()
+        repo.reload()
         .then(response => {
-          data.value = response;
+          data.value = toTree(response, store.fields);
         });
-        trigger("dialog_close");
+        trigger$1("dialog_close");
     }
 });
 
 subscribe("effect_deleted", props.name, name => {
     if (props.name == name) {
         delrow.value = true;
-        repo.load()
+        repo.reload()
         .then(response => {
-          data.value = response;
+          data.value = toTree(response, store.fields);
         });
-        trigger("dialog_close");
+        trigger$1("dialog_close");
     }
 });
 
 
-subscribe("effect_updated", props.name, name => {
+subscribe("effect_updated", props.name, (name, response) => {
     if (props.name == name) {
         saved.value = true;
-        repo.load()
+        repo.reload()
         .then(response => {
-          data.value = response;
+          data.value = toTree(response, store.fields);
         });
     }
 });
@@ -40662,43 +41862,43 @@ onBeforeUnmount(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$M), null, {
+  return (openBlock(), createBlock(unref(script$D), null, {
     default: withCtx(() => [
-      createVNode(unref(script$L), null, {
+      createVNode(unref(script$C), null, {
         default: withCtx(() => [
           (newrow.value)
-            ? (openBlock(), createBlock(unref(script$1L), {
+            ? (openBlock(), createBlock(unref(script$1J), {
                 key: 0,
                 severity: "success"
               }, {
                 default: withCtx(() => [
-                  _hoisted_1$b
+                  _hoisted_1$7
                 ]),
                 _: 1 /* STABLE */
               }))
             : createCommentVNode("v-if", true),
           (delrow.value)
-            ? (openBlock(), createBlock(unref(script$1L), {
+            ? (openBlock(), createBlock(unref(script$1J), {
                 key: 1,
                 severity: "success"
               }, {
                 default: withCtx(() => [
-                  _hoisted_2$9
+                  _hoisted_2$6
                 ]),
                 _: 1 /* STABLE */
               }))
             : createCommentVNode("v-if", true),
-          createVNode(unref(script$N), { class: "mb-4" }, {
+          createVNode(unref(script$G), { class: "mb-4" }, {
             start: withCtx(() => [
               (expanded.value)
-                ? (openBlock(), createBlock(unref(script$1M), {
+                ? (openBlock(), createBlock(unref(script$1K), {
                     key: 0,
                     type: "button",
                     icon: "pi pi-minus",
                     label: "Collapse All",
                     onClick: collapseAll
                   }))
-                : (openBlock(), createBlock(unref(script$1M), {
+                : (openBlock(), createBlock(unref(script$1K), {
                     key: 1,
                     type: "button",
                     icon: "pi pi-plus",
@@ -40708,16 +41908,17 @@ return (_ctx, _cache) => {
             ]),
             end: withCtx(() => [
               (unref(store).perms.includes('post'))
-                ? (openBlock(), createBlock(script$A, {
+                ? (openBlock(), createBlock(script$r, {
                     key: 0,
                     name: __props.name,
-                    onOnSave: reload
-                  }, null, 8 /* PROPS */, ["name"]))
+                    model: unref(store),
+                    parent_id: parseInt(unref(repo).parent_id)
+                  }, null, 8 /* PROPS */, ["name", "model", "parent_id"]))
                 : createCommentVNode("v-if", true)
             ]),
             _: 1 /* STABLE */
           }),
-          createVNode(unref(script$1q), {
+          createVNode(unref(script$1o), {
             value: data.value,
             selectionMode: "single",
             onNodeSelect: setActive,
@@ -40729,7 +41930,7 @@ return (_ctx, _cache) => {
           }, {
             default: withCtx((slotProps) => [
               (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
-                return (openBlock(), createBlock(script$C, {
+                return (openBlock(), createBlock(script$t, {
                   row: slotProps.node.data,
                   field: cell
                 }, null, 8 /* PROPS */, ["row", "field"]))
@@ -40740,16 +41941,16 @@ return (_ctx, _cache) => {
         ]),
         _: 1 /* STABLE */
       }),
-      createVNode(unref(script$L), null, {
+      createVNode(unref(script$C), null, {
         default: withCtx(() => [
           (active.value['--id'])
-            ? (openBlock(), createBlock(unref(script$16), {
+            ? (openBlock(), createBlock(unref(script$14), {
                 header: _ctx.$t('models.' +unref(store).name + '.title'),
                 key: active.value['--id']
               }, {
                 icons: withCtx(() => [
                   (unref(store).audit)
-                    ? (openBlock(), createBlock(script$u, {
+                    ? (openBlock(), createBlock(script$l, {
                         key: 0,
                         model: unref(store),
                         data: active.value,
@@ -40757,13 +41958,13 @@ return (_ctx, _cache) => {
                       }, null, 8 /* PROPS */, ["model", "data"]))
                     : createCommentVNode("v-if", true),
                   (unref(store).perms.includes('delete'))
-                    ? (openBlock(), createBlock(script$y, {
+                    ? (openBlock(), createBlock(script$p, {
                         key: 1,
                         name: __props.name,
                         data: active.value
                       }, null, 8 /* PROPS */, ["name", "data"]))
                     : createCommentVNode("v-if", true),
-                  createVNode(script$K, {
+                  createVNode(script$B, {
                     model: unref(store).name,
                     id: active.value['--id']
                   }, null, 8 /* PROPS */, ["model", "id"]),
@@ -40773,18 +41974,18 @@ return (_ctx, _cache) => {
                 ]),
                 default: withCtx(() => [
                   (saved.value)
-                    ? (openBlock(), createBlock(unref(script$1L), {
+                    ? (openBlock(), createBlock(unref(script$1J), {
                         key: 0,
                         severity: "success"
                       }, {
                         default: withCtx(() => [
-                          _hoisted_3$9
+                          _hoisted_3$6
                         ]),
                         _: 1 /* STABLE */
                       }))
                     : createCommentVNode("v-if", true),
                   (active.value['--id'])
-                    ? (openBlock(), createBlock(script$x, {
+                    ? (openBlock(), createBlock(script$W, {
                         key: 1,
                         model: unref(store),
                         data: active.value
@@ -40805,982 +42006,16 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$8 = "\n.tree-vue-vue-type-style-index-0-id-49a3d7ba-scoped-true-lang_wrapper__KEFQt[data-v-49a3d7ba] {\r\n  display : grid;\r\n  margin-left : 0;\r\n  margin-right : 0;\r\n  box-sizing : content-box;\n}\r\n\r\n";
-styleInject$t(css_248z$8);
+var css_248z$6 = "\n.tree-vue-vue-type-style-index-0-id-49a3d7ba-scoped-true-lang_wrapper__KEFQt[data-v-49a3d7ba] {\r\n  display : grid;\r\n  margin-left : 0;\r\n  margin-right : 0;\r\n  box-sizing : content-box;\n}\r\n\r\n";
+styleInject$u(css_248z$6);
 
-script$t.__scopeId = "data-v-49a3d7ba";
-script$t.__file = "presstojam/src/components/tree/tree.vue";
+script$k.__scopeId = "data-v-49a3d7ba";
+script$k.__file = "presstojam/src/components/tree/tree.vue";
 
 var tree = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  'default': script$t
+  'default': script$k
 });
-
-const _hoisted_1$a = { class: "p-inputgroup" };
-const _hoisted_2$8 = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "min", -1 /* HOISTED */);
-const _hoisted_3$8 = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, " - ", -1 /* HOISTED */);
-const _hoisted_4$8 = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "max", -1 /* HOISTED */);
-
-
-var script$s = {
-  props: {
-    modelValue : [Object],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const min = computed({
-    get() {
-        return (props.modelValue) ? props.modelValue.min : null;
-    },
-    set(val) {
-        let max = null;
-        if (props.modelValue) {
-            max = (props.modelValue.max < val) ? val : props.modelValue.max;
-        }
-        emits('update:modelValue', { 'min' : val, 'max' : max });
-    }
-});
-
-const max = computed({
-    get() {
-        return (props.modelValue) ? props.modelValue.max : null;
-    },
-    set(val) {
-        let min = null;
-        if (props.modelValue) {
-            min = (props.modelValue.min > val) ? val : props.modelValue.min;
-        }
-        emits('update:modelValue', { 'min' : min, max : val});
-    }
-}); 
-
-function clear() {
-    emits('update:modelValue', null);
-}
-
-
-
-const atts = computed(() => {
-    let atts = {};
-    if (props.field.round) {
-        let step = "0.";
-        for(let i=0; i<props.field.round - 1; ++i) {
-            step += "0";
-        }
-        step += "1";
-        atts["step"]  = parseInt(step);
-    }
-    return atts;
-});
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", _hoisted_1$a, [
-    _hoisted_2$8,
-    createVNode(unref(script$1w), mergeProps({
-      name: __props.field.name,
-      modelValue: unref(min),
-      "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(min) ? (min).value = $event : null))
-    }, unref(atts), {
-      onBlur: _cache[1] || (_cache[1] = $event => (__props.field.validateon = true))
-    }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
-    _hoisted_3$8,
-    createVNode(unref(script$1w), mergeProps({
-      name: __props.field.name,
-      modelValue: unref(max),
-      "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(max) ? (max).value = $event : null))
-    }, unref(atts), {
-      onBlur: _cache[3] || (_cache[3] = $event => (__props.field.validateon = true))
-    }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
-    _hoisted_4$8,
-    createVNode(unref(script$1M), {
-      label: "clear",
-      onClick: clear
-    })
-  ]))
-}
-}
-
-};
-
-script$s.__file = "presstojam/src/components/filter/number-filter.vue";
-
-var script$r = {
-  props: {
-    modelValue : [Number, Boolean],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const value = computed({
-    get() {
-        if (typeof props.modelValue === 'undefined' || props.modelValue === null) return 0;
-        else if (props.modelValue === 0) return 2;
-        else return props.modelValue;
-    },
-    set(val) {
-        if (val == 0) val = null;
-        else if (val == 2) val = 0;
-        emits('update:modelValue', val);
-    }
-});
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1x), {
-    name: __props.field.name,
-    modelValue: unref(value),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-    optionLabel: "label",
-    optionValue: "value",
-    options: [
-            {value : 0, label : 'All' }, 
-            { value : 1, label : 'Checked' }, 
-            { value : 2, label : 'Unchecked'}]
-  }, null, 8 /* PROPS */, ["name", "modelValue"]))
-}
-}
-
-};
-
-script$r.__file = "presstojam/src/components/filter/flag-filter.vue";
-
-var script$q = {
-  name: 'Chips',
-  emits: ['update:modelValue', 'add', 'remove', 'focus', 'blur'],
-  props: {
-    modelValue: {
-      type: Array,
-      default: null
-    },
-    max: {
-      type: Number,
-      default: null
-    },
-    separator: {
-      type: [String, Object],
-      default: null
-    },
-    addOnBlur: {
-      type: Boolean,
-      default: null
-    },
-    allowDuplicate: {
-      type: Boolean,
-      default: true
-    },
-    placeholder: {
-      type: String,
-      default: null
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    },
-    inputId: {
-      type: String,
-      default: null
-    },
-    inputClass: {
-      type: String,
-      default: null
-    },
-    inputStyle: {
-      type: null,
-      default: null
-    },
-    inputProps: {
-      type: null,
-      default: null
-    },
-    removeTokenIcon: {
-      type: String,
-      default: 'pi pi-times-circle'
-    },
-    'aria-labelledby': {
-      type: String,
-      default: null
-    },
-    'aria-label': {
-      type: String,
-      default: null
-    }
-  },
-
-  data() {
-    return {
-      id: UniqueComponentId(),
-      inputValue: null,
-      focused: false,
-      focusedIndex: null
-    };
-  },
-
-  methods: {
-    onWrapperClick() {
-      this.$refs.input.focus();
-    },
-
-    onInput(event) {
-      this.inputValue = event.target.value;
-      this.focusedIndex = null;
-    },
-
-    onFocus(event) {
-      this.focused = true;
-      this.focusedIndex = null;
-      this.$emit('focus', event);
-    },
-
-    onBlur(event) {
-      this.focused = false;
-      this.focusedIndex = null;
-
-      if (this.addOnBlur) {
-        this.addItem(event, event.target.value, false);
-      }
-
-      this.$emit('blur', event);
-    },
-
-    onKeyDown(event) {
-      const inputValue = event.target.value;
-
-      switch (event.code) {
-        case 'Backspace':
-          if (inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
-            if (this.focusedIndex !== null) {
-              this.removeItem(event, this.focusedIndex);
-            } else this.removeItem(event, this.modelValue.length - 1);
-          }
-
-          break;
-
-        case 'Enter':
-          if (inputValue && inputValue.trim().length && !this.maxedOut) {
-            this.addItem(event, inputValue, true);
-          }
-
-          break;
-
-        case 'ArrowLeft':
-          if (inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
-            this.$refs.container.focus();
-          }
-
-          break;
-
-        case 'ArrowRight':
-          event.stopPropagation();
-          break;
-
-        default:
-          if (this.separator) {
-            if (this.separator === event.key || event.key.match(this.separator)) {
-              this.addItem(event, inputValue, true);
-            }
-          }
-
-          break;
-      }
-    },
-
-    onPaste(event) {
-      if (this.separator) {
-        let pastedData = (event.clipboardData || window['clipboardData']).getData('Text');
-
-        if (pastedData) {
-          let value = this.modelValue || [];
-          let pastedValues = pastedData.split(this.separator);
-          pastedValues = pastedValues.filter(val => this.allowDuplicate || value.indexOf(val) === -1);
-          value = [...value, ...pastedValues];
-          this.updateModel(event, value, true);
-        }
-      }
-    },
-
-    onContainerFocus() {
-      this.focused = true;
-    },
-
-    onContainerBlur() {
-      this.focusedIndex = -1;
-      this.focused = false;
-    },
-
-    onContainerKeyDown(event) {
-      switch (event.code) {
-        case 'ArrowLeft':
-          this.onArrowLeftKeyOn(event);
-          break;
-
-        case 'ArrowRight':
-          this.onArrowRightKeyOn(event);
-          break;
-
-        case 'Backspace':
-          this.onBackspaceKeyOn(event);
-          break;
-      }
-    },
-
-    onArrowLeftKeyOn() {
-      if (this.inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
-        this.focusedIndex = this.focusedIndex === null ? this.modelValue.length - 1 : this.focusedIndex - 1;
-        if (this.focusedIndex < 0) this.focusedIndex = 0;
-      }
-    },
-
-    onArrowRightKeyOn() {
-      if (this.inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
-        if (this.focusedIndex === this.modelValue.length - 1) {
-          this.focusedIndex = null;
-          this.$refs.input.focus();
-        } else {
-          this.focusedIndex++;
-        }
-      }
-    },
-
-    onBackspaceKeyOn(event) {
-      if (this.focusedIndex !== null) {
-        this.removeItem(event, this.focusedIndex);
-      }
-    },
-
-    updateModel(event, value, preventDefault) {
-      this.$emit('update:modelValue', value);
-      this.$emit('add', {
-        originalEvent: event,
-        value: value
-      });
-      this.$refs.input.value = '';
-      this.inputValue = '';
-      setTimeout(() => {
-        this.maxedOut && (this.focused = false);
-      }, 0);
-
-      if (preventDefault) {
-        event.preventDefault();
-      }
-    },
-
-    addItem(event, item, preventDefault) {
-      if (item && item.trim().length) {
-        let value = this.modelValue ? [...this.modelValue] : [];
-
-        if (this.allowDuplicate || value.indexOf(item) === -1) {
-          value.push(item);
-          this.updateModel(event, value, preventDefault);
-        }
-      }
-    },
-
-    removeItem(event, index) {
-      if (this.disabled) {
-        return;
-      }
-
-      let values = [...this.modelValue];
-      const removedItem = values.splice(index, 1);
-      this.focusedIndex = null;
-      this.$refs.input.focus();
-      this.$emit('update:modelValue', values);
-      this.$emit('remove', {
-        originalEvent: event,
-        value: removedItem
-      });
-    }
-
-  },
-  computed: {
-    maxedOut() {
-      return this.max && this.modelValue && this.max === this.modelValue.length;
-    },
-
-    containerClass() {
-      return ['p-chips p-component p-inputwrapper', {
-        'p-disabled': this.disabled,
-        'p-focus': this.focused,
-        'p-inputwrapper-filled': this.modelValue && this.modelValue.length || this.inputValue && this.inputValue.length,
-        'p-inputwrapper-focus': this.focused
-      }];
-    },
-
-    focusedOptionId() {
-      return this.focusedIndex !== null ? `${this.id}_chips_item_${this.focusedIndex}` : null;
-    }
-
-  }
-};
-const _hoisted_1$9 = ["aria-labelledby", "aria-label", "aria-activedescendant"];
-const _hoisted_2$7 = ["id", "aria-label", "aria-setsize", "aria-posinset"];
-const _hoisted_3$7 = {
-  class: "p-chips-token-label"
-};
-const _hoisted_4$7 = ["onClick"];
-const _hoisted_5$6 = {
-  class: "p-chips-input-token",
-  role: "option"
-};
-const _hoisted_6$6 = ["id", "disabled", "placeholder"];
-
-function render$6(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: normalizeClass($options.containerClass)
-  }, [createElementVNode("ul", {
-    ref: "container",
-    class: "p-inputtext p-chips-multiple-container",
-    tabindex: "-1",
-    role: "listbox",
-    "aria-orientation": "horizontal",
-    "aria-labelledby": _ctx.ariaLabelledby,
-    "aria-label": _ctx.ariaLabel,
-    "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
-    onClick: _cache[5] || (_cache[5] = $event => $options.onWrapperClick()),
-    onFocus: _cache[6] || (_cache[6] = (...args) => $options.onContainerFocus && $options.onContainerFocus(...args)),
-    onBlur: _cache[7] || (_cache[7] = (...args) => $options.onContainerBlur && $options.onContainerBlur(...args)),
-    onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onContainerKeyDown && $options.onContainerKeyDown(...args))
-  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.modelValue, (val, i) => {
-    return openBlock(), createElementBlock("li", {
-      key: `${i}_${val}`,
-      id: $data.id + '_chips_item_' + i,
-      role: "option",
-      class: normalizeClass(['p-chips-token', {
-        'p-focus': $data.focusedIndex === i
-      }]),
-      "aria-label": val,
-      "aria-selected": true,
-      "aria-setsize": $props.modelValue.length,
-      "aria-posinset": i + 1
-    }, [renderSlot(_ctx.$slots, "chip", {
-      value: val
-    }, () => [createElementVNode("span", _hoisted_3$7, toDisplayString$1(val), 1)]), createElementVNode("span", {
-      class: normalizeClass(['p-chips-token-icon', $props.removeTokenIcon]),
-      onClick: $event => $options.removeItem($event, i),
-      "aria-hidden": "true"
-    }, null, 10, _hoisted_4$7)], 10, _hoisted_2$7);
-  }), 128)), createElementVNode("li", _hoisted_5$6, [createElementVNode("input", mergeProps({
-    ref: "input",
-    id: $props.inputId,
-    type: "text",
-    class: $props.inputClass,
-    style: $props.inputStyle,
-    disabled: $props.disabled || $options.maxedOut,
-    placeholder: $props.placeholder,
-    onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
-    onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event)),
-    onInput: _cache[2] || (_cache[2] = (...args) => $options.onInput && $options.onInput(...args)),
-    onKeydown: _cache[3] || (_cache[3] = $event => $options.onKeyDown($event)),
-    onPaste: _cache[4] || (_cache[4] = $event => $options.onPaste($event))
-  }, $props.inputProps), null, 16, _hoisted_6$6)])], 40, _hoisted_1$9)], 2);
-}
-
-function styleInject$3(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$7 = "\n.p-chips {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-chips-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-chips-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-token-icon {\n    cursor: pointer;\n}\n.p-chips-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-chips {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$3(css_248z$7);
-script$q.render = render$6;
-
-var script$p = {
-  props: {
-    modelValue : [Array],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-
-const value = computed({
-    get() {
-        return props.modelValue;
-    },
-    set(val) {
-        if (val.length == 0) val =null;
-        emits('update:modelValue', val);
-    }
-});
-
-const model = inject("model");
-const store = getModel(model);
-const id = (store.active_id) ? store.active_id : store.parent_id;
-const client = inject("client");
-
-const options = ref([]);
-
-if (props.field.reference || props.field.recursive) {
-    onMounted(() => {
-        props.field.getOptions(client, model, id)
-        .then(response => options.value =response);
-    });
-} else if (props.field.name == '--id') {
-    let vals = [];
-    for(let row of store.data) {
-        vals.push({'key' : row['--id'], value : getLabel(store.fields, row) });
-    }
-    options.value = vals;
-}
-
-
-
-return (_ctx, _cache) => {
-  return (__props.field.reference || __props.field.name =='--id')
-    ? (openBlock(), createBlock(unref(script$X), {
-        key: 0,
-        placeholder: "Please Select",
-        field: __props.field,
-        options: options.value,
-        optionLabel: "value",
-        optionValue: "key",
-        modelValue: unref(value),
-        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null))
-      }, null, 8 /* PROPS */, ["field", "options", "modelValue"]))
-    : (openBlock(), createBlock(unref(script$q), {
-        key: 1,
-        modelValue: unref(value),
-        "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
-      }, null, 8 /* PROPS */, ["modelValue"]))
-}
-}
-
-};
-
-script$p.__file = "presstojam/src/components/filter/id-filter.vue";
-
-var script$o = {
-  props: {
-    modelValue : [Object],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const value = computed({
-    get() {
-        if (props.modelValue) {
-            const arr = [];
-            if (props.modelValue.min) arr.push(props.field.buildDate(props.modelValue.min));
-            if (props.modelValue.max) arr.push(props.field.buildDate(props.modelValue.max));
-            return arr;
-        } else {
-            return props.modelValue;
-        }
-    },
-    set(val) {
-        let obj = null;
-        if (val) {
-            obj = {};
-            if (val[0]) obj.min = props.field.buildString(val[0]);
-            if (val[1]) obj.max = props.field.buildString(val[1]);
-        }
-        emits('update:modelValue', obj);
-    }
-});
-
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1k), {
-    id: "range",
-    modelValue: unref(value),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-    selectionMode: "range",
-    showButtonBar: true,
-    manualInput: false
-  }, null, 8 /* PROPS */, ["modelValue"]))
-}
-}
-
-};
-
-script$o.__file = "presstojam/src/components/filter/time-filter.vue";
-
-var script$n = {
-  props: {
-    modelValue : [Array],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-const options = ref([]);
-
-
-
-const value = computed({
-    get() {
-        let arr = [];
-        if (tag == 'select') {
-            arr = props.modelValue;
-        } else if (props.modelValue) {
-            for(let val of props.modelValue) {
-                arr.push(val.replace(/^%+/, '').replace(/%+$/, ''));
-            }
-        }
-        return arr;
-    },
-    set(val) {
-        let arr = [];
-        for(let vl of val) {
-            arr.push("%" + vl + "%");
-        }
-        if (arr.length == 0) arr = null;
-        emits('update:modelValue', arr);
-    }
-});
-
-const tag = computed(() => {
-if (props.field.isEnum()) {
-    options.value = props.field.setContainsAsOptions();
-    return "select";
-} else if (props.field.encrypted) {
-    return "";
-} else {
-    return "input";
-}
-});
-
-
-
-return (_ctx, _cache) => {
-  return (unref(tag)=='select')
-    ? (openBlock(), createBlock(unref(script$X), {
-        key: 0,
-        display: "chip",
-        placeholder: "Please Select",
-        modelValue: unref(value),
-        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-        options: options.value,
-        optionLabel: "key",
-        optionValue: "value"
-      }, null, 8 /* PROPS */, ["modelValue", "options"]))
-    : (unref(tag)=='input')
-      ? (openBlock(), createBlock(unref(script$q), {
-          key: 1,
-          modelValue: unref(value),
-          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
-        }, null, 8 /* PROPS */, ["modelValue"]))
-      : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$n.__file = "presstojam/src/components/filter/string-filter.vue";
-
-var script$m = {
-  props: {
-    field : Object,
-    modelValue : [String, Number, Boolean, null, Array, Object]
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
- 
-
-
-
-const value = computed({
-    get() {
-        return props.modelValue;
-    },
-    set(val) {
-        emits('update:modelValue', val);
-    }
-});
-
-return (_ctx, _cache) => {
-  return (__props.field.type=='number')
-    ? (openBlock(), createBlock(script$s, {
-        key: 0,
-        modelValue: unref(value),
-        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-        field: __props.field
-      }, null, 8 /* PROPS */, ["modelValue", "field"]))
-    : (__props.field.type=='flag')
-      ? (openBlock(), createBlock(script$r, {
-          key: 1,
-          modelValue: unref(value),
-          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null)),
-          field: __props.field
-        }, null, 8 /* PROPS */, ["modelValue", "field"]))
-      : (__props.field.type=='id')
-        ? (openBlock(), createBlock(script$p, {
-            key: 2,
-            modelValue: unref(value),
-            "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
-            field: __props.field
-          }, null, 8 /* PROPS */, ["modelValue", "field"]))
-        : (__props.field.type=='time')
-          ? (openBlock(), createBlock(script$o, {
-              key: 3,
-              modelValue: unref(value),
-              "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => (isRef(value) ? (value).value = $event : null)),
-              field: __props.field
-            }, null, 8 /* PROPS */, ["modelValue", "field"]))
-          : (__props.field.type=='string')
-            ? (openBlock(), createBlock(script$n, {
-                key: 4,
-                modelValue: unref(value),
-                "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => (isRef(value) ? (value).value = $event : null)),
-                field: __props.field
-              }, null, 8 /* PROPS */, ["modelValue", "field"]))
-            : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$m.__file = "presstojam/src/components/filter/filter-field.vue";
-
-const _hoisted_1$8 = { class: "ptj-filter" };
-   
-   
-var script$l = {
-  props: {
-    bind : {
-        type : Object,
-        required : true
-    }
-   },
-  setup(__props) {
-
-const props = __props;
-
-   
-   
-
-   const model = inject("model");
-  
-   let overlay = new ref();
-
-  
-   const val = computed({
-        get() {
-            return props.bind.value;
-        },
-        set(val) {
-            if(Array.isArray(val)) {
-                for(let vl of val) {
-                    const res = props.bind.cell.validate(vl);
-                    if (res) {
-                        break;
-                    }
-                }
-            } else {
-                props.bind.cell.validate(val);
-            }
-        }
-    });
-
-
-   function toggle(e) {
-        overlay.value.toggle(e);
-   }
-
-   const badge = computed(() => {
-        if (props.bind.value) {
-            if (Array.isArray(props.bind.value)) return props.bind.value.length.toString();
-            else return "1";
-        } else {
-            return "";
-        }
-   });
-
-   
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", _hoisted_1$8, [
-    createVNode(unref(script$1M), {
-      type: "button",
-      label: _ctx.$t('models.' + unref(model) + '.fields.' + __props.bind.cell.name + '.filterlabel'),
-      onClick: toggle,
-      "aria-haspopup": "true",
-      "aria-controls": "overlay",
-      badge: unref(badge),
-      class: "p-button-secondary"
-    }, null, 8 /* PROPS */, ["label", "badge"]),
-    createVNode(unref(script$$), {
-      ref_key: "overlay",
-      ref: overlay,
-      appendTo: "body",
-      showCloseIcon: true,
-      id: 'overlay_' + __props.bind.cell.name,
-      style: {"width":"450px"},
-      breakpoints: {'960px': '75vw'}
-    }, {
-      default: withCtx(() => [
-        createElementVNode("div", null, [
-          createVNode(script$m, {
-            field: __props.bind.cell,
-            modelValue: unref(val),
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(val) ? (val).value = $event : null))
-          }, null, 8 /* PROPS */, ["field", "modelValue"])
-        ])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["id"])
-  ]))
-}
-}
-
-};
-
-script$l.__file = "presstojam/src/components/filter/filter.vue";
-
-var filter = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': script$l
-});
-
-const _hoisted_1$7 = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
-const _hoisted_2$6 = /*#__PURE__*/createTextVNode(" Filters ");
-const _hoisted_3$6 = { class: "p-buttonset" };
-const _hoisted_4$6 = { style: {"text-align":"right"} };
-
-
-var script$k = {
-  props: {
-    store : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-provide("model", props.store.model.name);
-
-new BindGroup();
-
-const filtercells = computed(() => {
-    let filter_cells = {};
-    for(let i in props.store.fields) {
-        const field = props.store.fields[i];
-        if (field.background) continue;
-        if (field.type == "asset" || field.type == "json") continue;
-        filter_cells[i] = new Bind(field, '');
-    }
-    return filter_cells;
-});
-
-
-function submit() {
-    props.store.reload();
-}
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1b), {
-    toggleable: true,
-    collapsed: true
-  }, {
-    legend: withCtx(() => [
-      _hoisted_1$7,
-      _hoisted_2$6
-    ]),
-    default: withCtx(() => [
-      createElementVNode("span", _hoisted_3$6, [
-        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(filtercells), (field) => {
-          return (openBlock(), createBlock(script$l, {
-            class: "ptj-filter",
-            bind: field,
-            key: field.name
-          }, null, 8 /* PROPS */, ["bind"]))
-        }), 128 /* KEYED_FRAGMENT */))
-      ]),
-      createElementVNode("p", _hoisted_4$6, [
-        createVNode(unref(script$1M), {
-          label: _ctx.$t('btns.filter'),
-          onClick: submit
-        }, null, 8 /* PROPS */, ["label"])
-      ])
-    ]),
-    _: 1 /* STABLE */
-  }))
-}
-}
-
-};
-
-var css_248z$6 = "\n.filter-form-vue-vue-type-style-index-0-id-46638ba7-lang_ptj-filter__24-2N { \r\n    display : inline-block;\n}\r\n";
-styleInject$t(css_248z$6);
-
-script$k.__file = "presstojam/src/components/filter/filter-form.vue";
 
 //download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
 // v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
@@ -41999,7 +42234,7 @@ var script$j = {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1M), {
+  return (openBlock(), createBlock(unref(script$1K), {
     label: "Export",
     icon: "pi pi-external-link",
     class: "p-button-help mr-2",
@@ -42104,7 +42339,7 @@ return (_ctx, _cache) => {
           }), 256 /* UNKEYED_FRAGMENT */))
         ]),
         createElementVNode("div", null, [
-          createVNode(unref(script$1d), {
+          createVNode(unref(script$1b), {
             name: "file",
             mode: "basic",
             customUpload: true,
@@ -42141,7 +42376,7 @@ const props = __props;
 
 
     function toggleImport() {
-        trigger(
+        trigger$1(
             "dialog_open",
             script$i, 
             {
@@ -42152,7 +42387,7 @@ const props = __props;
     }
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1M), {
+  return (openBlock(), createBlock(unref(script$1K), {
     icon: "pi pi-upload",
     class: "mr-2",
     onClick: toggleImport
@@ -42172,7 +42407,8 @@ script$h.__file = "presstojam/src/components/actions/import-action.vue";
 var script$g = {
   props: {
         model : Object,
-        data : Object
+        data : Object,
+        name : String
     },
   setup(__props) {
 
@@ -42187,12 +42423,13 @@ const props = __props;
 
 
     function editRow() {
-        trigger(
+        trigger$1(
             "dialog_open",
-            script$x, 
+            script$W, 
             {
                 model : props.model,
-                data : props.data
+                data : props.data,
+                name : props.name
             },
             header
         );
@@ -42200,7 +42437,7 @@ const props = __props;
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1M), {
+  return (openBlock(), createBlock(unref(script$1K), {
     icon: "pi pi-pencil",
     class: "p-button-rounded p-button-success mr-2",
     onClick: editRow
@@ -42289,7 +42526,6 @@ const props = __props;
 
 
 
-
 const group = ref();
 const data = ref([]);
 const selected = ref([]);
@@ -42348,28 +42584,30 @@ for(let i in cells) {
 }
 
 
-
-
-subscribe("effect_created", props.name, name => {
+subscribe("effect_created", props.name, (name, response) => {
     if (props.name == name) {
         newrow.value = true;
-        repo.load()
-       .then(response => {
-         data.value = response;
+        repo.loadRow(response)
+       .then(obj => {
+         data.value.push(obj);
        });
-        trigger("dialog_close");
+        trigger$1("dialog_close");
     }
 });
 
 
-subscribe("effect_edited", props.name, name => {
+subscribe("effect_edited", props.name, (name, response) => {
     if (props.name == name) {
-        editrow.value = true;
-        trigger("dialog_close");
-        repo.load()
-       .then(response => {
-         data.value = response;
-       });
+        repo.loadRow(response)
+        .then(obj => {
+            for(const i in data.value) {
+                if (data.value[i]['--id'] == response['--id']) {
+                    data.value[i] = obj;
+                }
+            }
+            editrow.value = true;
+            trigger$1("dialog_close");
+        });
     }
 });
 
@@ -42377,10 +42615,10 @@ subscribe("effect_edited", props.name, name => {
 subscribe("effect_deleted", props.name, name => {
     if (props.name == name) {
         delrow.value = true;
-        trigger("dialog_close");
+        trigger$1("dialog_close");
         repo.load()
        .then(response => {
-         data.value = response;
+         data.value[0] = response;
        });
     }
 });
@@ -42513,13 +42751,14 @@ onMounted (() => {
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
     (unref(repo).pagination.rows_per_page && !unref(store).no_filter)
-      ? (openBlock(), createBlock(script$k, {
+      ? (openBlock(), createBlock(script$J, {
           key: 0,
-          store: unref(repo)
-        }, null, 8 /* PROPS */, ["store"]))
+          model: unref(repo).store,
+          data: unref(repo).filters
+        }, null, 8 /* PROPS */, ["model", "data"]))
       : createCommentVNode("v-if", true),
     (newrow.value)
-      ? (openBlock(), createBlock(unref(script$1L), {
+      ? (openBlock(), createBlock(unref(script$1J), {
           key: 1,
           severity: "success"
         }, {
@@ -42530,7 +42769,7 @@ return (_ctx, _cache) => {
         }))
       : createCommentVNode("v-if", true),
     (delrow.value)
-      ? (openBlock(), createBlock(unref(script$1L), {
+      ? (openBlock(), createBlock(unref(script$1J), {
           key: 2,
           severity: "success"
         }, {
@@ -42541,7 +42780,7 @@ return (_ctx, _cache) => {
         }))
       : createCommentVNode("v-if", true),
     (editrow.value)
-      ? (openBlock(), createBlock(unref(script$1L), {
+      ? (openBlock(), createBlock(unref(script$1J), {
           key: 3,
           severity: "success"
         }, {
@@ -42551,12 +42790,12 @@ return (_ctx, _cache) => {
           _: 1 /* STABLE */
         }))
       : createCommentVNode("v-if", true),
-    createVNode(unref(script$N), { class: "mb-4" }, {
+    createVNode(unref(script$G), { class: "mb-4" }, {
       start: withCtx(() => [
         (!unref(repo).pagination.rows_per_page)
           ? (openBlock(), createElementBlock("span", _hoisted_4$4, [
               _hoisted_5$4,
-              createVNode(unref(script$1N), {
+              createVNode(unref(script$1L), {
                 modelValue: search.value,
                 "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((search).value = $event)),
                 placeholder: "Keyword Search"
@@ -42564,7 +42803,7 @@ return (_ctx, _cache) => {
             ]))
           : createCommentVNode("v-if", true),
         (unref(col_expandable))
-          ? (openBlock(), createBlock(unref(script$X), {
+          ? (openBlock(), createBlock(unref(script$Q), {
               key: 1,
               modelValue: active_options.value,
               "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((active_options).value = $event)),
@@ -42588,14 +42827,15 @@ return (_ctx, _cache) => {
             }, null, 8 /* PROPS */, ["name"]))
           : createCommentVNode("v-if", true),
         (unref(store).perms.includes('post'))
-          ? (openBlock(), createBlock(script$A, {
+          ? (openBlock(), createBlock(script$r, {
               key: 2,
               name: __props.name,
-              parent: unref(store).parent
-            }, null, 8 /* PROPS */, ["name", "parent"]))
+              model: unref(store),
+              parent_id: parseInt(unref(repo).parent_id)
+            }, null, 8 /* PROPS */, ["name", "model", "parent_id"]))
           : createCommentVNode("v-if", true),
         (unref(store).perms.includes('delete'))
-          ? (openBlock(), createBlock(script$y, {
+          ? (openBlock(), createBlock(script$p, {
               key: 3,
               name: __props.name,
               data: selected.value.value
@@ -42611,7 +42851,7 @@ return (_ctx, _cache) => {
       ref_key: "group",
       ref: group
     }, [
-      createVNode(unref(script$R), mergeProps({
+      createVNode(unref(script$o), mergeProps({
         value: data.value,
         selection: selected.value.value,
         "onUpdate:selection": _cache[2] || (_cache[2] = $event => ((selected.value.value) = $event)),
@@ -42630,7 +42870,7 @@ return (_ctx, _cache) => {
         filters: unref(filters)
       }, atts, toHandlers(events)), createSlots({
         expansion: withCtx((slotProps) => [
-          createVNode(unref(script$1O), null, {
+          createVNode(unref(script$1M), null, {
             title: withCtx(() => [
               createTextVNode(toDisplayString$1(_ctx.$t("models." + unref(store).children_models[0] + ".title")), 1 /* TEXT */)
             ]),
@@ -42646,14 +42886,14 @@ return (_ctx, _cache) => {
         ]),
         default: withCtx(() => [
           (unref(has_expandable))
-            ? (openBlock(), createBlock(unref(script$w), {
+            ? (openBlock(), createBlock(unref(script$n), {
                 key: 0,
                 expander: true,
                 headerStyle: "width: 3rem"
               }))
             : createCommentVNode("v-if", true),
           (unref(has_sort))
-            ? (openBlock(), createBlock(unref(script$w), {
+            ? (openBlock(), createBlock(unref(script$n), {
                 key: 1,
                 rowReorder: true,
                 headerStyle: "width: 3rem",
@@ -42661,7 +42901,7 @@ return (_ctx, _cache) => {
               }))
             : createCommentVNode("v-if", true),
           (unref(store).perms.includes('delete'))
-            ? (openBlock(), createBlock(unref(script$w), {
+            ? (openBlock(), createBlock(unref(script$n), {
                 key: 2,
                 selectionMode: "multiple",
                 style: {"width":"3rem"},
@@ -42669,14 +42909,14 @@ return (_ctx, _cache) => {
               }))
             : createCommentVNode("v-if", true),
           (openBlock(true), createElementBlock(Fragment, null, renderList(unref(fields), (cell) => {
-            return (openBlock(), createBlock(unref(script$w), {
+            return (openBlock(), createBlock(unref(script$n), {
               field: cell.slug,
               sortable: unref(sortable),
               header: _ctx.$t('models.' + cell.model + '.fields.' + cell.name + '.label'),
               key: cell.name
             }, {
               body: withCtx((slotProps) => [
-                createVNode(script$C, {
+                createVNode(script$t, {
                   row: slotProps.data,
                   field: cell
                 }, null, 8 /* PROPS */, ["row", "field"])
@@ -42684,13 +42924,13 @@ return (_ctx, _cache) => {
               _: 2 /* DYNAMIC */
             }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["field", "sortable", "header"]))
           }), 128 /* KEYED_FRAGMENT */)),
-          createVNode(unref(script$w), {
+          createVNode(unref(script$n), {
             exportable: false,
             style: {"min-width":"8rem"}
           }, {
             body: withCtx((slotProps) => [
               (unref(has_primary))
-                ? (openBlock(), createBlock(script$K, {
+                ? (openBlock(), createBlock(script$B, {
                     key: 0,
                     model: unref(store).name,
                     id: slotProps.data['--id']
@@ -42700,11 +42940,12 @@ return (_ctx, _cache) => {
                 ? (openBlock(), createBlock(script$g, {
                     key: 1,
                     data: slotProps.data,
-                    model: unref(store)
-                  }, null, 8 /* PROPS */, ["data", "model"]))
+                    model: unref(store),
+                    name: __props.name
+                  }, null, 8 /* PROPS */, ["data", "model", "name"]))
                 : createCommentVNode("v-if", true),
               (unref(store).audit)
-                ? (openBlock(), createBlock(script$u, {
+                ? (openBlock(), createBlock(script$l, {
                     key: 2,
                     data: slotProps.data,
                     model: unref(store)
@@ -42729,7 +42970,7 @@ return (_ctx, _cache) => {
                 createElementVNode("div", {
                   class: normalizeClass(["ptj-group", slotProps.data[unref(groupcell).name]])
                 }, [
-                  createVNode(script$C, {
+                  createVNode(script$t, {
                     row: slotProps.data,
                     field: unref(groupcell)
                   }, null, 8 /* PROPS */, ["row", "field"])
@@ -42746,7 +42987,7 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$5 = "\ntable[data-v-29f6384d], thead[data-v-29f6384d], tbody[data-v-29f6384d], tr[data-v-29f6384d] {\r\n    width : 100%;\n}\n.table-display-vue-vue-type-style-index-0-id-29f6384d-scoped-true-lang_ptj-table-wrapper__fKjz7[data-v-29f6384d] {\r\n    position : relative;\n}\r\n\r\n\r\n";
-styleInject$t(css_248z$5);
+styleInject$u(css_248z$5);
 
 script$e.__scopeId = "data-v-29f6384d";
 script$e.__file = "presstojam/src/components/table/table-display.vue";
@@ -42790,14 +43031,14 @@ repo.trigger("mounted");
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$Z, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$16), {
+    createVNode(script$X, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$14), {
       header: unref(store).title,
       class: normalizeClass(["gc-repo", __props.model])
     }, {
       default: withCtx(() => [
         (unref(recursive))
-          ? (openBlock(), createBlock(script$t, {
+          ? (openBlock(), createBlock(script$k, {
               key: 0,
               name: __props.model
             }, null, 8 /* PROPS */, ["name"]))
@@ -42815,7 +43056,7 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$4 = "\ntable[data-v-e5ad478c], thead[data-v-e5ad478c], tbody[data-v-e5ad478c], tr[data-v-e5ad478c] {\r\n    width : 100%;\n}\n.repo-vue-vue-type-style-index-0-id-e5ad478c-scoped-true-lang_ptj-table-wrapper__8hxfO[data-v-e5ad478c] {\r\n    position : relative;\n}\r\n\r\n";
-styleInject$t(css_248z$4);
+styleInject$u(css_248z$4);
 
 script$d.__scopeId = "data-v-e5ad478c";
 script$d.__file = "presstojam/src/components/repo/repo.vue";
@@ -42847,13 +43088,13 @@ function reload() {
 }
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$16), {
+  return (openBlock(), createBlock(unref(script$14), {
     header: _ctx.$t('models.' + __props.model + '.title', 2),
     class: normalizeClass(["gc-child", __props.model])
   }, {
     default: withCtx(() => [
       (unref(component) == 'recursive')
-        ? (openBlock(), createBlock(script$t, {
+        ? (openBlock(), createBlock(script$k, {
             key: 0,
             name: props.model,
             onOnMove: reload
@@ -43379,8 +43620,14 @@ const label = computed(() => {
     return t('models.' + props.model + '.title') + ': ' + getLabel(store.fields, data.value);
 });
 
-subscribe("form_saved", repo.active_id, response => {
-    console.log(response, arguments);
+subscribe("form_saved", repo.active_id, (response, method, model) => {
+    if (model.name == props.model.name) {
+        repo.reload()
+        .then(response => {
+            data.value = response;
+        })
+        .catch(e => console.log(e));
+    }
 });
 
 if (store.route && store.active && store.active.mounted) {
@@ -43392,8 +43639,8 @@ if (store.route && store.active && store.active.mounted) {
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$Z, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$16), { header: unref(label) }, {
+    createVNode(script$X, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$14), { header: unref(label) }, {
       default: withCtx(() => [
         createVNode(unref(script$b), { lazy: "" }, {
           default: withCtx(() => [
@@ -43401,19 +43648,19 @@ return (_ctx, _cache) => {
               header: unref(getLabel)(unref(store).fields, data.value)
             }, {
               default: withCtx(() => [
-                createVNode(unref(script$16), {
+                createVNode(unref(script$14), {
                   header: _ctx.$t('models.' +unref(store).name + '.title')
                 }, {
                   icons: withCtx(() => [
                     (unref(store).audit)
-                      ? (openBlock(), createBlock(script$u, {
+                      ? (openBlock(), createBlock(script$l, {
                           key: 0,
                           model: unref(store),
                           data: data.value,
                           long: true
                         }, null, 8 /* PROPS */, ["model", "data"]))
                       : createCommentVNode("v-if", true),
-                    createVNode(script$y, {
+                    createVNode(script$p, {
                       name: unref(store).name,
                       data: data.value
                     }, null, 8 /* PROPS */, ["name", "data"]),
@@ -43423,7 +43670,7 @@ return (_ctx, _cache) => {
                   ]),
                   default: withCtx(() => [
                     (data.value['--id'])
-                      ? (openBlock(), createBlock(script$x, {
+                      ? (openBlock(), createBlock(script$W, {
                           key: 0,
                           model: unref(store),
                           data: data.value
@@ -43931,7 +44178,7 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$1 = "\nth[data-v-70986bd9] { text-align : left;}\r\n";
-styleInject$t(css_248z$1);
+styleInject$u(css_248z$1);
 
 script$5.__scopeId = "data-v-70986bd9";
 script$5.__file = "presstojam/src/components/dev/sitemap-node.vue";
@@ -43943,7 +44190,7 @@ const routes = getEntities();
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$16), { header: "Routes" }, {
+  return (openBlock(), createBlock(unref(script$14), { header: "Routes" }, {
     default: withCtx(() => [
       createVNode(unref(script$7), null, {
         default: withCtx(() => [
@@ -44011,7 +44258,7 @@ function createAppRouter() {
 
   croutes.push({
     path: base + "/user-login",
-    component: script$1G,
+    component: script$1E,
     name: 'login',
     props: {}
   });
@@ -44036,7 +44283,7 @@ function createAppRouter() {
   });
   croutes.push({
     path: base + "/data/single/:model/:id?",
-    component: script$Y,
+    component: script$V,
     name: 'single',
     props: route => ({
       model: route.params.model,
@@ -44044,12 +44291,11 @@ function createAppRouter() {
     })
   });
   croutes.push({
-    path: base + "/reports/:model/:id?",
-    component: script$O,
+    path: base + "/reports/:model",
+    component: script$E,
     name: 'report',
     props: route => ({
-      model: route.params.model,
-      id: route.params.id
+      model: route.params.model
     })
   }); //croutes.push({ path : base + "/flow/:flow/:position?", component : PtjFlow.vue, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position) })});
 
@@ -44408,7 +44654,7 @@ var index$1 = {
     app.use(PrimeVue);
     let client = getClient();
     app.provide("client", client);
-    app.component("Controller", script$11);
+    app.component("Controller", script$$);
   }
 };
 
@@ -62636,4 +62882,4 @@ var auto = /*#__PURE__*/Object.freeze({
   scales: scales
 });
 
-export { account as Account, script$11 as Controller, filter as Filter, flow as Flow, form as Form, report as Report, tableDisplay as Table, tree as Tree, viewField as ViewField, index$1 as default, download, getClient, initConfigs, slugTrail as slugtrail };
+export { account as Account, script$$ as Controller, filter as Filter, flow as Flow, form as Form, report as Report, tableDisplay as Table, tree as Tree, viewField as ViewField, index$1 as default, download, getClient, initConfigs, slugTrail as slugtrail };

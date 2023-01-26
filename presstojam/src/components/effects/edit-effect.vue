@@ -10,21 +10,14 @@
 
     const props = defineProps({
         model : Object,
-        data : Object
+        data : Object,
+        name : String
     });
 
-
+ 
     subscribe("form_saved", "update", (response, method, model) => {
         if (model.name == props.model.name && method == "put") {
-            const repo = getStore(props.model.name);
-
-            //build the full value
-            const obj = response.original;
-            for(const x in response.data) {
-                obj[x] = response.data[x];
-            }
-            repo.overwrite(obj);
-            trigger("effect_edited", props.model.name);
+            trigger("effect_edited", props.name, props.data);
         }
     });
 

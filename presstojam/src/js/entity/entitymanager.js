@@ -62,3 +62,11 @@ export function defaultEntity() {
         return name;
     }
 }
+
+
+export function getRoot(entity) {
+    while(entity.parent) {
+        entity = getEntity(entity.parent);
+    }
+    return entity;
+}

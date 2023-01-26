@@ -105,18 +105,8 @@ export class RepoData extends Data {
         return this.load(params);
     }
 
-    overwrite(obj) {
-        this._load_promise = this._load_promise
-        .then(response => {
-            for(const row of response) {
-                if (row['--id'] == obj['--id']) {
-                    for(let x in obj) {
-                        row[x] = obj[x];
-                    }
-                }
-            }      
-            return response; 
-        });
+    loadRow(iobj) {
+        return this._model.reloadRow(iobj['--id']);
     }
     
     remove(ids) {
@@ -125,16 +115,6 @@ export class RepoData extends Data {
             response.filter(function(item) {
                 return !ids.include(item['--id']);
             });
-            return response;
-        });
-    }
-
-
-    append(obj) {
-        this._load_promise = this._load_promise
-        .then(response => {
-            response.push(obj);
-            ++this._pagination.count.value;
             return response;
         });
     }

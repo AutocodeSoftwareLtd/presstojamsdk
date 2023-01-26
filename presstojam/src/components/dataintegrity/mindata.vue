@@ -52,14 +52,12 @@ function checkData() {
     .then(checks => {
         for(const i in checks) {
             const entity = getEntity(i);
-            if (entity.min_rows && entity.min_rows >= checks[i]) {
+            if (entity.perms.includes("post") && entity.min_rows && entity.min_rows >= checks[i]) {
                 current_model.value = getModel(i);
                 current_num.value = checks[i];
                 return;
             }
         }
-
-        console.log("No checks are occured");
         //if we get here, then no checks
         trigger("integrity_min_data", props.model, true);
     });

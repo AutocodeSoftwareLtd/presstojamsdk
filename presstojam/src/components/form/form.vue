@@ -28,12 +28,14 @@ import { Bind } from "../../js/binds/bind.js"
 import { trigger } from "../../js/bus/bus.js"
 import Panel from 'primevue/panel'
 import ProgressSpinner from 'primevue/progressspinner'
+import { FormModel } from "../../js/models/formmodel.js";
+
 
 const Client = inject("client");
 
 const props = defineProps({
-    data : Object,
-    model : Object,
+    id : Number,
+    entity_name : Object,
     method : {
         type : String,
         default : 'post'
@@ -48,28 +50,34 @@ const global_error = ref("");
 const processing = ref(false);
 const status = ref(0);
 
-provide("model", props.model.name);
+
+const model = new FormModel(props.entity_name, props.id);
+provide("model", model);
 
 
-if (props.method == 'put') props.model.setEditableCells();
-else props.model.setCreateCells();
+if (props.method == 'put') model.setEditableCells();
+else model.setCreateCells();
 
-const cells = props.model.getEnabledCells();
-
+const cells = model.getEnabledCells();
 
 const bindGroup = new BindGroup();
 
+const data = {};
+
+if (props.method == "put") {
+    data = await model.load();
+}
 
 if (props.parent) {
-    bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.data["--parent"]));
+    bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.id));
 }
 
 
 for(const field in cells) {
-    bindGroup.regBind(field, new Bind(cells[field], props.data[field]));
+    bindGroup.regBind(field, new Bind(cells[field], data[field]));
     if (cells[field].type == "json") {
         for(let ocell in cells[field].fields) {
-            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (props.data[field]) ? props.data[field][ocell] : null));
+            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (data[field]) ? data[field][ocell] : null));
         }
     } 
 }
@@ -114,16 +122,18 @@ function submit() {
     }
     processing.value = true;
     const data = serializeData();
+ 
     if (props.method == "put") {
-        data.append("--id", props.data['--id']);
-    } else if (props.method == "post" && props.data['--parent']) {
-        data.append("--parent", props.data['--parent']);
+        data.append("--id", props.id);
+    } else if (props.method == "post" && props.id) {
+        data.append("--parent", props.id);
     }         
 
+    //return;
     return Client[props.method]("/data/" + props.model.name, data)
     .then(response => {
         if (props.method == "put") {
-            response.data["--id"] = props.data["--id"];
+            response.data["--id"] = props.id;
         }
         return response;
     })
@@ -131,7 +141,7 @@ function submit() {
         if (response['--dispatchid']) {
             runDispatch(response['--dispatchid'], response);
         } else {
-            trigger("form_saved", response, props.method, props.model);
+            trigger("form_saved", response, props.method, model);
         }
         return response;
     })
@@ -153,9 +163,9 @@ function runDispatch(id, oresponse) {
         Client.get("/dispatch/status/" + id)
         .then(response => {
             if (response.progress == "FAILED") {
-                trigger("dispatch_failed", oresponse, props.method, props.model, response);
+                trigger("dispatch_failed", oresponse, props.method, model, response);
             } else if (response.progress == "PROCESSED" || !response.progress) {
-                trigger("form_saved", oresponse, props.method, props.model, response)
+                trigger("form_saved", oresponse, props.method, model, response)
             } else {
                 status.value = response.progress;
                 setTimeout(chkProgress, delay);

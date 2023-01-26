@@ -11,7 +11,7 @@
 <script setup>
 
 import InputNumber from "primevue/inputnumber"
-import { computed } from "vue"
+import { computed, ref } from "vue"
 
 const props = defineProps({
     bind : {
@@ -20,12 +20,15 @@ const props = defineProps({
     }
 });
 
+const cvalue = ref(props.bind.value);
+
 const value = computed({
     get() {
-        return props.bind.value;
+        return cvalue.value;
     },
     set(val) {
         props.bind.setValue(val);
+        cvalue.value = val;
     }
 });
 

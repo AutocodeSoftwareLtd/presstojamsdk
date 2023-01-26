@@ -28,7 +28,7 @@ export function createAppRouter() {
     croutes.push({ path : base + "/data/:model/:id?", component : Model, name : 'repo', props : route => ({ model : route.params.model, id : route.params.id })});
     croutes.push({ path : base + "/data/active/:model/:id", component : Model, name : 'primary', props : route => ({ model : route.params.model, is_active : true, id : route.params.id }) });
     croutes.push({ path : base + "/data/single/:model/:id?", component : PtjSingle, name : 'single', props : route => ({ model : route.params.model, base : base + "/" }) });
-    croutes.push({ path : base + "/reports/:model/:id?", component : PtjReport, name : 'report', props : route => ({ model : route.params.model, id : route.params.id }) });
+    croutes.push({ path : base + "/reports/:model", component : PtjReport, name : 'report', props : route => ({ model : route.params.model }) });
       //croutes.push({ path : base + "/flow/:flow/:position?", component : PtjFlow.vue, name : 'flow', props : route => ({ flow : route.params.flow, position : parseInt(route.params.position) })});
     croutes.push({ path : base + "/dev/site-map", component : SiteMap, name : 'sitemap'});
     croutes.push({ path : base + "/", component : SetDefault, name : 'default'});

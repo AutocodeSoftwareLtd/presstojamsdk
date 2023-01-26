@@ -1,12 +1,25 @@
 <template>
-    <DataTable />
-    
+    <Menubar>
+        <template #start>
+            <AggregateType :report="report" />
+            <Scales :report="report" v-if="report.has_scale" />
+        </template>
+        <template #end> 
+            <Overlays :report="report" />
+        </template>
+    </Menubar>
+    <Chart v-if="report.has_scale" type="line"/>
+    <Chart v-else type="bar" />
 </template>
 <script setup>
-import DataTable from "primevue/DataTable"
 import { inject } from "vue"
 import { getModel } from "../../js/models/modelmanager.js"
 import { createRepoStore } from "../../js/data/storemanager.js"
+import Overlays from "./overlays.vue"
+import Scales from "./scales.vue"
+import AggregateType from "./aggregate-type.vue"
+import Menubar from 'primevue/menubar';
+import Chart from 'primevue/chart';
 
 const props = defineProps({
     group : String

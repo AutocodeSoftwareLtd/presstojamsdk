@@ -10,7 +10,8 @@
 
     const props = defineProps({
         model : Object,
-        data : Object
+        data : Object,
+        name : String
     });
 
     const i18n = inject("i18n");
@@ -25,7 +26,8 @@
             EditEffect, 
             {
                 model : props.model,
-                data : props.data
+                data : props.data,
+                name : props.name
             },
             header
         );

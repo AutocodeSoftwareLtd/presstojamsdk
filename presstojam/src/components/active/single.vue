@@ -6,17 +6,18 @@
             <ptj-delete-action :name="store.name" :data="data"/>
             <component v-for="component in store.actions" :is="component.component" :data="data" v-bind="component.atts"/>
         </template>
-        <ptj-form v-if="data['--id']" :model="store" :data="data" method="put" />
+        <edit-effect v-if="data['--id']" :model="store" :data="data" />
     </Panel>
 </template>
 
 <script setup>
-import { computed, ref, inject } from "vue"
+import { computed, ref, inject, onBeforeUnmount } from "vue"
 import { getModel } from "../../js/models/modelmanager.js"
 import { createFirstStore, regStore } from "../../js/data/storemanager.js"
 import PtjSlugTrail from "../slugtrail/slug-trail.vue"
 import Panel from "primevue/panel"
-import PtjForm from "../form/form.vue"
+import EditEffect from "../effects/edit-effect.vue"
+import { subscribe, unsubscribe } from "../../js/bus/bus.js"
 
 const i18n = inject("i18n");
 const t = i18n.t;
@@ -44,7 +45,14 @@ const label = computed(() => {
     return t('models.' + props.model + '.title') + ': ' + repo.label.value;
 });
 
-store.trigger("mounted");
 
+subscribe("effect_edited", props.model.name, response => {
+    console.log(response, arguments);
+});
+
+
+onBeforeUnmount(() => {
+    unsubscribe("effect_edited", props.model_name);
+})
 
 </script>
