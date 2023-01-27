@@ -9,9 +9,12 @@
  
 
     const props = defineProps({
-        model : Object,
-        data : Object,
-        name : String
+        id : {
+            type : Number,
+            default : 0
+        },
+        name : String,
+        model : Object
     });
 
     const i18n = inject("i18n");
@@ -25,8 +28,7 @@
             "dialog_open",
             EditEffect, 
             {
-                model : props.model,
-                data : props.data,
+                id : props.id,
                 name : props.name
             },
             header

@@ -123,25 +123,8 @@ class ModelStore {
 }
 */
 
-let cache = {};
 
 export function getModel(model_name, debug = false) {
-    if (!cache[model_name]) {
-        try {
-            cache[model_name] = new Model(model_name, debug);
-        } catch (err) {
-            console.error("Error", err);
-        }
-    }
-    return cache[model_name];
+    return new Model(model_name, debug);
 }
 
-
-
-export function clearModelCache() {
-    cache = {};
-}
-
-export function hasModel(id) {
-    return (cache[id]) ? true : false;
-}

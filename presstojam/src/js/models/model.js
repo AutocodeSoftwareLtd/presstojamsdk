@@ -117,7 +117,8 @@ export class Model {
                 this._fields[slug + i].slug = slug + i;
                 if (slug) this._fields[slug + i].summary = false; //set summary to false for anything that isn't the base
                 if (fields[i].type == "id" && fields[i].reference_type == ReferenceTypes.REFERENCE ) {
-                    this.loadFields(getEntity(fields[i].reference), slug + i + "/");
+                    const ref_entity = getEntity(fields[i].reference);
+                    if (ref_entity) this.loadFields(ref_entity, slug + i + "/");
                 }
             }
         }

@@ -17,6 +17,7 @@ export class RepoData extends Data {
         this._order = {};
         this._filters = {};
         this._count_promise = null;
+        this._data.value = [];
     }
 
 
@@ -35,6 +36,7 @@ export class RepoData extends Data {
     get parent_id() {
         return this._parent_id;
     }
+
 
     set parent_id(id) {
         this._parent_id = id;
@@ -79,8 +81,8 @@ export class RepoData extends Data {
         }
             
         this._load_promise.then(response => {
+            this._data.value = response;
             this._is_loading.value = false;
-            return response;
         })
         .catch(e => {
             console.log(e);
@@ -106,16 +108,30 @@ export class RepoData extends Data {
     }
 
     loadRow(iobj) {
-        return this._model.reloadRow(iobj['--id']);
+        return this._model.reloadRow(iobj['--id'])
+    }
+
+    addRow(iobj) {
+        return this.loadRow(iobj)
+        .then(response => {
+            this._data.value.push(response);
+        });
+    }
+
+    editRow(iobj) {
+        return this.loadRow(iobj)
+        .then(response => {
+            for(const i in this._data.value) {
+                if (this._data.value[i]['--id'] == response['--id']) {
+                    this._data.value[i] = obj;
+                }
+            }
+        });
     }
     
     remove(ids) {
-        this._load_promise = this._load_promise
-        .then(response => {
-            response.filter(function(item) {
-                return !ids.include(item['--id']);
-            });
-            return response;
+        this._data.value.filter(function(item) {
+            return !ids.include(item['--id']);
         });
     }
 

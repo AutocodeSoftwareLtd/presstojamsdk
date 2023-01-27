@@ -1,5 +1,5 @@
 <template>
-    <ptj-form :model="model" :data="data" />
+    <ptj-form :entity_name="name" :id="id" />
 </template>
 <script setup>
     import PtjForm from "../form/form.vue"
@@ -8,10 +8,13 @@
   
   
     const props = defineProps({
-       model : Object,
-       data : Object,
-       name : String
+        id : {
+            type : Number,
+            default : 0
+        },
+        name : String
     });
+
 
       
     subscribe("form_saved", "create", (response, method, model) => {

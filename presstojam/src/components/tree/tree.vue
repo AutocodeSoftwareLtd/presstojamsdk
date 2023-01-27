@@ -28,7 +28,7 @@
                 <component v-for="component in store.actions" :is="component.component" :data="active" v-bind="component.atts"/>
             </template>
             <Message severity="success" v-if="saved">Saved</Message>
-            <edit-effect v-if="active['--id']" :model="store" :data="active" />
+            <edit-effect v-if="active['--id']" :id="active['--id']" name="store.name" :data="active" />
             </Panel>
     </SplitterPanel>
   </Splitter>
@@ -44,7 +44,6 @@ import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel';
 import PtjPrimaryAction from "../actions/primary-action.vue"
 import Message from 'primevue/message';
-import { getStore } from "../../js/data/storemanager.js"
 import PtjViewField from "../view/view-field.vue"
 import PtjCreateAction from "../actions/create-action.vue"
 import PtjDeleteAction from "../actions/delete-action.vue"
@@ -57,11 +56,12 @@ const props = defineProps({
     name : {
       type : String,
       required : true
-    }
+    },
+    repo : Object
 });
 
-const repo = getStore(props.name);
-const store = repo.store;
+console.log("Repo is ", props.repo);
+const store = props.repo.store;
 
 
 const expanded = ref(false);
@@ -86,9 +86,9 @@ function reorderRows(rows) {
   store.saveOrder(rows);
 }
 
-repo.load()
-.then(response => {
-   data.value = toTree(response, store.fields);
+props.repo.load()
+.then(() => {
+   data.value = toTree(props.repo.data.value, store.fields);
 });
 
 

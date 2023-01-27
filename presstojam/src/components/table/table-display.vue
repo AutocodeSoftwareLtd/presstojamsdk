@@ -26,7 +26,7 @@
     </Toolbar>
     <p v-if="repo.pagination.rows_per_page">Total Rows: {{ repo.pagination.count }}</p>
     <div ref="group">
-    <DataTable :value="data" v-model:selection="selected.value" 
+    <DataTable :value="repo.data.value" v-model:selection="selected.value" 
                 dataKey="--id" :rowClass="rowClass"
                 responsiveLayout="stack" :loading="repo.is_loading.value" 
                 :rowHover="true" @rowReorder="onRowReorder" 
@@ -48,7 +48,7 @@
         <Column :exportable="false" style="min-width:8rem">
             <template #body="slotProps">
                 <ptj-primary-action v-if="has_primary" :model="store.name" :id="slotProps.data['--id']" />
-                <edit-action v-if="store.perms.includes('put')" :data="slotProps.data" :model="store" :name="name"/>
+                <edit-action v-if="store.perms.includes('put')" :id="slotProps.data['--id']" :name="name" :model="store"/>
                 <audit-action v-if="store.audit" :data="slotProps.data" :model="store" />
                 <component v-for="component in store.actions" :is="component.component" v-bind="component.atts" :data="slotProps.data" :short="true" />
             </template>
@@ -59,10 +59,10 @@
         <template #expansion="slotProps">
             <Card>
                 <template #title>
-                    {{ $t("models." + store.children_models[0] + ".title") }}
+                    {{ $t("models." + child_repo.model.name + ".title") }}
                 </template>
                 <template #content>
-                    <ChildTable :name="store.children_models[0]" :parent_id="slotProps.data['--id']" :key="slotProps.data['--id']" />
+                    <ChildTable :name="child_repo.model.name + '-' + slotProps.data['--parent']" :id="slotProps.data['--parent']" :key="slotProps.data['--parent']" />
                 </template>
             </Card>
         </template>
@@ -78,7 +78,6 @@ import MultiSelect from 'primevue/multiselect';
 import Toolbar from 'primevue/Toolbar';
 import Message from 'primevue/message';
 import InputText from 'primevue/inputtext'
-import { getStore } from "../../js/data/storemanager.js"
 import PtjExportAction from '../actions/export-action.vue'
 import PtjCreateAction from '../actions/create-action.vue'
 import PtjDeleteAction from '../actions/delete-action.vue'
@@ -93,18 +92,16 @@ import PtjPrimaryAction from "../actions/primary-action.vue"
 import PtjViewField from "../view/view-field.vue"
 import DataTable from "primevue/DataTable"
 import ChildTable from "./child-table.vue"
+import { RepoData } from "../../js/data/repodata.js";
 
 
 
 const props = defineProps({
-    name : {
-      type : String,
-      required : true
-    }
+    repo : Object,
+    name : String
 });
 
 const group = ref();
-const data = ref([]);
 const selected = ref([]);
 const search = ref();
 const active_options = ref();
@@ -113,8 +110,7 @@ const delrow = ref(false);
 const editrow = ref(false);
 
 
-const repo = getStore(props.name);
-const store = repo.store;
+const store = props.repo.store;
 
 const max_cols = (!store.max_cols) ? 10 : store.max_cols;
 
@@ -127,14 +123,7 @@ const fixed_fields = [];
 const optional_fields = [];
 
 
-
-
-
-repo.load()
-.then(rows => {
-    data.value = rows;
-});
-
+props.repo.load();
 
 
 const fields = computed(() => {
@@ -164,10 +153,7 @@ for(let i in cells) {
 subscribe("effect_created", props.name, (name, response) => {
     if (props.name == name) {
         newrow.value = true;
-        repo.loadRow(response)
-       .then(obj => {
-         data.value.push(obj);
-       });
+        props.repo.addRow(response)
         trigger("dialog_close");
     }
 });
@@ -175,28 +161,18 @@ subscribe("effect_created", props.name, (name, response) => {
 
 subscribe("effect_edited", props.name, (name, response) => {
     if (props.name == name) {
-        repo.loadRow(response)
-        .then(obj => {
-            for(const i in data.value) {
-                if (data.value[i]['--id'] == response['--id']) {
-                    data.value[i] = obj;
-                }
-            }
-            editrow.value = true;
-            trigger("dialog_close");
-        });
+        props.repo.editRow(response)
+        editrow.value = true;
+        trigger("dialog_close");
     }
 });
 
 
-subscribe("effect_deleted", props.name, name => {
+subscribe("effect_deleted", props.name, (name, response) => {
     if (props.name == name) {
         delrow.value = true;
         trigger("dialog_close");
-        repo.load()
-       .then(response => {
-         data.value[0] = response;
-       });
+        props.repo.remove(response)
     }
 });
 
@@ -212,9 +188,9 @@ const children = (store.fields['--id']) ? store.fields['--id'].reference : [];
 const has_primary = (children.length > 1) ? true : false;
 const has_expandable = (children.length == 1) ? true : false;
 const has_sort = store.fields['--sort'];
-const sortable = (!props.nosort && !repo.hasPagination() && !has_sort) ? true : false;
+const sortable = (!props.nosort && !props.repo.hasPagination() && !has_sort) ? true : false;
 const global_filter_fields = [];
-if (!repo.hasPagination()) {
+if (!props.repo.hasPagination()) {
     for(let field in props.fields) {
         global_filter_fields.push(field);
     }
@@ -235,17 +211,17 @@ if (store.group) {
 
 
 const total_records = computed(() => {
-    return repo.pagination.count.value;
+    return props.repo.pagination.count.value;
 });
 
 
-if (repo.hasPagination()) {
+if (props.repo.hasPagination()) {
     atts.lazy = true;
     atts.paginator = true;
-    atts.rows = repo.pagination.rows_per_page;
+    atts.rows = props.repo.pagination.rows_per_page;
     atts.paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
     events.page = function(evt) {
-        repo.setPagination(evt.page)
+        props.repo.setPagination(evt.page)
         .then(response => {
             data.value = response;
         });
@@ -275,14 +251,18 @@ function rowClass(data) {
 
 
 const table_atts = {};
-if (has_expandable) table_atts["v-model:expandedRows"] ="expandedRows";
+let child_repo = null;
+if (has_expandable) {
+    table_atts["v-model:expandedRows"] ="expandedRows";
+    child_repo = new RepoData(store.children_models[0]);
+}
 
 //expandable rows function
 const expandedRows = ref([]);
 const onRowExpand = (event) => {
     //expandedRows.value = [{"Time":"Coming"}];
     event.data.children = [];
-    repo.active.value = event.data;
+    props.repo.active.value = event.data;
 };
 
 const onRowCollapse = (event) => {

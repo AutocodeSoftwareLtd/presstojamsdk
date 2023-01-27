@@ -10,7 +10,7 @@
                 <ptj-delete-action :name="store.name" :data="data"/>
                 <component v-for="component in store.actions" :is="component.component" :data="data" v-bind="component.atts"/>
             </template>
-            <edit-effect v-if="data['--id']" :model="store" :data="data" />
+            <edit-effect v-if="data['--id']" :id="data['--id']" :name="props.model" />
             </Panel>
 	    </TabPanel>
         <TabPanel v-for="child in store.fields['--id'].reference" :header="$t('models.' + child + '.title', 2)">

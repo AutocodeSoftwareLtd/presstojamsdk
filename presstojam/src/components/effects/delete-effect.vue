@@ -12,7 +12,6 @@
 <script setup>
     import { ref, computed, inject } from "vue"
     import Button from "primevue/button"
-    import { getStore } from "../../js/data/storemanager.js"
     import InputText from 'primevue/inputtext';
     import { getLabel } from "../../js/helperfunctions.js"
     import { trigger } from "../../js/bus/bus.js"
@@ -22,10 +21,10 @@
     const props = defineProps({
         name : String,
         data : Array,
+        repo : Object
     });
 
 
-    const repo = getStore(props.name);
     const check_str = "delete";
 
     let delval = ref("");
@@ -45,7 +44,7 @@
         params["--id"] = keys;
        
 
-        client.delete("/data/" +repo.store.name, params)
+        client.delete("/data/" +props.repo.store.name, params)
         .then(() => {
             repo.remove(keys);
             trigger("effect_deleted", props.name);

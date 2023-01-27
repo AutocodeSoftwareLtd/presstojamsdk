@@ -1,16 +1,17 @@
 <template>
-    <ptj-form :model="model" :data="data" method="put" key="edit" />
+    <ptj-form :entity_name="name" :id="id" method="put" key="edit" />
   
 </template>
 <script setup>
-    import { getStore } from "../../js/data/storemanager.js"
     import PtjForm from "../form/form.vue"
     import { subscribe, unsubscribe , trigger} from "../../js/bus/bus.js"
     import { onBeforeUnmount } from "vue"
 
     const props = defineProps({
-        model : Object,
-        data : Object,
+        id : {
+            type : Number,
+            default : 0
+        },
         name : String
     });
 

@@ -67,26 +67,20 @@ for(const i in routes) {
                 is_report : false
             });
             
-            for(const x of route.cells['--id'].reference) {
-                const croute = routes[x];
-                arr.push({
-                    label : croute.name,
-                    model : x,
-                    is_report : false
-                });
-            }
-        } else {
+        } else if (route.perms && route.perms.includes("get")) {
             arr.push({
                 label : route.name,
                 model : i,
                 is_report : false
             });
-        }
 
-        report_items.value.push({
+            report_items.value.push({
             label : route.name,
             model : i
         });
+        }
+
+        
     }
     
 }

@@ -3,21 +3,21 @@
     <Panel :header="label">
         <template #icons>
             <audit-action v-if="store.audit" :model="store" :data="data" :long="true" />
-            <ptj-delete-action :name="store.name" :data="data"/>
             <component v-for="component in store.actions" :is="component.component" :data="data" v-bind="component.atts"/>
         </template>
-        <edit-effect v-if="data['--id']" :model="store" :data="data" />
+        <edit-effect v-if="repo.data.value['--id']" :id="repo.data.value['--id']" :name="props.model" />
     </Panel>
 </template>
 
 <script setup>
 import { computed, ref, inject, onBeforeUnmount } from "vue"
 import { getModel } from "../../js/models/modelmanager.js"
-import { createFirstStore, regStore } from "../../js/data/storemanager.js"
 import PtjSlugTrail from "../slugtrail/slug-trail.vue"
 import Panel from "primevue/panel"
 import EditEffect from "../effects/edit-effect.vue"
+import AuditAction from "../actions/audit-action.vue"
 import { subscribe, unsubscribe } from "../../js/bus/bus.js"
+import { SingleData } from "./../../js/data/singledata.js"
 
 const i18n = inject("i18n");
 const t = i18n.t;
@@ -31,18 +31,15 @@ const props = defineProps({
 
 const store = getModel(props.model);
 
-const repo = createFirstStore(store);
-const data = ref({});
+const repo = new SingleData(store);
+
 regStore(props.model, repo);
 repo.load()
-.then(response => {
-    data.value = response;
-})
 .catch(e => console.log(e));
 
 
 const label = computed(() => {
-    return t('models.' + props.model + '.title') + ': ' + repo.label.value;
+    return t('models.' + props.model + '.title') + ': ';// + repo.label.value;
 });
 
 

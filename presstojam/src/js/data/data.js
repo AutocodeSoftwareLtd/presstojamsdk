@@ -9,6 +9,7 @@ export class Data {
         this._key = new Date().getTime();
         this._active = ref({});
         this._selected = ref([]);
+        this._data = ref(null);
     }
 
 
@@ -34,6 +35,10 @@ export class Data {
 
     get is_loading() {
         return this._is_loading;
+    }
+
+    get data() {
+        return this._data;
     }
 
     trigger(key) {

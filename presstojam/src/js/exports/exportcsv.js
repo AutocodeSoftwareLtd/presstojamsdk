@@ -1,5 +1,4 @@
 import { useI18n } from '../i18n.js';
-import { getStore } from "../../js/data/storemanager.js"
 import { download } from "./download.js"
 import { getClient } from "./../client.js"
 
@@ -23,9 +22,8 @@ function buildData(data, headers) {
 }
 
 
-export function exportCSV(name) {
+export function exportCSV(repo) {
 
-    const repo = getStore(name);
     const store = repo.store;
 
     const cells = store.fields;

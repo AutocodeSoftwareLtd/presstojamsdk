@@ -26,15 +26,14 @@
 </template>
 <script setup>
 import { ref, inject } from "vue"
-import { getStore } from "../../js/data/storemanager.js"
 import FileUpload from 'primevue/FileUpload'
 
 const props = defineProps({
-    name : String
+    name : String,
+    repo : Object
 });
 
-const repo = getStore(props.name);
-const store = repo.store;
+const store = props.repo.store;
 
 const client = inject("client");
 

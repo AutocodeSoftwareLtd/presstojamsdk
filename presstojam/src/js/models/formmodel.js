@@ -10,7 +10,6 @@ export class FormModel {
         this._fields = {};
         this._id = id;
         this._editable_fields = [];
-        this._debug = debug;
         this._parent = null;
         this._events;
         

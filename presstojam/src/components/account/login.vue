@@ -49,7 +49,15 @@ function submit() {
 
     Client.post("/user/login/" + expected_user, formData)
     .then(() => {
-        location.href = base + "/";
+        return Client.get("/user/check-user")
+        //location.href = base + "/";
+    })
+    .then(response => {
+        if (response.name == expected_user) {
+            location.href = base + "/";
+        } else {
+            throw "Login failed";
+        }
     })
     .catch(e => {
         error.value = "Incorrect username / password";

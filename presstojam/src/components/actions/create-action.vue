@@ -10,8 +10,11 @@
 
     const props = defineProps({
        name : String,
-       model : Object,
-       parent_id : Number
+       id : {
+        type : Number,
+        default : 0
+       },
+       model : Object
     });
 
     const i18n = inject("i18n");
@@ -30,8 +33,7 @@
         CreateEffect, 
         {
             name : props.name,
-            model : props.model,
-            data : data
+            id : props.id
         }, 
         header);
     }

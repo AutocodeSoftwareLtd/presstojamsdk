@@ -1,10 +1,7 @@
 <template>
     <ptj-slug-trail :name="model" />
     <Panel :header="store.title" class="gc-repo" :class="model">
-
-        <PtjTree v-if="recursive" :name="model" />
-        <PtjTableDisplay v-else :name="model"  />
-
+        <component :is="component" :repo="repo" :name="model"/>
     </Panel>
 </template>
 
@@ -15,6 +12,8 @@ import { getStore } from "../../js/data/storemanager.js"
 import PtjTree from "../tree/tree.vue"
 import PtjTableDisplay from '../table/table-display.vue'
 import PtjSlugTrail from "../slugtrail/slug-trail.vue"
+import PtjTreeView from "../displays/data-display.vue"
+import PtjView from "../displays/data-display.vue"
 
 /*
 
@@ -30,12 +29,18 @@ const store =repo.store;
 
 repo.load();
 
+let is_recursive = false;
+for(let i in store.fields) {
+    if (store.fields[i].recursive) is_recursive = true;
+}
 
-const recursive = computed(() => {
-    for(let i in store.fields) {
-        if (store.fields[i].recursive) return true;
+
+const component = computed(() => {
+    if (store.perms.includes("post") || store.perms.includes("put")) {
+        return (is_recursive) ? PtjTree : PtjTableDisplay;
+    } else {
+        return (is_recursive) ?PtjTreeView : PtjView;
     }
-    return false;
 })
 
 repo.trigger("mounted");

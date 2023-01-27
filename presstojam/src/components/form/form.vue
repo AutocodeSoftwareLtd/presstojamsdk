@@ -2,7 +2,7 @@
 
  <form v-show="processing == false" @submit.prevent="submit" class="card needs-validation" novalidate>
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
-    <div v-if="parent" class="form-group">
+    <div v-if="model.parent" class="form-group">
         <label>{{ $t("models." + store.parent + ".title")}}</label>
         <ptj-parent-select v-model="proxy_values['--parent']" :model="store.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
     </div>
@@ -12,7 +12,7 @@
   <Panel v-show="processing" Panel header="Processing">
         <p>Please do not refresh or close the browser until complete</p>
         <p>Status: {{ status }}</p>
-        <p style='text-align:center;'><ProgressSpinner /></p>
+        <p style="text-align:center;"><ProgressSpinner /></p>
     </Panel>
   </template>
 
@@ -35,12 +35,11 @@ const Client = inject("client");
 
 const props = defineProps({
     id : Number,
-    entity_name : Object,
+    entity_name : String,
     method : {
         type : String,
         default : 'post'
-    },
-    parent : Boolean
+    }
 });
 
 
@@ -62,15 +61,14 @@ const cells = model.getEnabledCells();
 
 const bindGroup = new BindGroup();
 
-const data = {};
-
+let data = {};
 if (props.method == "put") {
     data = await model.load();
 }
 
-if (props.parent) {
-    bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.id));
-}
+//if (model.parent) {
+  //  bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.id));
+//}
 
 
 for(const field in cells) {

@@ -1,16 +1,19 @@
 import { Data } from "./data.js"
 
-export class ActiveData extends Data {
+export class SingleData extends Data {
 
 
-    constructor(model, active_id) {
+    constructor(model) {
         super(model);
-        this._active_id = active_id;
+        this._active_id = 0;
+
+        model.limit = 1;
+        model.order = {"--id" : "ASC"};
         this._data.value = {};
     }
 
     get type() {
-        return "active";
+        return "single";
     }
 
     get active_id() {
@@ -20,12 +23,13 @@ export class ActiveData extends Data {
     load() {
         if (!this._load_promise) {
             this._is_loading.value = true;
-            this._load_promise = this._model.loadActive({"--id" : this._active_id});
+            this._load_promise = this._model.load();
         }
             
         this._load_promise.then(response => {
             this._is_loading.value = false;
-            return response;
+            this._data.value =response;
+            this._active_id = this._data.value['--id'];
         })
         .catch(e => {
             console.log(e);
@@ -47,6 +51,6 @@ export class ActiveData extends Data {
         for(let i in obj) {
             this._data.value[i] = obj[i];
         }  
-    } 
+    }    
 
 }

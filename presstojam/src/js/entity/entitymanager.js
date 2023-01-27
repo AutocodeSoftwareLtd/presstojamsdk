@@ -59,7 +59,8 @@ export function hasEntity(name) {
 
 export function defaultEntity() {
     for(const name in _entities) {
-        return name;
+        if (!_entities[name].parent && _entities[name].perms && _entities[name].perms.includes("get") && _entities[name].max_rows != 1)
+            return name;
     }
 }
 

@@ -1,7 +1,6 @@
 <template>
 	<Panel :header="$t('models.' + model + '.title', 2)" class="gc-child" :class="model">
-        <ptj-tree v-if="component == 'recursive'" :name="props.model" @onMove="reload" />
-        <ptj-table-display v-else-if="component == 'table'" :name="props.model" />
+        <component :is="component" :repo="repo" :name="model"/>
     </Panel>
 </template>
 <script setup>
@@ -10,6 +9,8 @@ import { computed } from "vue"
 import { getStore } from "../../js/data/storemanager.js"
 import PtjTableDisplay from "./../table/table-display.vue"
 import PtjTree from "./../tree/tree.vue"
+import PtjTreeView from "../displays/data-display.vue"
+import PtjView from "../displays/data-display.vue"
 
 const props = defineProps({
     model : String
@@ -20,12 +21,21 @@ const repo = getStore(props.model);
 const store =repo.store;
 repo.load();
 
+let is_recursive = false;
+for(let i in store.fields) {
+    if (store.fields[i].recursive) is_recursive = true;
+}
+
+console.log(store.perms, props.model);
+
 const component = computed(() => {
-    if (!store) return "";
-    else if (store.fields["--recursive"]) return "recursive";
-    else if (store.singleton) return "form";
-    else return "table";
+    if (store.perms.includes("post") || store.perms.includes("put")) {
+        return (is_recursive) ? PtjTree : PtjTableDisplay;
+    } else {
+        return (is_recursive) ?PtjTreeView : PtjView;
+    }
 });
+
 
 function reload() {
     store.value.reload();

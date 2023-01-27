@@ -8,12 +8,13 @@
 <script setup>
 import { ref, computed, inject } from "vue";
 import { rowToTree } from "../../js/helperfunctions.js"
-import { getStore } from "../../js/data/storemanager.js"
+import { getModel } from "../../js/models/modelmanager.js"
 import { getEntity } from "../../js/entity/entitymanager.js"
 import configs from "../../js/configs.js"
 
 import Breadcrumb from "primevue/breadcrumb"
 import PtjCrumb from "./crumb.vue"
+import { RepoData } from "../../js/data/repodata.js";
 
 
 const Client = inject("client");
@@ -27,8 +28,8 @@ const props = defineProps({
     parent_id : Number
 });
 
-const repo = getStore(props.name);
-const store = repo.store;
+const repo = new RepoData(getModel(props.name));
+
 
 let parent_id;
 

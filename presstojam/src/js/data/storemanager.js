@@ -1,11 +1,7 @@
-import { reactive, ref } from "vue"
-import { getLabel } from "../helperfunctions";
 import { RepoData } from "./repodata.js"
 import { ActiveData } from "./activedata.js" 
 import { ReportStore } from "./reportdata.js"
-
-let stores = {};
-
+import { SingleData } from "./singledata.js"
 
 
 export function createRepoStore(store) {
@@ -24,9 +20,8 @@ export function createReportStore(store) {
 }
 
 export function createFirstStore(store) {
-    store.limit = 1;
-    store.order = ["--id", "ASC"];
-    return new RepoData(store);
+   
+    return new SingleData(store);
     /*return {
         parent_id : ref(0),
         store : store,
@@ -60,24 +55,3 @@ export function createFirstStore(store) {
     }*/
 }
 
-
-export function clearStores() {
-    stores = {};
-}
-
-export function regStore(name, store) {
-    stores[name] = store;
-}
-
-
-export function getStore(name) {
-    if (!stores[name]) {
-        throw "Can't get reactive store of " + name;
-    }
-    return stores[name];
-}
-
-
-export function hasStore(name) {
-    return (stores[name]) ? true : false;
-}
