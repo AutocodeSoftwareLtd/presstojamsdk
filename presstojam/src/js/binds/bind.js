@@ -2,7 +2,7 @@ import { ref, computed } from "vue"
 
 export class Bind {
     
-    constructor(cell, value) {
+    constructor(cell, value = null) {
         this._cell = cell;
         this._value = value;
         this._error = ref(0);

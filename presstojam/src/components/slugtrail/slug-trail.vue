@@ -8,13 +8,10 @@
 <script setup>
 import { ref, computed, inject } from "vue";
 import { rowToTree } from "../../js/helperfunctions.js"
-import { getModel } from "../../js/models/modelmanager.js"
 import { getEntity } from "../../js/entity/entitymanager.js"
-import configs from "../../js/configs.js"
 
 import Breadcrumb from "primevue/breadcrumb"
 import PtjCrumb from "./crumb.vue"
-import { RepoData } from "../../js/data/repodata.js";
 
 
 const Client = inject("client");
@@ -25,18 +22,21 @@ const t = i18n.t;
 
 const props = defineProps({
     name : String,
-    parent_id : Number
+    parent_id : Number,
+    store : {
+        type : Object,
+        required : true
+    }
 });
 
-const repo = new RepoData(getModel(props.name));
 
 
 let parent_id;
 
-let entity = getEntity(store.name);
+let entity = getEntity(props.store.model.name);
 let structure = [];
 const parent = entity.parent;
-if (repo.type == "active") {
+if (props.store.type == "active") {
     structure.push(entity);
 }
 
@@ -51,9 +51,9 @@ structure = structure.reverse();
 
 async function getData() {
     if (parent) {
-      if (repo.type == "active") {
+      if (props.store.type == "active") {
         const data = await 
-        repo.load()
+        props.store.load()
         .then(response => {
             parent_id = response["--parent"];
             return Client.get("/data/" + parent + "/active?__to=*&--id=" + response['--parent'])
@@ -62,7 +62,7 @@ async function getData() {
         });
         return data;
       } else {
-        const data = await Client.get("/data/" + parent + "/active?__to=*&--id=" + repo.parent_id)
+        const data = await Client.get("/data/" + parent + "/active?__to=*&--id=" + props.store.parent_id)
         .then(response => {
             return rowToTree(response, parent)
         });
@@ -94,7 +94,7 @@ function trailRouteInfo(trail, route) {
 let crumbs = computed(() => {
     let arr = [];
     for(const entity of structure) {
-        //add an entity repo route
+        //add an entity store route
         //need to get the parent id
 
         const obj = { label : entity.name, to : { name : "repo", params : { model : entity.name } } };

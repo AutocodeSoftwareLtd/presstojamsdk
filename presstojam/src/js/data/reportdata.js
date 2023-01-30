@@ -1,6 +1,6 @@
 import { Data } from "./data.js"
 
-export class ReportStore extends Data {
+export class ReportData extends Data {
 
 
     constructor(model, field) {
@@ -12,6 +12,7 @@ export class ReportStore extends Data {
         this._groups = [];
         this._time_group;
         this._load_line_promise = null;
+        this._data.value = [];
     }
 
     get filters() {
@@ -52,6 +53,7 @@ export class ReportStore extends Data {
 
     getDataSets(response) {
         const data_sets = {};
+        if (response.length == 0) return data_sets;
         if (this._groups.length == 0) {
             data_sets["main"] = [response[0].count];
         } else {
@@ -66,7 +68,6 @@ export class ReportStore extends Data {
                 data_sets[key].push(row.count);
             }
         }
-        console.log("Data Sets are ", data_sets);
         return data_sets;
     }
 
@@ -100,7 +101,8 @@ export class ReportStore extends Data {
                 }
     
                 this._is_loading.value = false;
-                return datasets;
+                this._data = datasets;
+                return this._data;
             })
             .catch(e => {
                 console.log(e);

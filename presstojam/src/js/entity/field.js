@@ -41,6 +41,7 @@ export class Field {
 
     apply(obj) {
         for (let x in obj) {
+            if (obj[x] === null) continue;
             if (x == "type") this._type = obj[x].toLowerCase();
             else if (x == "contains" || x == "notcontains") {
                 if (obj[x]) this["_" + x] = obj[x].split("|");

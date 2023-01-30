@@ -15,8 +15,8 @@
     </Toolbar>
           <Tree :value="data" selectionMode="single" @node-select="setActive" :filter="true" filterMode="lenient" v-model:selectionKeys="selected" :expandedKeys="expandedKeys">
             <template #default="slotProps">
-                <ptj-view-field v-for="cell in cells" :row="slotProps.node.data" :field="cell" />
-              </template>
+              <ptj-view-field v-for="cell in cells" :row="slotProps.node.data" :field="cell" />
+            </template>
         </Tree>
     </SplitterPanel>
     <SplitterPanel>
@@ -28,7 +28,7 @@
                 <component v-for="component in store.actions" :is="component.component" :data="active" v-bind="component.atts"/>
             </template>
             <Message severity="success" v-if="saved">Saved</Message>
-            <edit-effect v-if="active['--id']" :id="active['--id']" name="store.name" :data="active" />
+            <edit-effect v-if="active['--id']" :id="active['--id']" :name="name" />
             </Panel>
     </SplitterPanel>
   </Splitter>
@@ -37,7 +37,7 @@
 <script setup>
 import Button from "primevue/button"
 import Tree from 'primevue/tree';
-import { ref, onBeforeUnmount } from "vue"
+import { ref, onBeforeUnmount, onUpdated, onMounted } from "vue"
 import Toolbar from 'primevue/Toolbar'
 import { toTree } from "../../js/helperfunctions.js" 
 import Splitter from 'primevue/splitter';
@@ -50,6 +50,7 @@ import PtjDeleteAction from "../actions/delete-action.vue"
 import EditEffect from "../effects/edit-effect.vue"
 import AuditAction from "../actions/audit-action.vue"
 import Panel from "primevue/panel"
+import Sortable from 'sortablejs';
 import { subscribe, unsubscribe, trigger } from "./../../js/bus/bus.js"
 
 const props = defineProps({
@@ -60,7 +61,6 @@ const props = defineProps({
     repo : Object
 });
 
-console.log("Repo is ", props.repo);
 const store = props.repo.store;
 
 
@@ -92,7 +92,7 @@ props.repo.load()
 });
 
 
-repo.active.value['--recursive'] = 0;
+//repo.active.value['--recursive'] = 0;
 
 const expandedKeys = ref({});
 
@@ -124,11 +124,13 @@ function setActive(node) {
   saved.value = false;
 }
 
+
 function reload() {
   repo.selected.value = [];
   repo.reload()
   .then(response => {
     data.value = toTree(response, store.fields);
+    console.log("data is", data.value);
   });
   newrow.value = true;
 }
@@ -171,6 +173,30 @@ onBeforeUnmount(() => {
   unsubscribe("effect_created", props.name);
   unsubscribe("effect_updated", props.name);
   unsubscribe("effect_deleted", props.name);
+});
+
+
+function makeSortable() {
+  const ptrees = document.querySelectorAll(".p-tree-container, .p-treenode-children");
+  alert("Being called");
+  for(const ptree of ptrees) {
+    console.log("trees are ")
+    let sortable = new Sortable(ptree, {
+      group : 'tree',
+      sort : true,
+      draggable : "li"
+    });
+  }
+}
+
+onUpdated(() => {
+  //get all elements with class of p tree container
+  makeSortable();
+
+});
+
+onMounted(() => {
+  makeSortable();
 });
 
 </script>

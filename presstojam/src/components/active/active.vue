@@ -1,5 +1,6 @@
 <template>
-    <ptj-slug-trail :name="model" />
+  <div :class="model" class="gc-detail">
+    <ptj-slug-trail :name="model" :store="active"/>
     <Panel :header="label">
     
    <TabView lazy>
@@ -18,10 +19,11 @@
         </TabPanel>
    </TabView>
    </Panel>
+  </div>
 </template>
 <script setup>
 import { computed, onMounted, inject, ref } from "vue"
-import { getStore } from "../../js/data/storemanager.js"
+import { ActiveData } from "../../js/data/activedata.js"
 import { getLabel } from "../../js/helperfunctions.js"
 import PtjChildPanel from  "./child-panel.vue"
 import PtjSlugTrail from "./../slugtrail/slug-trail.vue"
@@ -39,15 +41,15 @@ const t = i18n.t;
 
 const props = defineProps({
     model : String,
-    base : String
+    id : Number
 });
 
 
-const repo = getStore(props.model);
-const store =repo.store;
+const active = new ActiveData(props.model, props.id);
+const store = active.store;
 
 const data = ref({});
-repo.load()
+active.load()
 .then(response => {
     data.value = response;
 })
@@ -58,9 +60,9 @@ const label = computed(() => {
     return t('models.' + props.model + '.title') + ': ' + getLabel(store.fields, data.value);
 });
 
-subscribe("form_saved", repo.active_id, (response, method, model) => {
+subscribe("form_saved", active.active_id, (response, method, model) => {
     if (model.name == props.model.name) {
-        repo.reload()
+        active.reload()
         .then(response => {
             data.value = response;
         })

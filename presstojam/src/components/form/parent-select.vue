@@ -7,36 +7,33 @@
 import { inject, ref,  } from "vue"
 
 import TreeSelect from 'primevue/treeselect';
-import { getModel } from "../../js/models/modelmanager.js"
+import { RepoData } from "../../js/data/repodata.js"
 
 
 const props = defineProps({
-    modelValue : [Number, String, Boolean],
-    model : String,
-    common_parent : String,
-    common_id : Number
+    data : Object,
+    common_id : Number,
+    common_parent : String
 });
 
 const client = inject("client");
-
-const emits = defineEmits([
-    "update:modelValue"
-]);
-
+const options = ref([]);
 
 const models = [];
 
-const store = getModel(props.model);
-const params = { to : props.common_parent };
-params[props.common_parent + "/--id"] = props.common_id; 
-store.setParams({ to : props.common_parent });
-store.load()
+const repo = new RepoData(props.data.model.name);
+repo.to = props.common_parent;
+
+const params = {};
+params[props.data.common_parent + "/--id"] = props.data.common_id; 
+repo.filters = params;
+repo.load()
 .then(() => {
-    console.log(store.data.value);
+    options.value = repo.data.value;
 });
 
 
-const options = ref([]);
+
 let value;
 
 function getOptions() {

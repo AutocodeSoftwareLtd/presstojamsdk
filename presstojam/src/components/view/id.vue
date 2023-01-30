@@ -8,7 +8,7 @@
 import { computed } from "vue"
 import { ReferenceTypes } from "../../js/entity/id.js";
 import { hasEntity } from "./../../js/entity/entitymanager.js"
-import { getModel } from "../../js/models/modelmanager.js"
+import { Model } from "../../js/models/model.js"
 
 const props = defineProps({
     value : [Number, String ],
@@ -34,7 +34,7 @@ let display = computed(() => {
             }
         } else {
             
-            const ref_route = getModel(props.field.reference);
+            const ref_route = new Model(props.field.reference);
             
             for(const i in ref_route.fields) {
                 if (ref_route.fields[i].summary) {

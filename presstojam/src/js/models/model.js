@@ -191,7 +191,12 @@ export class Model {
         let params = {};
         if (this._to) params.__to = this._to;
         if (this._group) params.__group = this._group;
-        if (this._limited_fields) params.__fields = this._limited_fields;
+        if (this._limited_fields) {
+            params.__fields = this._limited_fields;
+            if (!params.__fields.includes("--id")) {
+                params.__fields.push("--id");
+            }
+        }
         if (this._order) params.__order = this._order;
      
         if (this._limit) {
@@ -207,56 +212,6 @@ export class Model {
     trigger(key, data) {
         if (this._events[key]) {
             this._events[key](data);
-        }
-    }
-
-
-    setEditableCells(schema = null) {
-        if (!schema) schema = this._fields;
-        for(let i in schema) {
-            schema[i].disabled = false;
-
-            if (schema[i].slug != schema[i].name) {
-                schema[i].disabled = true; //continue - don't use includes or parents
-                continue;
-            }
-
-            if (schema[i].system || schema[i].immutable) {
-                schema[i].disabled = true; //continue - don't use includes or parents
-                continue;
-            }
-                //check if limited
-
-            if (this._editable_fields.length && !this._editable_fields.includes(i)) {
-                schema[i].disabled = true;
-                continue;
-            }
-    
-    
-            if (schema[i].type == "json") {
-                this.setEditableCells(schema[i].fields);
-            } 
-        }
-    }
-    
-    setCreateCells(schema = null) {
-        if (!schema) schema = this._fields;
-        for(let i in schema) {
-            schema[i].disabled = false;
-
-            if (schema[i].slug != schema[i].name) {
-                schema[i].disabled = true; //continue - don't use includes or parents
-                continue;
-            }
-
-            if (schema[i].system) {
-                schema[i].disabled = true; //continue - don't use includes or parents
-                continue;
-            }
-
-            if (schema[i].type == "json") {
-                this.setCreateCells(schema[i].fields);
-            } 
         }
     }
 

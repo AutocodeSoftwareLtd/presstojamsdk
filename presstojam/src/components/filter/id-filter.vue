@@ -8,7 +8,7 @@
 import { ref, onMounted, inject, computed } from "vue"
 import MultiSelect from 'primevue/multiselect';
 import Chips from 'primevue/chips';
-import { getModel } from "../../js/models/modelmanager.js"
+import { Model } from "../../js/models/model.js"
 import { getLabel } from "../../js/helperfunctions";
 
 const props = defineProps({
@@ -32,7 +32,7 @@ const value = computed({
 });
 
 const model = inject("model");
-const store = getModel(model);
+const store = new Model(model);
 const id = (store.active_id) ? store.active_id : store.parent_id;
 const client = inject("client");
 

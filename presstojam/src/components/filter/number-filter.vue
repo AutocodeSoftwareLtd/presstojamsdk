@@ -17,47 +17,52 @@
 </template>
 
 <script setup>
-import { computed } from "vue"
+import { computed, inject } from "vue"
 import InputNumber from "primevue/inputnumber"
 import Button from 'primevue/button';
 
 const props = defineProps({
-    modelValue : [Object],
-    field : Object
+   bind : Object
 });
 
-const emits = defineEmits([
-    "update:modelValue"
-]);
+
+const field = props.bind.cell;
+const repo = inject("repo");
+const name = props.bind.cell.name;
 
 const min = computed({
     get() {
-        return (props.modelValue) ? props.modelValue.min : null;
+        return (repo.filters[name]) ? repo.filters[name].min : null;
     },
     set(val) {
-        let max = null;
-        if (props.modelValue) {
-            max = (props.modelValue.max < val) ? val : props.modelValue.max;
-        }
-        emits('update:modelValue', { 'min' : val, 'max' : max });
+        const filters = repo.filters;
+        if (!filters[name]) filters[bind.name] = {};
+        filters[props.bind.name].min = val;
+        repo.reload();
     }
 });
 
 const max = computed({
     get() {
-        return (props.modelValue) ? props.modelValue.max : null;
+        return max_value.value;
     },
     set(val) {
-        let min = null;
-        if (props.modelValue) {
-            min = (props.modelValue.min > val) ? val : props.modelValue.min;
-        }
-        emits('update:modelValue', { 'min' : min, max : val});
+        if (val < min_value.value) val = min_value.value;
+        const filters = repo.filters;
+        if (!filters[props.bind.name]) filters[props.bind.name] = {};
+        filters[props.bind.name].max = val;
+        repo.reload();
     }
 }); 
 
 function clear() {
-    emits('update:modelValue', null);
+    min_value.value = null;
+    max_value.value = null;
+    const filters = repo.filters;
+    if (filters[props.bind.name]) {
+        delete filters[props.bind.name];
+        repo.reload();
+    }
 }
 
 

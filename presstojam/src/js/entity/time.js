@@ -32,6 +32,7 @@ export class Time extends Field {
 
     buildString(date_obj) {
         if (!date_obj) return null;
+        console.log("Format is", this._format);
         if (!this._format.time && date_obj) {
             if (date_obj.getHours() == 0) date_obj.setUTCHours(date_obj.getUTCHours() + 12);
         }

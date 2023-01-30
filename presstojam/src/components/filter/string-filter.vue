@@ -4,50 +4,52 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue"
+import { ref, computed, inject } from "vue"
 import MultiSelect from 'primevue/multiselect';
 import Chips from 'primevue/chips';
 
 const props = defineProps({
-    modelValue : [Array],
-    field : Object
+    bind : Object
 });
 
+const repo = inject("repo");
 
 const options = ref([]);
 
-const emits = defineEmits([
-    "update:modelValue"
-]);
-
 const value = computed({
     get() {
-        let arr = [];
-        if (tag == 'select') {
-            arr = props.modelValue;
-        } else if (props.modelValue) {
-            for(let val of props.modelValue) {
-                arr.push(val.replace(/^%+/, '').replace(/%+$/, ''));
-            }
-        }
-        return arr;
+        return repo.filters[props.bind.cell.name];
     },
     set(val) {
-        let arr = [];
-        for(let vl of val) {
-            arr.push("%" + vl + "%");
+        const filter = repo.filters;
+        if (!val.length) {
+            if (filter[props.bind.name]) {
+                delete filter[props.bind.cell.name];
+                repo.reload();
+            }
+        } else {
+            if (props.bind.cell.isEnum()) {
+                filter[props.bind.cell.name] = val;
+            } else {
+                const oval = [];
+                for(const i in val) {
+                    oval.push("%" + val[i] + "%");
+                }
+            }
+            repo.reload();
         }
-        if (arr.length == 0) arr = null;
-        emits('update:modelValue', arr);
     }
 });
 
 const tag = computed(() => {
-if (props.field.isEnum()) {
-    options.value = props.field.setContainsAsOptions();
+if (props.bind.cell.isEnum()) {
+    const coptions = [];
+    for(let i in props.bind.cell.list) {
+        coptions.push({ key : props.bind.cell.list[i], value : props.bind.cell.list[i] });
+    }
+
+    options.value = coptions;
     return "select";
-} else if (props.field.encrypted) {
-    return "";
 } else {
     return "input";
 }

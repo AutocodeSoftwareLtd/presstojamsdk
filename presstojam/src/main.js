@@ -9,8 +9,8 @@ import TestVue from "./testvue.vue"
 import { createApp } from 'vue'
 import container from "./index.js";
 
-const url = "https://api.presstojam.com";
-//const url = "https://api-owen.presstojam.com";
+//const url = "https://api.presstojam.com";
+const url = "https://api-owen.presstojam.com";
 //const url = "https://api.genercode.com";
 //const url = "http://slim.localhost";
 //https://api.presstojam.com
@@ -106,7 +106,7 @@ let settings = {
 
 
 let settings = { 
-  "profile" : "accounts",
+  "profile" : "company", //"accounts",
   "url" : url,
   "base" : "/admin",
   "user" : {

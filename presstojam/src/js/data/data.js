@@ -1,9 +1,10 @@
 import { ref } from "vue"
+import { Model } from "./../models/model.js"
 
 export class Data {
 
-    constructor(model) {
-        this._model = model;
+    constructor(model_name) {
+        this._model = new Model(model_name);
         this._is_loading = ref(false);
         this._load_promise = null;
         this._key = new Date().getTime();

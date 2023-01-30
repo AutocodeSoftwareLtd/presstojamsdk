@@ -1,6 +1,11 @@
 <template>
-    <filter-form :model="model" :data="{}" :name="props.schema.name"/>
-    <group-form :model="model" :data="groups" :name="props.schema.name"/>
+    <card>
+        <template #title>
+        {{ $t("models." + props.schema.name  + ".title")}}
+       </template>
+       <template #content>
+        <filter-form :repo="summary_repo" :name="props.schema.name"/>
+    <group-form :repo="summary_repo" :name="props.schema.name"/>
     <Toolbar>
         <template #start> 
             <label>Aggregates</label>
@@ -13,27 +18,34 @@
             <Button v-else  @click="toggleType('bar')" label="Bar Chart" icon="pi pi-chart-bar" class="mr-2" />
         </template>
     </Toolbar>
-    <report-chart :data="summary_data" :type="type"/>
-    <Divider v-if="schema.numeric.length > 0"/>
-    <div v-for="(repo, index) in repos">
-        <report-chart :data="repo.data.value" :type="type"/>
-        <Divider v-if="schema.numeric.length > index -1" layout="vertical" />
-    </div>
+    <TabView>
+        <TabPanel header="Summary">
+            <report-chart :repo="summary_repo" :type="type"/>
+        </TabPanel>
+        <TabPanel v-for="repo in repos" :header="$t('models.' + props.schema.name + '.fields.' + repo.field + '.label')" >
+            <report-chart :repo="repo" :type="type"/>
+        </TabPanel>
+    </TabView>
 
+       </template>
+    
+    </card>
 </template>
 <script setup>
 
 import ReportChart from "./report-chart.vue"
 import FilterForm from "./../filter/filter-form.vue"
 import GroupForm from "./../group/group-form.vue"
-import { getModel } from "./../../js/models/modelmanager.js"
-import Divider from 'primevue/divider';
-import { createReportStore } from "./../../js/data/storemanager.js"
+import { ReportData } from "./../../js/data/reportdata.js"
 import { onBeforeUnmount, ref, computed } from "vue"
 import { subscribe, unsubscribe } from "./../../js/bus/bus.js"
 import Toolbar from 'primevue/Toolbar'
 import Button from "primevue/button"
 import Dropdown from 'primevue/dropdown';
+import Card from 'primevue/card';
+import TabView from 'primevue/tabview';
+import TabPanel from 'primevue/tabpanel';
+
 
 const props = defineProps({
     schema : Object
@@ -41,21 +53,16 @@ const props = defineProps({
 
 //set up repos 
 const groups = [];
-const model = getModel(props.schema.name);
 
-const summary_repo = createReportStore(model);
-const summary_data = ref([]);
-summary_repo.load().then(response => summary_data.value = response);
+const summary_repo = new ReportData(props.schema.name);
+await summary_repo.load();
 
 const repos = [];
 for(let i in props.schema.numeric) {
-    const repo = createReportStore(model, props.schema.numeric[i]);
-    const repo_value = ref([]);
-    repo.load().then(response => repo_value.value = response);
-    repos.push({
-        'repo' : repo,
-        'data' : repo_value
-    });
+    if (i == "--sort") continue;
+    const repo = new ReportData(props.schema.name, props.schema.numeric[i]);
+    await repo.load();
+    repos.push(repo);
 }
 
 //menu bar functions
@@ -101,13 +108,9 @@ const time_groups = [
 
 subscribe("group_form", props.schema.name, (name, groups) => {
     if (name == props.schema.name) {
-        summary_repo.groups = groups;
-        summary_repo.reload(type.value)
-        .then(response => summary_data.value = response);
          for(const repo of repos) {
-            repo.repo.groups = groups;
-            repo.repo.reload(type.value)
-            .then(response => repo.data.value = response);
+            repo.groups = groups;
+            repo.reload(type.value);
         }
     }
 });
@@ -115,9 +118,9 @@ subscribe("group_form", props.schema.name, (name, groups) => {
 
 subscribe("filter_form", props.schema.name, (name, filters) => {
     if (name == props.schema.name) {
-        summary_repo.filters = filters;
         for(const repo of repos) {
             repo.filters = filters;
+            repo.reload();
         }
     }
 });

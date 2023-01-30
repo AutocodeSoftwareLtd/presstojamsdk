@@ -1,14 +1,16 @@
 <template>
-    <ptj-slug-trail :name="model" />
+  <div class="gc-master" :class="model">
+    <ptj-slug-trail :name="model" :store="repo"/>
     <Panel :header="store.title" class="gc-repo" :class="model">
         <component :is="component" :repo="repo" :name="model"/>
     </Panel>
+  </div>
 </template>
 
 <script setup>
 import Panel from 'primevue/panel'
 import { computed } from "vue"
-import { getStore } from "../../js/data/storemanager.js"
+import { RepoData } from "../../js/data/repodata.js"
 import PtjTree from "../tree/tree.vue"
 import PtjTableDisplay from '../table/table-display.vue'
 import PtjSlugTrail from "../slugtrail/slug-trail.vue"
@@ -20,11 +22,12 @@ import PtjView from "../displays/data-display.vue"
 */
 const props = defineProps({
     model : String,
-    base : String
+    id : Number
 });
 
 
-const repo = getStore(props.model);
+const repo = new RepoData(props.model);
+repo.parent_id = props.id;
 const store =repo.store;
 
 repo.load();

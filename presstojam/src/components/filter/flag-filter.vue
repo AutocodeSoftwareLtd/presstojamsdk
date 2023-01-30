@@ -1,6 +1,6 @@
 <template>
     <Dropdown 
-        :name="field.name" 
+        :name="bind.cell.name" 
         v-model="value" 
         optionLabel="label" 
         optionValue="value" 
@@ -12,28 +12,26 @@
 
 <script setup>
 import Dropdown from 'primevue/dropdown';
-import { computed } from "vue"
+import { computed,inject } from "vue"
 
 
 const props = defineProps({
-    modelValue : [Number, Boolean],
-    field : Object
+    bind : Object
 });
 
-const emits = defineEmits([
-    "update:modelValue"
-]);
+const repo = inject("repo");
 
 const value = computed({
     get() {
-        if (typeof props.modelValue === 'undefined' || props.modelValue === null) return 0;
-        else if (props.modelValue === 0) return 2;
-        else return props.modelValue;
+        return (!repo.filters[props.bind.cell.name]) ? { value : 0, label : 'All'} : repo.filters[props.bind.cell.name];
     },
     set(val) {
         if (val == 0) val = null;
         else if (val == 2) val = 0;
-        emits('update:modelValue', val);
+        if (val != repo.filters[props.bind.cell.name]) {
+            repo.filters[props.bind.cell.name] = val;
+            repo.reload();
+        }
     }
 });
 

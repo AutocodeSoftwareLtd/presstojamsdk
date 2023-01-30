@@ -6,7 +6,7 @@
 <script setup>
 import Panel from 'primevue/panel';
 import { computed } from "vue"
-import { getStore } from "../../js/data/storemanager.js"
+import { RepoData } from "../../js/data/repodata.js"
 import PtjTableDisplay from "./../table/table-display.vue"
 import PtjTree from "./../tree/tree.vue"
 import PtjTreeView from "../displays/data-display.vue"
@@ -17,7 +17,7 @@ const props = defineProps({
 });
 
 
-const repo = getStore(props.model);
+const repo = new RepoData(props.model);
 const store =repo.store;
 repo.load();
 
@@ -25,8 +25,6 @@ let is_recursive = false;
 for(let i in store.fields) {
     if (store.fields[i].recursive) is_recursive = true;
 }
-
-console.log(store.perms, props.model);
 
 const component = computed(() => {
     if (store.perms.includes("post") || store.perms.includes("put")) {
@@ -37,9 +35,6 @@ const component = computed(() => {
 });
 
 
-function reload() {
-    store.value.reload();
-}
 </script>
 
 

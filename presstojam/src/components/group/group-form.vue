@@ -24,18 +24,17 @@ import { trigger } from "./../../js/bus/bus.js"
 import { ReferenceTypes } from "./../../js/entity/id.js"
 
 const props = defineProps({
-    data : Array,
-    model : Object,
+    repo : Object,
     name : String
 });
 
-const groups = ref(props.data);
-
+const groups = ref(props.repo.groups);
+const fields = props.repo.model.fields;
 
 const cells = computed(() => {
     const group_cells = [];
-    for(let i in props.model.fields) {
-        const field = props.model.fields[i];
+    for(let i in fields) {
+        const field = fields[i];
         if (field.type == "id") {
             if (field.reference_type == ReferenceTypes.REFERENCE) group_cells.push(field);
         } else if (field.type == "flag" || (field.type == "string" && field.isEnum())) {
@@ -47,6 +46,8 @@ const cells = computed(() => {
 
 
 function update() {
+    props.repo.groups = groups.value;
+    props.repo.reload();
     trigger("group_form", props.name, groups.value);
 } 
 </script>

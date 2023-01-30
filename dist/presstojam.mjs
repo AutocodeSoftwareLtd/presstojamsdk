@@ -1,6 +1,6 @@
 /*! DS Library v3.2.53 */
 
-import { h, getCurrentInstance, inject, onMounted, onUnmounted, shallowRef, ref, computed, onBeforeMount, watch, Fragment, effectScope, isRef, createVNode, Text, reactive, openBlock, createElementBlock, renderSlot, createCommentVNode, createElementVNode, normalizeClass, resolveDirective, withDirectives, toDisplayString as toDisplayString$1, createBlock, Transition, withCtx, vShow, unref, createTextVNode, mergeProps, resolveComponent, resolveDynamicComponent, renderList, normalizeStyle, Teleport, onBeforeUnmount, normalizeProps, guardReactiveProps, createSlots, toHandlers, vModelText, withKeys, provide, withModifiers, withAsyncContext, Suspense, nextTick, defineComponent, watchEffect, pushScopeId, popScopeId } from 'vue';
+import { h, getCurrentInstance, inject, onMounted, onUnmounted, shallowRef, ref, computed, onBeforeMount, watch, Fragment, effectScope, isRef, createVNode, Text, reactive, openBlock, createElementBlock, renderSlot, createCommentVNode, createElementVNode, normalizeClass, resolveDirective, withDirectives, toDisplayString as toDisplayString$1, createBlock, Transition, withCtx, vShow, unref, createTextVNode, mergeProps, resolveComponent, resolveDynamicComponent, renderList, normalizeStyle, Teleport, onBeforeUnmount, normalizeProps, guardReactiveProps, createSlots, toHandlers, vModelText, withKeys, provide, withAsyncContext, withModifiers, Suspense, nextTick, defineComponent, watchEffect, onUpdated, pushScopeId, popScopeId } from 'vue';
 
 /*!
   * shared v9.2.2
@@ -2678,7 +2678,7 @@ function parse$1(path) {
 } // path token cache
 
 
-const cache$1 = new Map();
+const cache = new Map();
 /**
  * key-value message resolver
  *
@@ -2718,13 +2718,13 @@ function resolveValue(obj, path) {
   } // parse path
 
 
-  let hit = cache$1.get(path);
+  let hit = cache.get(path);
 
   if (!hit) {
     hit = parse$1(path);
 
     if (hit) {
-      cache$1.set(path, hit);
+      cache.set(path, hit);
     }
   } // check hit
 
@@ -8972,6 +8972,7 @@ class Field {
 
   apply(obj) {
     for (let x in obj) {
+      if (obj[x] === null) continue;
       if (x == "type") this._type = obj[x].toLowerCase();else if (x == "contains" || x == "notcontains") {
         if (obj[x]) this["_" + x] = obj[x].split("|");
       } else this["_" + x] = obj[x];
@@ -9026,87 +9027,6 @@ class Field {
 
 }
 
-getClient();
-function toTree(arr, schema, parent_id = 0) {
-  const nodes = [];
-  const items = arr.filter(obj => obj['--recursive'] == parent_id);
-
-  for (const item of items) {
-    let label = getLabel(schema, item);
-    const obj = {
-      key: item['--id'],
-      "label": label,
-      data: item
-    };
-    obj.children = toTree(arr, schema, obj.key);
-    nodes.push(obj);
-  }
-
-  return nodes;
-}
-function toReferenceTree(arr, schema, parent_id = 0) {
-  const nodes = [];
-  const items = arr.filter(obj => obj['--recursive'] == parent_id);
-
-  for (const item of items) {
-    const obj = {
-      key: item.value,
-      "label": item.label,
-      data: item
-    };
-    obj.children = toReferenceTree(arr, schema, obj.key);
-    nodes.push(obj);
-  }
-
-  return nodes;
-}
-function getLabel(schema, data) {
-  let label = [];
-
-  for (let i in schema) {
-    if (schema[i].summary) {
-      label.push(data[i]);
-    }
-  }
-
-  return label.join(" ");
-}
-function sortByDictionary(a, b) {
-  if (a.value < b.value) {
-    return -1;
-  } else if (a.value > b.value) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-function rowToTree(obj, parent) {
-  function walkObjTreeBuild(obj, links) {
-    for (let i = 0; i < links.length; ++i) {
-      if (!obj[links[i]]) obj[links[i]] = {};
-      obj = obj[links[i]];
-    }
-
-    return obj;
-  }
-
-  let nobj = {};
-  nobj[parent] = {};
-
-  for (let i in obj) {
-    if (i.indexOf("/") > -1) {
-      const pts = i.split("/");
-      const name = pts.pop();
-      const cobj = walkObjTreeBuild(nobj, pts);
-      cobj[name] = obj[i];
-    } else {
-      nobj[parent][i] = obj[i];
-    }
-  }
-
-  return nobj;
-}
-
 const ReferenceTypes = {
   'PRIMARY': 0,
   'PARENT': 1,
@@ -9123,38 +9043,9 @@ class ID extends Field {
     this._default_val = 0;
     this.reverse_references = [];
     this._common;
-    this._cache_id;
     this._custom_fields = [];
-    this._load_promise = null;
     this.buildGetterSetters();
     if (obj) this.apply(obj);
-  }
-
-  getOptions(client, model, id) {
-    if (!this._load_promise || id != this._cache_id) {
-      this._cache_id = id;
-      let url = "/reference/" + model + "/" + this._name;
-      if (id) url += "/" + id;
-      this._load_promise = client.get(url).then(response => {
-        response.sort(sortByDictionary);
-        return response;
-      });
-    }
-
-    return this._load_promise;
-  }
-
-  getRecursiveOptions(client, model, id, schema) {
-    if (!this._load_promise) {
-      this._cache_id = id;
-      let url = "/reference/" + model + "/" + this._name;
-      if (id) url += "/" + id;
-      this._load_promise = client.get(url).then(response => {
-        return toReferenceTree(response, schema);
-      });
-    }
-
-    return this._load_promise;
   }
 
   get reference() {
@@ -9257,6 +9148,7 @@ class Time extends Field {
 
   buildString(date_obj) {
     if (!date_obj) return null;
+    console.log("Format is", this._format);
 
     if (!this._format.time && date_obj) {
       if (date_obj.getHours() == 0) date_obj.setUTCHours(date_obj.getUTCHours() + 12);
@@ -9318,7 +9210,7 @@ class String$1 extends Field {
   constructor(name, obj) {
     super(name);
     this._encrypted = false;
-    this._list;
+    this._list = null;
     this._multiple = false;
     this.buildGetterSetters();
     if (obj) this.apply(obj);
@@ -9474,7 +9366,7 @@ function hasEntity(name) {
 }
 function defaultEntity() {
   for (const name in _entities) {
-    return name;
+    if (!_entities[name].parent && _entities[name].perms && _entities[name].perms.includes("get") && _entities[name].max_rows != 1) return name;
   }
 }
 function getRoot(entity) {
@@ -9488,37 +9380,37 @@ function getRoot(entity) {
 var script$1M = {
   name: 'Card'
 };
-const _hoisted_1$13 = {
+const _hoisted_1$10 = {
   class: "p-card p-component"
 };
-const _hoisted_2$T = {
+const _hoisted_2$S = {
   key: 0,
   class: "p-card-header"
 };
-const _hoisted_3$E = {
+const _hoisted_3$F = {
   class: "p-card-body"
 };
 const _hoisted_4$A = {
   key: 0,
   class: "p-card-title"
 };
-const _hoisted_5$t = {
+const _hoisted_5$u = {
   key: 1,
   class: "p-card-subtitle"
 };
 const _hoisted_6$n = {
   class: "p-card-content"
 };
-const _hoisted_7$d = {
+const _hoisted_7$e = {
   key: 2,
   class: "p-card-footer"
 };
 
-function render$L(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$13, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$T, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_3$E, [_ctx.$slots.title ? (openBlock(), createElementBlock("div", _hoisted_4$A, [renderSlot(_ctx.$slots, "title")])) : createCommentVNode("", true), _ctx.$slots.subtitle ? (openBlock(), createElementBlock("div", _hoisted_5$t, [renderSlot(_ctx.$slots, "subtitle")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_6$n, [renderSlot(_ctx.$slots, "content")]), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_7$d, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)])]);
+function render$G(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$10, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$S, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_3$F, [_ctx.$slots.title ? (openBlock(), createElementBlock("div", _hoisted_4$A, [renderSlot(_ctx.$slots, "title")])) : createCommentVNode("", true), _ctx.$slots.subtitle ? (openBlock(), createElementBlock("div", _hoisted_5$u, [renderSlot(_ctx.$slots, "subtitle")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_6$n, [renderSlot(_ctx.$slots, "content")]), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_7$e, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)])]);
 }
 
-function styleInject$w(css, ref) {
+function styleInject$v(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -9547,9 +9439,9 @@ function styleInject$w(css, ref) {
   }
 }
 
-var css_248z$H = "\n.p-card-header img {\n    width: 100%;\n}\n";
-styleInject$w(css_248z$H);
-script$1M.render = render$L;
+var css_248z$G = "\n.p-card-header img {\n    width: 100%;\n}\n";
+styleInject$v(css_248z$G);
+script$1M.render = render$G;
 
 var script$1L = {
   name: 'InputText',
@@ -9570,19 +9462,19 @@ var script$1L = {
 
   }
 };
-const _hoisted_1$12 = ["value"];
+const _hoisted_1$$ = ["value"];
 
-function render$K(_ctx, _cache, $props, $setup, $data, $options) {
+function render$F(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("input", {
     class: normalizeClass(['p-inputtext p-component', {
       'p-filled': $options.filled
     }]),
     value: $props.modelValue,
     onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
-  }, null, 42, _hoisted_1$12);
+  }, null, 42, _hoisted_1$$);
 }
 
-script$1L.render = render$K;
+script$1L.render = render$F;
 
 let timeout;
 
@@ -9749,12 +9641,12 @@ var script$1K = {
     ripple: Ripple
   }
 };
-const _hoisted_1$11 = ["aria-label", "disabled"];
-const _hoisted_2$S = {
+const _hoisted_1$_ = ["aria-label", "disabled"];
+const _hoisted_2$R = {
   class: "p-button-label"
 };
 
-function render$J(_ctx, _cache, $props, $setup, $data, $options) {
+function render$E(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return withDirectives((openBlock(), createElementBlock("button", {
@@ -9768,13 +9660,13 @@ function render$J(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 2)) : createCommentVNode("", true), $props.icon ? (openBlock(), createElementBlock("span", {
     key: 1,
     class: normalizeClass($options.iconStyleClass)
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_2$S, toDisplayString$1($props.label || ' '), 1), $props.badge ? (openBlock(), createElementBlock("span", {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_2$R, toDisplayString$1($props.label || ' '), 1), $props.badge ? (openBlock(), createElementBlock("span", {
     key: 2,
     class: normalizeClass($options.badgeStyleClass)
-  }, toDisplayString$1($props.badge), 3)) : createCommentVNode("", true)])], 10, _hoisted_1$11)), [[_directive_ripple]]);
+  }, toDisplayString$1($props.badge), 3)) : createCommentVNode("", true)])], 10, _hoisted_1$_)), [[_directive_ripple]]);
 }
 
-script$1K.render = render$J;
+script$1K.render = render$E;
 
 var script$1J = {
   name: 'Message',
@@ -9847,14 +9739,14 @@ var script$1J = {
     ripple: Ripple
   }
 };
-const _hoisted_1$10 = {
+const _hoisted_1$Z = {
   class: "p-message-wrapper"
 };
-const _hoisted_2$R = {
+const _hoisted_2$Q = {
   class: "p-message-text"
 };
 
-function render$I(_ctx, _cache, $props, $setup, $data, $options) {
+function render$D(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createBlock(Transition, {
@@ -9864,9 +9756,9 @@ function render$I(_ctx, _cache, $props, $setup, $data, $options) {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
       class: normalizeClass($options.containerClass),
       role: "alert"
-    }, [createElementVNode("div", _hoisted_1$10, [createElementVNode("span", {
+    }, [createElementVNode("div", _hoisted_1$Z, [createElementVNode("span", {
       class: normalizeClass($options.iconClass)
-    }, null, 2), createElementVNode("div", _hoisted_2$R, [renderSlot(_ctx.$slots, "default")]), $props.closable ? withDirectives((openBlock(), createElementBlock("button", {
+    }, null, 2), createElementVNode("div", _hoisted_2$Q, [renderSlot(_ctx.$slots, "default")]), $props.closable ? withDirectives((openBlock(), createElementBlock("button", {
       key: 0,
       class: "p-message-close p-link",
       onClick: _cache[0] || (_cache[0] = $event => $options.close($event)),
@@ -9877,126 +9769,6 @@ function render$I(_ctx, _cache, $props, $setup, $data, $options) {
     _: 3
   });
 }
-
-function styleInject$v(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$G = "\n.p-message-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-message-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-message-close.p-link {\n    margin-left: auto;\n    overflow: hidden;\n    position: relative;\n}\n.p-message-enter-from {\n    opacity: 0;\n}\n.p-message-enter-active {\n    -webkit-transition: opacity 0.3s;\n    transition: opacity 0.3s;\n}\n.p-message.p-message-leave-from {\n    max-height: 1000px;\n}\n.p-message.p-message-leave-to {\n    max-height: 0;\n    opacity: 0;\n    margin: 0 !important;\n}\n.p-message-leave-active {\n    overflow: hidden;\n    -webkit-transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n    transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n}\n.p-message-leave-active .p-message-close {\n    display: none;\n}\n";
-styleInject$v(css_248z$G);
-script$1J.render = render$I;
-
-const _hoisted_1$$ = /*#__PURE__*/createElementVNode("h2", null, "Login", -1 /* HOISTED */);
-const _hoisted_2$Q = { class: "field row" };
-const _hoisted_3$D = { class: "p-float-label" };
-const _hoisted_4$z = /*#__PURE__*/createElementVNode("label", { for: "lusername" }, "Username", -1 /* HOISTED */);
-const _hoisted_5$s = { class: "field row" };
-const _hoisted_6$m = { class: "p-float-label" };
-const _hoisted_7$c = /*#__PURE__*/createElementVNode("label", { for: "lpassword" }, "Password", -1 /* HOISTED */);
-const _hoisted_8$a = { class: "row" };
-
-
-
-var script$1I = {
-  setup(__props) {
-
-const Client = inject("client");
-const expected_user = configs.get("profile");
-const base = configs.get("base");
-
-
-
-const error = ref('');
-const email = ref('');
-const password = ref('');
-
-
-
-function submit() {
-    error.value = "";
-
-    const formData = new FormData();
-    formData.append("email", email.value);
-    formData.append("password", password.value);
-
-    Client.post("/user/login/" + expected_user, formData)
-    .then(() => {
-        location.href = base + "/";
-    })
-    .catch(e => {
-        error.value = "Incorrect username / password";
-    });
-} 
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("form", null, [
-    _hoisted_1$$,
-    withDirectives(createVNode(unref(script$1J), { severity: "error" }, {
-      default: withCtx(() => [
-        createTextVNode(toDisplayString$1(error.value), 1 /* TEXT */)
-      ]),
-      _: 1 /* STABLE */
-    }, 512 /* NEED_PATCH */), [
-      [vShow, error.value]
-    ]),
-    createElementVNode("div", _hoisted_2$Q, [
-      createElementVNode("span", _hoisted_3$D, [
-        createVNode(unref(script$1L), {
-          id: "lusername",
-          type: "text",
-          modelValue: email.value,
-          "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((email).value = $event))
-        }, null, 8 /* PROPS */, ["modelValue"]),
-        _hoisted_4$z
-      ])
-    ]),
-    createElementVNode("div", _hoisted_5$s, [
-      createElementVNode("span", _hoisted_6$m, [
-        createVNode(unref(script$1L), {
-          id: "lpassword",
-          type: "password",
-          modelValue: password.value,
-          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((password).value = $event))
-        }, null, 8 /* PROPS */, ["modelValue"]),
-        _hoisted_7$c
-      ])
-    ]),
-    createElementVNode("div", _hoisted_8$a, [
-      createVNode(unref(script$1K), {
-        label: _ctx.$t('btns.login'),
-        onClick: submit
-      }, null, 8 /* PROPS */, ["label"])
-    ])
-  ]))
-}
-}
-
-};
 
 function styleInject$u(css, ref) {
   if (ref === void 0) ref = {};
@@ -10027,8 +9799,136 @@ function styleInject$u(css, ref) {
   }
 }
 
-var css_248z$F = "\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx {\r\n        width : 450px;\r\n        margin-left : auto;\r\n        margin-right : auto;\n}\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx > form > div {\r\n        margin-bottom :28px;\n}\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx input {\r\n        width : 100%;\n}\r\n";
+var css_248z$F = "\n.p-message-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-message-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-message-close.p-link {\n    margin-left: auto;\n    overflow: hidden;\n    position: relative;\n}\n.p-message-enter-from {\n    opacity: 0;\n}\n.p-message-enter-active {\n    -webkit-transition: opacity 0.3s;\n    transition: opacity 0.3s;\n}\n.p-message.p-message-leave-from {\n    max-height: 1000px;\n}\n.p-message.p-message-leave-to {\n    max-height: 0;\n    opacity: 0;\n    margin: 0 !important;\n}\n.p-message-leave-active {\n    overflow: hidden;\n    -webkit-transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n    transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s, margin 0.15s;\n}\n.p-message-leave-active .p-message-close {\n    display: none;\n}\n";
 styleInject$u(css_248z$F);
+script$1J.render = render$D;
+
+const _hoisted_1$Y = /*#__PURE__*/createElementVNode("h2", null, "Login", -1 /* HOISTED */);
+const _hoisted_2$P = { class: "field row" };
+const _hoisted_3$E = { class: "p-float-label" };
+const _hoisted_4$z = /*#__PURE__*/createElementVNode("label", { for: "lusername" }, "Username", -1 /* HOISTED */);
+const _hoisted_5$t = { class: "field row" };
+const _hoisted_6$m = { class: "p-float-label" };
+const _hoisted_7$d = /*#__PURE__*/createElementVNode("label", { for: "lpassword" }, "Password", -1 /* HOISTED */);
+const _hoisted_8$a = { class: "row" };
+
+
+
+var script$1I = {
+  setup(__props) {
+
+const Client = inject("client");
+const expected_user = configs.get("profile");
+const base = configs.get("base");
+
+
+
+const error = ref('');
+const email = ref('');
+const password = ref('');
+
+
+
+function submit() {
+    error.value = "";
+
+    const formData = new FormData();
+    formData.append("email", email.value);
+    formData.append("password", password.value);
+
+    Client.post("/user/login/" + expected_user, formData)
+    .then(() => {
+        return Client.get("/user/check-user")
+        //location.href = base + "/";
+    })
+    .then(response => {
+        if (response.name == expected_user) {
+            location.href = base + "/";
+        } else {
+            throw "Login failed";
+        }
+    })
+    .catch(e => {
+        error.value = "Incorrect username / password";
+    });
+} 
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("form", null, [
+    _hoisted_1$Y,
+    withDirectives(createVNode(unref(script$1J), { severity: "error" }, {
+      default: withCtx(() => [
+        createTextVNode(toDisplayString$1(error.value), 1 /* TEXT */)
+      ]),
+      _: 1 /* STABLE */
+    }, 512 /* NEED_PATCH */), [
+      [vShow, error.value]
+    ]),
+    createElementVNode("div", _hoisted_2$P, [
+      createElementVNode("span", _hoisted_3$E, [
+        createVNode(unref(script$1L), {
+          id: "lusername",
+          type: "text",
+          modelValue: email.value,
+          "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((email).value = $event))
+        }, null, 8 /* PROPS */, ["modelValue"]),
+        _hoisted_4$z
+      ])
+    ]),
+    createElementVNode("div", _hoisted_5$t, [
+      createElementVNode("span", _hoisted_6$m, [
+        createVNode(unref(script$1L), {
+          id: "lpassword",
+          type: "password",
+          modelValue: password.value,
+          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((password).value = $event))
+        }, null, 8 /* PROPS */, ["modelValue"]),
+        _hoisted_7$d
+      ])
+    ]),
+    createElementVNode("div", _hoisted_8$a, [
+      createVNode(unref(script$1K), {
+        label: _ctx.$t('btns.login'),
+        onClick: submit
+      }, null, 8 /* PROPS */, ["label"])
+    ])
+  ]))
+}
+}
+
+};
+
+function styleInject$t(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$E = "\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx {\r\n        width : 450px;\r\n        margin-left : auto;\r\n        margin-right : auto;\n}\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx > form > div {\r\n        margin-bottom :28px;\n}\n.login-vue-vue-type-style-index-0-id-7787bfd2-lang_ptj-login__B9jGx input {\r\n        width : 100%;\n}\r\n";
+styleInject$t(css_248z$E);
 
 script$1I.__file = "presstojam/src/components/account/login.vue";
 
@@ -10144,16 +10044,16 @@ var script$1H = {
 
   }
 };
-const _hoisted_1$_ = {
+const _hoisted_1$X = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$P = ["id", "value", "name", "checked", "tabindex", "disabled", "readonly", "required", "aria-labelledby", "aria-label"];
+const _hoisted_2$O = ["id", "value", "name", "checked", "tabindex", "disabled", "readonly", "required", "aria-labelledby", "aria-label"];
 
-function render$H(_ctx, _cache, $props, $setup, $data, $options) {
+function render$C(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass),
     onClick: _cache[2] || (_cache[2] = $event => $options.onClick($event))
-  }, [createElementVNode("div", _hoisted_1$_, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$X, [createElementVNode("input", mergeProps({
     ref: "input",
     id: $props.inputId,
     type: "checkbox",
@@ -10170,7 +10070,7 @@ function render$H(_ctx, _cache, $props, $setup, $data, $options) {
     "aria-label": _ctx.ariaLabel,
     onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
     onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event))
-  }, $props.inputProps), null, 16, _hoisted_2$P)]), createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$O)]), createElementVNode("div", {
     ref: "box",
     class: normalizeClass(['p-checkbox-box', {
       'p-highlight': $options.checked,
@@ -10184,15 +10084,15 @@ function render$H(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 2)], 2)], 2);
 }
 
-script$1H.render = render$H;
+script$1H.render = render$C;
 
-const _hoisted_1$Z = { class: "ptj-register" };
-const _hoisted_2$O = /*#__PURE__*/createElementVNode("h2", null, "Register", -1 /* HOISTED */);
-const _hoisted_3$C = { class: "row" };
+const _hoisted_1$W = { class: "ptj-register" };
+const _hoisted_2$N = /*#__PURE__*/createElementVNode("h2", null, "Register", -1 /* HOISTED */);
+const _hoisted_3$D = { class: "row" };
 const _hoisted_4$y = { class: "p-float-label" };
-const _hoisted_5$r = /*#__PURE__*/createElementVNode("label", { for: "cusername" }, "Username", -1 /* HOISTED */);
+const _hoisted_5$s = /*#__PURE__*/createElementVNode("label", { for: "cusername" }, "Username", -1 /* HOISTED */);
 const _hoisted_6$l = { class: "row" };
-const _hoisted_7$b = { class: "p-float-label" };
+const _hoisted_7$c = { class: "p-float-label" };
 const _hoisted_8$9 = /*#__PURE__*/createElementVNode("label", { for: "cpassword" }, "Password", -1 /* HOISTED */);
 const _hoisted_9$6 = { class: "row" };
 const _hoisted_10$6 = { class: "p-float-label" };
@@ -10261,8 +10161,8 @@ var script$1G = {
    } 
    
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("form", _hoisted_1$Z, [
-    _hoisted_2$O,
+  return (openBlock(), createElementBlock("form", _hoisted_1$W, [
+    _hoisted_2$N,
     withDirectives(createVNode(unref(script$1J), { severity: "error" }, {
       default: withCtx(() => [
         createTextVNode(toDisplayString$1(error.value), 1 /* TEXT */)
@@ -10271,7 +10171,7 @@ return (_ctx, _cache) => {
     }, 512 /* NEED_PATCH */), [
       [vShow, error.value]
     ]),
-    createElementVNode("div", _hoisted_3$C, [
+    createElementVNode("div", _hoisted_3$D, [
       createElementVNode("span", _hoisted_4$y, [
         createVNode(unref(script$1L), {
           id: "cusername",
@@ -10279,11 +10179,11 @@ return (_ctx, _cache) => {
           modelValue: username.value,
           "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((username).value = $event))
         }, null, 8 /* PROPS */, ["modelValue"]),
-        _hoisted_5$r
+        _hoisted_5$s
       ])
     ]),
     createElementVNode("div", _hoisted_6$l, [
-      createElementVNode("span", _hoisted_7$b, [
+      createElementVNode("span", _hoisted_7$c, [
         createVNode(unref(script$1L), {
           id: "cpassword",
           type: "password",
@@ -10324,16 +10224,16 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$E = "\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- > form > div {\r\n           margin-bottom :28px;\n}\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- input {\r\n           width : 100%;\n}\r\n   ";
-styleInject$u(css_248z$E);
+var css_248z$D = "\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- > form > div {\r\n           margin-bottom :28px;\n}\n.register-vue-vue-type-style-index-0-id-c6c7206c-lang_ptj-login__lZnG- input {\r\n           width : 100%;\n}\r\n   ";
+styleInject$t(css_248z$D);
 
 script$1G.__file = "presstojam/src/components/account/register.vue";
 
-const _hoisted_1$Y = { class: "ptj-register" };
-const _hoisted_2$N = /*#__PURE__*/createElementVNode("h2", null, "Forgotten Password", -1 /* HOISTED */);
-const _hoisted_3$B = { class: "row" };
+const _hoisted_1$V = { class: "ptj-register" };
+const _hoisted_2$M = /*#__PURE__*/createElementVNode("h2", null, "Forgotten Password", -1 /* HOISTED */);
+const _hoisted_3$C = { class: "row" };
 const _hoisted_4$x = { class: "p-float-label" };
-const _hoisted_5$q = /*#__PURE__*/createElementVNode("label", { for: "fusername" }, "Username", -1 /* HOISTED */);
+const _hoisted_5$r = /*#__PURE__*/createElementVNode("label", { for: "fusername" }, "Username", -1 /* HOISTED */);
 const _hoisted_6$k = { class: "row" };
    
    
@@ -10362,12 +10262,12 @@ var script$1F = {
     } 
    
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("form", _hoisted_1$Y, [
-    _hoisted_2$N,
+  return (openBlock(), createElementBlock("form", _hoisted_1$V, [
+    _hoisted_2$M,
     withDirectives(createElementVNode("div", { class: "ptj-form-error" }, toDisplayString$1(error.value), 513 /* TEXT, NEED_PATCH */), [
       [vShow, error.value]
     ]),
-    createElementVNode("div", _hoisted_3$B, [
+    createElementVNode("div", _hoisted_3$C, [
       createElementVNode("span", _hoisted_4$x, [
         createVNode(unref(script$1L), {
           id: "fusername",
@@ -10375,7 +10275,7 @@ return (_ctx, _cache) => {
           modelValue: username.value,
           "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((username).value = $event))
         }, null, 8 /* PROPS */, ["modelValue"]),
-        _hoisted_5$q
+        _hoisted_5$r
       ])
     ]),
     createElementVNode("div", _hoisted_6$k, [
@@ -10390,16 +10290,16 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$D = "\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj > form > div {\r\n           margin-bottom :28px;\n}\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj input {\r\n           width : 100%;\n}\r\n   ";
-styleInject$u(css_248z$D);
+var css_248z$C = "\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj > form > div {\r\n           margin-bottom :28px;\n}\n.forgottenpassword-vue-vue-type-style-index-0-id-fd7580c4-lang_ptj-login__ILNqj input {\r\n           width : 100%;\n}\r\n   ";
+styleInject$t(css_248z$C);
 
 script$1F.__file = "presstojam/src/components/account/forgottenpassword.vue";
 
-const _hoisted_1$X = /*#__PURE__*/createTextVNode(" Account ");
-const _hoisted_2$M = { class: "ptj-login" };
-const _hoisted_3$A = { class: "row" };
+const _hoisted_1$U = /*#__PURE__*/createTextVNode(" Account ");
+const _hoisted_2$L = { class: "ptj-login" };
+const _hoisted_3$B = { class: "row" };
 const _hoisted_4$w = /*#__PURE__*/createTextVNode(" | ");
-const _hoisted_5$p = /*#__PURE__*/createTextVNode(" | ");
+const _hoisted_5$q = /*#__PURE__*/createTextVNode(" | ");
    
    
    
@@ -10420,10 +10320,10 @@ var script$1E = {
 return (_ctx, _cache) => {
   return (openBlock(), createBlock(unref(script$1M), null, {
     title: withCtx(() => [
-      _hoisted_1$X
+      _hoisted_1$U
     ]),
     content: withCtx(() => [
-      createElementVNode("div", _hoisted_2$M, [
+      createElementVNode("div", _hoisted_2$L, [
         withDirectives(createVNode(script$1I, null, null, 512 /* NEED_PATCH */), [
           [vShow, state.value=='login']
         ]),
@@ -10433,7 +10333,7 @@ return (_ctx, _cache) => {
         withDirectives(createVNode(script$1F, null, null, 512 /* NEED_PATCH */), [
           [vShow, state.value=='forgotpassword']
         ]),
-        createElementVNode("div", _hoisted_3$A, [
+        createElementVNode("div", _hoisted_3$B, [
           createElementVNode("a", {
             onClick: _cache[0] || (_cache[0] = $event => (toggleState('login')))
           }, "Login"),
@@ -10441,7 +10341,7 @@ return (_ctx, _cache) => {
           createElementVNode("a", {
             onClick: _cache[1] || (_cache[1] = $event => (toggleState('create')))
           }, "Register"),
-          _hoisted_5$p,
+          _hoisted_5$q,
           createElementVNode("a", {
             onClick: _cache[2] || (_cache[2] = $event => (toggleState('forgotpassword')))
           }, "Forgotten password?")
@@ -10455,8 +10355,8 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$C = "\n.account-vue-vue-type-style-index-0-id-4e65ef54-lang_ptj-login__YiA4y {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\r\n   \r\n   ";
-styleInject$u(css_248z$C);
+var css_248z$B = "\n.account-vue-vue-type-style-index-0-id-4e65ef54-lang_ptj-login__YiA4y {\r\n           width : 450px;\r\n           margin-left : auto;\r\n           margin-right : auto;\n}\r\n   \r\n   ";
+styleInject$t(css_248z$B);
 
 script$1E.__file = "presstojam/src/components/account/account.vue";
 
@@ -10465,7 +10365,7 @@ var account = /*#__PURE__*/Object.freeze({
   'default': script$1E
 });
 
-function render$G(_ctx, _cache) {
+function render$B(_ctx, _cache) {
   const _component_router_view = resolveComponent("router-view");
 
   return (openBlock(), createBlock(_component_router_view, null, {
@@ -10487,12 +10387,12 @@ function render$G(_ctx, _cache) {
   }))
 }
 
-var css_248z$B = "\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  transition-property: opacity;\r\n  transition-duration: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs {\r\n  transition-delay: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter__T5pru, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  opacity: 0\n}\r\n";
-styleInject$u(css_248z$B);
+var css_248z$A = "\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  transition-property: opacity;\r\n  transition-duration: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter-active__WCBJs {\r\n  transition-delay: .25s;\n}\n.routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-enter__T5pru, .routes-vue-vue-type-style-index-0-id-16a8c88f-lang_fade-leave-active__fjMS2 {\r\n  opacity: 0\n}\r\n";
+styleInject$t(css_248z$A);
 
 const script$1D = {};
 
-script$1D.render = render$G;
+script$1D.render = render$B;
 script$1D.__file = "presstojam/src/components/routes.vue";
 
 var script$1$7 = {
@@ -10664,7 +10564,7 @@ const _hoisted_5$1$4 = ["href", "target"];
 const _hoisted_6$j = {
   class: "p-menuitem-text"
 };
-const _hoisted_7$a = ["id"];
+const _hoisted_7$b = ["id"];
 
 function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_router_link = resolveComponent("router-link");
@@ -10755,7 +10655,7 @@ function render$1$7(_ctx, _cache, $props, $setup, $data, $options) {
       style: normalizeStyle($options.getItemProp(processedItem, 'style')),
       class: normalizeClass($options.getSeparatorItemClass(processedItem)),
       role: "separator"
-    }, null, 14, _hoisted_7$a)) : createCommentVNode("", true)], 64);
+    }, null, 14, _hoisted_7$b)) : createCommentVNode("", true)], 64);
   }), 128))]);
 }
 
@@ -11411,29 +11311,29 @@ var script$1C = {
     MenubarSub: script$1$7
   }
 };
-const _hoisted_1$W = {
+const _hoisted_1$T = {
   key: 0,
   class: "p-menubar-start"
 };
-const _hoisted_2$L = ["aria-haspopup", "aria-expanded", "aria-controls", "aria-label"];
+const _hoisted_2$K = ["aria-haspopup", "aria-expanded", "aria-controls", "aria-label"];
 
-const _hoisted_3$z = /*#__PURE__*/createElementVNode("i", {
+const _hoisted_3$A = /*#__PURE__*/createElementVNode("i", {
   class: "pi pi-bars"
 }, null, -1);
 
-const _hoisted_4$v = [_hoisted_3$z];
-const _hoisted_5$o = {
+const _hoisted_4$v = [_hoisted_3$A];
+const _hoisted_5$p = {
   key: 2,
   class: "p-menubar-end"
 };
 
-function render$F(_ctx, _cache, $props, $setup, $data, $options) {
+function render$A(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_MenubarSub = resolveComponent("MenubarSub");
 
   return openBlock(), createElementBlock("div", {
     ref: $options.containerRef,
     class: normalizeClass($options.containerClass)
-  }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_1$W, [renderSlot(_ctx.$slots, "start")])) : createCommentVNode("", true), $props.model.length > 0 ? (openBlock(), createElementBlock("a", mergeProps({
+  }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_1$T, [renderSlot(_ctx.$slots, "start")])) : createCommentVNode("", true), $props.model.length > 0 ? (openBlock(), createElementBlock("a", mergeProps({
     key: 1,
     ref: "menubutton",
     role: "button",
@@ -11445,7 +11345,7 @@ function render$F(_ctx, _cache, $props, $setup, $data, $options) {
     "aria-label": _ctx.$primevue.config.locale.aria.navigation,
     onClick: _cache[0] || (_cache[0] = $event => $options.menuButtonClick($event)),
     onKeydown: _cache[1] || (_cache[1] = $event => $options.menuButtonKeydown($event))
-  }, $props.buttonProps), _hoisted_4$v, 16, _hoisted_2$L)) : createCommentVNode("", true), createVNode(_component_MenubarSub, {
+  }, $props.buttonProps), _hoisted_4$v, 16, _hoisted_2$K)) : createCommentVNode("", true), createVNode(_component_MenubarSub, {
     ref: $options.menubarRef,
     id: $options.id,
     class: "p-menubar-root-list",
@@ -11468,10 +11368,10 @@ function render$F(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: $options.onKeyDown,
     onItemClick: $options.onItemClick,
     onItemMouseenter: $options.onItemMouseEnter
-  }, null, 8, ["id", "items", "template", "mobileActive", "aria-activedescendant", "menuId", "focusedItemId", "activeItemPath", "exact", "aria-labelledby", "aria-label", "onFocus", "onBlur", "onKeydown", "onItemClick", "onItemMouseenter"]), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_5$o, [renderSlot(_ctx.$slots, "end")])) : createCommentVNode("", true)], 2);
+  }, null, 8, ["id", "items", "template", "mobileActive", "aria-activedescendant", "menuId", "focusedItemId", "activeItemPath", "exact", "aria-labelledby", "aria-label", "onFocus", "onBlur", "onKeydown", "onItemClick", "onItemMouseenter"]), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_5$p, [renderSlot(_ctx.$slots, "end")])) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$t(css, ref) {
+function styleInject$s(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -11500,9 +11400,9 @@ function styleInject$t(css, ref) {
   }
 }
 
-var css_248z$A = "\n.p-menubar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-menubar ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menubar .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menubar .p-menuitem-text {\n    line-height: 1;\n}\n.p-menubar .p-menuitem {\n    position: relative;\n}\n.p-menubar-root-list {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-menubar-root-list > li ul {\n    display: none;\n    z-index: 1;\n}\n.p-menubar-root-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n}\n.p-menubar .p-submenu-list {\n    display: none;\n    position: absolute;\n    z-index: 1;\n}\n.p-menubar .p-submenu-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n    left: 100%;\n    top: 0;\n}\n.p-menubar .p-submenu-list .p-menuitem .p-menuitem-content .p-menuitem-link .p-submenu-icon {\n    margin-left: auto;\n}\n.p-menubar .p-menubar-end {\n    margin-left: auto;\n    -ms-flex-item-align: center;\n        align-self: center;\n}\n.p-menubar-button {\n    display: none;\n    cursor: pointer;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    text-decoration: none;\n}\n";
-styleInject$t(css_248z$A);
-script$1C.render = render$F;
+var css_248z$z = "\n.p-menubar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-menubar ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menubar .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menubar .p-menuitem-text {\n    line-height: 1;\n}\n.p-menubar .p-menuitem {\n    position: relative;\n}\n.p-menubar-root-list {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-menubar-root-list > li ul {\n    display: none;\n    z-index: 1;\n}\n.p-menubar-root-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n}\n.p-menubar .p-submenu-list {\n    display: none;\n    position: absolute;\n    z-index: 1;\n}\n.p-menubar .p-submenu-list > .p-menuitem-active > .p-submenu-list {\n    display: block;\n    left: 100%;\n    top: 0;\n}\n.p-menubar .p-submenu-list .p-menuitem .p-menuitem-content .p-menuitem-link .p-submenu-icon {\n    margin-left: auto;\n}\n.p-menubar .p-menubar-end {\n    margin-left: auto;\n    -ms-flex-item-align: center;\n        align-self: center;\n}\n.p-menubar-button {\n    display: none;\n    cursor: pointer;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    text-decoration: none;\n}\n";
+styleInject$s(css_248z$z);
+script$1C.render = render$A;
 
 var OverlayEventBus = primebus();
 
@@ -11537,7 +11437,7 @@ var script$1B = {
   }
 };
 
-function render$E(_ctx, _cache, $props, $setup, $data, $options) {
+function render$z(_ctx, _cache, $props, $setup, $data, $options) {
   return $options.inline ? renderSlot(_ctx.$slots, "default", {
     key: 0
   }) : $data.mounted ? (openBlock(), createBlock(Teleport, {
@@ -11546,7 +11446,7 @@ function render$E(_ctx, _cache, $props, $setup, $data, $options) {
   }, [renderSlot(_ctx.$slots, "default")], 8, ["to"])) : createCommentVNode("", true);
 }
 
-script$1B.render = render$E;
+script$1B.render = render$z;
 
 var script$1$6 = {
   name: 'Menuitem',
@@ -11618,7 +11518,7 @@ const _hoisted_3$1$5 = {
   class: "p-menuitem-text"
 };
 const _hoisted_4$u = ["href", "target"];
-const _hoisted_5$n = {
+const _hoisted_5$o = {
   class: "p-menuitem-text"
 };
 
@@ -11674,7 +11574,7 @@ function render$1$6(_ctx, _cache, $props, $setup, $data, $options) {
   }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
     key: 0,
     class: normalizeClass(['p-menuitem-icon', $props.item.icon])
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_5$n, toDisplayString$1($options.label()), 1)], 10, _hoisted_4$u)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_5$o, toDisplayString$1($options.label()), 1)], 10, _hoisted_4$u)), [[_directive_ripple]])], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
     key: 1,
     item: $props.item
   }, null, 8, ["item"]))])], 14, _hoisted_1$1$6)) : createCommentVNode("", true);
@@ -12063,11 +11963,11 @@ var script$1A = {
     Portal: script$1B
   }
 };
-const _hoisted_1$V = ["id"];
-const _hoisted_2$K = ["id", "tabindex", "aria-activedescendant", "aria-label", "aria-labelledby"];
-const _hoisted_3$y = ["id"];
+const _hoisted_1$S = ["id"];
+const _hoisted_2$J = ["id", "tabindex", "aria-activedescendant", "aria-label", "aria-labelledby"];
+const _hoisted_3$z = ["id"];
 
-function render$D(_ctx, _cache, $props, $setup, $data, $options) {
+function render$y(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_PVMenuitem = resolveComponent("PVMenuitem");
 
   const _component_Portal = resolveComponent("Portal");
@@ -12113,7 +12013,7 @@ function render$D(_ctx, _cache, $props, $setup, $data, $options) {
           role: "none"
         }, [renderSlot(_ctx.$slots, "item", {
           item: item
-        }, () => [createTextVNode(toDisplayString$1($options.label(item)), 1)])], 8, _hoisted_3$y)) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(item.items, (child, j) => {
+        }, () => [createTextVNode(toDisplayString$1($options.label(item)), 1)])], 8, _hoisted_3$z)) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(item.items, (child, j) => {
           return openBlock(), createElementBlock(Fragment, {
             key: child.label + i + '_' + j
           }, [$options.visible(child) && !child.separator ? (openBlock(), createBlock(_component_PVMenuitem, {
@@ -12144,14 +12044,14 @@ function render$D(_ctx, _cache, $props, $setup, $data, $options) {
           focusedOptionId: $options.focusedOptionId,
           onItemClick: $options.itemClick
         }, null, 8, ["id", "item", "template", "exact", "focusedOptionId", "onItemClick"]))], 64);
-      }), 128))], 40, _hoisted_2$K)], 16, _hoisted_1$V)) : createCommentVNode("", true)]),
+      }), 128))], 40, _hoisted_2$J)], 16, _hoisted_1$S)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo", "disabled"]);
 }
 
-function styleInject$s(css, ref) {
+function styleInject$r(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -12180,15 +12080,15 @@ function styleInject$s(css, ref) {
   }
 }
 
-var css_248z$z = "\n.p-menu-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-menu ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menu .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menu .p-menuitem-text {\n    line-height: 1;\n}\n";
-styleInject$s(css_248z$z);
-script$1A.render = render$D;
+var css_248z$y = "\n.p-menu-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-menu ul {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-menu .p-menuitem-link {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-menu .p-menuitem-text {\n    line-height: 1;\n}\n";
+styleInject$r(css_248z$y);
+script$1A.render = render$y;
 
-const _hoisted_1$U = ["href", "onClick"];
-const _hoisted_2$J = { key: 1 };
-const _hoisted_3$x = ["href", "onClick"];
+const _hoisted_1$R = ["href", "onClick"];
+const _hoisted_2$I = { key: 1 };
+const _hoisted_3$y = ["href", "onClick"];
 const _hoisted_4$t = ["onClick"];
-const _hoisted_5$m = { key: 1 };
+const _hoisted_5$n = { key: 1 };
 const _hoisted_6$i = ["onClick"];
 
 
@@ -12224,26 +12124,20 @@ for(const i in routes) {
                 is_report : false
             });
             
-            for(const x of route.cells['--id'].reference) {
-                const croute = routes[x];
-                arr.push({
-                    label : croute.name,
-                    model : x,
-                    is_report : false
-                });
-            }
-        } else {
+        } else if (route.perms && route.perms.includes("get")) {
             arr.push({
                 label : route.name,
                 model : i,
                 is_report : false
             });
-        }
 
-        report_items.value.push({
+            report_items.value.push({
             label : route.name,
             model : i
         });
+        }
+
+        
     }
     
 }
@@ -12304,11 +12198,11 @@ return (_ctx, _cache) => {
                 href: href,
                 onClick: navigate,
                 class: normalizeClass(["p-menuitem-link p-menuitem-content", {'active-link': isActive, 'active-link-exact': isExactActive}])
-              }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_1$U)
+              }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_1$R)
             ]),
             _: 2 /* DYNAMIC */
           }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"]))
-        : (openBlock(), createElementBlock("div", _hoisted_2$J, [
+        : (openBlock(), createElementBlock("div", _hoisted_2$I, [
             createElementVNode("a", {
               class: "p-menuitem-link p-menuitem-content",
               onClick: toggleReports
@@ -12329,7 +12223,7 @@ return (_ctx, _cache) => {
                       href: href,
                       onClick: navigate,
                       class: normalizeClass(["p-menuitem-link p-menuitem-content", {'active-link': isActive, 'active-link-exact': isExactActive}])
-                    }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_3$x)
+                    }, toDisplayString$1(item.label), 11 /* TEXT, CLASS, PROPS */, _hoisted_3$y)
                   ]),
                   _: 2 /* DYNAMIC */
                 }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"])
@@ -12372,7 +12266,7 @@ return (_ctx, _cache) => {
                 ]),
                 _: 2 /* DYNAMIC */
               }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["to"]))
-            : (openBlock(), createElementBlock("div", _hoisted_5$m, [
+            : (openBlock(), createElementBlock("div", _hoisted_5$n, [
                 createElementVNode("a", {
                   onClick: item.command,
                   class: "p-menuitem-link p-menuitem-content"
@@ -12431,7 +12325,7 @@ function createHiddenElements(el) {
   el.append(lastVNode);
 }
 
-function bind(el) {
+function bind$1(el) {
   el.$_pfocustrap_keydownlistener = e => {
     if (e.code === 'Tab') {
       shiftKey = e.shiftKey;
@@ -12462,7 +12356,7 @@ const FocusTrap = {
       if (!el.$_pfocustrapFocusTrapDisabled) {
         element = el;
         createHiddenElements(el);
-        bind(el);
+        bind$1(el);
       }
     }
   },
@@ -12964,15 +12858,15 @@ var script$1y = {
     Portal: script$1B
   }
 };
-const _hoisted_1$T = ["aria-labelledby", "aria-modal"];
-const _hoisted_2$I = ["id"];
-const _hoisted_3$w = {
+const _hoisted_1$Q = ["aria-labelledby", "aria-modal"];
+const _hoisted_2$H = ["id"];
+const _hoisted_3$x = {
   class: "p-dialog-header-icons"
 };
 const _hoisted_4$s = ["tabindex"];
-const _hoisted_5$l = ["aria-label"];
+const _hoisted_5$m = ["aria-label"];
 
-function render$C(_ctx, _cache, $props, $setup, $data, $options) {
+function render$x(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Portal = resolveComponent("Portal");
 
   const _directive_ripple = resolveDirective("ripple");
@@ -13012,7 +12906,7 @@ function render$C(_ctx, _cache, $props, $setup, $data, $options) {
         key: 0,
         id: $options.ariaLabelledById,
         class: "p-dialog-title"
-      }, toDisplayString$1($props.header), 9, _hoisted_2$I)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$w, [$props.maximizable ? withDirectives((openBlock(), createElementBlock("button", {
+      }, toDisplayString$1($props.header), 9, _hoisted_2$H)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$x, [$props.maximizable ? withDirectives((openBlock(), createElementBlock("button", {
         key: 0,
         ref: $options.maximizableRef,
         autofocus: "",
@@ -13032,7 +12926,7 @@ function render$C(_ctx, _cache, $props, $setup, $data, $options) {
         type: "button"
       }, $props.closeButtonProps), [createElementVNode("span", {
         class: normalizeClass(['p-dialog-header-close-icon', $props.closeIcon])
-      }, null, 2)], 16, _hoisted_5$l)), [[_directive_ripple]]) : createCommentVNode("", true)])], 544)) : createCommentVNode("", true), createElementVNode("div", mergeProps({
+      }, null, 2)], 16, _hoisted_5$m)), [[_directive_ripple]]) : createCommentVNode("", true)])], 544)) : createCommentVNode("", true), createElementVNode("div", mergeProps({
         ref: $options.contentRef,
         class: $options.contentStyleClass,
         style: $props.contentStyle
@@ -13040,7 +12934,7 @@ function render$C(_ctx, _cache, $props, $setup, $data, $options) {
         key: 1,
         ref: $options.footerContainerRef,
         class: "p-dialog-footer"
-      }, [renderSlot(_ctx.$slots, "footer", {}, () => [createTextVNode(toDisplayString$1($props.footer), 1)])], 512)) : createCommentVNode("", true)], 16, _hoisted_1$T)), [[_directive_focustrap, {
+      }, [renderSlot(_ctx.$slots, "footer", {}, () => [createTextVNode(toDisplayString$1($props.footer), 1)])], 512)) : createCommentVNode("", true)], 16, _hoisted_1$Q)), [[_directive_focustrap, {
         focusTrapDisabled: !$props.modal
       }]]) : createCommentVNode("", true)]),
       _: 3
@@ -13049,7 +12943,7 @@ function render$C(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"]);
 }
 
-function styleInject$r(css, ref) {
+function styleInject$q(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -13078,9 +12972,9 @@ function styleInject$r(css, ref) {
   }
 }
 
-var css_248z$y = "\n.p-dialog-mask {\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    pointer-events: none;\n}\n.p-dialog-mask.p-component-overlay {\n    pointer-events: auto;\n}\n.p-dialog {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    pointer-events: auto;\n    max-height: 90%;\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n.p-dialog-content {\n    overflow-y: auto;\n}\n.p-dialog-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog-footer {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog .p-dialog-header-icons {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-dialog .p-dialog-header-icon {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Fluid */\n.p-fluid .p-dialog-footer .p-button {\n    width: auto;\n}\n\n/* Animation */\n/* Center */\n.p-dialog-enter-active {\n    -webkit-transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n}\n.p-dialog-leave-active {\n    -webkit-transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n.p-dialog-enter-from,\n.p-dialog-leave-to {\n    opacity: 0;\n    -webkit-transform: scale(0.7);\n            transform: scale(0.7);\n}\n\n/* Top, Bottom, Left, Right, Top* and Bottom* */\n.p-dialog-top .p-dialog,\n.p-dialog-bottom .p-dialog,\n.p-dialog-left .p-dialog,\n.p-dialog-right .p-dialog,\n.p-dialog-topleft .p-dialog,\n.p-dialog-topright .p-dialog,\n.p-dialog-bottomleft .p-dialog,\n.p-dialog-bottomright .p-dialog {\n    margin: 0.75rem;\n    -webkit-transform: translate3d(0px, 0px, 0px);\n            transform: translate3d(0px, 0px, 0px);\n}\n.p-dialog-top .p-dialog-enter-active,\n.p-dialog-top .p-dialog-leave-active,\n.p-dialog-bottom .p-dialog-enter-active,\n.p-dialog-bottom .p-dialog-leave-active,\n.p-dialog-left .p-dialog-enter-active,\n.p-dialog-left .p-dialog-leave-active,\n.p-dialog-right .p-dialog-enter-active,\n.p-dialog-right .p-dialog-leave-active,\n.p-dialog-topleft .p-dialog-enter-active,\n.p-dialog-topleft .p-dialog-leave-active,\n.p-dialog-topright .p-dialog-enter-active,\n.p-dialog-topright .p-dialog-leave-active,\n.p-dialog-bottomleft .p-dialog-enter-active,\n.p-dialog-bottomleft .p-dialog-leave-active,\n.p-dialog-bottomright .p-dialog-enter-active,\n.p-dialog-bottomright .p-dialog-leave-active {\n    -webkit-transition: all 0.3s ease-out;\n    transition: all 0.3s ease-out;\n}\n.p-dialog-top .p-dialog-enter-from,\n.p-dialog-top .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, -100%, 0px);\n            transform: translate3d(0px, -100%, 0px);\n}\n.p-dialog-bottom .p-dialog-enter-from,\n.p-dialog-bottom .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, 100%, 0px);\n            transform: translate3d(0px, 100%, 0px);\n}\n.p-dialog-left .p-dialog-enter-from,\n.p-dialog-left .p-dialog-leave-to,\n.p-dialog-topleft .p-dialog-enter-from,\n.p-dialog-topleft .p-dialog-leave-to,\n.p-dialog-bottomleft .p-dialog-enter-from,\n.p-dialog-bottomleft .p-dialog-leave-to {\n    -webkit-transform: translate3d(-100%, 0px, 0px);\n            transform: translate3d(-100%, 0px, 0px);\n}\n.p-dialog-right .p-dialog-enter-from,\n.p-dialog-right .p-dialog-leave-to,\n.p-dialog-topright .p-dialog-enter-from,\n.p-dialog-topright .p-dialog-leave-to,\n.p-dialog-bottomright .p-dialog-enter-from,\n.p-dialog-bottomright .p-dialog-leave-to {\n    -webkit-transform: translate3d(100%, 0px, 0px);\n            transform: translate3d(100%, 0px, 0px);\n}\n\n/* Maximize */\n.p-dialog-maximized {\n    -webkit-transition: none;\n    transition: none;\n    -webkit-transform: none;\n            transform: none;\n    width: 100vw !important;\n    height: 100vh !important;\n    top: 0px !important;\n    left: 0px !important;\n    max-height: 100%;\n    height: 100%;\n}\n.p-dialog-maximized .p-dialog-content {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n\n/* Position */\n.p-dialog-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-dialog-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-dialog-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-confirm-dialog .p-dialog-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
-styleInject$r(css_248z$y);
-script$1y.render = render$C;
+var css_248z$x = "\n.p-dialog-mask {\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    pointer-events: none;\n}\n.p-dialog-mask.p-component-overlay {\n    pointer-events: auto;\n}\n.p-dialog {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    pointer-events: auto;\n    max-height: 90%;\n    -webkit-transform: scale(1);\n            transform: scale(1);\n}\n.p-dialog-content {\n    overflow-y: auto;\n}\n.p-dialog-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog-footer {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dialog .p-dialog-header-icons {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-dialog .p-dialog-header-icon {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Fluid */\n.p-fluid .p-dialog-footer .p-button {\n    width: auto;\n}\n\n/* Animation */\n/* Center */\n.p-dialog-enter-active {\n    -webkit-transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0, 0, 0.2, 1);\n}\n.p-dialog-leave-active {\n    -webkit-transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n.p-dialog-enter-from,\n.p-dialog-leave-to {\n    opacity: 0;\n    -webkit-transform: scale(0.7);\n            transform: scale(0.7);\n}\n\n/* Top, Bottom, Left, Right, Top* and Bottom* */\n.p-dialog-top .p-dialog,\n.p-dialog-bottom .p-dialog,\n.p-dialog-left .p-dialog,\n.p-dialog-right .p-dialog,\n.p-dialog-topleft .p-dialog,\n.p-dialog-topright .p-dialog,\n.p-dialog-bottomleft .p-dialog,\n.p-dialog-bottomright .p-dialog {\n    margin: 0.75rem;\n    -webkit-transform: translate3d(0px, 0px, 0px);\n            transform: translate3d(0px, 0px, 0px);\n}\n.p-dialog-top .p-dialog-enter-active,\n.p-dialog-top .p-dialog-leave-active,\n.p-dialog-bottom .p-dialog-enter-active,\n.p-dialog-bottom .p-dialog-leave-active,\n.p-dialog-left .p-dialog-enter-active,\n.p-dialog-left .p-dialog-leave-active,\n.p-dialog-right .p-dialog-enter-active,\n.p-dialog-right .p-dialog-leave-active,\n.p-dialog-topleft .p-dialog-enter-active,\n.p-dialog-topleft .p-dialog-leave-active,\n.p-dialog-topright .p-dialog-enter-active,\n.p-dialog-topright .p-dialog-leave-active,\n.p-dialog-bottomleft .p-dialog-enter-active,\n.p-dialog-bottomleft .p-dialog-leave-active,\n.p-dialog-bottomright .p-dialog-enter-active,\n.p-dialog-bottomright .p-dialog-leave-active {\n    -webkit-transition: all 0.3s ease-out;\n    transition: all 0.3s ease-out;\n}\n.p-dialog-top .p-dialog-enter-from,\n.p-dialog-top .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, -100%, 0px);\n            transform: translate3d(0px, -100%, 0px);\n}\n.p-dialog-bottom .p-dialog-enter-from,\n.p-dialog-bottom .p-dialog-leave-to {\n    -webkit-transform: translate3d(0px, 100%, 0px);\n            transform: translate3d(0px, 100%, 0px);\n}\n.p-dialog-left .p-dialog-enter-from,\n.p-dialog-left .p-dialog-leave-to,\n.p-dialog-topleft .p-dialog-enter-from,\n.p-dialog-topleft .p-dialog-leave-to,\n.p-dialog-bottomleft .p-dialog-enter-from,\n.p-dialog-bottomleft .p-dialog-leave-to {\n    -webkit-transform: translate3d(-100%, 0px, 0px);\n            transform: translate3d(-100%, 0px, 0px);\n}\n.p-dialog-right .p-dialog-enter-from,\n.p-dialog-right .p-dialog-leave-to,\n.p-dialog-topright .p-dialog-enter-from,\n.p-dialog-topright .p-dialog-leave-to,\n.p-dialog-bottomright .p-dialog-enter-from,\n.p-dialog-bottomright .p-dialog-leave-to {\n    -webkit-transform: translate3d(100%, 0px, 0px);\n            transform: translate3d(100%, 0px, 0px);\n}\n\n/* Maximize */\n.p-dialog-maximized {\n    -webkit-transition: none;\n    transition: none;\n    -webkit-transform: none;\n            transform: none;\n    width: 100vw !important;\n    height: 100vh !important;\n    top: 0px !important;\n    left: 0px !important;\n    max-height: 100%;\n    height: 100%;\n}\n.p-dialog-maximized .p-dialog-content {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n\n/* Position */\n.p-dialog-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-dialog-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-dialog-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-topright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-dialog-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomleft {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-dialog-bottomright {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-confirm-dialog .p-dialog-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
+styleInject$q(css_248z$x);
+script$1y.render = render$x;
 
 const _subscriptions = {};
 function subscribe(type, id, callback) {
@@ -13095,7 +12989,7 @@ function unsubscribe(type, id) {
     delete _subscriptions[type][id];
   }
 }
-function trigger$1(type, ...args) {
+function trigger(type, ...args) {
   if (_subscriptions[type]) {
     for (const id in _subscriptions[type]) {
       _subscriptions[type][id](...args);
@@ -13152,471 +13046,6 @@ return (_ctx, _cache) => {
 };
 
 script$1x.__file = "presstojam/src/components/effects/dialog.vue";
-
-class Model {
-  constructor(name, debug = false) {
-    this._name = name;
-    this._fields = {};
-    this._perms = [];
-    this._import = false;
-    this._export = false;
-    this._max_cols = 8;
-    this._no_filter = false;
-    this._children = null;
-    this._sort = null;
-    this._limit = null;
-    this._to = null;
-    this._group = null;
-    this._order = null;
-    this._params = null;
-    this._limited_fields = null;
-    this._export_fields = null;
-    this._distinguish = null;
-    this._audit = false;
-    this._actions = [];
-    this._editable_fields = [];
-    this._classes = null;
-    this._group_classes = null;
-    this._events = {};
-    this._debug = debug;
-    this._parent = null;
-    const keys = Object.keys(this);
-    keys.forEach(property => {
-      if (property[0] == "_") {
-        Object.defineProperty(this, property.substring(1), {
-          get: function () {
-            return this[property];
-          },
-          set: function (newValue) {
-            this[property] = newValue;
-          }
-        });
-      }
-    });
-    const entity = this.loadEntity();
-    this.loadSettings();
-    this.loadFields(entity);
-    this.loadParentFields();
-  }
-
-  get children_models() {
-    return this._fields["--id"].reference;
-  }
-
-  getSettings() {
-    let settings = configs.get("models");
-
-    if (settings[this._name]) {
-      return settings[this._name];
-    }
-  }
-
-  loadSettings() {
-    const settings = this.getSettings();
-
-    if (settings) {
-      if (settings.to) this._to = settings.to;
-      if (settings.perms) this._perms = settings.perms;
-      if (settings.group) this._group = settings.group;
-      if (settings.order) this._order = settings.order;
-      if (settings.params) this._params = settings.params;
-      if (settings.children) this._children = settings.children;
-      if (settings.fields) this._limited_fields = settings.fields;
-      if (settings.limit) this._limit = settings.limit;
-      if (settings.export_fields) this._export_fields = settings.export_fields;
-      if (settings.distinguish) this._distinguish = settings.distinguish;
-      if (settings.actions) this._actions = settings.actions;
-      if (settings.editable) this._editable_fields = settings.editable;
-      if (settings.no_filter) this._no_filter = settings.no_filter;
-      if (settings.max_cols) this._max_cols = settings.max_cols;
-      if (settings.classes) this._classes = settings.classes;
-      if (settings.group_classes) this._group_classes = settings.group_classes;
-      if (settings.events) this._events = settings.events;
-    }
-  }
-
-  loadEntity() {
-    const entity = getEntity(this._name);
-
-    if (!entity) {
-      throw this._name;
-    }
-
-    if (entity.perms) this._perms = entity.perms;
-    if (entity.sort) this._sort = entity.sort;
-    if (entity.audit) this._audit = entity.audit;
-    if (entity.import) this._import = entity.import;
-    if (entity.export) this._export = entity.export;
-    if (entity.parent) this._parent = entity.parent;
-    return entity;
-  }
-
-  loadFields(entity, slug = "") {
-    const fields = entity.cells;
-
-    for (let i in fields) {
-      if (!this._limited_fields || this._limited_fields.includes(slug + i)) {
-        this._fields[slug + i] = Object.assign(Object.create(fields[i]), fields[i]);
-        this._fields[slug + i].slug = slug + i;
-        if (slug) this._fields[slug + i].summary = false; //set summary to false for anything that isn't the base
-
-        if (fields[i].type == "id" && fields[i].reference_type == ReferenceTypes.REFERENCE) {
-          this.loadFields(getEntity(fields[i].reference), slug + i + "/");
-        }
-      }
-    }
-  }
-
-  loadParentFields() {
-    if (this._to) {
-      let parent = this._parent;
-
-      while (parent) {
-        let entity = getEntity(parent);
-        this.loadFields(entity, parent + "/");
-        if (parent == this._to) break;
-        parent = entity.parent;
-      }
-    }
-  }
-
-  loadCount(filters) {
-    if (this._limit) {
-      const client = getClient();
-      return client.get("/count/" + this._name, this.buildParams(filters)).then(response => {
-        return parseInt(response.count);
-      });
-    } else {
-      return Promise.resolve(0);
-    }
-  }
-
-  load(filters) {
-    const client = getClient();
-    return client.get("/data/" + this._name, this.buildParams(filters));
-  }
-
-  loadActive(filters) {
-    const client = getClient();
-    return client.get("/data/" + this._name + "/active", this.buildParams(filters));
-  }
-
-  reloadRow(id) {
-    const client = getClient();
-    return client.get("/data/" + this._name + "/active", {
-      "--id": id
-    });
-  }
-
-  loadFirst(filters) {
-    const client = getClient();
-    return client.get("/data/" + this._name + "/first", this.buildParams(filters));
-  }
-
-  loadReport(filters, field = null, aggregate = null) {
-    let url = "/reports/" + this._name;
-    if (field) url += "/" + field + "/" + aggregate;
-    const client = getClient();
-    return client.get(url, this.buildParams(filters));
-  }
-
-  saveOrder(rows) {
-    const client = getClient();
-    const vals = [];
-
-    for (let i in rows) {
-      vals.push({
-        '--id': rows[i]['--id'],
-        '--sort': i
-      });
-    }
-
-    return client.put("/data/" + this._name + "/resort", {
-      "_rows": vals
-    });
-  }
-
-  buildParams(filters) {
-    let params = {};
-    if (this._to) params.__to = this._to;
-    if (this._group) params.__group = this._group;
-    if (this._limited_fields) params.__fields = this._limited_fields;
-    if (this._order) params.__order = this._order;
-
-    if (this._limit) {
-      params.__limit = this._limit;
-    }
-
-    for (let i in filters) {
-      params[i] = filters[i];
-    }
-
-    return params;
-  }
-
-  trigger(key, data) {
-    if (this._events[key]) {
-      this._events[key](data);
-    }
-  }
-
-  setEditableCells(schema = null) {
-    if (!schema) schema = this._fields;
-
-    for (let i in schema) {
-      schema[i].disabled = false;
-
-      if (schema[i].slug != schema[i].name) {
-        schema[i].disabled = true; //continue - don't use includes or parents
-
-        continue;
-      }
-
-      if (schema[i].system || schema[i].immutable) {
-        schema[i].disabled = true; //continue - don't use includes or parents
-
-        continue;
-      } //check if limited
-
-
-      if (this._editable_fields.length && !this._editable_fields.includes(i)) {
-        schema[i].disabled = true;
-        continue;
-      }
-
-      if (schema[i].type == "json") {
-        this.setEditableCells(schema[i].fields);
-      }
-    }
-  }
-
-  setCreateCells(schema = null) {
-    if (!schema) schema = this._fields;
-
-    for (let i in schema) {
-      schema[i].disabled = false;
-
-      if (schema[i].slug != schema[i].name) {
-        schema[i].disabled = true; //continue - don't use includes or parents
-
-        continue;
-      }
-
-      if (schema[i].system) {
-        schema[i].disabled = true; //continue - don't use includes or parents
-
-        continue;
-      }
-
-      if (schema[i].type == "json") {
-        this.setCreateCells(schema[i].fields);
-      }
-    }
-  }
-
-  setTableCells(schema = null) {
-    if (!schema) schema = this._fields;
-
-    for (let i in schema) {
-      schema[i].disabled = false;
-
-      if (schema[i].background) {
-        schema[i].disabled = true;
-        continue;
-      }
-
-      if (schema[i].type == "id" && schema[i].reference_type == ReferenceTypes.PARENT) {
-        schema[i].disabled = true;
-        continue;
-      }
-
-      if (schema[i].slug != schema[i].name) {
-        if (this._limited_fields) {
-          if (!this._limited_fields.includes(i)) {
-            schema[i].disabled = true;
-            continue;
-          } //don't continue if exists in limited fields
-
-        } else {
-          schema[i].disabled = true;
-          continue;
-        }
-
-        schema[i].disabled = true; //continue - don't use includes or parents
-
-        continue;
-      }
-
-      if (schema[i].type == "json") {
-        this.setTableCells(schema[i].fields);
-      }
-    }
-  }
-
-  getEnabledCells() {
-    let cells = {};
-
-    for (let i in this._fields) {
-      if (!this._fields[i].disabled) {
-        cells[i] = this._fields[i];
-      }
-    }
-
-    return cells;
-  }
-
-  getEnabledSummaryCells() {
-    let cells = {};
-
-    for (let i in this._fields) {
-      if (!this._fields[i].disabled && this._fields[i].summary) {
-        cells[i] = this._fields[i];
-      }
-    }
-
-    return cells;
-  }
-
-}
-
-/*
-class ModelStore {
-
-    constructor(client, model) {
-        this._client = client;
-        this._model = model;
-        this._count_promise = null;
-        this._load_promise = null;
-        this._first_promise = null;
-        this._params = {};
-        this._route = createView(model);
-        this._filters ={};
-        this._parent_id = 0; //set if this is a child of a parent group
-        this._active_id = 0;
-        this._page_offset = 0;      
-        this._limit = (this._route.settings.limit) ? this._route.settings.limit : 0; 
-
-        const keys = Object.keys(this);
-       
-        keys.forEach(property => {
-            if (property == "_parent_id" || property == "_active_id" || property == "_limit" || property == "_page_offset" || property == "_filters") {
-                Object.defineProperty(this, property.substring(1), {
-                    get: function() { 
-                        return this[property];
-                    },
-                    set: function(val) {
-                        this[property] = val;
-                    }
-                });
-            } else if (property[0] == "_") {
-                Object.defineProperty(this, property.substring(1), {
-                    get: function() { 
-                        return this[property];
-                    }
-                });
-            }
-        });
-    }
-        
-        
-    loadCount() {
-        if (!this._count_promise) {
-            if (!this._limit) {
-                this._count_promise = Promise.resolve(true);
-            } else {
-                this._count_promise = this._client.get("/count/" + this._model, this.buildParams())
-                .then(response => {
-                    return parseInt(response.count);
-                });
-            }
-        }
-        return this.count_promise;
-    }
-        
-    load() {
-        if (!this._load_promise) {
-            let url = "/data/" + this._model;
-            if (this._active_id) url += "/active";
-            this._load_promise = this._client.get(url, this.buildParams())
-        }
-        return this.load_promise;
-    }
-
-    loadFirst() {
-        if (!this._first_promise) {
-            let url = "/data/" + this._model + "/first";
-            this._first_promise = this._client.get(url, this.buildParams())
-            .then(row => {
-                this._active_id = row['--id'];
-            });
-        }
-        return this.first_promise;
-    }
-
-    reset() {
-        this._load_promise = null;
-        this._count_promise = null;
-    }
-
-    reload() {
-        this.reset();
-        return this.load();
-    }
-
-
-    overwrite(obj) {
-        if (!obj['--id']) {
-            throw "Can only overwrite store if object contains --id value";
-        }
-            
-        if (this._index[obj['--id']] === undefined) {
-            throw "Can't overwrite object of " + obj['--id'] + ", doesn't exist";
-        }
-                
-        const index = this._index[obj['--id']];
-        for(let i in obj) {
-            this._data[index][i] = obj[i];
-        }
-    }
-        
-    append(obj) {
-        this._index[obj['--id']]
-        if (this._index[obj['--id']] !== undefined) {
-            throw "Can't append row of " + obj['--id'] + ", already exists";
-        }
-
-        this._index[obj['--id']] = this._data.length;
-        this._data.push(obj);
-    }
-        
-    remove(id) {
-        if (this._index[id] !== undefined) {
-            const pos = this._index[id];
-            this._data.splice(pos, 1);
-            delete this._index[id];
-        }
-    }
-
-    
-    
-}
-*/
-
-let cache = {};
-function getModel(model_name, debug = false) {
-  if (!cache[model_name]) {
-    try {
-      cache[model_name] = new Model(model_name, debug);
-    } catch (err) {
-      console.error("Error", err);
-    }
-  }
-
-  return cache[model_name];
-}
-function clearModelCache() {
-  cache = {};
-}
 
 var script$1w = {
   name: 'VirtualScroller',
@@ -14275,13 +13704,13 @@ var script$1w = {
 
   }
 };
-const _hoisted_1$S = ["tabindex"];
-const _hoisted_2$H = {
+const _hoisted_1$P = ["tabindex"];
+const _hoisted_2$G = {
   key: 1,
   class: "p-virtualscroller-loading-icon pi pi-spinner pi-spin"
 };
 
-function render$B(_ctx, _cache, $props, $setup, $data, $options) {
+function render$w(_ctx, _cache, $props, $setup, $data, $options) {
   return !$props.disabled ? (openBlock(), createElementBlock("div", {
     key: 0,
     ref: $options.elementRef,
@@ -14330,7 +13759,7 @@ function render$B(_ctx, _cache, $props, $setup, $data, $options) {
         numCols: _ctx.d_numItemsInViewport.cols
       })
     });
-  }), 128)) : (openBlock(), createElementBlock("i", _hoisted_2$H))], 2)) : createCommentVNode("", true)], 46, _hoisted_1$S)) : (openBlock(), createElementBlock(Fragment, {
+  }), 128)) : (openBlock(), createElementBlock("i", _hoisted_2$G))], 2)) : createCommentVNode("", true)], 46, _hoisted_1$P)) : (openBlock(), createElementBlock(Fragment, {
     key: 1
   }, [renderSlot(_ctx.$slots, "default"), renderSlot(_ctx.$slots, "content", {
     items: $props.items,
@@ -14339,7 +13768,7 @@ function render$B(_ctx, _cache, $props, $setup, $data, $options) {
   })], 64));
 }
 
-function styleInject$q(css, ref) {
+function styleInject$p(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -14368,9 +13797,9 @@ function styleInject$q(css, ref) {
   }
 }
 
-var css_248z$x = "\n.p-virtualscroller {\n    position: relative;\n    overflow: auto;\n    contain: strict;\n    -webkit-transform: translateZ(0);\n            transform: translateZ(0);\n    will-change: scroll-position;\n    outline: 0 none;\n}\n.p-virtualscroller-content {\n    position: absolute;\n    top: 0;\n    left: 0;\n    contain: content;\n    min-height: 100%;\n    min-width: 100%;\n    will-change: transform;\n}\n.p-virtualscroller-spacer {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 1px;\n    -webkit-transform-origin: 0 0;\n            transform-origin: 0 0;\n    pointer-events: none;\n}\n.p-virtualscroller .p-virtualscroller-loader {\n    position: sticky;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n}\n.p-virtualscroller-loader.p-component-overlay {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n";
-styleInject$q(css_248z$x);
-script$1w.render = render$B;
+var css_248z$w = "\n.p-virtualscroller {\n    position: relative;\n    overflow: auto;\n    contain: strict;\n    -webkit-transform: translateZ(0);\n            transform: translateZ(0);\n    will-change: scroll-position;\n    outline: 0 none;\n}\n.p-virtualscroller-content {\n    position: absolute;\n    top: 0;\n    left: 0;\n    contain: content;\n    min-height: 100%;\n    min-width: 100%;\n    will-change: transform;\n}\n.p-virtualscroller-spacer {\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 1px;\n    width: 1px;\n    -webkit-transform-origin: 0 0;\n            transform-origin: 0 0;\n    pointer-events: none;\n}\n.p-virtualscroller .p-virtualscroller-loader {\n    position: sticky;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n}\n.p-virtualscroller-loader.p-component-overlay {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n";
+styleInject$p(css_248z$w);
+script$1w.render = render$w;
 
 var script$1v = {
   name: 'Dropdown',
@@ -15331,20 +14760,20 @@ var script$1v = {
     Portal: script$1B
   }
 };
-const _hoisted_1$R = ["id"];
-const _hoisted_2$G = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_3$v = ["id", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant", "aria-disabled"];
+const _hoisted_1$O = ["id"];
+const _hoisted_2$F = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_3$w = ["id", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant", "aria-disabled"];
 const _hoisted_4$r = {
   class: "p-dropdown-trigger"
 };
-const _hoisted_5$k = {
+const _hoisted_5$l = {
   key: 0,
   class: "p-dropdown-header"
 };
 const _hoisted_6$h = {
   class: "p-dropdown-filter-container"
 };
-const _hoisted_7$9 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
+const _hoisted_7$a = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
 const _hoisted_8$8 = {
   role: "status",
   "aria-live": "polite",
@@ -15375,7 +14804,7 @@ const _hoisted_15$2 = {
   class: "p-hidden-accessible"
 };
 
-function render$A(_ctx, _cache, $props, $setup, $data, $options) {
+function render$v(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
 
   const _component_Portal = resolveComponent("Portal");
@@ -15410,7 +14839,7 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
     onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[3] || (_cache[3] = (...args) => $options.onEditableInput && $options.onEditableInput(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$G)) : (openBlock(), createElementBlock("span", mergeProps({
+  }, $props.inputProps), null, 16, _hoisted_2$F)) : (openBlock(), createElementBlock("span", mergeProps({
     key: 1,
     ref: "focusInput",
     id: $props.inputId,
@@ -15431,7 +14860,7 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.inputProps), [renderSlot(_ctx.$slots, "value", {
     value: $props.modelValue,
     placeholder: $props.placeholder
-  }, () => [createTextVNode(toDisplayString$1($options.label === 'p-emptylabel' ? ' ' : $options.label || 'empty'), 1)])], 16, _hoisted_3$v)), $props.showClear && $props.modelValue != null ? (openBlock(), createElementBlock("i", mergeProps({
+  }, () => [createTextVNode(toDisplayString$1($options.label === 'p-emptylabel' ? ' ' : $options.label || 'empty'), 1)])], 16, _hoisted_3$w)), $props.showClear && $props.modelValue != null ? (openBlock(), createElementBlock("i", mergeProps({
     key: 2,
     class: ['p-dropdown-clear-icon', $props.clearIcon],
     onClick: _cache[7] || (_cache[7] = (...args) => $options.onClearClick && $options.onClearClick(...args))
@@ -15465,7 +14894,7 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
       }, null, 544), renderSlot(_ctx.$slots, "header", {
         value: $props.modelValue,
         options: $options.visibleOptions
-      }), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_5$k, [createElementVNode("div", _hoisted_6$h, [createElementVNode("input", mergeProps({
+      }), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_5$l, [createElementVNode("div", _hoisted_6$h, [createElementVNode("input", mergeProps({
         ref: "filterInput",
         type: "text",
         value: $data.filterValue,
@@ -15479,7 +14908,7 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
         onKeydown: _cache[10] || (_cache[10] = (...args) => $options.onFilterKeyDown && $options.onFilterKeyDown(...args)),
         onBlur: _cache[11] || (_cache[11] = (...args) => $options.onFilterBlur && $options.onFilterBlur(...args)),
         onInput: _cache[12] || (_cache[12] = (...args) => $options.onFilterChange && $options.onFilterChange(...args))
-      }, $props.filterInputProps), null, 16, _hoisted_7$9), createElementVNode("span", {
+      }, $props.filterInputProps), null, 16, _hoisted_7$a), createElementVNode("span", {
         class: normalizeClass(['p-dropdown-filter-icon', $props.filterIcon])
       }, null, 2)]), createElementVNode("span", _hoisted_8$8, toDisplayString$1($options.filterResultMessageText), 1)])) : createCommentVNode("", true), createElementVNode("div", {
         class: "p-dropdown-items-wrapper",
@@ -15570,10 +14999,10 @@ function render$A(_ctx, _cache, $props, $setup, $data, $options) {
       _: 3
     }, 8, ["onEnter", "onAfterEnter", "onLeave", "onAfterLeave"])]),
     _: 3
-  }, 8, ["appendTo"])], 10, _hoisted_1$R);
+  }, 8, ["appendTo"])], 10, _hoisted_1$O);
 }
 
-function styleInject$p(css, ref) {
+function styleInject$o(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -15602,9 +15031,9 @@ function styleInject$p(css, ref) {
   }
 }
 
-var css_248z$w = "\n.p-dropdown {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-dropdown-clear-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-dropdown-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dropdown-label {\n    display: block;\n    white-space: nowrap;\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n    text-overflow: ellipsis;\n    cursor: pointer;\n}\n.p-dropdown-label-empty {\n    overflow: hidden;\n    opacity: 0;\n}\ninput.p-dropdown-label {\n    cursor: default;\n}\n.p-dropdown .p-dropdown-panel {\n    min-width: 100%;\n}\n.p-dropdown-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-dropdown-items-wrapper {\n    overflow: auto;\n}\n.p-dropdown-item {\n    cursor: pointer;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-dropdown-item-group {\n    cursor: auto;\n}\n.p-dropdown-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-dropdown-filter {\n    width: 100%;\n}\n.p-dropdown-filter-container {\n    position: relative;\n}\n.p-dropdown-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-fluid .p-dropdown {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-dropdown .p-dropdown-label {\n    width: 1%;\n}\n";
-styleInject$p(css_248z$w);
-script$1v.render = render$A;
+var css_248z$v = "\n.p-dropdown {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-dropdown-clear-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-dropdown-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-dropdown-label {\n    display: block;\n    white-space: nowrap;\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n    text-overflow: ellipsis;\n    cursor: pointer;\n}\n.p-dropdown-label-empty {\n    overflow: hidden;\n    opacity: 0;\n}\ninput.p-dropdown-label {\n    cursor: default;\n}\n.p-dropdown .p-dropdown-panel {\n    min-width: 100%;\n}\n.p-dropdown-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-dropdown-items-wrapper {\n    overflow: auto;\n}\n.p-dropdown-item {\n    cursor: pointer;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-dropdown-item-group {\n    cursor: auto;\n}\n.p-dropdown-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-dropdown-filter {\n    width: 100%;\n}\n.p-dropdown-filter-container {\n    position: relative;\n}\n.p-dropdown-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-fluid .p-dropdown {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-dropdown .p-dropdown-label {\n    width: 1%;\n}\n";
+styleInject$o(css_248z$v);
+script$1v.render = render$v;
 
 var script$1u = {
   name: 'InputNumber',
@@ -16729,12 +16158,12 @@ var script$1u = {
     INButton: script$1K
   }
 };
-const _hoisted_1$Q = {
+const _hoisted_1$N = {
   key: 0,
   class: "p-inputnumber-button-group"
 };
 
-function render$z(_ctx, _cache, $props, $setup, $data, $options) {
+function render$u(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_INInputText = resolveComponent("INInputText");
 
   const _component_INButton = resolveComponent("INButton");
@@ -16763,7 +16192,7 @@ function render$z(_ctx, _cache, $props, $setup, $data, $options) {
     onClick: $options.onInputClick,
     onFocus: $options.onInputFocus,
     onBlur: $options.onInputBlur
-  }, $props.inputProps), null, 16, ["id", "class", "style", "value", "aria-valuemin", "aria-valuemax", "aria-valuenow", "disabled", "readonly", "placeholder", "aria-labelledby", "aria-label", "onInput", "onKeydown", "onKeypress", "onPaste", "onClick", "onFocus", "onBlur"]), $props.showButtons && $props.buttonLayout === 'stacked' ? (openBlock(), createElementBlock("span", _hoisted_1$Q, [createVNode(_component_INButton, mergeProps({
+  }, $props.inputProps), null, 16, ["id", "class", "style", "value", "aria-valuemin", "aria-valuemax", "aria-valuenow", "disabled", "readonly", "placeholder", "aria-labelledby", "aria-label", "onInput", "onKeydown", "onKeypress", "onPaste", "onClick", "onFocus", "onBlur"]), $props.showButtons && $props.buttonLayout === 'stacked' ? (openBlock(), createElementBlock("span", _hoisted_1$N, [createVNode(_component_INButton, mergeProps({
     class: $options.upButtonClass,
     icon: $props.incrementButtonIcon
   }, toHandlers($options.upButtonListeners), {
@@ -16796,7 +16225,7 @@ function render$z(_ctx, _cache, $props, $setup, $data, $options) {
   }, $props.decrementButtonProps), null, 16, ["class", "icon", "disabled"])) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$o(css, ref) {
+function styleInject$n(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -16825,9 +16254,9 @@ function styleInject$o(css, ref) {
   }
 }
 
-var css_248z$v = "\n.p-inputnumber {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-inputnumber-button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button .p-button-label,\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button .p-button-label {\n    display: none;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-input {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    border-bottom-left-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group .p-button.p-inputnumber-button {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-buttons-vertical .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n    text-align: center;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-fluid .p-inputnumber {\n    width: 100%;\n}\n.p-fluid .p-inputnumber .p-inputnumber-input {\n    width: 1%;\n}\n.p-fluid .p-inputnumber-buttons-vertical .p-inputnumber-input {\n    width: 100%;\n}\n";
-styleInject$o(css_248z$v);
-script$1u.render = render$z;
+var css_248z$u = "\n.p-inputnumber {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-inputnumber-button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button .p-button-label,\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button .p-button-label {\n    display: none;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-up {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-input {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-stacked .p-button.p-inputnumber-button-down {\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    border-bottom-left-radius: 0;\n    padding: 0;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-stacked .p-inputnumber-button-group .p-button.p-inputnumber-button {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n}\n.p-inputnumber-buttons-horizontal .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-inputnumber-buttons-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-up {\n    -webkit-box-ordinal-group: 2;\n        -ms-flex-order: 1;\n            order: 1;\n    border-bottom-left-radius: 0;\n    border-bottom-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-buttons-vertical .p-inputnumber-input {\n    -webkit-box-ordinal-group: 3;\n        -ms-flex-order: 2;\n            order: 2;\n    border-radius: 0;\n    text-align: center;\n}\n.p-inputnumber-buttons-vertical .p-button.p-inputnumber-button-down {\n    -webkit-box-ordinal-group: 4;\n        -ms-flex-order: 3;\n            order: 3;\n    border-top-left-radius: 0;\n    border-top-right-radius: 0;\n    width: 100%;\n}\n.p-inputnumber-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-fluid .p-inputnumber {\n    width: 100%;\n}\n.p-fluid .p-inputnumber .p-inputnumber-input {\n    width: 1%;\n}\n.p-fluid .p-inputnumber-buttons-vertical .p-inputnumber-input {\n    width: 100%;\n}\n";
+styleInject$n(css_248z$u);
+script$1u.render = render$u;
 
 var script$9$2 = {
   name: 'CurrentPageReport',
@@ -16874,11 +16303,11 @@ const _hoisted_1$6$2 = {
   class: "p-paginator-current"
 };
 
-function render$9$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$9$2(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("span", _hoisted_1$6$2, toDisplayString$1($options.text), 1);
 }
 
-script$9$2.render = render$9$1;
+script$9$2.render = render$9$2;
 var script$8$2 = {
   name: 'FirstPageLink',
   computed: {
@@ -16900,7 +16329,7 @@ const _hoisted_1$5$2 = /*#__PURE__*/createElementVNode("span", {
 
 const _hoisted_2$5$2 = [_hoisted_1$5$2];
 
-function render$8$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$8$2(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return withDirectives((openBlock(), createElementBlock("button", {
@@ -16909,7 +16338,7 @@ function render$8$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, _hoisted_2$5$2, 2)), [[_directive_ripple]]);
 }
 
-script$8$2.render = render$8$1;
+script$8$2.render = render$8$2;
 var script$7$2 = {
   name: 'JumpToPageDropdown',
   inheritAttrs: false,
@@ -16945,7 +16374,7 @@ var script$7$2 = {
   }
 };
 
-function render$7$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$7$2(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_JTPDropdown = resolveComponent("JTPDropdown");
 
   return openBlock(), createBlock(_component_JTPDropdown, {
@@ -16959,7 +16388,7 @@ function render$7$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["modelValue", "options", "disabled"]);
 }
 
-script$7$2.render = render$7$1;
+script$7$2.render = render$7$2;
 var script$6$2 = {
   name: 'JumpToPageInput',
   inheritAttrs: false,
@@ -16980,7 +16409,7 @@ var script$6$2 = {
   }
 };
 
-function render$6$1(_ctx, _cache, $props, $setup, $data, $options) {
+function render$6$2(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_JTPInput = resolveComponent("JTPInput");
 
   return openBlock(), createBlock(_component_JTPInput, {
@@ -16991,7 +16420,7 @@ function render$6$1(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["modelValue", "disabled"]);
 }
 
-script$6$2.render = render$6$1;
+script$6$2.render = render$6$2;
 var script$5$2 = {
   name: 'LastPageLink',
   computed: {
@@ -17466,19 +16895,19 @@ var script$1t = {
     JumpToPageInput: script$6$2
   }
 };
-const _hoisted_1$P = {
+const _hoisted_1$M = {
   key: 0
 };
-const _hoisted_2$F = {
+const _hoisted_2$E = {
   key: 0,
   class: "p-paginator-left-content"
 };
-const _hoisted_3$u = {
+const _hoisted_3$v = {
   key: 1,
   class: "p-paginator-right-content"
 };
 
-function render$y(_ctx, _cache, $props, $setup, $data, $options) {
+function render$t(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FirstPageLink = resolveComponent("FirstPageLink");
 
   const _component_PrevPageLink = resolveComponent("PrevPageLink");
@@ -17497,13 +16926,13 @@ function render$y(_ctx, _cache, $props, $setup, $data, $options) {
 
   const _component_JumpToPageInput = resolveComponent("JumpToPageInput");
 
-  return ($props.alwaysShow ? true : $options.pageLinks && $options.pageLinks.length > 1) ? (openBlock(), createElementBlock("div", _hoisted_1$P, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.templateItems, (value, key) => {
+  return ($props.alwaysShow ? true : $options.pageLinks && $options.pageLinks.length > 1) ? (openBlock(), createElementBlock("div", _hoisted_1$M, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.templateItems, (value, key) => {
     return openBlock(), createElementBlock("div", {
       key: key,
       ref_for: true,
       ref: "paginator",
       class: normalizeClass(["p-paginator p-component", $options.getPaginatorClasses(key)])
-    }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_2$F, [renderSlot(_ctx.$slots, "start", {
+    }, [_ctx.$slots.start ? (openBlock(), createElementBlock("div", _hoisted_2$E, [renderSlot(_ctx.$slots, "start", {
       state: $options.currentState
     })])) : createCommentVNode("", true), (openBlock(true), createElementBlock(Fragment, null, renderList(value, item => {
       return openBlock(), createElementBlock(Fragment, {
@@ -17556,13 +16985,13 @@ function render$y(_ctx, _cache, $props, $setup, $data, $options) {
         onPageChange: _cache[7] || (_cache[7] = $event => $options.changePage($event)),
         disabled: $options.empty
       }, null, 8, ["page", "disabled"])) : createCommentVNode("", true)], 64);
-    }), 128)), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_3$u, [renderSlot(_ctx.$slots, "end", {
+    }), 128)), _ctx.$slots.end ? (openBlock(), createElementBlock("div", _hoisted_3$v, [renderSlot(_ctx.$slots, "end", {
       state: $options.currentState
     })])) : createCommentVNode("", true)], 2);
   }), 128))])) : createCommentVNode("", true);
 }
 
-function styleInject$n(css, ref) {
+function styleInject$m(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -17591,9 +17020,9 @@ function styleInject$n(css, ref) {
   }
 }
 
-var css_248z$u = "\n.p-paginator-default {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-paginator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-paginator-left-content {\n    margin-right: auto;\n}\n.p-paginator-right-content {\n    margin-left: auto;\n}\n.p-paginator-page,\n.p-paginator-next,\n.p-paginator-last,\n.p-paginator-first,\n.p-paginator-prev,\n.p-paginator-current {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    line-height: 1;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-paginator-element:focus {\n    z-index: 1;\n    position: relative;\n}\n";
-styleInject$n(css_248z$u);
-script$1t.render = render$y;
+var css_248z$t = "\n.p-paginator-default {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-paginator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-paginator-left-content {\n    margin-right: auto;\n}\n.p-paginator-right-content {\n    margin-left: auto;\n}\n.p-paginator-page,\n.p-paginator-next,\n.p-paginator-last,\n.p-paginator-first,\n.p-paginator-prev,\n.p-paginator-current {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    line-height: 1;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-paginator-element:focus {\n    z-index: 1;\n    position: relative;\n}\n";
+styleInject$m(css_248z$t);
+script$1t.render = render$t;
 
 var script$1s = {
   name: 'DataView',
@@ -17775,21 +17204,21 @@ var script$1s = {
     DVPaginator: script$1t
   }
 };
-const _hoisted_1$O = {
+const _hoisted_1$L = {
   key: 0,
   class: "p-dataview-header"
 };
-const _hoisted_2$E = {
+const _hoisted_2$D = {
   class: "p-dataview-content"
 };
-const _hoisted_3$t = {
+const _hoisted_3$u = {
   class: "p-grid p-nogutter grid grid-nogutter"
 };
 const _hoisted_4$q = {
   key: 0,
   class: "p-col col"
 };
-const _hoisted_5$j = {
+const _hoisted_5$k = {
   class: "p-dataview-emptymessage"
 };
 const _hoisted_6$g = {
@@ -17797,12 +17226,12 @@ const _hoisted_6$g = {
   class: "p-dataview-footer"
 };
 
-function render$x(_ctx, _cache, $props, $setup, $data, $options) {
+function render$s(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DVPaginator = resolveComponent("DVPaginator");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_1$O, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DVPaginator, {
+  }, [_ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_1$L, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DVPaginator, {
     key: 1,
     rows: $data.d_rows,
     first: $data.d_first,
@@ -17826,7 +17255,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
     name: "end",
     fn: withCtx(() => [renderSlot(_ctx.$slots, "paginatorend")]),
     key: "1"
-  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "class", "alwaysShow"])) : createCommentVNode("", true), createElementVNode("div", _hoisted_2$E, [createElementVNode("div", _hoisted_3$t, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.items, (item, index) => {
+  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "class", "alwaysShow"])) : createCommentVNode("", true), createElementVNode("div", _hoisted_2$D, [createElementVNode("div", _hoisted_3$u, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.items, (item, index) => {
     return openBlock(), createElementBlock(Fragment, {
       key: $options.getKey(item, index)
     }, [_ctx.$slots.list && $props.layout === 'list' ? renderSlot(_ctx.$slots, "list", {
@@ -17838,7 +17267,7 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
       data: item,
       index: index
     }) : createCommentVNode("", true)], 64);
-  }), 128)), $options.empty ? (openBlock(), createElementBlock("div", _hoisted_4$q, [createElementVNode("div", _hoisted_5$j, [renderSlot(_ctx.$slots, "empty")])])) : createCommentVNode("", true)])]), $options.paginatorBottom ? (openBlock(), createBlock(_component_DVPaginator, {
+  }), 128)), $options.empty ? (openBlock(), createElementBlock("div", _hoisted_4$q, [createElementVNode("div", _hoisted_5$k, [renderSlot(_ctx.$slots, "empty")])])) : createCommentVNode("", true)])]), $options.paginatorBottom ? (openBlock(), createBlock(_component_DVPaginator, {
     key: 2,
     rows: $data.d_rows,
     first: $data.d_first,
@@ -17865,48 +17294,767 @@ function render$x(_ctx, _cache, $props, $setup, $data, $options) {
   } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "class", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_6$g, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true)], 2);
 }
 
-script$1s.render = render$x;
-
-const _hoisted_1$N = /*#__PURE__*/createTextVNode("Vin: ");
-const _hoisted_2$D = /*#__PURE__*/createTextVNode("Vin: ");
-
+script$1s.render = render$s;
 
 var script$1r = {
+  name: 'DataViewLayoutOptions',
+  emits: ['update:modelValue'],
   props: {
-    model : String,
-    parent_id : Number
+    modelValue: String
+  },
+  methods: {
+    changeLayout(layout) {
+      this.$emit('update:modelValue', layout);
+    }
+
+  },
+  computed: {
+    buttonListClass() {
+      return ['p-button p-button-icon-only', {
+        'p-highlight': this.modelValue === 'list'
+      }];
+    },
+
+    buttonGridClass() {
+      return ['p-button p-button-icon-only', {
+        'p-highlight': this.modelValue === 'grid'
+      }];
+    }
+
+  }
+};
+const _hoisted_1$K = {
+  class: "p-dataview-layout-options p-selectbutton p-buttonset"
+};
+
+const _hoisted_2$C = /*#__PURE__*/createElementVNode("i", {
+  class: "pi pi-bars"
+}, null, -1);
+
+const _hoisted_3$t = [_hoisted_2$C];
+
+const _hoisted_4$p = /*#__PURE__*/createElementVNode("i", {
+  class: "pi pi-th-large"
+}, null, -1);
+
+const _hoisted_5$j = [_hoisted_4$p];
+
+function render$r(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$K, [createElementVNode("button", {
+    class: normalizeClass($options.buttonListClass),
+    onClick: _cache[0] || (_cache[0] = $event => $options.changeLayout('list')),
+    type: "button"
+  }, _hoisted_3$t, 2), createElementVNode("button", {
+    class: normalizeClass($options.buttonGridClass),
+    onClick: _cache[1] || (_cache[1] = $event => $options.changeLayout('grid')),
+    type: "button"
+  }, _hoisted_5$j, 2)]);
+}
+
+script$1r.render = render$r;
+
+var script$1q = {
+  props: {
+    value : [Number, String],
+    field : Object
 },
   setup(__props) {
 
 
 
-const data = ref([]);
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1s), { value: data.value }, {
-    list: withCtx((slotProps) => [
-      createElementVNode("div", null, [
-        _hoisted_1$N,
-        createElementVNode("b", null, toDisplayString$1(slotProps.data.vin), 1 /* TEXT */)
-      ])
-    ]),
-    grid: withCtx((slotProps) => [
-      createElementVNode("div", null, [
-        _hoisted_2$D,
-        createElementVNode("b", null, toDisplayString$1(slotProps.data.vin), 1 /* TEXT */)
-      ])
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["value"]))
+  return (openBlock(), createElementBlock("span", null, toDisplayString$1(__props.value), 1 /* TEXT */))
 }
 }
 
 };
 
-script$1r.__file = "presstojam/src/components/displays/data-display.vue";
+script$1q.__file = "presstojam/src/components/view/number.vue";
 
-var script$1q = {
+const _hoisted_1$J = {
+  key: 0,
+  class: "pi pi-check"
+};
+const _hoisted_2$B = { key: 1 };
+
+
+var script$1p = {
+  props: {
+    value : [Number, Boolean],
+    field : Object
+},
+  setup(__props) {
+
+inject("client");
+
+
+
+return (_ctx, _cache) => {
+  return (__props.field.useIcons() && __props.value)
+    ? (openBlock(), createElementBlock("i", _hoisted_1$J))
+    : (openBlock(), createElementBlock("span", _hoisted_2$B, toDisplayString$1(__props.field.display(__props.value)), 1 /* TEXT */))
+}
+}
+
+};
+
+script$1p.__file = "presstojam/src/components/view/flag.vue";
+
+class Model {
+  constructor(name, debug = false) {
+    this._name = name;
+    this._fields = {};
+    this._perms = [];
+    this._import = false;
+    this._export = false;
+    this._max_cols = 8;
+    this._no_filter = false;
+    this._children = null;
+    this._sort = null;
+    this._limit = null;
+    this._to = null;
+    this._group = null;
+    this._order = null;
+    this._params = null;
+    this._limited_fields = null;
+    this._export_fields = null;
+    this._distinguish = null;
+    this._audit = false;
+    this._actions = [];
+    this._editable_fields = [];
+    this._classes = null;
+    this._group_classes = null;
+    this._events = {};
+    this._debug = debug;
+    this._parent = null;
+    const keys = Object.keys(this);
+    keys.forEach(property => {
+      if (property[0] == "_") {
+        Object.defineProperty(this, property.substring(1), {
+          get: function () {
+            return this[property];
+          },
+          set: function (newValue) {
+            this[property] = newValue;
+          }
+        });
+      }
+    });
+    const entity = this.loadEntity();
+    this.loadSettings();
+    this.loadFields(entity);
+    this.loadParentFields();
+  }
+
+  get children_models() {
+    return this._fields["--id"].reference;
+  }
+
+  getSettings() {
+    let settings = configs.get("models");
+
+    if (settings[this._name]) {
+      return settings[this._name];
+    }
+  }
+
+  loadSettings() {
+    const settings = this.getSettings();
+
+    if (settings) {
+      if (settings.to) this._to = settings.to;
+      if (settings.perms) this._perms = settings.perms;
+      if (settings.group) this._group = settings.group;
+      if (settings.order) this._order = settings.order;
+      if (settings.params) this._params = settings.params;
+      if (settings.children) this._children = settings.children;
+      if (settings.fields) this._limited_fields = settings.fields;
+      if (settings.limit) this._limit = settings.limit;
+      if (settings.export_fields) this._export_fields = settings.export_fields;
+      if (settings.distinguish) this._distinguish = settings.distinguish;
+      if (settings.actions) this._actions = settings.actions;
+      if (settings.editable) this._editable_fields = settings.editable;
+      if (settings.no_filter) this._no_filter = settings.no_filter;
+      if (settings.max_cols) this._max_cols = settings.max_cols;
+      if (settings.classes) this._classes = settings.classes;
+      if (settings.group_classes) this._group_classes = settings.group_classes;
+      if (settings.events) this._events = settings.events;
+    }
+  }
+
+  loadEntity() {
+    const entity = getEntity(this._name);
+
+    if (!entity) {
+      throw this._name;
+    }
+
+    if (entity.perms) this._perms = entity.perms;
+    if (entity.sort) this._sort = entity.sort;
+    if (entity.audit) this._audit = entity.audit;
+    if (entity.import) this._import = entity.import;
+    if (entity.export) this._export = entity.export;
+    if (entity.parent) this._parent = entity.parent;
+    return entity;
+  }
+
+  loadFields(entity, slug = "") {
+    const fields = entity.cells;
+
+    for (let i in fields) {
+      if (!this._limited_fields || this._limited_fields.includes(slug + i)) {
+        this._fields[slug + i] = Object.assign(Object.create(fields[i]), fields[i]);
+        this._fields[slug + i].slug = slug + i;
+        if (slug) this._fields[slug + i].summary = false; //set summary to false for anything that isn't the base
+
+        if (fields[i].type == "id" && fields[i].reference_type == ReferenceTypes.REFERENCE) {
+          const ref_entity = getEntity(fields[i].reference);
+          if (ref_entity) this.loadFields(ref_entity, slug + i + "/");
+        }
+      }
+    }
+  }
+
+  loadParentFields() {
+    if (this._to) {
+      let parent = this._parent;
+
+      while (parent) {
+        let entity = getEntity(parent);
+        this.loadFields(entity, parent + "/");
+        if (parent == this._to) break;
+        parent = entity.parent;
+      }
+    }
+  }
+
+  loadCount(filters) {
+    if (this._limit) {
+      const client = getClient();
+      return client.get("/count/" + this._name, this.buildParams(filters)).then(response => {
+        return parseInt(response.count);
+      });
+    } else {
+      return Promise.resolve(0);
+    }
+  }
+
+  load(filters) {
+    const client = getClient();
+    return client.get("/data/" + this._name, this.buildParams(filters));
+  }
+
+  loadActive(filters) {
+    const client = getClient();
+    return client.get("/data/" + this._name + "/active", this.buildParams(filters));
+  }
+
+  reloadRow(id) {
+    const client = getClient();
+    return client.get("/data/" + this._name + "/active", {
+      "--id": id
+    });
+  }
+
+  loadFirst(filters) {
+    const client = getClient();
+    return client.get("/data/" + this._name + "/first", this.buildParams(filters));
+  }
+
+  loadReport(filters, field = null, aggregate = null) {
+    let url = "/reports/" + this._name;
+    if (field) url += "/" + field + "/" + aggregate;
+    const client = getClient();
+    return client.get(url, this.buildParams(filters));
+  }
+
+  saveOrder(rows) {
+    const client = getClient();
+    const vals = [];
+
+    for (let i in rows) {
+      vals.push({
+        '--id': rows[i]['--id'],
+        '--sort': i
+      });
+    }
+
+    return client.put("/data/" + this._name + "/resort", {
+      "_rows": vals
+    });
+  }
+
+  buildParams(filters) {
+    let params = {};
+    if (this._to) params.__to = this._to;
+    if (this._group) params.__group = this._group;
+
+    if (this._limited_fields) {
+      params.__fields = this._limited_fields;
+
+      if (!params.__fields.includes("--id")) {
+        params.__fields.push("--id");
+      }
+    }
+
+    if (this._order) params.__order = this._order;
+
+    if (this._limit) {
+      params.__limit = this._limit;
+    }
+
+    for (let i in filters) {
+      params[i] = filters[i];
+    }
+
+    return params;
+  }
+
+  trigger(key, data) {
+    if (this._events[key]) {
+      this._events[key](data);
+    }
+  }
+
+  setTableCells(schema = null) {
+    if (!schema) schema = this._fields;
+
+    for (let i in schema) {
+      schema[i].disabled = false;
+
+      if (schema[i].background) {
+        schema[i].disabled = true;
+        continue;
+      }
+
+      if (schema[i].type == "id" && schema[i].reference_type == ReferenceTypes.PARENT) {
+        schema[i].disabled = true;
+        continue;
+      }
+
+      if (schema[i].slug != schema[i].name) {
+        if (this._limited_fields) {
+          if (!this._limited_fields.includes(i)) {
+            schema[i].disabled = true;
+            continue;
+          } //don't continue if exists in limited fields
+
+        } else {
+          schema[i].disabled = true;
+          continue;
+        }
+
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      }
+
+      if (schema[i].type == "json") {
+        this.setTableCells(schema[i].fields);
+      }
+    }
+  }
+
+  getEnabledCells() {
+    let cells = {};
+
+    for (let i in this._fields) {
+      if (!this._fields[i].disabled) {
+        cells[i] = this._fields[i];
+      }
+    }
+
+    return cells;
+  }
+
+  getEnabledSummaryCells() {
+    let cells = {};
+
+    for (let i in this._fields) {
+      if (!this._fields[i].disabled && this._fields[i].summary) {
+        cells[i] = this._fields[i];
+      }
+    }
+
+    return cells;
+  }
+
+}
+
+const _hoisted_1$I = { key: 1 };
+
+
+var script$1o = {
+  props: {
+    value : [Number, String ],
+    field : Object,
+    row : Object,
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+let show_route = false;
+if (props.field.reference_type == ReferenceTypes.REFERENCE && hasEntity(props.field.reference) && props.value) {
+    show_route = true;
+}
+
+
+let display = computed(() => {
+    if (props.field.reference_type == ReferenceTypes.REFERENCE) {
+        const data = [];
+    
+
+        if (props.field.custom_fields.length) {
+            for(const field of props.field.custom_fields) {
+                data.push(props.row[props.field.name + "/" + field]);
+            }
+        } else {
+            
+            const ref_route = new Model(props.field.reference);
+            
+            for(const i in ref_route.fields) {
+                if (ref_route.fields[i].summary) {
+                    data.push(props.row[props.field.name + "/" + i]);
+                }
+            }
+        }
+        return data.join(" ");
+    } else {
+        return props.value; 
+    }
+});
+
+
+
+return (_ctx, _cache) => {
+  const _component_router_link = resolveComponent("router-link");
+
+  return (unref(show_route))
+    ? (openBlock(), createBlock(_component_router_link, {
+        key: 0,
+        to: { name : 'primary', params : {'model' : __props.field.reference, 'id' : __props.value }}
+      }, {
+        default: withCtx(() => [
+          createTextVNode(toDisplayString$1(unref(display)), 1 /* TEXT */)
+        ]),
+        _: 1 /* STABLE */
+      }, 8 /* PROPS */, ["to"]))
+    : (openBlock(), createElementBlock("span", _hoisted_1$I, toDisplayString$1(unref(display)), 1 /* TEXT */))
+}
+}
+
+};
+
+script$1o.__file = "presstojam/src/components/view/id.vue";
+
+var script$1n = {
+  props: {
+    value : [Number, String],
+    field : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const val = computed(() => {
+    var t = props.field.clean(props.value);
+    return (!t) ? t : t.toLocaleDateString("en-UK");
+});
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("span", null, toDisplayString$1(unref(val)), 1 /* TEXT */))
+}
+}
+
+};
+
+script$1n.__file = "presstojam/src/components/view/time.vue";
+
+const _hoisted_1$H = { key: 0 };
+const _hoisted_2$A = { key: 1 };
+
+
+var script$1m = {
+  props: {
+    value : [String],
+    field : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const tag = computed(() => {
+ if (props.field.html || props.field.max > 300) {
+    return "textarea";
+ } else {
+    return "input";
+ }
+});
+
+
+
+
+return (_ctx, _cache) => {
+  return (unref(tag)=='textarea')
+    ? (openBlock(), createElementBlock("div", _hoisted_1$H, toDisplayString$1(__props.value), 1 /* TEXT */))
+    : (openBlock(), createElementBlock("span", _hoisted_2$A, toDisplayString$1(props.field.clean(__props.value)), 1 /* TEXT */))
+}
+}
+
+};
+
+script$1m.__file = "presstojam/src/components/view/string.vue";
+
+const _hoisted_1$G = /*#__PURE__*/createElementVNode("i", { class: "pi pi-download" }, null, -1 /* HOISTED */);
+const _hoisted_2$z = [
+  _hoisted_1$G
+];
+
+
+var script$1l = {
+  props: {
+    value : String,
+    field : Object,
+    id : Number
+},
+  setup(__props) {
+
+const props = __props;
+
+const client = inject("client");
+
+
+
+
+function download() {
+    client.getAsset("/asset/" + props.field.model + "/" + props.field.name + "/" + props.id)
+    .then(blob => {
+
+        const anchor = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        anchor.href = url;
+        anchor.download = props.field.val;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    })
+    .catch(e => {
+        console.log(e);
+    });
+}
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("span", null, [
+    createTextVNode(toDisplayString$1(__props.value) + " ", 1 /* TEXT */),
+    createElementVNode("a", {
+      onClick: _cache[0] || (_cache[0] = $event => (download()))
+    }, _hoisted_2$z)
+  ]))
+}
+}
+
+};
+
+script$1l.__file = "presstojam/src/components/view/asset.vue";
+
+const _hoisted_1$F = { key: 0 };
+const _hoisted_2$y = { key: 1 };
+
+
+var script$1k = {
+  props: {
+    value : [Object, String],
+    field : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const jsonVal = props.field.clean(props.value);
+
+
+
+return (_ctx, _cache) => {
+  return (__props.field.fields.length > 0)
+    ? (openBlock(), createElementBlock("div", _hoisted_1$F, [
+        (openBlock(true), createElementBlock(Fragment, null, renderList(__props.field.fields, (field) => {
+          return (openBlock(), createElementBlock("div", {
+            key: field.name
+          }, [
+            createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + field.model + ".fields." + field.name + ".label")), 1 /* TEXT */),
+            createVNode(script$1j, {
+              field: field,
+              value: unref(jsonVal)[field.name]
+            }, null, 8 /* PROPS */, ["field", "value"])
+          ]))
+        }), 128 /* KEYED_FRAGMENT */))
+      ]))
+    : (openBlock(), createElementBlock("div", _hoisted_2$y, [
+        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(jsonVal), (value, field) => {
+          return (openBlock(), createElementBlock("div", { key: field }, [
+            createElementVNode("span", null, toDisplayString$1(field) + ": ", 1 /* TEXT */),
+            createElementVNode("span", null, toDisplayString$1(value), 1 /* TEXT */)
+          ]))
+        }), 128 /* KEYED_FRAGMENT */))
+      ]))
+}
+}
+
+};
+
+script$1k.__file = "presstojam/src/components/view/json.vue";
+
+var script$1j = {
+  props: {
+    field : Object,
+    row : [Array,Object],
+},
+  setup(__props) {
+
+ 
+
+return (_ctx, _cache) => {
+  return (__props.field.type=='number')
+    ? (openBlock(), createBlock(script$1q, {
+        key: 0,
+        value: __props.row[__props.field.slug],
+        field: __props.field
+      }, null, 8 /* PROPS */, ["value", "field"]))
+    : (__props.field.type=='flag')
+      ? (openBlock(), createBlock(script$1p, {
+          key: 1,
+          value: __props.row[__props.field.slug],
+          field: __props.field
+        }, null, 8 /* PROPS */, ["value", "field"]))
+      : (__props.field.type=='id')
+        ? (openBlock(), createBlock(script$1o, {
+            key: 2,
+            value: __props.row[__props.field.slug],
+            field: __props.field,
+            row: __props.row
+          }, null, 8 /* PROPS */, ["value", "field", "row"]))
+        : (__props.field.type=='asset')
+          ? (openBlock(), createBlock(script$1l, {
+              key: 3,
+              value: __props.row[__props.field.slug],
+              field: __props.field,
+              id: __props.row['--id']
+            }, null, 8 /* PROPS */, ["value", "field", "id"]))
+          : (__props.field.type=='time')
+            ? (openBlock(), createBlock(script$1n, {
+                key: 4,
+                value: __props.row[__props.field.slug],
+                field: __props.field
+              }, null, 8 /* PROPS */, ["value", "field"]))
+            : (__props.field.type=='json')
+              ? (openBlock(), createBlock(script$1k, {
+                  key: 5,
+                  value: __props.row[__props.field.slug],
+                  field: __props.field
+                }, null, 8 /* PROPS */, ["value", "field"]))
+              : (__props.field.type=='string')
+                ? (openBlock(), createBlock(script$1m, {
+                    key: 6,
+                    value: __props.row[__props.field.slug],
+                    field: __props.field
+                  }, null, 8 /* PROPS */, ["value", "field"]))
+                : createCommentVNode("v-if", true)
+}
+}
+
+};
+
+script$1j.__file = "presstojam/src/components/view/view-field.vue";
+
+var viewField = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': script$1j
+});
+
+const _hoisted_1$E = { class: "col-12" };
+const _hoisted_2$x = { class: "card" };
+
+
+var script$1i = {
+  props: {
+    repo : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const store = props.repo.store;
+
+store.setTableCells();
+const cells = store.getEnabledCells();
+
+const layout = ref('grid');
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1s), {
+    value: __props.repo.data.value,
+    layout: layout.value
+  }, {
+    header: withCtx(() => [
+      createVNode(unref(script$1r), {
+        modelValue: layout.value,
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((layout).value = $event))
+      }, null, 8 /* PROPS */, ["modelValue"])
+    ]),
+    list: withCtx((slotProps) => [
+      createElementVNode("div", _hoisted_1$E, [
+        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
+          return (openBlock(), createElementBlock("div", null, [
+            createVNode(script$1j, {
+              field: cell,
+              row: slotProps.data
+            }, null, 8 /* PROPS */, ["field", "row"])
+          ]))
+        }), 256 /* UNKEYED_FRAGMENT */))
+      ])
+    ]),
+    grid: withCtx((slotProps) => [
+      createElementVNode("div", null, [
+        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
+          return (openBlock(), createElementBlock("div", _hoisted_2$x, [
+            createVNode(script$1j, {
+              field: cell,
+              row: slotProps.data
+            }, null, 8 /* PROPS */, ["field", "row"])
+          ]))
+        }), 256 /* UNKEYED_FRAGMENT */))
+      ])
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["value", "layout"]))
+}
+}
+
+};
+
+script$1i.__file = "presstojam/src/components/displays/data-display.vue";
+
+var script$1h = {
   props: {
     bind : {
         type : Object,
@@ -17960,9 +18108,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1q.__file = "presstojam/src/components/form/number-edit.vue";
+script$1h.__file = "presstojam/src/components/form/number-edit.vue";
 
-var script$1p = {
+var script$1g = {
   props: {
     bind : {
         type : Object,
@@ -18002,7 +18150,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$1p.__file = "presstojam/src/components/form/flag-edit.vue";
+script$1g.__file = "presstojam/src/components/form/flag-edit.vue";
 
 var script$1$4 = {
   name: 'TreeNode',
@@ -18378,7 +18526,7 @@ function render$1$4(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$4.render = render$1$4;
-var script$1o = {
+var script$1f = {
   name: 'Tree',
   emits: ['node-expand', 'node-collapse', 'update:expandedKeys', 'update:selectionKeys', 'node-select', 'node-unselect'],
   props: {
@@ -18673,17 +18821,17 @@ var script$1o = {
     TreeNode: script$1$4
   }
 };
-const _hoisted_1$M = {
+const _hoisted_1$D = {
   key: 0,
   class: "p-tree-loading-overlay p-component-overlay"
 };
-const _hoisted_2$C = {
+const _hoisted_2$w = {
   key: 1,
   class: "p-tree-filter-container"
 };
 const _hoisted_3$s = ["placeholder"];
 
-const _hoisted_4$p = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_4$o = /*#__PURE__*/createElementVNode("span", {
   class: "p-tree-filter-icon pi pi-search"
 }, null, -1);
 
@@ -18692,21 +18840,21 @@ const _hoisted_5$i = {
   role: "tree"
 };
 
-function render$w(_ctx, _cache, $props, $setup, $data, $options) {
+function render$q(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_TreeNode = resolveComponent("TreeNode");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [$props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$M, [createElementVNode("i", {
+  }, [$props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$D, [createElementVNode("i", {
     class: normalizeClass($options.loadingIconClass)
-  }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_2$C, [withDirectives(createElementVNode("input", {
+  }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_2$w, [withDirectives(createElementVNode("input", {
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => $data.filterValue = $event),
     type: "text",
     autocomplete: "off",
     class: "p-tree-filter p-inputtext p-component",
     placeholder: $props.filterPlaceholder,
     onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onFilterKeydown && $options.onFilterKeydown(...args))
-  }, null, 40, _hoisted_3$s), [[vModelText, $data.filterValue]]), _hoisted_4$p])) : createCommentVNode("", true), createElementVNode("div", {
+  }, null, 40, _hoisted_3$s), [[vModelText, $data.filterValue]]), _hoisted_4$o])) : createCommentVNode("", true), createElementVNode("div", {
     class: "p-tree-wrapper",
     style: normalizeStyle({
       maxHeight: $props.scrollHeight
@@ -18728,7 +18876,7 @@ function render$w(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128))])], 4)], 2);
 }
 
-function styleInject$m(css, ref) {
+function styleInject$l(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -18757,11 +18905,11 @@ function styleInject$m(css, ref) {
   }
 }
 
-var css_248z$t = "\n.p-tree-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    overflow: auto;\n}\n.p-treenode-children {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-tree-wrapper {\n    overflow: auto;\n}\n.p-treenode-selectable {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-tree-toggler {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treenode-leaf > .p-treenode-content .p-tree-toggler {\n    visibility: hidden;\n}\n.p-treenode-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-tree-filter {\n    width: 100%;\n}\n.p-tree-filter-container {\n    position: relative;\n    display: block;\n    width: 100%;\n}\n.p-tree-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-tree-loading {\n    position: relative;\n    min-height: 4rem;\n}\n.p-tree .p-tree-loading-overlay {\n    position: absolute;\n    z-index: 1;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tree-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-tree-flex-scrollable .p-tree-wrapper {\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n}\n";
-styleInject$m(css_248z$t);
-script$1o.render = render$w;
+var css_248z$s = "\n.p-tree-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    overflow: auto;\n}\n.p-treenode-children {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-tree-wrapper {\n    overflow: auto;\n}\n.p-treenode-selectable {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-tree-toggler {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treenode-leaf > .p-treenode-content .p-tree-toggler {\n    visibility: hidden;\n}\n.p-treenode-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-tree-filter {\n    width: 100%;\n}\n.p-tree-filter-container {\n    position: relative;\n    display: block;\n    width: 100%;\n}\n.p-tree-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-tree-loading {\n    position: relative;\n    min-height: 4rem;\n}\n.p-tree .p-tree-loading-overlay {\n    position: absolute;\n    z-index: 1;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tree-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-tree-flex-scrollable .p-tree-wrapper {\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n}\n";
+styleInject$l(css_248z$s);
+script$1f.render = render$q;
 
-var script$1n = {
+var script$1e = {
   name: 'TreeSelect',
   emits: ['update:modelValue', 'before-show', 'before-hide', 'change', 'show', 'hide', 'node-select', 'node-unselect', 'node-expand', 'node-collapse', 'focus', 'blur'],
   props: {
@@ -19212,21 +19360,21 @@ var script$1n = {
 
   },
   components: {
-    TSTree: script$1o,
+    TSTree: script$1f,
     Portal: script$1B
   },
   directives: {
     ripple: Ripple
   }
 };
-const _hoisted_1$L = {
+const _hoisted_1$C = {
   class: "p-hidden-accessible"
 };
-const _hoisted_2$B = ["id", "disabled", "tabindex", "aria-labelledby", "aria-label", "aria-expanded", "aria-controls"];
+const _hoisted_2$v = ["id", "disabled", "tabindex", "aria-labelledby", "aria-label", "aria-expanded", "aria-controls"];
 const _hoisted_3$r = {
   class: "p-treeselect-label-container"
 };
-const _hoisted_4$o = {
+const _hoisted_4$n = {
   class: "p-treeselect-token-label"
 };
 const _hoisted_5$h = ["aria-expanded"];
@@ -19235,12 +19383,12 @@ const _hoisted_6$e = /*#__PURE__*/createElementVNode("span", {
   class: "p-treeselect-trigger-icon pi pi-chevron-down"
 }, null, -1);
 
-const _hoisted_7$8 = {
+const _hoisted_7$9 = {
   key: 0,
   class: "p-treeselect-empty-message"
 };
 
-function render$v(_ctx, _cache, $props, $setup, $data, $options) {
+function render$p(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_TSTree = resolveComponent("TSTree");
 
   const _component_Portal = resolveComponent("Portal");
@@ -19249,7 +19397,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
     ref: "container",
     class: normalizeClass($options.containerClass),
     onClick: _cache[6] || (_cache[6] = (...args) => $options.onClick && $options.onClick(...args))
-  }, [createElementVNode("div", _hoisted_1$L, [createElementVNode("input", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$C, [createElementVNode("input", mergeProps({
     ref: "focusInput",
     id: $props.inputId,
     type: "text",
@@ -19267,7 +19415,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
     onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event)),
     onKeydown: _cache[2] || (_cache[2] = $event => $options.onKeyDown($event))
-  }, $props.inputProps), null, 16, _hoisted_2$B)]), createElementVNode("div", _hoisted_3$r, [createElementVNode("div", {
+  }, $props.inputProps), null, 16, _hoisted_2$v)]), createElementVNode("div", _hoisted_3$r, [createElementVNode("div", {
     class: normalizeClass($options.labelClass)
   }, [renderSlot(_ctx.$slots, "value", {
     value: $options.selectedNodes,
@@ -19280,7 +19428,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
     return openBlock(), createElementBlock("div", {
       key: node.key,
       class: "p-treeselect-token"
-    }, [createElementVNode("span", _hoisted_4$o, toDisplayString$1(node.label), 1)]);
+    }, [createElementVNode("span", _hoisted_4$n, toDisplayString$1(node.label), 1)]);
   }), 128)), $options.emptyValue ? (openBlock(), createElementBlock(Fragment, {
     key: 0
   }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", {
@@ -19324,7 +19472,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
         onNodeSelect: $options.onNodeSelect,
         onNodeUnselect: $options.onNodeUnselect,
         level: 0
-      }, null, 8, ["id", "value", "selectionMode", "onUpdate:selectionKeys", "selectionKeys", "expandedKeys", "onUpdate:expandedKeys", "metaKeySelection", "onNodeSelect", "onNodeUnselect"]), $options.emptyOptions ? (openBlock(), createElementBlock("div", _hoisted_7$8, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 4), renderSlot(_ctx.$slots, "footer", {
+      }, null, 8, ["id", "value", "selectionMode", "onUpdate:selectionKeys", "selectionKeys", "expandedKeys", "onUpdate:expandedKeys", "metaKeySelection", "onNodeSelect", "onNodeUnselect"]), $options.emptyOptions ? (openBlock(), createElementBlock("div", _hoisted_7$9, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 4), renderSlot(_ctx.$slots, "footer", {
         value: $props.modelValue,
         options: $props.options
       })], 16)) : createCommentVNode("", true)]),
@@ -19334,7 +19482,7 @@ function render$v(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$l(css, ref) {
+function styleInject$k(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -19363,64 +19511,71 @@ function styleInject$l(css, ref) {
   }
 }
 
-var css_248z$s = "\n.p-treeselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-treeselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treeselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-treeselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-treeselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-treeselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-treeselect .p-treeselect-panel {\n    min-width: 100%;\n}\n.p-treeselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-treeselect-items-wrapper {\n    overflow: auto;\n}\n.p-fluid .p-treeselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$l(css_248z$s);
-script$1n.render = render$v;
+var css_248z$r = "\n.p-treeselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-treeselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-treeselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-treeselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-treeselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-treeselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-treeselect .p-treeselect-panel {\n    min-width: 100%;\n}\n.p-treeselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-treeselect-items-wrapper {\n    overflow: auto;\n}\n.p-fluid .p-treeselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$k(css_248z$r);
+script$1e.render = render$p;
 
-var script$1m = {
+var script$1d = {
   props: {
-         cell : Object,
-         store : Object
+        name : String
      },
-  emits: ['onCreate'],
-  setup(__props, { emit: emits }) {
+  setup(__props) {
 
-const props = __props;
 
-    
-    
-
-   
-     inject("client");
-
-     
-
-     
-
-    
-    
-    const referencestore = getModel(props.cell.reference);
-    let parent = false;
-    let common_parent_id = 0;
-
-  
-    if  (props.cell.common && props.cell.reference_type != ReferenceTypes.CIRCULAR) {
-        parent = true;
-        props.cell.common;
-        common_parent_id = props.store.slug_trail.value[props.cell.common]['--id'];
-    }
-
-    function onCreate() {
-        dialog.value = false;
-        emits('onCreate', referencestore.active.value['--id']);
-    }
  
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$12, {
-    store: unref(referencestore),
-    onSaved: onCreate,
-    parent: unref(parent),
-    common_parent: __props.cell.common,
-    common_parent_id: unref(common_parent_id)
-  }, null, 8 /* PROPS */, ["store", "parent", "common_parent", "common_parent_id"]))
+  return (openBlock(), createBlock(script$U, {
+    entity_name: __props.name,
+    method: "post"
+  }, null, 8 /* PROPS */, ["entity_name"]))
 }
 }
 
 };
 
-script$1m.__file = "presstojam/src/components/actions/reference-create.vue";
+script$1d.__file = "presstojam/src/components/effects/reference-effect.vue";
 
-var script$1l = {
+var script$1c = {
+  props: {
+       name : String
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+    
+ 
+    const i18n = inject("i18n");
+    const t = i18n.t;
+
+ 
+    const header = "Create " + t("models." + props.name + ".title", 1);
+
+   
+    function createReference() {
+      trigger("dialog_open",
+        script$1d, 
+        {
+            name : props.name
+        }, 
+        header);
+    }
+ 
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("i", {
+    class: "pi pi-plus",
+    onClick: createReference,
+    style: {"cursor":"pointer"}
+  }))
+}
+}
+
+};
+
+script$1c.__file = "presstojam/src/components/actions/reference-action.vue";
+
+var script$1b = {
   name: 'AutoComplete',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'item-select', 'item-unselect', 'dropdown-click', 'clear', 'complete', 'before-show', 'before-hide', 'show', 'hide'],
   props: {
@@ -20414,10 +20569,10 @@ var script$1l = {
     ripple: Ripple
   }
 };
-const _hoisted_1$K = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_2$A = ["aria-activedescendant"];
+const _hoisted_1$B = ["id", "value", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_2$u = ["aria-activedescendant"];
 const _hoisted_3$q = ["id", "aria-label", "aria-setsize", "aria-posinset"];
-const _hoisted_4$n = {
+const _hoisted_4$m = {
   class: "p-autocomplete-token-label"
 };
 const _hoisted_5$g = ["onClick"];
@@ -20425,7 +20580,7 @@ const _hoisted_6$d = {
   class: "p-autocomplete-input-token",
   role: "option"
 };
-const _hoisted_7$7 = ["id", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_7$8 = ["id", "placeholder", "tabindex", "disabled", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
 const _hoisted_8$7 = {
   role: "status",
   "aria-live": "polite",
@@ -20440,7 +20595,7 @@ const _hoisted_12$4 = {
   class: "p-hidden-accessible"
 };
 
-function render$u(_ctx, _cache, $props, $setup, $data, $options) {
+function render$o(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Button = resolveComponent("Button");
 
   const _component_VirtualScroller = resolveComponent("VirtualScroller");
@@ -20478,7 +20633,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[3] || (_cache[3] = (...args) => $options.onInput && $options.onInput(...args)),
     onChange: _cache[4] || (_cache[4] = (...args) => $options.onChange && $options.onChange(...args))
-  }, $props.inputProps), null, 16, _hoisted_1$K)) : createCommentVNode("", true), $props.multiple ? (openBlock(), createElementBlock("ul", {
+  }, $props.inputProps), null, 16, _hoisted_1$B)) : createCommentVNode("", true), $props.multiple ? (openBlock(), createElementBlock("ul", {
     key: 1,
     ref: "multiContainer",
     class: normalizeClass($options.multiContainerClass),
@@ -20503,7 +20658,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
       "aria-posinset": i + 1
     }, [renderSlot(_ctx.$slots, "chip", {
       value: option
-    }, () => [createElementVNode("span", _hoisted_4$n, toDisplayString$1($options.getOptionLabel(option)), 1)]), createElementVNode("span", {
+    }, () => [createElementVNode("span", _hoisted_4$m, toDisplayString$1($options.getOptionLabel(option)), 1)]), createElementVNode("span", {
       class: normalizeClass(['p-autocomplete-token-icon', $props.removeTokenIcon]),
       onClick: $event => $options.removeOption($event, i),
       "aria-hidden": "true"
@@ -20531,7 +20686,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[7] || (_cache[7] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     onInput: _cache[8] || (_cache[8] = (...args) => $options.onInput && $options.onInput(...args)),
     onChange: _cache[9] || (_cache[9] = (...args) => $options.onChange && $options.onChange(...args))
-  }, $props.inputProps), null, 16, _hoisted_7$7)])], 42, _hoisted_2$A)) : createCommentVNode("", true), $data.searching ? (openBlock(), createElementBlock("i", {
+  }, $props.inputProps), null, 16, _hoisted_7$8)])], 42, _hoisted_2$u)) : createCommentVNode("", true), $data.searching ? (openBlock(), createElementBlock("i", {
     key: 2,
     class: normalizeClass($options.loadingIconClass),
     "aria-hidden": "true"
@@ -20653,7 +20808,7 @@ function render$u(_ctx, _cache, $props, $setup, $data, $options) {
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$k(css, ref) {
+function styleInject$j(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -20682,11 +20837,11 @@ function styleInject$k(css, ref) {
   }
 }
 
-var css_248z$r = "\n.p-autocomplete {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n}\n.p-autocomplete-loader {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-autocomplete-dd .p-autocomplete-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-autocomplete-dd .p-autocomplete-input,\n.p-autocomplete-dd .p-autocomplete-multiple-container {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-autocomplete-dd .p-autocomplete-dropdown {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0px;\n}\n.p-autocomplete .p-autocomplete-panel {\n    min-width: 100%;\n}\n.p-autocomplete-panel {\n    position: absolute;\n    overflow: auto;\n    top: 0;\n    left: 0;\n}\n.p-autocomplete-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-autocomplete-item {\n    cursor: pointer;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-autocomplete-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-autocomplete-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-autocomplete-token-icon {\n    cursor: pointer;\n}\n.p-autocomplete-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-autocomplete-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-autocomplete {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-autocomplete-dd .p-autocomplete-input {\n    width: 1%;\n}\n";
-styleInject$k(css_248z$r);
-script$1l.render = render$u;
+var css_248z$q = "\n.p-autocomplete {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n}\n.p-autocomplete-loader {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-autocomplete-dd .p-autocomplete-input {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-autocomplete-dd .p-autocomplete-input,\n.p-autocomplete-dd .p-autocomplete-multiple-container {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-autocomplete-dd .p-autocomplete-dropdown {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0px;\n}\n.p-autocomplete .p-autocomplete-panel {\n    min-width: 100%;\n}\n.p-autocomplete-panel {\n    position: absolute;\n    overflow: auto;\n    top: 0;\n    left: 0;\n}\n.p-autocomplete-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-autocomplete-item {\n    cursor: pointer;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-autocomplete-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-autocomplete-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-autocomplete-token-icon {\n    cursor: pointer;\n}\n.p-autocomplete-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-autocomplete-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-autocomplete {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-autocomplete-dd .p-autocomplete-input {\n    width: 1%;\n}\n";
+styleInject$j(css_248z$q);
+script$1b.render = render$o;
 
-var script$1k = {
+var script$1a = {
   props: {
     bind : Object,
     options : Array
@@ -20736,7 +20891,7 @@ watch(() => props.options, () => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1l), {
+  return (openBlock(), createBlock(unref(script$1b), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
     name: __props.bind.cell.name,
@@ -20755,17 +20910,20 @@ return (_ctx, _cache) => {
 
 };
 
-script$1k.__file = "presstojam/src/components/form/autocomplete-select.vue";
+script$1a.__file = "presstojam/src/components/form/autocomplete-select.vue";
 
-const _hoisted_1$J = {
+const _hoisted_1$A = {
   key: 0,
   class: "p-inputgroup"
 };
-const _hoisted_2$z = { class: "p-inputgroup-addon" };
+const _hoisted_2$t = {
+  key: 0,
+  class: "p-inputgroup-addon"
+};
 
 
 
-var script$1j = {
+var script$19 = {
   props: {
     bind : {
         type : Object,
@@ -20779,28 +20937,19 @@ const props = __props;
 
 
 
-const model = inject("model");
-
-const store = getModel(model);
-
-const client = inject("client");
-
-const dialog = ref(false);
-
-
+const store = inject("model");
 
 const options = ref([]);
 let value;
 
 const parent_id =(props.data['--parent']) ? props.data["--parent"] : 0;
-console.log("Parent data is", props.data);
 
 const cell = props.bind.cell;
 
 
 
 if (cell.isReferenceType()) {
-        cell.getOptions(client, model, parent_id)
+        store.getOptions(cell.name, parent_id)
         .then(response => {
             let arr = [...response];
             arr.unshift({value:0,label:"None"});
@@ -20819,7 +20968,7 @@ if (cell.isReferenceType()) {
     });
 
 } else if (cell.recursive) {
-       cell.getRecursiveOptions(client, model, parent_id, store.fields)
+      store.getRecursiveOptions(cell.name, parent_id)
        .then(response => {
         let arr = [...response];
         arr.unshift({key : "0", label : 'None' , "--recursive" : 0});
@@ -20844,59 +20993,44 @@ if (cell.isReferenceType()) {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.isReferenceType())
-    ? (openBlock(), createElementBlock("div", _hoisted_1$J, [
-        createVNode(script$1k, {
+    ? (openBlock(), createElementBlock("div", _hoisted_1$A, [
+        createVNode(script$1a, {
           bind: __props.bind,
           options: options.value
         }, null, 8 /* PROPS */, ["bind", "options"]),
-        createElementVNode("span", _hoisted_2$z, [
-          createElementVNode("i", {
-            class: "pi pi-plus",
-            onClick: _cache[0] || (_cache[0] = $event => (dialog.value='true')),
-            style: {"cursor":"pointer"}
-          })
-        ]),
-        createVNode(unref(script$1y), {
-          visible: dialog.value,
-          "onUpdate:visible": _cache[1] || (_cache[1] = $event => ((dialog).value = $event)),
-          header: 'Create ' + _ctx.$t('models.' + unref(cell).reference + '.title', 1),
-          modal: true,
-          class: "p-fluid"
-        }, {
-          default: withCtx(() => [
-            createVNode(script$1m, {
-              cell: __props.bind.cell,
-              store: unref(store)
-            }, null, 8 /* PROPS */, ["cell", "store"])
-          ]),
-          _: 1 /* STABLE */
-        }, 8 /* PROPS */, ["visible", "header"])
+        (unref(store).perms.includes('post'))
+          ? (openBlock(), createElementBlock("span", _hoisted_2$t, [
+              createVNode(script$1c, {
+                name: __props.bind.cell.reference
+              }, null, 8 /* PROPS */, ["name"])
+            ]))
+          : createCommentVNode("v-if", true)
       ]))
     : (__props.bind.cell.recursive)
-      ? (openBlock(), createBlock(unref(script$1n), {
+      ? (openBlock(), createBlock(unref(script$1e), {
           key: 1,
           modelValue: unref(value),
-          "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : value = $event)),
+          "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : value = $event)),
           options: options.value,
           placeholder: "Select Item",
-          onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.setShowError(true)))
+          onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.setShowError(true)))
         }, null, 8 /* PROPS */, ["modelValue", "options"]))
       : (openBlock(), createBlock(unref(script$1u), {
           key: 2,
           name: __props.bind.cell.name,
           modelValue: unref(value),
-          "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => (isRef(value) ? (value).value = $event : value = $event)),
+          "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : value = $event)),
           disabled: true,
-          onBlur: _cache[5] || (_cache[5] = $event => (__props.bind.setShowError(true)))
+          onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.setShowError(true)))
         }, null, 8 /* PROPS */, ["name", "modelValue"]))
 }
 }
 
 };
 
-script$1j.__file = "presstojam/src/components/form/id-edit.vue";
+script$19.__file = "presstojam/src/components/form/id-edit.vue";
 
-var script$1i = {
+var script$18 = {
   name: 'Calendar',
   emits: ['show', 'hide', 'input', 'month-change', 'year-change', 'date-select', 'update:modelValue', 'today-click', 'clear-click', 'focus', 'blur', 'keydown'],
   props: {
@@ -23688,17 +23822,17 @@ var script$1i = {
     ripple: Ripple
   }
 };
-const _hoisted_1$I = ["id"];
-const _hoisted_2$y = ["id", "placeholder", "aria-expanded", "aria-controls", "aria-labelledby", "aria-label", "disabled", "readonly"];
+const _hoisted_1$z = ["id"];
+const _hoisted_2$s = ["id", "placeholder", "aria-expanded", "aria-controls", "aria-labelledby", "aria-label", "disabled", "readonly"];
 const _hoisted_3$p = ["id", "role", "aria-modal", "aria-label"];
-const _hoisted_4$m = {
+const _hoisted_4$l = {
   class: "p-datepicker-group-container"
 };
 const _hoisted_5$f = {
   class: "p-datepicker-header"
 };
 const _hoisted_6$c = ["disabled", "aria-label"];
-const _hoisted_7$6 = {
+const _hoisted_7$7 = {
   class: "p-datepicker-title"
 };
 const _hoisted_8$6 = ["disabled", "aria-label"];
@@ -23804,7 +23938,7 @@ const _hoisted_44 = {
   class: "p-datepicker-buttonbar"
 };
 
-function render$t(_ctx, _cache, $props, $setup, $data, $options) {
+function render$n(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_CalendarButton = resolveComponent("CalendarButton");
 
   const _component_Portal = resolveComponent("Portal");
@@ -23839,7 +23973,7 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
     onFocus: _cache[2] || (_cache[2] = (...args) => $options.onFocus && $options.onFocus(...args)),
     onBlur: _cache[3] || (_cache[3] = (...args) => $options.onBlur && $options.onBlur(...args)),
     onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$y)) : createCommentVNode("", true), $props.showIcon ? (openBlock(), createBlock(_component_CalendarButton, {
+  }, $props.inputProps), null, 16, _hoisted_2$s)) : createCommentVNode("", true), $props.showIcon ? (openBlock(), createBlock(_component_CalendarButton, {
     key: 1,
     icon: $props.icon,
     class: "p-datepicker-trigger",
@@ -23875,7 +24009,7 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
         onMouseup: _cache[67] || (_cache[67] = (...args) => $options.onOverlayMouseUp && $options.onOverlayMouseUp(...args))
       }, $props.panelProps), [!$props.timeOnly ? (openBlock(), createElementBlock(Fragment, {
         key: 0
-      }, [createElementVNode("div", _hoisted_4$m, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.months, (month, groupIndex) => {
+      }, [createElementVNode("div", _hoisted_4$l, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.months, (month, groupIndex) => {
         return openBlock(), createElementBlock("div", {
           key: month.month + month.year,
           class: "p-datepicker-group"
@@ -23888,7 +24022,7 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
           "aria-label": $data.currentView === 'year' ? _ctx.$primevue.config.locale.prevDecade : $data.currentView === 'month' ? _ctx.$primevue.config.locale.prevYear : _ctx.$primevue.config.locale.prevMonth
         }, [createElementVNode("span", {
           class: normalizeClass(['p-datepicker-prev-icon', $props.previousIcon])
-        }, null, 2)], 40, _hoisted_6$c)), [[vShow, $props.showOtherMonths ? groupIndex === 0 : false], [_directive_ripple]]), createElementVNode("div", _hoisted_7$6, [$data.currentView === 'date' ? (openBlock(), createElementBlock("button", {
+        }, null, 2)], 40, _hoisted_6$c)), [[vShow, $props.showOtherMonths ? groupIndex === 0 : false], [_directive_ripple]]), createElementVNode("div", _hoisted_7$7, [$data.currentView === 'date' ? (openBlock(), createElementBlock("button", {
           key: 0,
           type: "button",
           onClick: _cache[7] || (_cache[7] = (...args) => $options.switchToMonthView && $options.switchToMonthView(...args)),
@@ -24066,10 +24200,10 @@ function render$t(_ctx, _cache, $props, $setup, $data, $options) {
       _: 3
     }, 8, ["onAfterEnter", "onAfterLeave", "onLeave"])]),
     _: 3
-  }, 8, ["appendTo", "disabled"])], 10, _hoisted_1$I);
+  }, 8, ["appendTo", "disabled"])], 10, _hoisted_1$z);
 }
 
-function styleInject$j(css, ref) {
+function styleInject$i(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24098,14 +24232,14 @@ function styleInject$j(css, ref) {
   }
 }
 
-var css_248z$q = "\n.p-calendar {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    max-width: 100%;\n}\n.p-calendar .p-inputtext {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-calendar-w-btn .p-inputtext {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-calendar-w-btn .p-datepicker-trigger {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n\n/* Fluid */\n.p-fluid .p-calendar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-calendar .p-inputtext {\n    width: 1%;\n}\n\n/* Datepicker */\n.p-calendar .p-datepicker {\n    min-width: 100%;\n}\n.p-datepicker {\n    width: auto;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-datepicker-inline {\n    display: inline-block;\n    position: static;\n    overflow-x: auto;\n}\n\n/* Header */\n.p-datepicker-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-datepicker-header .p-datepicker-title {\n    margin: 0 auto;\n}\n.p-datepicker-prev,\n.p-datepicker-next {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Multiple Month DatePicker */\n.p-datepicker-multiple-month .p-datepicker-group-container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-datepicker-multiple-month .p-datepicker-group-container .p-datepicker-group {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n\n/* DatePicker Table */\n.p-datepicker table {\n    width: 100%;\n    border-collapse: collapse;\n}\n.p-datepicker td > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    margin: 0 auto;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Month Picker */\n.p-monthpicker-month {\n    width: 33.3%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Year Picker */\n.p-yearpicker-year {\n    width: 50%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/*  Button Bar */\n.p-datepicker-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n\n/* Time Picker */\n.p-timepicker {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-timepicker button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n.p-timepicker > div {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n\n/* Touch UI */\n.p-datepicker-touch-ui,\n.p-calendar .p-datepicker-touch-ui {\n    position: fixed;\n    top: 50%;\n    left: 50%;\n    min-width: 80vw;\n    -webkit-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%);\n}\n";
-styleInject$j(css_248z$q);
-script$1i.render = render$t;
+var css_248z$p = "\n.p-calendar {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    max-width: 100%;\n}\n.p-calendar .p-inputtext {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-calendar-w-btn .p-inputtext {\n    border-top-right-radius: 0;\n    border-bottom-right-radius: 0;\n}\n.p-calendar-w-btn .p-datepicker-trigger {\n    border-top-left-radius: 0;\n    border-bottom-left-radius: 0;\n}\n\n/* Fluid */\n.p-fluid .p-calendar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-fluid .p-calendar .p-inputtext {\n    width: 1%;\n}\n\n/* Datepicker */\n.p-calendar .p-datepicker {\n    min-width: 100%;\n}\n.p-datepicker {\n    width: auto;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-datepicker-inline {\n    display: inline-block;\n    position: static;\n    overflow-x: auto;\n}\n\n/* Header */\n.p-datepicker-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-datepicker-header .p-datepicker-title {\n    margin: 0 auto;\n}\n.p-datepicker-prev,\n.p-datepicker-next {\n    cursor: pointer;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Multiple Month DatePicker */\n.p-datepicker-multiple-month .p-datepicker-group-container {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-datepicker-multiple-month .p-datepicker-group-container .p-datepicker-group {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n\n/* DatePicker Table */\n.p-datepicker table {\n    width: 100%;\n    border-collapse: collapse;\n}\n.p-datepicker td > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    margin: 0 auto;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Month Picker */\n.p-monthpicker-month {\n    width: 33.3%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Year Picker */\n.p-yearpicker-year {\n    width: 50%;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n\n/*  Button Bar */\n.p-datepicker-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n\n/* Time Picker */\n.p-timepicker {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-timepicker button {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: pointer;\n    overflow: hidden;\n    position: relative;\n}\n.p-timepicker > div {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n\n/* Touch UI */\n.p-datepicker-touch-ui,\n.p-calendar .p-datepicker-touch-ui {\n    position: fixed;\n    top: 50%;\n    left: 50%;\n    min-width: 80vw;\n    -webkit-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%);\n}\n";
+styleInject$i(css_248z$p);
+script$18.render = render$n;
 
-const _hoisted_1$H = { key: 1 };
+const _hoisted_1$y = { key: 1 };
 
 
-var script$1h = {
+var script$17 = {
   props: {
     bind : {
         type : Object,
@@ -24135,7 +24269,7 @@ const disabled = (props.bind.cell.system) ? true : false;
 
 return (_ctx, _cache) => {
   return (unref(disabled)==false)
-    ? (openBlock(), createBlock(unref(script$1i), {
+    ? (openBlock(), createBlock(unref(script$18), {
         key: 0,
         id: "range",
         modelValue: unref(value),
@@ -24146,15 +24280,15 @@ return (_ctx, _cache) => {
         dateFormat: "dd/mm/yy",
         onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.setShowError(true)))
       }, null, 8 /* PROPS */, ["modelValue", "disabledDates", "class"]))
-    : (openBlock(), createElementBlock("span", _hoisted_1$H, toDisplayString$1(unref(value)), 1 /* TEXT */))
+    : (openBlock(), createElementBlock("span", _hoisted_1$y, toDisplayString$1(unref(value)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$1h.__file = "presstojam/src/components/form/time-edit.vue";
+script$17.__file = "presstojam/src/components/form/time-edit.vue";
 
-var script$1g = {
+var script$16 = {
   name: 'Password',
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'invalid'],
   props: {
@@ -24550,19 +24684,19 @@ var script$1g = {
     Portal: script$1B
   }
 };
-const _hoisted_1$G = {
+const _hoisted_1$x = {
   class: "p-hidden-accessible",
   "aria-live": "polite"
 };
-const _hoisted_2$x = ["id"];
+const _hoisted_2$r = ["id"];
 const _hoisted_3$o = {
   class: "p-password-meter"
 };
-const _hoisted_4$l = {
+const _hoisted_4$k = {
   class: "p-password-info"
 };
 
-function render$s(_ctx, _cache, $props, $setup, $data, $options) {
+function render$m(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_PInputText = resolveComponent("PInputText");
 
   const _component_Portal = resolveComponent("Portal");
@@ -24592,7 +24726,7 @@ function render$s(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     class: normalizeClass($options.toggleIconClass),
     onClick: _cache[0] || (_cache[0] = (...args) => $options.onMaskToggle && $options.onMaskToggle(...args))
-  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_1$G, toDisplayString$1($data.infoText), 1), createVNode(_component_Portal, {
+  }, null, 2)) : createCommentVNode("", true), createElementVNode("span", _hoisted_1$x, toDisplayString$1($data.infoText), 1), createVNode(_component_Portal, {
     appendTo: $props.appendTo
   }, {
     default: withCtx(() => [createVNode(Transition, {
@@ -24613,14 +24747,14 @@ function render$s(_ctx, _cache, $props, $setup, $data, $options) {
         style: normalizeStyle({
           width: $data.meter ? $data.meter.width : ''
         })
-      }, null, 6)]), createElementVNode("div", _hoisted_4$l, toDisplayString$1($data.infoText), 1)]), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_2$x)) : createCommentVNode("", true)]),
+      }, null, 6)]), createElementVNode("div", _hoisted_4$k, toDisplayString$1($data.infoText), 1)]), renderSlot(_ctx.$slots, "footer")], 16, _hoisted_2$r)) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo"])], 2);
 }
 
-function styleInject$i(css, ref) {
+function styleInject$h(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24649,11 +24783,11 @@ function styleInject$i(css, ref) {
   }
 }
 
-var css_248z$p = "\n.p-password {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-password-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-password .p-password-panel {\n    min-width: 100%;\n}\n.p-password-meter {\n    height: 10px;\n}\n.p-password-strength {\n    height: 100%;\n    width: 0;\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-fluid .p-password {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$i(css_248z$p);
-script$1g.render = render$s;
+var css_248z$o = "\n.p-password {\n    position: relative;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-password-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-password .p-password-panel {\n    min-width: 100%;\n}\n.p-password-meter {\n    height: 10px;\n}\n.p-password-strength {\n    height: 100%;\n    width: 0;\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-fluid .p-password {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$h(css_248z$o);
+script$16.render = render$m;
 
-var script$1f = {
+var script$15 = {
   name: 'Textarea',
   emits: ['update:modelValue'],
   props: {
@@ -24703,9 +24837,9 @@ var script$1f = {
 
   }
 };
-const _hoisted_1$F = ["value"];
+const _hoisted_1$w = ["value"];
 
-function render$r(_ctx, _cache, $props, $setup, $data, $options) {
+function render$l(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("textarea", {
     class: normalizeClass(['p-inputtextarea p-inputtext p-component', {
       'p-filled': $options.filled,
@@ -24713,10 +24847,10 @@ function render$r(_ctx, _cache, $props, $setup, $data, $options) {
     }]),
     value: $props.modelValue,
     onInput: _cache[0] || (_cache[0] = (...args) => $options.onInput && $options.onInput(...args))
-  }, null, 42, _hoisted_1$F);
+  }, null, 42, _hoisted_1$w);
 }
 
-function styleInject$h(css, ref) {
+function styleInject$g(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24745,11 +24879,11 @@ function styleInject$h(css, ref) {
   }
 }
 
-var css_248z$o = "\n.p-inputtextarea-resizable {\n    overflow: hidden;\n    resize: none;\n}\n.p-fluid .p-inputtextarea {\n    width: 100%;\n}\n";
-styleInject$h(css_248z$o);
-script$1f.render = render$r;
+var css_248z$n = "\n.p-inputtextarea-resizable {\n    overflow: hidden;\n    resize: none;\n}\n.p-fluid .p-inputtextarea {\n    width: 100%;\n}\n";
+styleInject$g(css_248z$n);
+script$15.render = render$l;
 
-var script$1e = {
+var script$14 = {
   props: {
     bind : {
         type : Object,
@@ -24814,7 +24948,7 @@ if (cell.contains.includes("html")) {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.encrypted)
-    ? (openBlock(), createBlock(unref(script$1g), {
+    ? (openBlock(), createBlock(unref(script$16), {
         key: 0,
         modelValue: unref(value),
         "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -24822,7 +24956,7 @@ return (_ctx, _cache) => {
         onBlur: _cache[1] || (_cache[1] = $event => (__props.bind.setShowError(true)))
       }, null, 8 /* PROPS */, ["modelValue", "class"]))
     : (unref(tag)=='textarea')
-      ? (openBlock(), createBlock(unref(script$1f), {
+      ? (openBlock(), createBlock(unref(script$15), {
           key: 1,
           modelValue: unref(value),
           "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
@@ -24831,7 +24965,7 @@ return (_ctx, _cache) => {
           onBlur: _cache[3] || (_cache[3] = $event => (__props.bind.setShowError(true)))
         }, null, 8 /* PROPS */, ["modelValue", "class"]))
       : (unref(tag)=='select')
-        ? (openBlock(), createBlock(script$1k, {
+        ? (openBlock(), createBlock(script$1a, {
             key: 2,
             bind: __props.bind,
             options: unref(options),
@@ -24850,9 +24984,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1e.__file = "presstojam/src/components/form/string-edit.vue";
+script$14.__file = "presstojam/src/components/form/string-edit.vue";
 
-var script$1d = {
+var script$13 = {
   name: 'ProgressBar',
   props: {
     value: {
@@ -24893,8 +25027,8 @@ var script$1d = {
 
   }
 };
-const _hoisted_1$E = ["aria-valuenow"];
-const _hoisted_2$w = {
+const _hoisted_1$v = ["aria-valuenow"];
+const _hoisted_2$q = {
   key: 0,
   class: "p-progressbar-label"
 };
@@ -24903,13 +25037,13 @@ const _hoisted_3$n = {
   class: "p-progressbar-indeterminate-container"
 };
 
-const _hoisted_4$k = /*#__PURE__*/createElementVNode("div", {
+const _hoisted_4$j = /*#__PURE__*/createElementVNode("div", {
   class: "p-progressbar-value p-progressbar-value-animate"
 }, null, -1);
 
-const _hoisted_5$e = [_hoisted_4$k];
+const _hoisted_5$e = [_hoisted_4$j];
 
-function render$q(_ctx, _cache, $props, $setup, $data, $options) {
+function render$k(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     role: "progressbar",
     class: normalizeClass($options.containerClass),
@@ -24920,10 +25054,10 @@ function render$q(_ctx, _cache, $props, $setup, $data, $options) {
     key: 0,
     class: "p-progressbar-value p-progressbar-value-animate",
     style: normalizeStyle($options.progressStyle)
-  }, [$props.value != null && $props.value !== 0 && $props.showValue ? (openBlock(), createElementBlock("div", _hoisted_2$w, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value + '%'), 1)])])) : createCommentVNode("", true)], 4)) : createCommentVNode("", true), $options.indeterminate ? (openBlock(), createElementBlock("div", _hoisted_3$n, _hoisted_5$e)) : createCommentVNode("", true)], 10, _hoisted_1$E);
+  }, [$props.value != null && $props.value !== 0 && $props.showValue ? (openBlock(), createElementBlock("div", _hoisted_2$q, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value + '%'), 1)])])) : createCommentVNode("", true)], 4)) : createCommentVNode("", true), $options.indeterminate ? (openBlock(), createElementBlock("div", _hoisted_3$n, _hoisted_5$e)) : createCommentVNode("", true)], 10, _hoisted_1$v);
 }
 
-function styleInject$g(css, ref) {
+function styleInject$f(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -24952,11 +25086,11 @@ function styleInject$g(css, ref) {
   }
 }
 
-var css_248z$n = "\n.p-progressbar {\n    position: relative;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-value {\n    height: 100%;\n    width: 0%;\n    position: absolute;\n    display: none;\n    border: 0 none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-label {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-progressbar-determinate .p-progressbar-value-animate {\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-progressbar-indeterminate .p-progressbar-value::before {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n    animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n}\n.p-progressbar-indeterminate .p-progressbar-value::after {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    -webkit-animation-delay: 1.15s;\n    animation-delay: 1.15s;\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n";
-styleInject$g(css_248z$n);
-script$1d.render = render$q;
+var css_248z$m = "\n.p-progressbar {\n    position: relative;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-value {\n    height: 100%;\n    width: 0%;\n    position: absolute;\n    display: none;\n    border: 0 none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n}\n.p-progressbar-determinate .p-progressbar-label {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-progressbar-determinate .p-progressbar-value-animate {\n    -webkit-transition: width 1s ease-in-out;\n    transition: width 1s ease-in-out;\n}\n.p-progressbar-indeterminate .p-progressbar-value::before {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n    animation: p-progressbar-indeterminate-anim 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;\n}\n.p-progressbar-indeterminate .p-progressbar-value::after {\n    content: '';\n    position: absolute;\n    background-color: inherit;\n    top: 0;\n    left: 0;\n    bottom: 0;\n    will-change: left, right;\n    -webkit-animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    animation: p-progressbar-indeterminate-anim-short 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;\n    -webkit-animation-delay: 1.15s;\n    animation-delay: 1.15s;\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim {\n0% {\n        left: -35%;\n        right: 100%;\n}\n60% {\n        left: 100%;\n        right: -90%;\n}\n100% {\n        left: 100%;\n        right: -90%;\n}\n}\n@-webkit-keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n@keyframes p-progressbar-indeterminate-anim-short {\n0% {\n        left: -200%;\n        right: 100%;\n}\n60% {\n        left: 107%;\n        right: -8%;\n}\n100% {\n        left: 107%;\n        right: -8%;\n}\n}\n";
+styleInject$f(css_248z$m);
+script$13.render = render$k;
 
-var script$1c = {
+var script$12 = {
   name: 'Badge',
   props: {
     value: null,
@@ -24984,13 +25118,13 @@ var script$1c = {
   }
 };
 
-function render$p(_ctx, _cache, $props, $setup, $data, $options) {
+function render$j(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("span", {
     class: normalizeClass($options.badgeClass)
   }, [renderSlot(_ctx.$slots, "default", {}, () => [createTextVNode(toDisplayString$1($props.value), 1)])], 2);
 }
 
-script$1c.render = render$p;
+script$12.render = render$j;
 
 var script$1$3 = {
   emits: ['remove'],
@@ -25028,7 +25162,7 @@ var script$1$3 = {
   },
   components: {
     FileUploadButton: script$1K,
-    FileUploadBadge: script$1c
+    FileUploadBadge: script$12
   }
 };
 const _hoisted_1$1$3 = ["alt", "src", "width"];
@@ -25073,7 +25207,7 @@ function render$1$3(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$3.render = render$1$3;
-var script$1b = {
+var script$11 = {
   name: 'FileUpload',
   emits: ['select', 'uploader', 'before-upload', 'progress', 'upload', 'error', 'before-send', 'clear', 'remove', 'removeUploadedFile'],
   props: {
@@ -25556,7 +25690,7 @@ var script$1b = {
   },
   components: {
     FileUploadButton: script$1K,
-    FileUploadProgressBar: script$1d,
+    FileUploadProgressBar: script$13,
     FileUploadMessage: script$1J,
     FileContent: script$1$3
   },
@@ -25564,15 +25698,15 @@ var script$1b = {
     ripple: Ripple
   }
 };
-const _hoisted_1$D = {
+const _hoisted_1$u = {
   key: 0,
   class: "p-fileupload p-fileupload-advanced p-component"
 };
-const _hoisted_2$v = ["multiple", "accept", "disabled"];
+const _hoisted_2$p = ["multiple", "accept", "disabled"];
 const _hoisted_3$m = {
   class: "p-fileupload-buttonbar"
 };
-const _hoisted_4$j = {
+const _hoisted_4$i = {
   class: "p-button-label"
 };
 const _hoisted_5$d = {
@@ -25583,12 +25717,12 @@ const _hoisted_6$b = {
   key: 1,
   class: "p-fileupload p-fileupload-basic p-component"
 };
-const _hoisted_7$5 = {
+const _hoisted_7$6 = {
   class: "p-button-label"
 };
 const _hoisted_8$5 = ["accept", "disabled", "multiple"];
 
-function render$o(_ctx, _cache, $props, $setup, $data, $options) {
+function render$i(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_FileUploadButton = resolveComponent("FileUploadButton");
 
   const _component_FileUploadProgressBar = resolveComponent("FileUploadProgressBar");
@@ -25599,14 +25733,14 @@ function render$o(_ctx, _cache, $props, $setup, $data, $options) {
 
   const _directive_ripple = resolveDirective("ripple");
 
-  return $options.isAdvanced ? (openBlock(), createElementBlock("div", _hoisted_1$D, [createElementVNode("input", {
+  return $options.isAdvanced ? (openBlock(), createElementBlock("div", _hoisted_1$u, [createElementVNode("input", {
     ref: "fileInput",
     type: "file",
     onChange: _cache[0] || (_cache[0] = (...args) => $options.onFileSelect && $options.onFileSelect(...args)),
     multiple: $props.multiple,
     accept: $props.accept,
     disabled: $options.chooseDisabled
-  }, null, 40, _hoisted_2$v), createElementVNode("div", _hoisted_3$m, [renderSlot(_ctx.$slots, "header", {
+  }, null, 40, _hoisted_2$p), createElementVNode("div", _hoisted_3$m, [renderSlot(_ctx.$slots, "header", {
     files: $data.files,
     uploadedFiles: $data.uploadedFiles,
     chooseCallback: $options.choose,
@@ -25622,7 +25756,7 @@ function render$o(_ctx, _cache, $props, $setup, $data, $options) {
     tabindex: "0"
   }, [createElementVNode("span", {
     class: normalizeClass($options.advancedChooseIconClass)
-  }, null, 2), createElementVNode("span", _hoisted_4$j, toDisplayString$1($options.chooseButtonLabel), 1)], 38)), [[_directive_ripple]]), $props.showUploadButton ? (openBlock(), createBlock(_component_FileUploadButton, {
+  }, null, 2), createElementVNode("span", _hoisted_4$i, toDisplayString$1($options.chooseButtonLabel), 1)], 38)), [[_directive_ripple]]), $props.showUploadButton ? (openBlock(), createBlock(_component_FileUploadButton, {
     key: 0,
     label: $options.uploadButtonLabel,
     icon: $props.uploadIcon,
@@ -25692,7 +25826,7 @@ function render$o(_ctx, _cache, $props, $setup, $data, $options) {
     tabindex: "0"
   }, [createElementVNode("span", {
     class: normalizeClass($options.basicChooseButtonIconClass)
-  }, null, 2), createElementVNode("span", _hoisted_7$5, toDisplayString$1($options.basicChooseButtonLabel), 1), !$options.hasFiles ? (openBlock(), createElementBlock("input", {
+  }, null, 2), createElementVNode("span", _hoisted_7$6, toDisplayString$1($options.basicChooseButtonLabel), 1), !$options.hasFiles ? (openBlock(), createElementBlock("input", {
     key: 0,
     ref: "fileInput",
     type: "file",
@@ -25705,7 +25839,7 @@ function render$o(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 40, _hoisted_8$5)) : createCommentVNode("", true)], 38)), [[_directive_ripple]])])) : createCommentVNode("", true);
 }
 
-function styleInject$f(css, ref) {
+function styleInject$e(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25734,15 +25868,15 @@ function styleInject$f(css, ref) {
   }
 }
 
-var css_248z$m = "\n.p-fileupload-content {\n    position: relative;\n}\n.p-fileupload-content .p-progressbar {\n    width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-button.p-fileupload-choose {\n    position: relative;\n    overflow: hidden;\n}\n.p-fileupload-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-fileupload > input[type='file'],\n.p-fileupload-basic input[type='file'] {\n    display: none;\n}\n.p-fluid .p-fileupload .p-button {\n    width: auto;\n}\n.p-fileupload-file {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-fileupload-file-thumbnail {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-fileupload-file-actions {\n    margin-left: auto;\n}\n";
-styleInject$f(css_248z$m);
-script$1b.render = render$o;
+var css_248z$l = "\n.p-fileupload-content {\n    position: relative;\n}\n.p-fileupload-content .p-progressbar {\n    width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-button.p-fileupload-choose {\n    position: relative;\n    overflow: hidden;\n}\n.p-fileupload-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-fileupload > input[type='file'],\n.p-fileupload-basic input[type='file'] {\n    display: none;\n}\n.p-fluid .p-fileupload .p-button {\n    width: auto;\n}\n.p-fileupload-file {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-fileupload-file-thumbnail {\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-fileupload-file-actions {\n    margin-left: auto;\n}\n";
+styleInject$e(css_248z$l);
+script$11.render = render$i;
 
 // accept="image/*" 
 
 
 
-var script$1a = {
+var script$10 = {
   props: {
     bind : {
         type : Object,
@@ -25768,7 +25902,7 @@ function onUpload(e) {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1b), {
+  return (openBlock(), createBlock(unref(script$11), {
     mode: "basic",
     name: __props.bind.cell.name,
     customUpload: true,
@@ -25780,9 +25914,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$1a.__file = "presstojam/src/components/form/asset-edit.vue";
+script$10.__file = "presstojam/src/components/form/asset-edit.vue";
 
-var script$19 = {
+var script$$ = {
   name: 'Fieldset',
   emits: ['update:collapsed', 'toggle'],
   props: {
@@ -25839,12 +25973,12 @@ var script$19 = {
     ripple: Ripple
   }
 };
-const _hoisted_1$C = {
+const _hoisted_1$t = {
   class: "p-fieldset-legend"
 };
-const _hoisted_2$u = ["id"];
+const _hoisted_2$o = ["id"];
 const _hoisted_3$l = ["id", "aria-controls", "aria-expanded", "aria-label"];
-const _hoisted_4$i = {
+const _hoisted_4$h = {
   class: "p-fieldset-legend-text"
 };
 const _hoisted_5$c = ["id", "aria-labelledby"];
@@ -25852,19 +25986,19 @@ const _hoisted_6$a = {
   class: "p-fieldset-content"
 };
 
-function render$n(_ctx, _cache, $props, $setup, $data, $options) {
+function render$h(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("fieldset", {
     class: normalizeClass(['p-fieldset p-component', {
       'p-fieldset-toggleable': $props.toggleable
     }])
-  }, [createElementVNode("legend", _hoisted_1$C, [!$props.toggleable ? renderSlot(_ctx.$slots, "legend", {
+  }, [createElementVNode("legend", _hoisted_1$t, [!$props.toggleable ? renderSlot(_ctx.$slots, "legend", {
     key: 0
   }, () => [createElementVNode("span", {
     id: $options.ariaId + '_header',
     class: "p-fieldset-legend-text"
-  }, toDisplayString$1($props.legend), 9, _hoisted_2$u)]) : createCommentVNode("", true), $props.toggleable ? withDirectives((openBlock(), createElementBlock("a", {
+  }, toDisplayString$1($props.legend), 9, _hoisted_2$o)]) : createCommentVNode("", true), $props.toggleable ? withDirectives((openBlock(), createElementBlock("a", {
     key: 1,
     id: $options.ariaId + '_header',
     tabindex: "0",
@@ -25876,7 +26010,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
     onKeydown: _cache[1] || (_cache[1] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
   }, [createElementVNode("span", {
     class: normalizeClass($options.iconClass)
-  }, null, 2), renderSlot(_ctx.$slots, "legend", {}, () => [createElementVNode("span", _hoisted_4$i, toDisplayString$1($props.legend), 1)])], 40, _hoisted_3$l)), [[_directive_ripple]]) : createCommentVNode("", true)]), createVNode(Transition, {
+  }, null, 2), renderSlot(_ctx.$slots, "legend", {}, () => [createElementVNode("span", _hoisted_4$h, toDisplayString$1($props.legend), 1)])], 40, _hoisted_3$l)), [[_directive_ripple]]) : createCommentVNode("", true)]), createVNode(Transition, {
     name: "p-toggleable-content"
   }, {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
@@ -25889,7 +26023,7 @@ function render$n(_ctx, _cache, $props, $setup, $data, $options) {
   })], 2);
 }
 
-function styleInject$e(css, ref) {
+function styleInject$d(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -25918,11 +26052,11 @@ function styleInject$e(css, ref) {
   }
 }
 
-var css_248z$l = "\n.p-fieldset-legend > a,\n.p-fieldset-legend > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-fieldset-toggleable .p-fieldset-legend a {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n    text-decoration: none;\n}\n.p-fieldset-legend-text {\n    line-height: 1;\n}\n";
-styleInject$e(css_248z$l);
-script$19.render = render$n;
+var css_248z$k = "\n.p-fieldset-legend > a,\n.p-fieldset-legend > span {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-fieldset-toggleable .p-fieldset-legend a {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    overflow: hidden;\n    position: relative;\n    text-decoration: none;\n}\n.p-fieldset-legend-text {\n    line-height: 1;\n}\n";
+styleInject$d(css_248z$k);
+script$$.render = render$h;
 
-var script$18 = {
+var script$_ = {
   props: {
     bind : {
         type : Object,
@@ -25952,7 +26086,7 @@ const binds = computed(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$19), {
+  return (openBlock(), createBlock(unref(script$$), {
     legend: _ctx.$t('models.' + __props.bind.cell.model + '.fields.' + __props.bind.cell.name + '.label')
   }, {
     default: withCtx(() => [
@@ -25961,7 +26095,7 @@ return (_ctx, _cache) => {
           class: "field form-group",
           key: jbind.cell.name
         }, [
-          createVNode(script$16, { bind: jbind }, null, 8 /* PROPS */, ["bind"])
+          createVNode(script$Y, { bind: jbind }, null, 8 /* PROPS */, ["bind"])
         ]))
       }), 128 /* KEYED_FRAGMENT */))
     ]),
@@ -25972,12 +26106,12 @@ return (_ctx, _cache) => {
 
 };
 
-script$18.__file = "presstojam/src/components/form/json-edit.vue";
+script$_.__file = "presstojam/src/components/form/json-edit.vue";
 
-const _hoisted_1$B = { class: "form-text text-muted p-invalid alert-danger" };
+const _hoisted_1$s = { class: "form-text text-muted p-invalid alert-danger" };
 
 
-var script$17 = {
+var script$Z = {
   props: {
   bind :Object
 },
@@ -26011,24 +26145,24 @@ const err_message = computed(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("small", _hoisted_1$B, toDisplayString$1(unref(err_message)), 1 /* TEXT */))
+  return (openBlock(), createElementBlock("small", _hoisted_1$s, toDisplayString$1(unref(err_message)), 1 /* TEXT */))
 }
 }
 
 };
 
-script$17.__file = "presstojam/src/components/form/error.vue";
+script$Z.__file = "presstojam/src/components/form/error.vue";
 
-const _hoisted_1$A = {
+const _hoisted_1$r = {
   key: 0,
   class: "form-check field-checkbox"
 };
-const _hoisted_2$t = ["for"];
+const _hoisted_2$n = ["for"];
 const _hoisted_3$k = {
   key: 1,
   class: "json-group"
 };
-const _hoisted_4$h = {
+const _hoisted_4$g = {
   key: 2,
   class: "form-group field row"
 };
@@ -26036,7 +26170,7 @@ const _hoisted_5$b = ["for"];
 
 
 
-var script$16 = {
+var script$Y = {
   props: {
     bind : Object,
     active_validation : Boolean,
@@ -26062,14 +26196,14 @@ computed(() => {
 
 return (_ctx, _cache) => {
   return (__props.bind.cell.type=='flag')
-    ? (openBlock(), createElementBlock("div", _hoisted_1$A, [
-        createVNode(script$1p, { bind: __props.bind }, null, 8 /* PROPS */, ["bind"]),
+    ? (openBlock(), createElementBlock("div", _hoisted_1$r, [
+        createVNode(script$1g, { bind: __props.bind }, null, 8 /* PROPS */, ["bind"]),
         createElementVNode("label", {
           for: __props.bind.cell.name,
           class: "form-check-label"
-        }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_2$t),
+        }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_2$n),
         (__props.bind.show_error)
-          ? (openBlock(), createBlock(script$17, {
+          ? (openBlock(), createBlock(script$Z, {
               key: 0,
               bind: __props.bind
             }, null, 8 /* PROPS */, ["bind"]))
@@ -26077,55 +26211,55 @@ return (_ctx, _cache) => {
       ]))
     : (__props.bind.cell.type=='json')
       ? (openBlock(), createElementBlock("div", _hoisted_3$k, [
-          createVNode(script$18, {
+          createVNode(script$_, {
             bind: __props.bind,
             active_validation: __props.active_validation
           }, null, 8 /* PROPS */, ["bind", "active_validation"])
         ]))
-      : (openBlock(), createElementBlock("div", _hoisted_4$h, [
+      : (openBlock(), createElementBlock("div", _hoisted_4$g, [
           createElementVNode("label", {
             for: __props.bind.cell.name,
             class: "form-label"
           }, toDisplayString$1(_ctx.$t("models." + __props.bind.cell.model + ".fields." + __props.bind.cell.name + ".label")), 9 /* TEXT, PROPS */, _hoisted_5$b),
           (__props.bind.cell.type=='number')
-            ? (openBlock(), createBlock(script$1q, {
+            ? (openBlock(), createBlock(script$1h, {
                 key: 0,
                 bind: __props.bind,
                 class: "col"
               }, null, 8 /* PROPS */, ["bind"]))
             : (__props.bind.cell.type=='id')
-              ? (openBlock(), createBlock(script$1j, {
+              ? (openBlock(), createBlock(script$19, {
                   key: 1,
                   bind: __props.bind,
                   class: "col",
                   data: __props.data
                 }, null, 8 /* PROPS */, ["bind", "data"]))
               : (__props.bind.cell.type=='asset')
-                ? (openBlock(), createBlock(script$1a, {
+                ? (openBlock(), createBlock(script$10, {
                     key: 2,
                     bind: __props.bind,
                     class: "col"
                   }, null, 8 /* PROPS */, ["bind"]))
                 : (__props.bind.cell.type=='time')
-                  ? (openBlock(), createBlock(script$1h, {
+                  ? (openBlock(), createBlock(script$17, {
                       key: 3,
                       bind: __props.bind,
                       class: "col"
                     }, null, 8 /* PROPS */, ["bind"]))
                   : (__props.bind.cell.type=='json')
-                    ? (openBlock(), createBlock(script$18, {
+                    ? (openBlock(), createBlock(script$_, {
                         key: 4,
                         bind: __props.bind,
                         active_validation: __props.active_validation,
                         class: "col"
                       }, null, 8 /* PROPS */, ["bind", "active_validation"]))
-                    : (openBlock(), createBlock(script$1e, {
+                    : (openBlock(), createBlock(script$14, {
                         key: 5,
                         bind: __props.bind,
                         class: "col"
                       }, null, 8 /* PROPS */, ["bind"])),
           (__props.bind.show_error)
-            ? (openBlock(), createBlock(script$17, {
+            ? (openBlock(), createBlock(script$Z, {
                 key: 6,
                 bind: __props.bind,
                 class: "col"
@@ -26137,43 +26271,217 @@ return (_ctx, _cache) => {
 
 };
 
-script$16.__file = "presstojam/src/components/form/edit-field.vue";
+script$Y.__file = "presstojam/src/components/form/edit-field.vue";
 
-var script$15 = {
+class Data {
+  constructor(model_name) {
+    this._model = new Model(model_name);
+    this._is_loading = ref(false);
+    this._load_promise = null;
+    this._key = new Date().getTime();
+    this._active = ref({});
+    this._selected = ref([]);
+    this._data = ref(null);
+  }
+
+  get selected() {
+    return this._selected;
+  }
+
+  get store() {
+    return this._model;
+  }
+
+  get model() {
+    return this._model;
+  }
+
+  get active() {
+    return this._active;
+  }
+
+  get fields() {
+    return this._model.fields;
+  }
+
+  get is_loading() {
+    return this._is_loading;
+  }
+
+  get data() {
+    return this._data;
+  }
+
+  trigger(key) {
+    this._model.trigger(key, this);
+  }
+
+}
+
+class RepoData extends Data {
+  constructor(model) {
+    super(model);
+    this._pagination = {
+      rows_per_page: this._model.limit,
+      count: ref(0),
+      page: 0
+    };
+    this._parent_id = null;
+    this._order = {};
+    this._filters = {};
+    this._count_promise = null;
+    this._data.value = [];
+  }
+
+  get pagination() {
+    return this._pagination;
+  }
+
+  get filters() {
+    return this._filters;
+  }
+
+  get type() {
+    return "repo";
+  }
+
+  get parent_id() {
+    return this._parent_id;
+  }
+
+  set parent_id(id) {
+    this._parent_id = id;
+  }
+
+  buildParams(all = false) {
+    let filters = { ...this._filters
+    };
+    if (this._parent_id) filters["--parent"] = this._parent_id;
+
+    if (this._pagination.rows_per_page && !all) {
+      filters.__offset = this._pagination.page * this._pagination.rows_per_page;
+    }
+
+    return filters;
+  }
+
+  setPagination(page) {
+    this._pagination.page = page;
+    return this.reload();
+  }
+
+  hasPagination() {
+    return this._pagination.rows_per_page ? true : false;
+  }
+
+  count() {
+    if (!this._count_promise) {
+      this._count_promise = this._model.loadCount(this.buildParams()).then(count => {
+        this._pagination.count.value = count;
+      });
+    }
+
+    return this._count_promise;
+  }
+
+  load() {
+    if (!this._load_promise) {
+      this._is_loading.value = true;
+      this._load_promise = this.count().then(() => {
+        return this._model.load(this.buildParams(), this._pagination.offset);
+      });
+    }
+
+    this._load_promise.then(response => {
+      this._data.value = response;
+      this._is_loading.value = false;
+    }).catch(e => {
+      console.log(e);
+      this.is_loading.value = false;
+      throw e;
+    });
+
+    return this._load_promise;
+  }
+
+  loadAll() {
+    let ocount = this._model.limit;
+    this._model.limit = 0;
+
+    const promise = this._model.load(this.buildParams(true));
+
+    this._model.limit = ocount; //reset original limit
+
+    return promise;
+  }
+
+  reload(params) {
+    this._load_promise = null;
+    return this.load(params);
+  }
+
+  loadRow(iobj) {
+    return this._model.reloadRow(iobj['--id']);
+  }
+
+  addRow(iobj) {
+    return this.loadRow(iobj).then(response => {
+      this._data.value.push(response);
+    });
+  }
+
+  editRow(iobj) {
+    return this.loadRow(iobj).then(response => {
+      for (const i in this._data.value) {
+        if (this._data.value[i]['--id'] == response['--id']) {
+          this._data.value[i] = obj;
+        }
+      }
+    });
+  }
+
+  remove(ids) {
+    this._data.value.filter(function (item) {
+      return !ids.include(item['--id']);
+    });
+  }
+
+}
+
+var script$X = {
   props: {
-    modelValue : [Number, String, Boolean],
-    model : String,
-    common_parent : String,
-    common_id : Number
+    data : Object,
+    common_id : Number,
+    common_parent : String
 },
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
+  setup(__props) {
 
 const props = __props;
 
 
 
 inject("client");
+const options = ref([]);
 
-const store = getModel(props.model);
-const params = { to : props.common_parent };
-params[props.common_parent + "/--id"] = props.common_id; 
-store.setParams({ to : props.common_parent });
-store.load()
+const repo = new RepoData(props.data.model.name);
+repo.to = props.common_parent;
+
+const params = {};
+params[props.data.common_parent + "/--id"] = props.data.common_id; 
+repo.filters = params;
+repo.load()
 .then(() => {
-    console.log(store.data.value);
+    options.value = repo.data.value;
 });
 
 
-const options = ref([]);
+
 let value;
 
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1n), {
+  return (openBlock(), createBlock(unref(script$1e), {
     modelValue: unref(value),
     "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : value = $event)),
     options: options.value,
@@ -26184,7 +26492,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$15.__file = "presstojam/src/components/form/parent-select.vue";
+script$X.__file = "presstojam/src/components/form/parent-select.vue";
 
 class BindGroup {
   constructor() {
@@ -26231,7 +26539,7 @@ class BindGroup {
 }
 
 class Bind {
-  constructor(cell, value) {
+  constructor(cell, value = null) {
     this._cell = cell;
     this._value = value;
     this._error = ref(0);
@@ -26311,7 +26619,7 @@ class Bind {
 
 }
 
-var script$14 = {
+var script$W = {
   name: 'Panel',
   emits: ['update:collapsed', 'toggle'],
   props: {
@@ -26367,29 +26675,29 @@ var script$14 = {
     ripple: Ripple
   }
 };
-const _hoisted_1$z = {
+const _hoisted_1$q = {
   class: "p-panel-header"
 };
-const _hoisted_2$s = ["id"];
+const _hoisted_2$m = ["id"];
 const _hoisted_3$j = {
   class: "p-panel-icons"
 };
-const _hoisted_4$g = ["id", "aria-label", "aria-controls", "aria-expanded"];
+const _hoisted_4$f = ["id", "aria-label", "aria-controls", "aria-expanded"];
 const _hoisted_5$a = ["id", "aria-labelledby"];
 const _hoisted_6$9 = {
   class: "p-panel-content"
 };
 
-function render$m(_ctx, _cache, $props, $setup, $data, $options) {
+function render$g(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass)
-  }, [createElementVNode("div", _hoisted_1$z, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
+  }, [createElementVNode("div", _hoisted_1$q, [renderSlot(_ctx.$slots, "header", {}, () => [$props.header ? (openBlock(), createElementBlock("span", {
     key: 0,
     id: $options.ariaId + '_header',
     class: "p-panel-title"
-  }, toDisplayString$1($props.header), 9, _hoisted_2$s)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$j, [renderSlot(_ctx.$slots, "icons"), $props.toggleable ? withDirectives((openBlock(), createElementBlock("button", {
+  }, toDisplayString$1($props.header), 9, _hoisted_2$m)) : createCommentVNode("", true)]), createElementVNode("div", _hoisted_3$j, [renderSlot(_ctx.$slots, "icons"), $props.toggleable ? withDirectives((openBlock(), createElementBlock("button", {
     key: 0,
     id: $options.ariaId + '_header',
     type: "button",
@@ -26405,7 +26713,7 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
       'pi pi-minus': !$data.d_collapsed,
       'pi pi-plus': $data.d_collapsed
     })
-  }, null, 2)], 40, _hoisted_4$g)), [[_directive_ripple]]) : createCommentVNode("", true)])]), createVNode(Transition, {
+  }, null, 2)], 40, _hoisted_4$f)), [[_directive_ripple]]) : createCommentVNode("", true)])]), createVNode(Transition, {
     name: "p-toggleable-content"
   }, {
     default: withCtx(() => [withDirectives(createElementVNode("div", {
@@ -26416,87 +26724,6 @@ function render$m(_ctx, _cache, $props, $setup, $data, $options) {
     }, [createElementVNode("div", _hoisted_6$9, [renderSlot(_ctx.$slots, "default")])], 8, _hoisted_5$a), [[vShow, !$data.d_collapsed]])]),
     _: 3
   })], 2);
-}
-
-function styleInject$d(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$k = "\n.p-panel-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-panel-title {\n    line-height: 1;\n}\n.p-panel-header-icon {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n";
-styleInject$d(css_248z$k);
-script$14.render = render$m;
-
-var script$13 = {
-  name: 'ProgressSpinner',
-  props: {
-    strokeWidth: {
-      type: String,
-      default: '2'
-    },
-    fill: {
-      type: String,
-      default: 'none'
-    },
-    animationDuration: {
-      type: String,
-      default: '2s'
-    }
-  },
-  computed: {
-    svgStyle() {
-      return {
-        'animation-duration': this.animationDuration
-      };
-    }
-
-  }
-};
-const _hoisted_1$y = {
-  class: "p-progress-spinner",
-  role: "alert",
-  "aria-busy": "true"
-};
-const _hoisted_2$r = ["fill", "stroke-width"];
-
-function render$l(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$y, [(openBlock(), createElementBlock("svg", {
-    class: "p-progress-spinner-svg",
-    viewBox: "25 25 50 50",
-    style: normalizeStyle($options.svgStyle)
-  }, [createElementVNode("circle", {
-    class: "p-progress-spinner-circle",
-    cx: "50",
-    cy: "50",
-    r: "20",
-    fill: $props.fill,
-    "stroke-width": $props.strokeWidth,
-    strokeMiterlimit: "10"
-  }, null, 8, _hoisted_2$r)], 4))]);
 }
 
 function styleInject$c(css, ref) {
@@ -26528,30 +26755,363 @@ function styleInject$c(css, ref) {
   }
 }
 
-var css_248z$j = "\n.p-progress-spinner {\n    position: relative;\n    margin: 0 auto;\n    width: 100px;\n    height: 100px;\n    display: inline-block;\n}\n.p-progress-spinner::before {\n    content: '';\n    display: block;\n    padding-top: 100%;\n}\n.p-progress-spinner-svg {\n    -webkit-animation: p-progress-spinner-rotate 2s linear infinite;\n            animation: p-progress-spinner-rotate 2s linear infinite;\n    height: 100%;\n    -webkit-transform-origin: center center;\n            transform-origin: center center;\n    width: 100%;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    margin: auto;\n}\n.p-progress-spinner-circle {\n    stroke-dasharray: 89, 200;\n    stroke-dashoffset: 0;\n    stroke: #d62d20;\n    -webkit-animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n            animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n    stroke-linecap: round;\n}\n@-webkit-keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@-webkit-keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@-webkit-keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n@keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n";
+var css_248z$j = "\n.p-panel-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-panel-title {\n    line-height: 1;\n}\n.p-panel-header-icon {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n";
 styleInject$c(css_248z$j);
-script$13.render = render$l;
+script$W.render = render$g;
 
-const _hoisted_1$x = ["onSubmit"];
-const _hoisted_2$q = {
+var script$V = {
+  name: 'ProgressSpinner',
+  props: {
+    strokeWidth: {
+      type: String,
+      default: '2'
+    },
+    fill: {
+      type: String,
+      default: 'none'
+    },
+    animationDuration: {
+      type: String,
+      default: '2s'
+    }
+  },
+  computed: {
+    svgStyle() {
+      return {
+        'animation-duration': this.animationDuration
+      };
+    }
+
+  }
+};
+const _hoisted_1$p = {
+  class: "p-progress-spinner",
+  role: "alert",
+  "aria-busy": "true"
+};
+const _hoisted_2$l = ["fill", "stroke-width"];
+
+function render$f(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$p, [(openBlock(), createElementBlock("svg", {
+    class: "p-progress-spinner-svg",
+    viewBox: "25 25 50 50",
+    style: normalizeStyle($options.svgStyle)
+  }, [createElementVNode("circle", {
+    class: "p-progress-spinner-circle",
+    cx: "50",
+    cy: "50",
+    r: "20",
+    fill: $props.fill,
+    "stroke-width": $props.strokeWidth,
+    strokeMiterlimit: "10"
+  }, null, 8, _hoisted_2$l)], 4))]);
+}
+
+function styleInject$b(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$i = "\n.p-progress-spinner {\n    position: relative;\n    margin: 0 auto;\n    width: 100px;\n    height: 100px;\n    display: inline-block;\n}\n.p-progress-spinner::before {\n    content: '';\n    display: block;\n    padding-top: 100%;\n}\n.p-progress-spinner-svg {\n    -webkit-animation: p-progress-spinner-rotate 2s linear infinite;\n            animation: p-progress-spinner-rotate 2s linear infinite;\n    height: 100%;\n    -webkit-transform-origin: center center;\n            transform-origin: center center;\n    width: 100%;\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    margin: auto;\n}\n.p-progress-spinner-circle {\n    stroke-dasharray: 89, 200;\n    stroke-dashoffset: 0;\n    stroke: #d62d20;\n    -webkit-animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n            animation: p-progress-spinner-dash 1.5s ease-in-out infinite, p-progress-spinner-color 6s ease-in-out infinite;\n    stroke-linecap: round;\n}\n@-webkit-keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@keyframes p-progress-spinner-rotate {\n100% {\n        -webkit-transform: rotate(360deg);\n                transform: rotate(360deg);\n}\n}\n@-webkit-keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@keyframes p-progress-spinner-dash {\n0% {\n        stroke-dasharray: 1, 200;\n        stroke-dashoffset: 0;\n}\n50% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -35px;\n}\n100% {\n        stroke-dasharray: 89, 200;\n        stroke-dashoffset: -124px;\n}\n}\n@-webkit-keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n@keyframes p-progress-spinner-color {\n100%,\n    0% {\n        stroke: #d62d20;\n}\n40% {\n        stroke: #0057e7;\n}\n66% {\n        stroke: #008744;\n}\n80%,\n    90% {\n        stroke: #ffa700;\n}\n}\n";
+styleInject$b(css_248z$i);
+script$V.render = render$f;
+
+getClient();
+function toTree(arr, schema, parent_id = 0) {
+  const nodes = [];
+  const items = arr.filter(obj => obj['--recursive'] == parent_id);
+
+  for (const item of items) {
+    let label = getLabel(schema, item);
+    const obj = {
+      key: item['--id'],
+      "label": label,
+      data: item
+    };
+    obj.children = toTree(arr, schema, obj.key);
+    nodes.push(obj);
+  }
+
+  return nodes;
+}
+function toReferenceTree(arr, schema, parent_id = 0) {
+  const nodes = [];
+  const items = arr.filter(obj => obj['--recursive'] == parent_id);
+
+  for (const item of items) {
+    const obj = {
+      key: item.value,
+      "label": item.label,
+      data: item
+    };
+    obj.children = toReferenceTree(arr, schema, obj.key);
+    nodes.push(obj);
+  }
+
+  return nodes;
+}
+function getLabel(schema, data) {
+  let label = [];
+
+  for (let i in schema) {
+    if (schema[i].summary) {
+      label.push(data[i]);
+    }
+  }
+
+  return label.join(" ");
+}
+function sortByDictionary(a, b) {
+  if (a.value < b.value) {
+    return -1;
+  } else if (a.value > b.value) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+function rowToTree(obj, parent) {
+  function walkObjTreeBuild(obj, links) {
+    for (let i = 0; i < links.length; ++i) {
+      if (!obj[links[i]]) obj[links[i]] = {};
+      obj = obj[links[i]];
+    }
+
+    return obj;
+  }
+
+  let nobj = {};
+  nobj[parent] = {};
+
+  for (let i in obj) {
+    if (i.indexOf("/") > -1) {
+      const pts = i.split("/");
+      const name = pts.pop();
+      const cobj = walkObjTreeBuild(nobj, pts);
+      cobj[name] = obj[i];
+    } else {
+      nobj[parent][i] = obj[i];
+    }
+  }
+
+  return nobj;
+}
+
+class FormModel {
+  constructor(name, id) {
+    this._name = name;
+    this._fields = {};
+    this._id = id;
+    this._editable_fields = [];
+    this._parent = null;
+    this._events;
+    this._perms = [];
+    const keys = Object.keys(this);
+    keys.forEach(property => {
+      if (property[0] == "_") {
+        Object.defineProperty(this, property.substring(1), {
+          get: function () {
+            return this[property];
+          },
+          set: function (newValue) {
+            this[property] = newValue;
+          }
+        });
+      }
+    });
+    const entity = this.loadEntity();
+    this.loadSettings();
+    this.loadFields(entity);
+  }
+
+  get children_models() {
+    return this._fields["--id"].reference;
+  }
+
+  getSettings() {
+    let settings = configs.get("models");
+
+    if (settings[this._name]) {
+      return settings[this._name];
+    }
+  }
+
+  loadSettings() {
+    const settings = this.getSettings();
+
+    if (settings) {
+      if (settings.editable) this._editable_fields = settings.editable;
+    }
+  }
+
+  loadEntity() {
+    const entity = getEntity(this._name);
+
+    if (!entity) {
+      throw this._name;
+    }
+
+    if (entity.perms) this._perms = entity.perms;
+    return entity;
+  }
+
+  loadFields(entity) {
+    const fields = entity.cells;
+
+    for (let i in fields) {
+      if (!this._limited_fields || this._limited_fields.includes(slug + i)) {
+        this._fields[i] = Object.assign(Object.create(fields[i]), fields[i]);
+        this._fields[i].slug = i;
+      }
+    }
+  }
+
+  load() {
+    const client = getClient();
+    return client.get("/data/" + this._name + "/active", {
+      "--id": this._id
+    });
+  }
+
+  trigger(key, data) {
+    if (this._events[key]) {
+      this._events[key](data);
+    }
+  }
+
+  setEditableCells(schema = null) {
+    if (!schema) schema = this._fields;
+
+    for (let i in schema) {
+      schema[i].disabled = false;
+
+      if (schema[i].slug != schema[i].name) {
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      }
+
+      if (schema[i].system || schema[i].immutable) {
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      } //check if limited
+
+
+      if (this._editable_fields.length && !this._editable_fields.includes(i)) {
+        schema[i].disabled = true;
+        continue;
+      }
+
+      if (schema[i].type == "json") {
+        this.setEditableCells(schema[i].fields);
+      }
+    }
+  }
+
+  setCreateCells(schema = null) {
+    if (!schema) schema = this._fields;
+
+    for (let i in schema) {
+      schema[i].disabled = false;
+
+      if (schema[i].slug != schema[i].name) {
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      }
+
+      if (schema[i].system) {
+        schema[i].disabled = true; //continue - don't use includes or parents
+
+        continue;
+      }
+
+      if (schema[i].type == "json") {
+        this.setCreateCells(schema[i].fields);
+      }
+    }
+  }
+
+  getEnabledCells() {
+    let cells = {};
+
+    for (let i in this._fields) {
+      if (!this._fields[i].disabled) {
+        cells[i] = this._fields[i];
+      }
+    }
+
+    return cells;
+  }
+
+  getOptions(name, id) {
+    const client = getClient();
+    let url = "/reference/" + this._name + "/" + name;
+    if (id) url += "/" + id;
+    return client.get(url).then(response => {
+      response.sort(sortByDictionary);
+      return response;
+    });
+  }
+
+  getRecursiveOptions(name, id) {
+    const client = getClient();
+    let url = "/reference/" + this._name + "/" + name;
+    if (id) url += "/" + id;
+    return client.get(url).then(response => {
+      return toReferenceTree(response, this._fields);
+    });
+  }
+
+}
+
+const _hoisted_1$o = ["onSubmit"];
+const _hoisted_2$k = {
   key: 0,
   class: "form-group"
 };
 const _hoisted_3$i = /*#__PURE__*/createElementVNode("p", null, "Please do not refresh or close the browser until complete", -1 /* HOISTED */);
-const _hoisted_4$f = { style: {"text-align":"center"} };
+const _hoisted_4$e = { style: {"text-align":"center"} };
 
 
-var script$12 = {
+
+var script$U = {
   props: {
-    data : Object,
-    model : Object,
+    id : Number,
+    entity_name : String,
     method : {
         type : String,
         default : 'post'
-    },
-    parent : Boolean
+    }
 },
-  setup(__props) {
+  async setup(__props) {
+
+let __temp, __restore;
 
 const props = __props;
 
@@ -26567,28 +27127,38 @@ const global_error = ref("");
 const processing = ref(false);
 const status = ref(0);
 
-provide("model", props.model.name);
+
+const model = new FormModel(props.entity_name, props.id);
+provide("model", model);
 
 
-if (props.method == 'put') props.model.setEditableCells();
-else props.model.setCreateCells();
+if (props.method == 'put') model.setEditableCells();
+else model.setCreateCells();
 
-const cells = props.model.getEnabledCells();
-
+const cells = model.getEnabledCells();
 
 const bindGroup = new BindGroup();
 
-
-if (props.parent) {
-    bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.data["--parent"]));
+let data = {};
+if (props.method == "put") {
+    data = (
+  ([__temp,__restore] = withAsyncContext(() => model.load())),
+  __temp = await __temp,
+  __restore(),
+  __temp
+);
 }
+
+//if (model.parent) {
+  //  bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.id));
+//}
 
 
 for(const field in cells) {
-    bindGroup.regBind(field, new Bind(cells[field], props.data[field]));
+    bindGroup.regBind(field, new Bind(cells[field], data[field]));
     if (cells[field].type == "json") {
         for(let ocell in cells[field].fields) {
-            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (props.data[field]) ? props.data[field][ocell] : null));
+            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (data[field]) ? data[field][ocell] : null));
         }
     } 
 }
@@ -26635,16 +27205,16 @@ function submit() {
     const data = serializeData();
  
     if (props.method == "put") {
-        data.append("--id", props.data['--id']);
-    } else if (props.method == "post" && props.data['--parent']) {
-        data.append("--parent", props.data['--parent']);
+        data.append("--id", props.id);
+    } else if (props.method == "post" && props.id) {
+        data.append("--parent", props.id);
     }         
 
     //return;
     return Client[props.method]("/data/" + props.model.name, data)
     .then(response => {
         if (props.method == "put") {
-            response.data["--id"] = props.data["--id"];
+            response.data["--id"] = props.id;
         }
         return response;
     })
@@ -26652,7 +27222,7 @@ function submit() {
         if (response['--dispatchid']) {
             runDispatch(response['--dispatchid'], response);
         } else {
-            trigger$1("form_saved", response, props.method, props.model);
+            trigger("form_saved", response, props.method, model);
         }
         return response;
     })
@@ -26674,9 +27244,9 @@ function runDispatch(id, oresponse) {
         Client.get("/dispatch/status/" + id)
         .then(response => {
             if (response.progress == "FAILED") {
-                trigger$1("dispatch_failed", oresponse, props.method, props.model, response);
+                trigger("dispatch_failed", oresponse, props.method, model, response);
             } else if (response.progress == "PROCESSED" || !response.progress) {
-                trigger$1("form_saved", oresponse, props.method, props.model, response);
+                trigger("form_saved", oresponse, props.method, model, response);
             } else {
                 status.value = response.progress;
                 setTimeout(chkProgress, delay);
@@ -26703,10 +27273,10 @@ return (_ctx, _cache) => {
       }, 512 /* NEED_PATCH */), [
         [vShow, global_error.value]
       ]),
-      (__props.parent)
-        ? (openBlock(), createElementBlock("div", _hoisted_2$q, [
+      (unref(model).parent)
+        ? (openBlock(), createElementBlock("div", _hoisted_2$k, [
             createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + _ctx.store.parent + ".title")), 1 /* TEXT */),
-            createVNode(script$15, {
+            createVNode(script$X, {
               modelValue: _ctx.proxy_values['--parent'],
               "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((_ctx.proxy_values['--parent']) = $event)),
               model: _ctx.store.parent,
@@ -26716,28 +27286,28 @@ return (_ctx, _cache) => {
           ]))
         : createCommentVNode("v-if", true),
       (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
-        return (openBlock(), createBlock(script$16, {
+        return (openBlock(), createBlock(script$Y, {
           bind: unref(bindGroup).getBind(cell.name),
           key: cell.name,
-          data: __props.data
+          data: unref(data)
         }, null, 8 /* PROPS */, ["bind", "data"]))
       }), 128 /* KEYED_FRAGMENT */)),
       createVNode(unref(script$1K), {
         label: _ctx.$t('btns.save'),
         onClick: submit
       }, null, 8 /* PROPS */, ["label"])
-    ], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$x), [
+    ], 40 /* PROPS, HYDRATE_EVENTS */, _hoisted_1$o), [
       [vShow, processing.value == false]
     ]),
-    withDirectives(createVNode(unref(script$14), {
+    withDirectives(createVNode(unref(script$W), {
       Panel: "",
       header: "Processing"
     }, {
       default: withCtx(() => [
         _hoisted_3$i,
         createElementVNode("p", null, "Status: " + toDisplayString$1(status.value), 1 /* TEXT */),
-        createElementVNode("p", _hoisted_4$f, [
-          createVNode(unref(script$13))
+        createElementVNode("p", _hoisted_4$e, [
+          createVNode(unref(script$V))
         ])
       ]),
       _: 1 /* STABLE */
@@ -26750,14 +27320,14 @@ return (_ctx, _cache) => {
 
 };
 
-script$12.__file = "presstojam/src/components/form/form.vue";
+script$U.__file = "presstojam/src/components/form/form.vue";
 
 var form = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  'default': script$12
+  'default': script$U
 });
 
-var script$11 = {
+var script$T = {
   props: {
     model : String,
     parent_id : Number
@@ -26797,13 +27367,13 @@ function checkData() {
         for(const i in checks) {
             const entity = getEntity(i);
             if (entity.perms.includes("post") && entity.min_rows && entity.min_rows >= checks[i]) {
-                current_model.value = getModel(i);
+                current_model.value = i;
                 current_num.value = checks[i];
                 return;
             }
         }
         //if we get here, then no checks
-        trigger$1("integrity_min_data", props.model, true);
+        trigger("integrity_min_data", props.model, true);
     });
 }
 
@@ -26824,7 +27394,7 @@ checkData();
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
     (current_num.value.value)
-      ? (openBlock(), createBlock(script$1r, {
+      ? (openBlock(), createBlock(script$1i, {
           key: 0,
           model: current_model.value,
           parent_id: __props.parent_id
@@ -26836,7 +27406,7 @@ return (_ctx, _cache) => {
             createElementVNode("h2", null, toDisplayString$1(unref(header)), 1 /* TEXT */)
           ]),
           content: withCtx(() => [
-            createVNode(script$12, {
+            createVNode(script$U, {
               model: current_model.value,
               data: unref(data)
             }, null, 8 /* PROPS */, ["model", "data"])
@@ -26850,13 +27420,13 @@ return (_ctx, _cache) => {
 
 };
 
-script$11.__file = "presstojam/src/components/dataintegrity/mindata.vue";
+script$T.__file = "presstojam/src/components/dataintegrity/mindata.vue";
 
-const _hoisted_1$w = { key: 2 };
+const _hoisted_1$n = { key: 2 };
 
 
 
-var script$10 = {
+var script$S = {
   async setup(__props) {
 
 let __temp, __restore;
@@ -26945,8 +27515,8 @@ return (_ctx, _cache) => {
   return (require_login.value)
     ? (openBlock(), createBlock(script$1E, { key: 0 }))
     : (integrity_check.value == false)
-      ? (openBlock(), createBlock(script$11, { key: 1 }))
-      : (openBlock(), createElementBlock("div", _hoisted_1$w, [
+      ? (openBlock(), createBlock(script$T, { key: 1 }))
+      : (openBlock(), createElementBlock("div", _hoisted_1$n, [
           (unref(no_nav) == false)
             ? (openBlock(), createBlock(script$1z, {
                 key: 0,
@@ -26961,16 +27531,16 @@ return (_ctx, _cache) => {
 
 };
 
-script$10.__file = "presstojam/src/components/user.vue";
+script$S.__file = "presstojam/src/components/user.vue";
 
-var script$$ = {
+var script$R = {
   setup(__props) {
 
 
 return (_ctx, _cache) => {
   return (openBlock(), createBlock(Suspense, null, {
     default: withCtx(() => [
-      createVNode(script$10)
+      createVNode(script$S)
     ]),
     _: 1 /* STABLE */
   }))
@@ -26979,7 +27549,7 @@ return (_ctx, _cache) => {
 
 };
 
-script$$.__file = "presstojam/src/components/controller.vue";
+script$R.__file = "presstojam/src/components/controller.vue";
 
 /*!
   * vue-router v4.1.6
@@ -30676,395 +31246,6 @@ function extractChangingRecords(to, from) {
   return [leavingRecords, updatingRecords, enteringRecords];
 }
 
-class Data {
-  constructor(model) {
-    this._model = model;
-    this._is_loading = ref(false);
-    this._load_promise = null;
-    this._key = new Date().getTime();
-    this._active = ref({});
-    this._selected = ref([]);
-  }
-
-  get selected() {
-    return this._selected;
-  }
-
-  get store() {
-    return this._model;
-  }
-
-  get model() {
-    return this._model;
-  }
-
-  get active() {
-    return this._active;
-  }
-
-  get fields() {
-    return this._model.fields;
-  }
-
-  get is_loading() {
-    return this._is_loading;
-  }
-
-  trigger(key) {
-    this._model.trigger(key, this);
-  }
-
-}
-
-class RepoData extends Data {
-  constructor(model) {
-    super(model);
-    this._pagination = {
-      rows_per_page: this._model.limit,
-      count: ref(0),
-      page: 0
-    };
-    this._parent_id = null;
-    this._order = {};
-    this._filters = {};
-    this._count_promise = null;
-  }
-
-  get pagination() {
-    return this._pagination;
-  }
-
-  get filters() {
-    return this._filters;
-  }
-
-  get type() {
-    return "repo";
-  }
-
-  get parent_id() {
-    return this._parent_id;
-  }
-
-  set parent_id(id) {
-    this._parent_id = id;
-  }
-
-  buildParams(all = false) {
-    let filters = { ...this._filters
-    };
-    if (this._parent_id) filters["--parent"] = this._parent_id;
-
-    if (this._pagination.rows_per_page && !all) {
-      filters.__offset = this._pagination.page * this._pagination.rows_per_page;
-    }
-
-    return filters;
-  }
-
-  setPagination(page) {
-    this._pagination.page = page;
-    return this.reload();
-  }
-
-  hasPagination() {
-    return this._pagination.rows_per_page ? true : false;
-  }
-
-  count() {
-    if (!this._count_promise) {
-      this._count_promise = this._model.loadCount(this.buildParams()).then(count => {
-        this._pagination.count.value = count;
-      });
-    }
-
-    return this._count_promise;
-  }
-
-  load() {
-    if (!this._load_promise) {
-      this._is_loading.value = true;
-      this._load_promise = this.count().then(() => {
-        return this._model.load(this.buildParams(), this._pagination.offset);
-      });
-    }
-
-    this._load_promise.then(response => {
-      this._is_loading.value = false;
-      return response;
-    }).catch(e => {
-      console.log(e);
-      this.is_loading.value = false;
-      throw e;
-    });
-
-    return this._load_promise;
-  }
-
-  loadAll() {
-    let ocount = this._model.limit;
-    this._model.limit = 0;
-
-    const promise = this._model.load(this.buildParams(true));
-
-    this._model.limit = ocount; //reset original limit
-
-    return promise;
-  }
-
-  reload(params) {
-    this._load_promise = null;
-    return this.load(params);
-  }
-
-  loadRow(iobj) {
-    return this._model.reloadRow(iobj['--id']);
-  }
-
-  remove(ids) {
-    this._load_promise = this._load_promise.then(response => {
-      response.filter(function (item) {
-        return !ids.include(item['--id']);
-      });
-      return response;
-    });
-  }
-
-}
-
-class ActiveData extends Data {
-  constructor(model, active_id) {
-    super(model);
-    this._active_id = active_id;
-  }
-
-  get type() {
-    return "active";
-  }
-
-  get active_id() {
-    return this._active_id;
-  }
-
-  load() {
-    if (!this._load_promise) {
-      this._is_loading.value = true;
-      this._load_promise = this._model.loadActive({
-        "--id": this._active_id
-      });
-    }
-
-    this._load_promise.then(response => {
-      this._is_loading.value = false;
-      return response;
-    }).catch(e => {
-      console.log(e);
-      this._is_loading.value = false;
-      throw e;
-    });
-
-    return this._load_promise;
-  }
-
-  reload() {
-    this._active.value = {};
-    this._load_promise = null;
-    return this.load();
-  }
-
-  overwrite(obj) {
-    this._load_promise = this._load_promise.then(response => {
-      for (let x in obj) {
-        response[x] = obj[x];
-      }
-
-      return response;
-    });
-  }
-
-}
-
-class ReportStore extends Data {
-  constructor(model, field) {
-    super(model);
-    this._aggregate = null;
-    this._filters = [];
-    this._field = field;
-    this._aggregate = "COUNT";
-    this._groups = [];
-    this._time_group;
-    this._load_line_promise = null;
-  }
-
-  get filters() {
-    return this._filters;
-  }
-
-  set filters(filters) {
-    this._filters = filters;
-  }
-
-  get groups() {
-    return this._groups;
-  }
-
-  set groups(groups) {
-    this._groups = groups;
-  }
-
-  get aggregate() {
-    return this._aggregate;
-  }
-
-  set aggregate(agg) {
-    this._aggregate = agg;
-  }
-
-  set timegroup(timegroup) {
-    this._time_group = timegroup;
-  }
-
-  get field() {
-    return this._field;
-  }
-
-  get type() {
-    return "report";
-  }
-
-  getDataSets(response) {
-    const data_sets = {};
-
-    if (this._groups.length == 0) {
-      data_sets["main"] = [response[0].count];
-    } else {
-      for (const row of response) {
-        let keys = [];
-
-        for (const group of this._groups) {
-          keys.push(group + ":" + row[group]);
-        }
-
-        const key = keys.join(", ");
-        if (!data_sets[key]) data_sets[key] = [];
-        data_sets[key].push(row.count);
-      }
-    }
-
-    console.log("Data Sets are ", data_sets);
-    return data_sets;
-  }
-
-  load(type) {
-    if (!this._load_promise) {
-      this._is_loading.value = true;
-      this._model.limit = 0;
-      const groups = { ...this._groups
-      };
-
-      if (type == 'line') {
-        if (this._time_group) {
-          groups.push({
-            name: '--created',
-            func: 'DATEPART',
-            args: {}
-          });
-        }
-      }
-
-      this._model.group = groups;
-      this._load_promise = this._model.loadReport(this._filters, this._field, this._aggregate).then(response => {
-        const data = this.getDataSets(response);
-        const datasets = [];
-
-        for (const key in data) {
-          datasets.push({
-            label: key,
-            data: data[key]
-          });
-        }
-
-        this._is_loading.value = false;
-        return datasets;
-      }).catch(e => {
-        console.log(e);
-        this._is_loading.value = false;
-        throw e;
-      });
-    }
-
-    return this._load_promise;
-  }
-
-  reload(type) {
-    return this.load(type);
-  }
-
-}
-
-let stores = {};
-function createRepoStore(store) {
-  return new RepoData(store);
-}
-function createActiveStore(store, active_id) {
-  return new ActiveData(store, active_id);
-}
-function createReportStore(store) {
-  return new ReportStore(store);
-}
-function createFirstStore(store) {
-  store.limit = 1;
-  store.order = ["--id", "ASC"];
-  return new RepoData(store);
-  /*return {
-      parent_id : ref(0),
-      store : store,
-      active_id : 0,
-      is_loading : ref(false),
-      selected : ref([]),
-      data : ref({}),
-      label : ref(''),
-      load_promise : null,
-      load() {
-          this.is_loading.value = true;
-          this.load_promise = store.loadFirst()
-          .then(() => {
-              return store.load();
-          }).then(response => {
-              this.data.value = response;
-              if (this.data.value['--parentid']) this.parent_id.value = this.data.value['--parentid'];
-              this.label.value = getLabel(store.route.schema, this.data.value);
-              this.is_loading.value = false;
-          })
-          .catch(e => {
-              console.log(e);
-              this.is_loading.value = false;
-          });
-      },
-      overwrite(obj) {
-          for(let x in obj) {
-              this.data.value[x] = obj[x];
-          }
-      } 
-  }*/
-}
-function clearStores() {
-  stores = {};
-}
-function regStore(name, store) {
-  stores[name] = store;
-}
-function getStore(name) {
-  if (!stores[name]) {
-    throw "Can't get reactive store of " + name;
-  }
-
-  return stores[name];
-}
-function hasStore(name) {
-  return stores[name] ? true : false;
-}
-
 var script$1$2 = {
   name: 'BreadcrumbItem',
   props: {
@@ -31134,7 +31315,7 @@ const _hoisted_2$1$2 = {
   class: "p-menuitem-text"
 };
 const _hoisted_3$1$2 = ["href", "target", "aria-current"];
-const _hoisted_4$e = {
+const _hoisted_4$d = {
   key: 1,
   class: "p-menuitem-text"
 };
@@ -31180,14 +31361,14 @@ function render$1$2(_ctx, _cache, $props, $setup, $data, $options) {
   }, [$props.item.icon ? (openBlock(), createElementBlock("span", {
     key: 0,
     class: normalizeClass($options.iconClass)
-  }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_4$e, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_3$1$2))], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
+  }, null, 2)) : createCommentVNode("", true), $props.item.label ? (openBlock(), createElementBlock("span", _hoisted_4$d, toDisplayString$1($options.label()), 1)) : createCommentVNode("", true)], 10, _hoisted_3$1$2))], 64)) : (openBlock(), createBlock(resolveDynamicComponent($props.template), {
     key: 1,
     item: $props.item
   }, null, 8, ["item"]))], 2)) : createCommentVNode("", true);
 }
 
 script$1$2.render = render$1$2;
-var script$_ = {
+var script$Q = {
   name: 'Breadcrumb',
   props: {
     model: {
@@ -31207,10 +31388,10 @@ var script$_ = {
     BreadcrumbItem: script$1$2
   }
 };
-const _hoisted_1$v = {
+const _hoisted_1$m = {
   class: "p-breadcrumb p-component"
 };
-const _hoisted_2$p = {
+const _hoisted_2$j = {
   class: "p-breadcrumb-list"
 };
 
@@ -31221,10 +31402,10 @@ const _hoisted_3$h = /*#__PURE__*/createElementVNode("li", {
   "aria-hidden": "true"
 })], -1);
 
-function render$k(_ctx, _cache, $props, $setup, $data, $options) {
+function render$e(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_BreadcrumbItem = resolveComponent("BreadcrumbItem");
 
-  return openBlock(), createElementBlock("nav", _hoisted_1$v, [createElementVNode("ol", _hoisted_2$p, [$props.home ? (openBlock(), createBlock(_component_BreadcrumbItem, {
+  return openBlock(), createElementBlock("nav", _hoisted_1$m, [createElementVNode("ol", _hoisted_2$j, [$props.home ? (openBlock(), createBlock(_component_BreadcrumbItem, {
     key: 0,
     item: $props.home,
     class: "p-breadcrumb-home",
@@ -31241,7 +31422,7 @@ function render$k(_ctx, _cache, $props, $setup, $data, $options) {
   }), 128))])]);
 }
 
-function styleInject$b(css, ref) {
+function styleInject$a(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -31270,11 +31451,11 @@ function styleInject$b(css, ref) {
   }
 }
 
-var css_248z$i = "\n.p-breadcrumb {\n    overflow-x: auto;\n}\n.p-breadcrumb .p-breadcrumb-list {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-breadcrumb .p-menuitem-text {\n    line-height: 1;\n}\n.p-breadcrumb .p-menuitem-link {\n    text-decoration: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb .p-menuitem-separator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb::-webkit-scrollbar {\n    display: none;\n}\n";
-styleInject$b(css_248z$i);
-script$_.render = render$k;
+var css_248z$h = "\n.p-breadcrumb {\n    overflow-x: auto;\n}\n.p-breadcrumb .p-breadcrumb-list {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-breadcrumb .p-menuitem-text {\n    line-height: 1;\n}\n.p-breadcrumb .p-menuitem-link {\n    text-decoration: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb .p-menuitem-separator {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-breadcrumb::-webkit-scrollbar {\n    display: none;\n}\n";
+styleInject$a(css_248z$h);
+script$Q.render = render$e;
 
-var script$Z = {
+var script$P = {
   name: 'OverlayPanel',
   inheritAttrs: false,
   emits: ['show', 'hide'],
@@ -31595,16 +31776,16 @@ var script$Z = {
     Portal: script$1B
   }
 };
-const _hoisted_1$u = ["aria-modal"];
-const _hoisted_2$o = ["aria-label"];
+const _hoisted_1$l = ["aria-modal"];
+const _hoisted_2$i = ["aria-label"];
 
 const _hoisted_3$g = /*#__PURE__*/createElementVNode("span", {
   class: "p-overlaypanel-close-icon pi pi-times"
 }, null, -1);
 
-const _hoisted_4$d = [_hoisted_3$g];
+const _hoisted_4$c = [_hoisted_3$g];
 
-function render$j(_ctx, _cache, $props, $setup, $data, $options) {
+function render$d(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_Portal = resolveComponent("Portal");
 
   const _directive_ripple = resolveDirective("ripple");
@@ -31640,14 +31821,14 @@ function render$j(_ctx, _cache, $props, $setup, $data, $options) {
         autofocus: "",
         onClick: _cache[3] || (_cache[3] = (...args) => $options.hide && $options.hide(...args)),
         onKeydown: _cache[4] || (_cache[4] = (...args) => $options.onButtonKeydown && $options.onButtonKeydown(...args))
-      }, _hoisted_4$d, 40, _hoisted_2$o)), [[_directive_ripple]]) : createCommentVNode("", true)], 16, _hoisted_1$u)), [[_directive_focustrap]]) : createCommentVNode("", true)]),
+      }, _hoisted_4$c, 40, _hoisted_2$i)), [[_directive_ripple]]) : createCommentVNode("", true)], 16, _hoisted_1$l)), [[_directive_focustrap]]) : createCommentVNode("", true)]),
       _: 3
     }, 8, ["onEnter", "onLeave", "onAfterLeave"])]),
     _: 3
   }, 8, ["appendTo"]);
 }
 
-function styleInject$a(css, ref) {
+function styleInject$9(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -31676,17 +31857,17 @@ function styleInject$a(css, ref) {
   }
 }
 
-var css_248z$h = "\n.p-overlaypanel {\n    position: absolute;\n    margin-top: 10px;\n    top: 0;\n    left: 0;\n}\n.p-overlaypanel-flipped {\n    margin-top: 0;\n    margin-bottom: 10px;\n}\n.p-overlaypanel-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Animation */\n.p-overlaypanel-enter-from {\n    opacity: 0;\n    -webkit-transform: scaleY(0.8);\n            transform: scaleY(0.8);\n}\n.p-overlaypanel-leave-to {\n    opacity: 0;\n}\n.p-overlaypanel-enter-active {\n    -webkit-transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n}\n.p-overlaypanel-leave-active {\n    -webkit-transition: opacity 0.1s linear;\n    transition: opacity 0.1s linear;\n}\n.p-overlaypanel:after,\n.p-overlaypanel:before {\n    bottom: 100%;\n    left: calc(var(--overlayArrowLeft, 0) + 1.25rem);\n    content: ' ';\n    height: 0;\n    width: 0;\n    position: absolute;\n    pointer-events: none;\n}\n.p-overlaypanel:after {\n    border-width: 8px;\n    margin-left: -8px;\n}\n.p-overlaypanel:before {\n    border-width: 10px;\n    margin-left: -10px;\n}\n.p-overlaypanel-flipped:after,\n.p-overlaypanel-flipped:before {\n    bottom: auto;\n    top: 100%;\n}\n.p-overlaypanel.p-overlaypanel-flipped:after {\n    border-bottom-color: transparent;\n}\n.p-overlaypanel.p-overlaypanel-flipped:before {\n    border-bottom-color: transparent;\n}\n";
-styleInject$a(css_248z$h);
-script$Z.render = render$j;
+var css_248z$g = "\n.p-overlaypanel {\n    position: absolute;\n    margin-top: 10px;\n    top: 0;\n    left: 0;\n}\n.p-overlaypanel-flipped {\n    margin-top: 0;\n    margin-bottom: 10px;\n}\n.p-overlaypanel-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Animation */\n.p-overlaypanel-enter-from {\n    opacity: 0;\n    -webkit-transform: scaleY(0.8);\n            transform: scaleY(0.8);\n}\n.p-overlaypanel-leave-to {\n    opacity: 0;\n}\n.p-overlaypanel-enter-active {\n    -webkit-transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1);\n    transition: transform 0.12s cubic-bezier(0, 0, 0.2, 1), opacity 0.12s cubic-bezier(0, 0, 0.2, 1), -webkit-transform 0.12s cubic-bezier(0, 0, 0.2, 1);\n}\n.p-overlaypanel-leave-active {\n    -webkit-transition: opacity 0.1s linear;\n    transition: opacity 0.1s linear;\n}\n.p-overlaypanel:after,\n.p-overlaypanel:before {\n    bottom: 100%;\n    left: calc(var(--overlayArrowLeft, 0) + 1.25rem);\n    content: ' ';\n    height: 0;\n    width: 0;\n    position: absolute;\n    pointer-events: none;\n}\n.p-overlaypanel:after {\n    border-width: 8px;\n    margin-left: -8px;\n}\n.p-overlaypanel:before {\n    border-width: 10px;\n    margin-left: -10px;\n}\n.p-overlaypanel-flipped:after,\n.p-overlaypanel-flipped:before {\n    bottom: auto;\n    top: 100%;\n}\n.p-overlaypanel.p-overlaypanel-flipped:after {\n    border-bottom-color: transparent;\n}\n.p-overlaypanel.p-overlaypanel-flipped:before {\n    border-bottom-color: transparent;\n}\n";
+styleInject$9(css_248z$g);
+script$P.render = render$d;
 
-const _hoisted_1$t = ["href", "onClick"];
-const _hoisted_2$n = { class: "p-menuitem-text" };
+const _hoisted_1$k = ["href", "onClick"];
+const _hoisted_2$h = { class: "p-menuitem-text" };
 const _hoisted_3$f = { class: "row" };
-const _hoisted_4$c = /*#__PURE__*/createTextVNode();
+const _hoisted_4$b = /*#__PURE__*/createTextVNode();
 
 
-var script$Y = {
+var script$O = {
   props: {
     item : Object
 },
@@ -31726,13 +31907,13 @@ return (_ctx, _cache) => {
                 class: normalizeClass(["pi", __props.item.icon])
               }, null, 2 /* CLASS */))
             : createCommentVNode("v-if", true),
-          createElementVNode("span", _hoisted_2$n, toDisplayString$1(__props.item.label), 1 /* TEXT */)
-        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$t)
+          createElementVNode("span", _hoisted_2$h, toDisplayString$1(__props.item.label), 1 /* TEXT */)
+        ], 42 /* CLASS, PROPS, HYDRATE_EVENTS */, _hoisted_1$k)
       ]),
       _: 1 /* STABLE */
     }, 8 /* PROPS */, ["to"]),
     (__props.item.info)
-      ? (openBlock(), createBlock(unref(script$Z), {
+      ? (openBlock(), createBlock(unref(script$P), {
           key: 0,
           ref_key: "info",
           ref: info,
@@ -31743,7 +31924,7 @@ return (_ctx, _cache) => {
               return (openBlock(), createElementBlock("dl", null, [
                 createElementVNode("div", _hoisted_3$f, [
                   createElementVNode("dt", null, toDisplayString$1(row.label), 1 /* TEXT */),
-                  _hoisted_4$c,
+                  _hoisted_4$b,
                   createElementVNode("dd", null, toDisplayString$1(row.value), 1 /* TEXT */)
                 ])
               ]))
@@ -31758,16 +31939,20 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$g = "\ndl[data-v-0b46fb32] {\r\n        position : relative;\r\n        display: flex;\r\n        flex-direction: column;\n}\ndt[data-v-0b46fb32] {\r\n        float : left;\r\n        font-weight : 700;\r\n        width : 50%\n}\ndd[data-v-0b46fb32] {\r\n        position : relative;\r\n        margin-left : 50%;\r\n        padding : 2px;\n}\ndl > div[data-v-0b46fb32] {\r\n        position : relative;\r\n        clear : both;\r\n        display : block;\n}\r\n";
-styleInject$u(css_248z$g);
+var css_248z$f = "\ndl[data-v-0b46fb32] {\r\n        position : relative;\r\n        display: flex;\r\n        flex-direction: column;\n}\ndt[data-v-0b46fb32] {\r\n        float : left;\r\n        font-weight : 700;\r\n        width : 50%\n}\ndd[data-v-0b46fb32] {\r\n        position : relative;\r\n        margin-left : 50%;\r\n        padding : 2px;\n}\ndl > div[data-v-0b46fb32] {\r\n        position : relative;\r\n        clear : both;\r\n        display : block;\n}\r\n";
+styleInject$t(css_248z$f);
 
-script$Y.__scopeId = "data-v-0b46fb32";
-script$Y.__file = "presstojam/src/components/slugtrail/crumb.vue";
+script$O.__scopeId = "data-v-0b46fb32";
+script$O.__file = "presstojam/src/components/slugtrail/crumb.vue";
 
-var script$X = {
+var script$N = {
   props: {
     name : String,
-    parent_id : Number
+    parent_id : Number,
+    store : {
+        type : Object,
+        required : true
+    }
 },
   async setup(__props) {
 
@@ -31783,15 +31968,14 @@ const t = i18n.t;
 
 
 
-const repo = getStore(props.name);
-const store = repo.store;
+
 
 let parent_id;
 
-let entity = getEntity(store.name);
+let entity = getEntity(props.store.model.name);
 let structure = [];
 const parent = entity.parent;
-if (repo.type == "active") {
+if (props.store.type == "active") {
     structure.push(entity);
 }
 
@@ -31806,9 +31990,9 @@ structure = structure.reverse();
 
 async function getData() {
     if (parent) {
-      if (repo.type == "active") {
+      if (props.store.type == "active") {
         const data = await 
-        repo.load()
+        props.store.load()
         .then(response => {
             parent_id = response["--parent"];
             return Client.get("/data/" + parent + "/active?__to=*&--id=" + response['--parent'])
@@ -31817,7 +32001,7 @@ async function getData() {
         });
         return data;
       } else {
-        const data = await Client.get("/data/" + parent + "/active?__to=*&--id=" + repo.parent_id)
+        const data = await Client.get("/data/" + parent + "/active?__to=*&--id=" + props.store.parent_id)
         .then(response => {
             return rowToTree(response, parent)
         });
@@ -31854,7 +32038,7 @@ function trailRouteInfo(trail, route) {
 let crumbs = computed(() => {
     let arr = [];
     for(const entity of structure) {
-        //add an entity repo route
+        //add an entity store route
         //need to get the parent id
 
         const obj = { label : entity.name, to : { name : "repo", params : { model : entity.name } } };
@@ -31883,9 +32067,9 @@ let crumbs = computed(() => {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$_), { model: unref(crumbs) }, {
+  return (openBlock(), createBlock(unref(script$Q), { model: unref(crumbs) }, {
     item: withCtx(({item}) => [
-      createVNode(script$Y, { item: item }, null, 8 /* PROPS */, ["item"])
+      createVNode(script$O, { item: item }, null, 8 /* PROPS */, ["item"])
     ]),
     _: 1 /* STABLE */
   }, 8 /* PROPS */, ["model"]))
@@ -31894,21 +32078,23 @@ return (_ctx, _cache) => {
 
 };
 
-var css_248z$f = "\n.slug-trail-vue-vue-type-style-index-0-id-027b103d-scoped-true-lang_p-breadcrumb__D8PaD[data-v-027b103d] {\r\n    background: #ffffff;\r\n    border: 1px solid #dee2e6;\r\n    border-radius: 6px;\r\n    padding: 1rem;\n}\r\n";
-styleInject$u(css_248z$f);
+var css_248z$e = "\n.slug-trail-vue-vue-type-style-index-0-id-027b103d-scoped-true-lang_p-breadcrumb__D8PaD[data-v-027b103d] {\r\n    background: #ffffff;\r\n    border: 1px solid #dee2e6;\r\n    border-radius: 6px;\r\n    padding: 1rem;\n}\r\n";
+styleInject$t(css_248z$e);
 
-script$X.__scopeId = "data-v-027b103d";
-script$X.__file = "presstojam/src/components/slugtrail/slug-trail.vue";
+script$N.__scopeId = "data-v-027b103d";
+script$N.__file = "presstojam/src/components/slugtrail/slug-trail.vue";
 
 var slugTrail = /*#__PURE__*/Object.freeze({
   __proto__: null,
-  'default': script$X
+  'default': script$N
 });
 
-var script$W = {
+var script$M = {
   props: {
-        model : Object,
-        data : Object,
+        id : {
+            type : Number,
+            default : 0
+        },
         name : String
     },
   setup(__props) {
@@ -31920,7 +32106,7 @@ const props = __props;
  
     subscribe("form_saved", "update", (response, method, model) => {
         if (model.name == props.model.name && method == "put") {
-            trigger$1("effect_edited", props.name, props.data);
+            trigger("effect_edited", props.name, props.data);
         }
     });
 
@@ -31931,4279 +32117,18 @@ const props = __props;
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$12, {
-    model: __props.model,
-    data: __props.data,
+  return (openBlock(), createBlock(script$U, {
+    entity_name: __props.name,
+    id: __props.id,
     method: "put",
     key: "edit"
-  }, null, 8 /* PROPS */, ["model", "data"]))
+  }, null, 8 /* PROPS */, ["entity_name", "id"]))
 }
 }
 
 };
 
-script$W.__file = "presstojam/src/components/effects/edit-effect.vue";
-
-var script$V = {
-  props: {
-    model : String,
-    base : String
-},
-  setup(__props) {
-
-const props = __props;
-
-const i18n = inject("i18n");
-const t = i18n.t;
-
-
-
-
-
-const store = getModel(props.model);
-
-const repo = createFirstStore(store);
-const data = ref({});
-regStore(props.model, repo);
-repo.load()
-.then(response => {
-    data.value = response;
-})
-.catch(e => console.log(e));
-
-
-const label = computed(() => {
-    return t('models.' + props.model + '.title') + ': ' + repo.label.value;
-});
-
-
-subscribe("effect_edited", props.model.name, response => {
-    console.log(response, arguments);
-});
-
-
-onBeforeUnmount(() => {
-    unsubscribe("effect_edited", props.model_name);
-});
-
-
-return (_ctx, _cache) => {
-  const _component_audit_action = resolveComponent("audit-action");
-  const _component_ptj_delete_action = resolveComponent("ptj-delete-action");
-
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$X, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$14), { header: unref(label) }, {
-      icons: withCtx(() => [
-        (unref(store).audit)
-          ? (openBlock(), createBlock(_component_audit_action, {
-              key: 0,
-              model: unref(store),
-              data: data.value,
-              long: true
-            }, null, 8 /* PROPS */, ["model", "data"]))
-          : createCommentVNode("v-if", true),
-        createVNode(_component_ptj_delete_action, {
-          name: unref(store).name,
-          data: data.value
-        }, null, 8 /* PROPS */, ["name", "data"]),
-        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
-          return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({ data: data.value }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
-        }), 256 /* UNKEYED_FRAGMENT */))
-      ]),
-      default: withCtx(() => [
-        (data.value['--id'])
-          ? (openBlock(), createBlock(script$W, {
-              key: 0,
-              model: unref(store),
-              data: data.value
-            }, null, 8 /* PROPS */, ["model", "data"]))
-          : createCommentVNode("v-if", true)
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["header"])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$V.__file = "presstojam/src/components/active/single.vue";
-
-var script$U = {
-  name: 'Chart',
-  emits: ['select', 'loaded'],
-  props: {
-    type: String,
-    data: null,
-    options: null,
-    plugins: null,
-    width: {
-      type: Number,
-      default: 300
-    },
-    height: {
-      type: Number,
-      default: 150
-    }
-  },
-  chart: null,
-  watch: {
-    /*
-     * Use deep watch to enable triggering watch for changes within structure
-     * otherwise the entire data object needs to be replaced to trigger watch
-     */
-    data: {
-      handler() {
-        this.reinit();
-      },
-
-      deep: true
-    },
-
-    type() {
-      this.reinit();
-    },
-
-    options() {
-      this.reinit();
-    }
-
-  },
-
-  mounted() {
-    this.initChart();
-  },
-
-  beforeUnmount() {
-    if (this.chart) {
-      this.chart.destroy();
-      this.chart = null;
-    }
-  },
-
-  methods: {
-    initChart() {
-      Promise.resolve().then(function () { return auto; }).then(module => {
-        if (this.chart) {
-          this.chart.destroy();
-          this.chart = null;
-        }
-
-        if (module && module.default) {
-          this.chart = new module.default(this.$refs.canvas, {
-            type: this.type,
-            data: this.data,
-            options: this.options,
-            plugins: this.plugins
-          });
-        }
-
-        this.$emit('loaded', this.chart);
-      });
-    },
-
-    getCanvas() {
-      return this.$canvas;
-    },
-
-    getChart() {
-      return this.chart;
-    },
-
-    getBase64Image() {
-      return this.chart.toBase64Image();
-    },
-
-    refresh() {
-      if (this.chart) {
-        this.chart.update();
-      }
-    },
-
-    reinit() {
-      this.initChart();
-    },
-
-    onCanvasClick(event) {
-      if (this.chart) {
-        const element = this.chart.getElementsAtEventForMode(event, 'nearest', {
-          intersect: true
-        }, false);
-        const dataset = this.chart.getElementsAtEventForMode(event, 'dataset', {
-          intersect: true
-        }, false);
-
-        if (element && element[0] && dataset) {
-          this.$emit('select', {
-            originalEvent: event,
-            element: element[0],
-            dataset: dataset
-          });
-        }
-      }
-    },
-
-    generateLegend() {
-      if (this.chart) {
-        return this.chart.generateLegend();
-      }
-    }
-
-  }
-};
-const _hoisted_1$s = {
-  class: "p-chart"
-};
-const _hoisted_2$m = ["width", "height"];
-
-function render$i(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", _hoisted_1$s, [createElementVNode("canvas", {
-    ref: "canvas",
-    width: $props.width,
-    height: $props.height,
-    onClick: _cache[0] || (_cache[0] = $event => $options.onCanvasClick($event))
-  }, null, 8, _hoisted_2$m)]);
-}
-
-function styleInject$9(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$e = "\n.p-chart {\n    position: relative;\n}\n";
-styleInject$9(css_248z$e);
-script$U.render = render$i;
-
-var script$T = {
-  props: {
-    data : [Object, Array],
-    type : [String]
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const chart_data = computed(() => {
-    const obj = {
-        labels : ['Count'],
-        datasets : props.data
-    };
-    return obj;
-});
-
-const options = {
-	responsive: true,
-	hoverMode: 'index',
-	stacked: false,
-	/*scales: {
-        yAxes: [{
-            type: 'linear',
-            display: true,
-            position: 'left',
-            id: 'y-axis-1',
-        },
-        {
-            type: 'linear',
-            display: true,
-            position: 'right',
-            id: 'y-axis-2',
-            gridLines: {
-                drawOnChartArea: false
-            }
-        }]
-	}*/
-};
-
-const bar_options = {
-    indexAxis : 'y'
-};
-
-return (_ctx, _cache) => {
-  return (__props.type=='bar')
-    ? (openBlock(), createBlock(unref(script$U), {
-        key: 0,
-        type: "bar",
-        data: unref(chart_data),
-        options: bar_options
-      }, null, 8 /* PROPS */, ["data"]))
-    : (openBlock(), createBlock(unref(script$U), {
-        key: 1,
-        type: "line",
-        data: unref(chart_data),
-        options: options
-      }, null, 8 /* PROPS */, ["data"]))
-}
-}
-
-};
-
-script$T.__file = "presstojam/src/components/reports/report-chart.vue";
-
-const _hoisted_1$r = { class: "p-inputgroup" };
-const _hoisted_2$l = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "min", -1 /* HOISTED */);
-const _hoisted_3$e = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, " - ", -1 /* HOISTED */);
-const _hoisted_4$b = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "max", -1 /* HOISTED */);
-
-
-var script$S = {
-  props: {
-    modelValue : [Object],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const min = computed({
-    get() {
-        return (props.modelValue) ? props.modelValue.min : null;
-    },
-    set(val) {
-        let max = null;
-        if (props.modelValue) {
-            max = (props.modelValue.max < val) ? val : props.modelValue.max;
-        }
-        emits('update:modelValue', { 'min' : val, 'max' : max });
-    }
-});
-
-const max = computed({
-    get() {
-        return (props.modelValue) ? props.modelValue.max : null;
-    },
-    set(val) {
-        let min = null;
-        if (props.modelValue) {
-            min = (props.modelValue.min > val) ? val : props.modelValue.min;
-        }
-        emits('update:modelValue', { 'min' : min, max : val});
-    }
-}); 
-
-function clear() {
-    emits('update:modelValue', null);
-}
-
-
-
-const atts = computed(() => {
-    let atts = {};
-    if (props.field.round) {
-        let step = "0.";
-        for(let i=0; i<props.field.round - 1; ++i) {
-            step += "0";
-        }
-        step += "1";
-        atts["step"]  = parseInt(step);
-    }
-    return atts;
-});
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", _hoisted_1$r, [
-    _hoisted_2$l,
-    createVNode(unref(script$1u), mergeProps({
-      name: __props.field.name,
-      modelValue: unref(min),
-      "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(min) ? (min).value = $event : null))
-    }, unref(atts), {
-      onBlur: _cache[1] || (_cache[1] = $event => (__props.field.validateon = true))
-    }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
-    _hoisted_3$e,
-    createVNode(unref(script$1u), mergeProps({
-      name: __props.field.name,
-      modelValue: unref(max),
-      "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(max) ? (max).value = $event : null))
-    }, unref(atts), {
-      onBlur: _cache[3] || (_cache[3] = $event => (__props.field.validateon = true))
-    }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
-    _hoisted_4$b,
-    createVNode(unref(script$1K), {
-      label: "clear",
-      onClick: clear
-    })
-  ]))
-}
-}
-
-};
-
-script$S.__file = "presstojam/src/components/filter/number-filter.vue";
-
-var script$R = {
-  props: {
-    modelValue : [Number, Boolean],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const value = computed({
-    get() {
-        if (typeof props.modelValue === 'undefined' || props.modelValue === null) return 0;
-        else if (props.modelValue === 0) return 2;
-        else return props.modelValue;
-    },
-    set(val) {
-        if (val == 0) val = null;
-        else if (val == 2) val = 0;
-        emits('update:modelValue', val);
-    }
-});
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1v), {
-    name: __props.field.name,
-    modelValue: unref(value),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-    optionLabel: "label",
-    optionValue: "value",
-    options: [
-            {value : 0, label : 'All' }, 
-            { value : 1, label : 'Checked' }, 
-            { value : 2, label : 'Unchecked'}]
-  }, null, 8 /* PROPS */, ["name", "modelValue"]))
-}
-}
-
-};
-
-script$R.__file = "presstojam/src/components/filter/flag-filter.vue";
-
-var script$Q = {
-  name: 'MultiSelect',
-  emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter', 'selectall-change'],
-  props: {
-    modelValue: null,
-    options: Array,
-    optionLabel: null,
-    optionValue: null,
-    optionDisabled: null,
-    optionGroupLabel: null,
-    optionGroupChildren: null,
-    scrollHeight: {
-      type: String,
-      default: '200px'
-    },
-    placeholder: String,
-    disabled: Boolean,
-    inputId: {
-      type: String,
-      default: null
-    },
-    inputProps: {
-      type: null,
-      default: null
-    },
-    panelClass: {
-      type: String,
-      default: null
-    },
-    panelStyle: {
-      type: null,
-      default: null
-    },
-    panelProps: {
-      type: null,
-      default: null
-    },
-    filterInputProps: {
-      type: null,
-      default: null
-    },
-    closeButtonProps: {
-      type: null,
-      default: null
-    },
-    dataKey: null,
-    filter: Boolean,
-    filterPlaceholder: String,
-    filterLocale: String,
-    filterMatchMode: {
-      type: String,
-      default: 'contains'
-    },
-    filterFields: {
-      type: Array,
-      default: null
-    },
-    appendTo: {
-      type: String,
-      default: 'body'
-    },
-    display: {
-      type: String,
-      default: 'comma'
-    },
-    selectedItemsLabel: {
-      type: String,
-      default: '{0} items selected'
-    },
-    maxSelectedLabels: {
-      type: Number,
-      default: null
-    },
-    selectionLimit: {
-      type: Number,
-      default: null
-    },
-    showToggleAll: {
-      type: Boolean,
-      default: true
-    },
-    loading: {
-      type: Boolean,
-      default: false
-    },
-    checkboxIcon: {
-      type: String,
-      default: 'pi pi-check'
-    },
-    closeIcon: {
-      type: String,
-      default: 'pi pi-times'
-    },
-    dropdownIcon: {
-      type: String,
-      default: 'pi pi-chevron-down'
-    },
-    filterIcon: {
-      type: String,
-      default: 'pi pi-search'
-    },
-    loadingIcon: {
-      type: String,
-      default: 'pi pi-spinner pi-spin'
-    },
-    removeTokenIcon: {
-      type: String,
-      default: 'pi pi-times-circle'
-    },
-    selectAll: {
-      type: Boolean,
-      default: null
-    },
-    resetFilterOnHide: {
-      type: Boolean,
-      default: false
-    },
-    virtualScrollerOptions: {
-      type: Object,
-      default: null
-    },
-    autoOptionFocus: {
-      type: Boolean,
-      default: true
-    },
-    autoFilterFocus: {
-      type: Boolean,
-      default: false
-    },
-    filterMessage: {
-      type: String,
-      default: null
-    },
-    selectionMessage: {
-      type: String,
-      default: null
-    },
-    emptySelectionMessage: {
-      type: String,
-      default: null
-    },
-    emptyFilterMessage: {
-      type: String,
-      default: null
-    },
-    emptyMessage: {
-      type: String,
-      default: null
-    },
-    tabindex: {
-      type: Number,
-      default: 0
-    },
-    'aria-label': {
-      type: String,
-      default: null
-    },
-    'aria-labelledby': {
-      type: String,
-      default: null
-    }
-  },
-  outsideClickListener: null,
-  scrollHandler: null,
-  resizeListener: null,
-  overlay: null,
-  list: null,
-  virtualScroller: null,
-  startRangeIndex: -1,
-  searchTimeout: null,
-  searchValue: '',
-  selectOnFocus: false,
-  focusOnHover: false,
-
-  data() {
-    return {
-      focused: false,
-      focusedOptionIndex: -1,
-      headerCheckboxFocused: false,
-      filterValue: null,
-      overlayVisible: false
-    };
-  },
-
-  watch: {
-    options() {
-      this.autoUpdateModel();
-    }
-
-  },
-
-  mounted() {
-    this.autoUpdateModel();
-  },
-
-  beforeUnmount() {
-    this.unbindOutsideClickListener();
-    this.unbindResizeListener();
-
-    if (this.scrollHandler) {
-      this.scrollHandler.destroy();
-      this.scrollHandler = null;
-    }
-
-    if (this.overlay) {
-      ZIndexUtils.clear(this.overlay);
-      this.overlay = null;
-    }
-  },
-
-  methods: {
-    getOptionIndex(index, fn) {
-      return this.virtualScrollerDisabled ? index : fn && fn(index)['index'];
-    },
-
-    getOptionLabel(option) {
-      return this.optionLabel ? ObjectUtils.resolveFieldData(option, this.optionLabel) : option;
-    },
-
-    getOptionValue(option) {
-      return this.optionValue ? ObjectUtils.resolveFieldData(option, this.optionValue) : option;
-    },
-
-    getOptionRenderKey(option) {
-      return this.dataKey ? ObjectUtils.resolveFieldData(option, this.dataKey) : this.getOptionLabel(option);
-    },
-
-    isOptionDisabled(option) {
-      if (this.maxSelectionLimitReached && !this.isSelected(option)) {
-        return true;
-      }
-
-      return this.optionDisabled ? ObjectUtils.resolveFieldData(option, this.optionDisabled) : false;
-    },
-
-    isOptionGroup(option) {
-      return this.optionGroupLabel && option.optionGroup && option.group;
-    },
-
-    getOptionGroupLabel(optionGroup) {
-      return ObjectUtils.resolveFieldData(optionGroup, this.optionGroupLabel);
-    },
-
-    getOptionGroupChildren(optionGroup) {
-      return ObjectUtils.resolveFieldData(optionGroup, this.optionGroupChildren);
-    },
-
-    getAriaPosInset(index) {
-      return (this.optionGroupLabel ? index - this.visibleOptions.slice(0, index).filter(option => this.isOptionGroup(option)).length : index) + 1;
-    },
-
-    show(isFocus) {
-      this.$emit('before-show');
-      this.overlayVisible = true;
-      this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
-      isFocus && DomHandler.focus(this.$refs.focusInput);
-    },
-
-    hide(isFocus) {
-      this.$emit('before-hide');
-      this.overlayVisible = false;
-      this.focusedOptionIndex = -1;
-      this.searchValue = '';
-      this.resetFilterOnHide && (this.filterValue = null);
-      isFocus && DomHandler.focus(this.$refs.focusInput);
-    },
-
-    onFocus(event) {
-      this.focused = true;
-      this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.overlayVisible && this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
-      this.overlayVisible && this.scrollInView(this.focusedOptionIndex);
-      this.$emit('focus', event);
-    },
-
-    onBlur(event) {
-      this.focused = false;
-      this.focusedOptionIndex = -1;
-      this.searchValue = '';
-      this.$emit('blur', event);
-    },
-
-    onKeyDown(event) {
-      const metaKey = event.metaKey || event.ctrlKey;
-
-      switch (event.code) {
-        case 'ArrowDown':
-          this.onArrowDownKey(event);
-          break;
-
-        case 'ArrowUp':
-          this.onArrowUpKey(event);
-          break;
-
-        case 'Home':
-          this.onHomeKey(event);
-          break;
-
-        case 'End':
-          this.onEndKey(event);
-          break;
-
-        case 'PageDown':
-          this.onPageDownKey(event);
-          break;
-
-        case 'PageUp':
-          this.onPageUpKey(event);
-          break;
-
-        case 'Enter':
-        case 'Space':
-          this.onEnterKey(event);
-          break;
-
-        case 'Escape':
-          this.onEscapeKey(event);
-          break;
-
-        case 'Tab':
-          this.onTabKey(event);
-          break;
-
-        case 'ShiftLeft':
-        case 'ShiftRight':
-          this.onShiftKey(event);
-          break;
-
-        default:
-          if (event.code === 'KeyA' && metaKey) {
-            const value = this.visibleOptions.filter(option => this.isValidOption(option)).map(option => this.getOptionValue(option));
-            this.updateModel(event, value);
-            event.preventDefault();
-            break;
-          }
-
-          if (!metaKey && ObjectUtils.isPrintableCharacter(event.key)) {
-            !this.overlayVisible && this.show();
-            this.searchOptions(event);
-            event.preventDefault();
-          }
-
-          break;
-      }
-    },
-
-    onContainerClick(event) {
-      if (this.disabled || this.loading) {
-        return;
-      }
-
-      if (!this.overlay || !this.overlay.contains(event.target)) {
-        this.overlayVisible ? this.hide(true) : this.show(true);
-      }
-    },
-
-    onFirstHiddenFocus(event) {
-      const relatedTarget = event.relatedTarget;
-
-      if (relatedTarget === this.$refs.focusInput) {
-        const firstFocusableEl = DomHandler.getFirstFocusableElement(this.overlay, ':not(.p-hidden-focusable)');
-        DomHandler.focus(firstFocusableEl);
-      } else {
-        DomHandler.focus(this.$refs.focusInput);
-      }
-    },
-
-    onLastHiddenFocus() {
-      DomHandler.focus(this.$refs.firstHiddenFocusableElementOnOverlay);
-    },
-
-    onCloseClick() {
-      this.hide(true);
-    },
-
-    onHeaderCheckboxFocus() {
-      this.headerCheckboxFocused = true;
-    },
-
-    onHeaderCheckboxBlur() {
-      this.headerCheckboxFocused = false;
-    },
-
-    onOptionSelect(event, option, index = -1, isFocus = false) {
-      if (this.disabled || this.isOptionDisabled(option)) {
-        return;
-      }
-
-      let selected = this.isSelected(option);
-      let value = null;
-      if (selected) value = this.modelValue.filter(val => !ObjectUtils.equals(val, this.getOptionValue(option), this.equalityKey));else value = [...(this.modelValue || []), this.getOptionValue(option)];
-      this.updateModel(event, value);
-      index !== -1 && (this.focusedOptionIndex = index);
-      isFocus && DomHandler.focus(this.$refs.focusInput);
-    },
-
-    onOptionMouseMove(event, index) {
-      if (this.focusOnHover) {
-        this.changeFocusedOptionIndex(event, index);
-      }
-    },
-
-    onOptionSelectRange(event, start = -1, end = -1) {
-      start === -1 && (start = this.findNearestSelectedOptionIndex(end, true));
-      end === -1 && (end = this.findNearestSelectedOptionIndex(start));
-
-      if (start !== -1 && end !== -1) {
-        const rangeStart = Math.min(start, end);
-        const rangeEnd = Math.max(start, end);
-        const value = this.visibleOptions.slice(rangeStart, rangeEnd + 1).filter(option => this.isValidOption(option)).map(option => this.getOptionValue(option));
-        this.updateModel(event, value);
-      }
-    },
-
-    onFilterChange(event) {
-      const value = event.target.value;
-      this.filterValue = value;
-      this.focusedOptionIndex = -1;
-      this.$emit('filter', {
-        originalEvent: event,
-        value
-      });
-      !this.virtualScrollerDisabled && this.virtualScroller.scrollToIndex(0);
-    },
-
-    onFilterKeyDown(event) {
-      switch (event.code) {
-        case 'ArrowDown':
-          this.onArrowDownKey(event);
-          break;
-
-        case 'ArrowUp':
-          this.onArrowUpKey(event, true);
-          break;
-
-        case 'ArrowLeft':
-        case 'ArrowRight':
-          this.onArrowLeftKey(event, true);
-          break;
-
-        case 'Home':
-          this.onHomeKey(event, true);
-          break;
-
-        case 'End':
-          this.onEndKey(event, true);
-          break;
-
-        case 'Enter':
-          this.onEnterKey(event);
-          break;
-
-        case 'Escape':
-          this.onEscapeKey(event);
-          break;
-
-        case 'Tab':
-          this.onTabKey(event, true);
-          break;
-      }
-    },
-
-    onFilterBlur() {
-      this.focusedOptionIndex = -1;
-    },
-
-    onFilterUpdated() {
-      if (this.overlayVisible) {
-        this.alignOverlay();
-      }
-    },
-
-    onOverlayClick(event) {
-      OverlayEventBus.emit('overlay-click', {
-        originalEvent: event,
-        target: this.$el
-      });
-    },
-
-    onOverlayKeyDown(event) {
-      switch (event.code) {
-        case 'Escape':
-          this.onEscapeKey(event);
-          break;
-      }
-    },
-
-    onArrowDownKey(event) {
-      const optionIndex = this.focusedOptionIndex !== -1 ? this.findNextOptionIndex(this.focusedOptionIndex) : this.findFirstFocusedOptionIndex();
-
-      if (event.shiftKey) {
-        this.onOptionSelectRange(event, this.startRangeIndex, optionIndex);
-      }
-
-      this.changeFocusedOptionIndex(event, optionIndex);
-      !this.overlayVisible && this.show();
-      event.preventDefault();
-    },
-
-    onArrowUpKey(event, pressedInInputText = false) {
-      if (event.altKey && !pressedInInputText) {
-        if (this.focusedOptionIndex !== -1) {
-          this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
-        }
-
-        this.overlayVisible && this.hide();
-        event.preventDefault();
-      } else {
-        const optionIndex = this.focusedOptionIndex !== -1 ? this.findPrevOptionIndex(this.focusedOptionIndex) : this.findLastFocusedOptionIndex();
-
-        if (event.shiftKey) {
-          this.onOptionSelectRange(event, optionIndex, this.startRangeIndex);
-        }
-
-        this.changeFocusedOptionIndex(event, optionIndex);
-        !this.overlayVisible && this.show();
-        event.preventDefault();
-      }
-    },
-
-    onArrowLeftKey(event, pressedInInputText = false) {
-      pressedInInputText && (this.focusedOptionIndex = -1);
-    },
-
-    onHomeKey(event, pressedInInputText = false) {
-      if (pressedInInputText) {
-        event.currentTarget.setSelectionRange(0, 0);
-        this.focusedOptionIndex = -1;
-      } else {
-        let metaKey = event.metaKey || event.ctrlKey;
-        let optionIndex = this.findFirstOptionIndex();
-
-        if (event.shiftKey && metaKey) {
-          this.onOptionSelectRange(event, optionIndex, this.startRangeIndex);
-        }
-
-        this.changeFocusedOptionIndex(event, optionIndex);
-        !this.overlayVisible && this.show();
-      }
-
-      event.preventDefault();
-    },
-
-    onEndKey(event, pressedInInputText = false) {
-      if (pressedInInputText) {
-        const target = event.currentTarget;
-        const len = target.value.length;
-        target.setSelectionRange(len, len);
-        this.focusedOptionIndex = -1;
-      } else {
-        let metaKey = event.metaKey || event.ctrlKey;
-        let optionIndex = this.findLastOptionIndex();
-
-        if (event.shiftKey && metaKey) {
-          this.onOptionSelectRange(event, this.startRangeIndex, optionIndex);
-        }
-
-        this.changeFocusedOptionIndex(event, optionIndex);
-        !this.overlayVisible && this.show();
-      }
-
-      event.preventDefault();
-    },
-
-    onPageUpKey(event) {
-      this.scrollInView(0);
-      event.preventDefault();
-    },
-
-    onPageDownKey(event) {
-      this.scrollInView(this.visibleOptions.length - 1);
-      event.preventDefault();
-    },
-
-    onEnterKey(event) {
-      if (!this.overlayVisible) {
-        this.onArrowDownKey(event);
-      } else {
-        if (this.focusedOptionIndex !== -1) {
-          if (event.shiftKey) this.onOptionSelectRange(event, this.focusedOptionIndex);else this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
-        }
-      }
-
-      event.preventDefault();
-    },
-
-    onEscapeKey(event) {
-      this.overlayVisible && this.hide(true);
-      event.preventDefault();
-    },
-
-    onTabKey(event, pressedInInputText = false) {
-      if (!pressedInInputText) {
-        if (this.overlayVisible && this.hasFocusableElements()) {
-          DomHandler.focus(this.$refs.firstHiddenFocusableElementOnOverlay);
-          event.preventDefault();
-        } else {
-          if (this.focusedOptionIndex !== -1) {
-            this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
-          }
-
-          this.overlayVisible && this.hide(this.filter);
-        }
-      }
-    },
-
-    onShiftKey() {
-      this.startRangeIndex = this.focusedOptionIndex;
-    },
-
-    onOverlayEnter(el) {
-      ZIndexUtils.set('overlay', el, this.$primevue.config.zIndex.overlay);
-      this.alignOverlay();
-      this.scrollInView();
-      this.autoFilterFocus && DomHandler.focus(this.$refs.filterInput);
-    },
-
-    onOverlayAfterEnter() {
-      this.bindOutsideClickListener();
-      this.bindScrollListener();
-      this.bindResizeListener();
-      this.$emit('show');
-    },
-
-    onOverlayLeave() {
-      this.unbindOutsideClickListener();
-      this.unbindScrollListener();
-      this.unbindResizeListener();
-      this.$emit('hide');
-      this.overlay = null;
-    },
-
-    onOverlayAfterLeave(el) {
-      ZIndexUtils.clear(el);
-    },
-
-    alignOverlay() {
-      if (this.appendTo === 'self') {
-        DomHandler.relativePosition(this.overlay, this.$el);
-      } else {
-        this.overlay.style.minWidth = DomHandler.getOuterWidth(this.$el) + 'px';
-        DomHandler.absolutePosition(this.overlay, this.$el);
-      }
-    },
-
-    bindOutsideClickListener() {
-      if (!this.outsideClickListener) {
-        this.outsideClickListener = event => {
-          if (this.overlayVisible && this.isOutsideClicked(event)) {
-            this.hide();
-          }
-        };
-
-        document.addEventListener('click', this.outsideClickListener);
-      }
-    },
-
-    unbindOutsideClickListener() {
-      if (this.outsideClickListener) {
-        document.removeEventListener('click', this.outsideClickListener);
-        this.outsideClickListener = null;
-      }
-    },
-
-    bindScrollListener() {
-      if (!this.scrollHandler) {
-        this.scrollHandler = new ConnectedOverlayScrollHandler(this.$refs.container, () => {
-          if (this.overlayVisible) {
-            this.hide();
-          }
-        });
-      }
-
-      this.scrollHandler.bindScrollListener();
-    },
-
-    unbindScrollListener() {
-      if (this.scrollHandler) {
-        this.scrollHandler.unbindScrollListener();
-      }
-    },
-
-    bindResizeListener() {
-      if (!this.resizeListener) {
-        this.resizeListener = () => {
-          if (this.overlayVisible && !DomHandler.isTouchDevice()) {
-            this.hide();
-          }
-        };
-
-        window.addEventListener('resize', this.resizeListener);
-      }
-    },
-
-    unbindResizeListener() {
-      if (this.resizeListener) {
-        window.removeEventListener('resize', this.resizeListener);
-        this.resizeListener = null;
-      }
-    },
-
-    isOutsideClicked(event) {
-      return !(this.$el.isSameNode(event.target) || this.$el.contains(event.target) || this.overlay && this.overlay.contains(event.target));
-    },
-
-    getLabelByValue(value) {
-      const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
-      const matchedOption = options.find(option => !this.isOptionGroup(option) && ObjectUtils.equals(this.getOptionValue(option), value, this.equalityKey));
-      return matchedOption ? this.getOptionLabel(matchedOption) : null;
-    },
-
-    getSelectedItemsLabel() {
-      let pattern = /{(.*?)}/;
-
-      if (pattern.test(this.selectedItemsLabel)) {
-        return this.selectedItemsLabel.replace(this.selectedItemsLabel.match(pattern)[0], this.modelValue.length + '');
-      }
-
-      return this.selectedItemsLabel;
-    },
-
-    onToggleAll(event) {
-      if (this.selectAll !== null) {
-        this.$emit('selectall-change', {
-          originalEvent: event,
-          checked: !this.allSelected
-        });
-      } else {
-        const value = this.allSelected ? [] : this.visibleOptions.filter(option => !this.isOptionDisabled(option) && !this.isOptionGroup(option)).map(option => this.getOptionValue(option));
-        this.updateModel(event, value);
-      }
-
-      this.headerCheckboxFocused = true;
-    },
-
-    removeOption(event, optionValue) {
-      let value = this.modelValue.filter(val => !ObjectUtils.equals(val, optionValue, this.equalityKey));
-      this.updateModel(event, value);
-    },
-
-    clearFilter() {
-      this.filterValue = null;
-    },
-
-    hasFocusableElements() {
-      return DomHandler.getFocusableElements(this.overlay, ':not(.p-hidden-focusable)').length > 0;
-    },
-
-    isOptionMatched(option) {
-      return this.isValidOption(option) && this.getOptionLabel(option).toLocaleLowerCase(this.filterLocale).startsWith(this.searchValue.toLocaleLowerCase(this.filterLocale));
-    },
-
-    isValidOption(option) {
-      return option && !(this.isOptionDisabled(option) || this.isOptionGroup(option));
-    },
-
-    isValidSelectedOption(option) {
-      return this.isValidOption(option) && this.isSelected(option);
-    },
-
-    isSelected(option) {
-      const optionValue = this.getOptionValue(option);
-      return (this.modelValue || []).some(value => ObjectUtils.equals(value, optionValue, this.equalityKey));
-    },
-
-    findFirstOptionIndex() {
-      return this.visibleOptions.findIndex(option => this.isValidOption(option));
-    },
-
-    findLastOptionIndex() {
-      return ObjectUtils.findLastIndex(this.visibleOptions, option => this.isValidOption(option));
-    },
-
-    findNextOptionIndex(index) {
-      const matchedOptionIndex = index < this.visibleOptions.length - 1 ? this.visibleOptions.slice(index + 1).findIndex(option => this.isValidOption(option)) : -1;
-      return matchedOptionIndex > -1 ? matchedOptionIndex + index + 1 : index;
-    },
-
-    findPrevOptionIndex(index) {
-      const matchedOptionIndex = index > 0 ? ObjectUtils.findLastIndex(this.visibleOptions.slice(0, index), option => this.isValidOption(option)) : -1;
-      return matchedOptionIndex > -1 ? matchedOptionIndex : index;
-    },
-
-    findFirstSelectedOptionIndex() {
-      return this.hasSelectedOption ? this.visibleOptions.findIndex(option => this.isValidSelectedOption(option)) : -1;
-    },
-
-    findLastSelectedOptionIndex() {
-      return this.hasSelectedOption ? ObjectUtils.findLastIndex(this.visibleOptions, option => this.isValidSelectedOption(option)) : -1;
-    },
-
-    findNextSelectedOptionIndex(index) {
-      const matchedOptionIndex = this.hasSelectedOption && index < this.visibleOptions.length - 1 ? this.visibleOptions.slice(index + 1).findIndex(option => this.isValidSelectedOption(option)) : -1;
-      return matchedOptionIndex > -1 ? matchedOptionIndex + index + 1 : -1;
-    },
-
-    findPrevSelectedOptionIndex(index) {
-      const matchedOptionIndex = this.hasSelectedOption && index > 0 ? ObjectUtils.findLastIndex(this.visibleOptions.slice(0, index), option => this.isValidSelectedOption(option)) : -1;
-      return matchedOptionIndex > -1 ? matchedOptionIndex : -1;
-    },
-
-    findNearestSelectedOptionIndex(index, firstCheckUp = false) {
-      let matchedOptionIndex = -1;
-
-      if (this.hasSelectedOption) {
-        if (firstCheckUp) {
-          matchedOptionIndex = this.findPrevSelectedOptionIndex(index);
-          matchedOptionIndex = matchedOptionIndex === -1 ? this.findNextSelectedOptionIndex(index) : matchedOptionIndex;
-        } else {
-          matchedOptionIndex = this.findNextSelectedOptionIndex(index);
-          matchedOptionIndex = matchedOptionIndex === -1 ? this.findPrevSelectedOptionIndex(index) : matchedOptionIndex;
-        }
-      }
-
-      return matchedOptionIndex > -1 ? matchedOptionIndex : index;
-    },
-
-    findFirstFocusedOptionIndex() {
-      const selectedIndex = this.findFirstSelectedOptionIndex();
-      return selectedIndex < 0 ? this.findFirstOptionIndex() : selectedIndex;
-    },
-
-    findLastFocusedOptionIndex() {
-      const selectedIndex = this.findLastSelectedOptionIndex();
-      return selectedIndex < 0 ? this.findLastOptionIndex() : selectedIndex;
-    },
-
-    searchOptions(event) {
-      this.searchValue = (this.searchValue || '') + event.key;
-      let optionIndex = -1;
-
-      if (this.focusedOptionIndex !== -1) {
-        optionIndex = this.visibleOptions.slice(this.focusedOptionIndex).findIndex(option => this.isOptionMatched(option));
-        optionIndex = optionIndex === -1 ? this.visibleOptions.slice(0, this.focusedOptionIndex).findIndex(option => this.isOptionMatched(option)) : optionIndex + this.focusedOptionIndex;
-      } else {
-        optionIndex = this.visibleOptions.findIndex(option => this.isOptionMatched(option));
-      }
-
-      if (optionIndex === -1 && this.focusedOptionIndex === -1) {
-        const selectedIndex = this.findSelectedOptionIndex();
-        optionIndex = selectedIndex < 0 ? this.findFirstOptionIndex() : selectedIndex;
-      }
-
-      if (optionIndex !== -1) {
-        this.changeFocusedOptionIndex(event, optionIndex);
-      }
-
-      if (this.searchTimeout) {
-        clearTimeout(this.searchTimeout);
-      }
-
-      this.searchTimeout = setTimeout(() => {
-        this.searchValue = '';
-        this.searchTimeout = null;
-      }, 500);
-    },
-
-    changeFocusedOptionIndex(event, index) {
-      if (this.focusedOptionIndex !== index) {
-        this.focusedOptionIndex = index;
-        this.scrollInView();
-      }
-    },
-
-    scrollInView(index = -1) {
-      const id = index !== -1 ? `${this.id}_${index}` : this.focusedOptionId;
-      const element = DomHandler.findSingle(this.list, `li[id="${id}"]`);
-
-      if (element) {
-        element.scrollIntoView && element.scrollIntoView({
-          block: 'nearest',
-          inline: 'nearest'
-        });
-      } else if (!this.virtualScrollerDisabled) {
-        this.virtualScroller && this.virtualScroller.scrollToIndex(index !== -1 ? index : this.focusedOptionIndex);
-      }
-    },
-
-    autoUpdateModel() {
-      if (this.selectOnFocus && this.autoOptionFocus && !this.hasSelectedOption) {
-        this.focusedOptionIndex = this.findFirstFocusedOptionIndex();
-        const value = this.getOptionValue(this.visibleOptions[this.focusedOptionIndex]);
-        this.updateModel(null, [value]);
-      }
-    },
-
-    updateModel(event, value) {
-      this.$emit('update:modelValue', value);
-      this.$emit('change', {
-        originalEvent: event,
-        value
-      });
-    },
-
-    flatOptions(options) {
-      return (options || []).reduce((result, option, index) => {
-        result.push({
-          optionGroup: option,
-          group: true,
-          index
-        });
-        const optionGroupChildren = this.getOptionGroupChildren(option);
-        optionGroupChildren && optionGroupChildren.forEach(o => result.push(o));
-        return result;
-      }, []);
-    },
-
-    overlayRef(el) {
-      this.overlay = el;
-    },
-
-    listRef(el, contentRef) {
-      this.list = el;
-      contentRef && contentRef(el); // For VirtualScroller
-    },
-
-    virtualScrollerRef(el) {
-      this.virtualScroller = el;
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-multiselect p-component p-inputwrapper', {
-        'p-multiselect-chip': this.display === 'chip',
-        'p-disabled': this.disabled,
-        'p-focus': this.focused,
-        'p-inputwrapper-filled': this.modelValue && this.modelValue.length,
-        'p-inputwrapper-focus': this.focused || this.overlayVisible,
-        'p-overlay-open': this.overlayVisible
-      }];
-    },
-
-    labelClass() {
-      return ['p-multiselect-label', {
-        'p-placeholder': this.label === this.placeholder,
-        'p-multiselect-label-empty': !this.placeholder && (!this.modelValue || this.modelValue.length === 0)
-      }];
-    },
-
-    dropdownIconClass() {
-      return ['p-multiselect-trigger-icon', this.loading ? this.loadingIcon : this.dropdownIcon];
-    },
-
-    panelStyleClass() {
-      return ['p-multiselect-panel p-component', this.panelClass, {
-        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
-        'p-ripple-disabled': this.$primevue.config.ripple === false
-      }];
-    },
-
-    headerCheckboxClass() {
-      return ['p-checkbox p-component', {
-        'p-checkbox-checked': this.allSelected,
-        'p-checkbox-focused': this.headerCheckboxFocused
-      }];
-    },
-
-    visibleOptions() {
-      const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
-
-      if (this.filterValue) {
-        const filteredOptions = FilterService.filter(options, this.searchFields, this.filterValue, this.filterMatchMode, this.filterLocale);
-
-        if (this.optionGroupLabel) {
-          const optionGroups = this.options || [];
-          const filtered = [];
-          optionGroups.forEach(group => {
-            const filteredItems = group.items.filter(item => filteredOptions.includes(item));
-            if (filteredItems.length > 0) filtered.push({ ...group,
-              items: [...filteredItems]
-            });
-          });
-          return this.flatOptions(filtered);
-        }
-
-        return filteredOptions;
-      }
-
-      return options;
-    },
-
-    label() {
-      // TODO: Refactor
-      let label;
-
-      if (this.modelValue && this.modelValue.length) {
-        if (ObjectUtils.isNotEmpty(this.maxSelectedLabels) && this.modelValue.length > this.maxSelectedLabels) {
-          return this.getSelectedItemsLabel();
-        } else {
-          label = '';
-
-          for (let i = 0; i < this.modelValue.length; i++) {
-            if (i !== 0) {
-              label += ', ';
-            }
-
-            label += this.getLabelByValue(this.modelValue[i]);
-          }
-        }
-      } else {
-        label = this.placeholder;
-      }
-
-      return label;
-    },
-
-    allSelected() {
-      return this.selectAll !== null ? this.selectAll : ObjectUtils.isNotEmpty(this.visibleOptions) && this.visibleOptions.filter(option => !this.isOptionDisabled(option)).every(option => this.isOptionGroup(option) || this.isValidSelectedOption(option));
-    },
-
-    hasSelectedOption() {
-      return ObjectUtils.isNotEmpty(this.modelValue);
-    },
-
-    equalityKey() {
-      return this.optionValue ? null : this.dataKey;
-    },
-
-    searchFields() {
-      return this.filterFields || [this.optionLabel];
-    },
-
-    maxSelectionLimitReached() {
-      return this.selectionLimit && this.modelValue && this.modelValue.length === this.selectionLimit;
-    },
-
-    filterResultMessageText() {
-      return ObjectUtils.isNotEmpty(this.visibleOptions) ? this.filterMessageText.replaceAll('{0}', this.visibleOptions.length) : this.emptyFilterMessageText;
-    },
-
-    filterMessageText() {
-      return this.filterMessage || this.$primevue.config.locale.searchMessage || '';
-    },
-
-    emptyFilterMessageText() {
-      return this.emptyFilterMessage || this.$primevue.config.locale.emptySearchMessage || this.$primevue.config.locale.emptyFilterMessage || '';
-    },
-
-    emptyMessageText() {
-      return this.emptyMessage || this.$primevue.config.locale.emptyMessage || '';
-    },
-
-    selectionMessageText() {
-      return this.selectionMessage || this.$primevue.config.locale.selectionMessage || '';
-    },
-
-    emptySelectionMessageText() {
-      return this.emptySelectionMessage || this.$primevue.config.locale.emptySelectionMessage || '';
-    },
-
-    selectedMessageText() {
-      return this.hasSelectedOption ? this.selectionMessageText.replaceAll('{0}', this.modelValue.length) : this.emptySelectionMessageText;
-    },
-
-    id() {
-      return this.$attrs.id || UniqueComponentId();
-    },
-
-    focusedOptionId() {
-      return this.focusedOptionIndex !== -1 ? `${this.id}_${this.focusedOptionIndex}` : null;
-    },
-
-    ariaSetSize() {
-      return this.visibleOptions.filter(option => !this.isOptionGroup(option)).length;
-    },
-
-    toggleAllAriaLabel() {
-      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria[this.allSelected ? 'selectAll' : 'unselectAll'] : undefined;
-    },
-
-    closeAriaLabel() {
-      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria.close : undefined;
-    },
-
-    virtualScrollerDisabled() {
-      return !this.virtualScrollerOptions;
-    }
-
-  },
-  directives: {
-    ripple: Ripple
-  },
-  components: {
-    VirtualScroller: script$1w,
-    Portal: script$1B
-  }
-};
-const _hoisted_1$q = {
-  class: "p-hidden-accessible"
-};
-const _hoisted_2$k = ["id", "disabled", "placeholder", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
-const _hoisted_3$d = {
-  class: "p-multiselect-label-container"
-};
-const _hoisted_4$a = {
-  class: "p-multiselect-token-label"
-};
-const _hoisted_5$9 = ["onClick"];
-const _hoisted_6$8 = {
-  class: "p-multiselect-trigger"
-};
-const _hoisted_7$4 = {
-  key: 0,
-  class: "p-multiselect-header"
-};
-const _hoisted_8$4 = {
-  class: "p-hidden-accessible"
-};
-const _hoisted_9$2 = ["checked", "aria-label"];
-const _hoisted_10$2 = {
-  key: 1,
-  class: "p-multiselect-filter-container"
-};
-const _hoisted_11$2 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
-const _hoisted_12$2 = {
-  key: 2,
-  role: "status",
-  "aria-live": "polite",
-  class: "p-hidden-accessible"
-};
-const _hoisted_13$2 = ["aria-label"];
-const _hoisted_14$1 = ["id"];
-const _hoisted_15 = ["id"];
-const _hoisted_16 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
-const _hoisted_17 = {
-  class: "p-checkbox p-component"
-};
-const _hoisted_18 = {
-  key: 0,
-  class: "p-multiselect-empty-message",
-  role: "option"
-};
-const _hoisted_19 = {
-  key: 1,
-  class: "p-multiselect-empty-message",
-  role: "option"
-};
-const _hoisted_20 = {
-  key: 0,
-  role: "status",
-  "aria-live": "polite",
-  class: "p-hidden-accessible"
-};
-const _hoisted_21 = {
-  role: "status",
-  "aria-live": "polite",
-  class: "p-hidden-accessible"
-};
-
-function render$h(_ctx, _cache, $props, $setup, $data, $options) {
-  const _component_VirtualScroller = resolveComponent("VirtualScroller");
-
-  const _component_Portal = resolveComponent("Portal");
-
-  const _directive_ripple = resolveDirective("ripple");
-
-  return openBlock(), createElementBlock("div", {
-    ref: "container",
-    class: normalizeClass($options.containerClass),
-    onClick: _cache[15] || (_cache[15] = (...args) => $options.onContainerClick && $options.onContainerClick(...args))
-  }, [createElementVNode("div", _hoisted_1$q, [createElementVNode("input", mergeProps({
-    ref: "focusInput",
-    id: $props.inputId,
-    type: "text",
-    readonly: "",
-    disabled: $props.disabled,
-    placeholder: $props.placeholder,
-    tabindex: !$props.disabled ? $props.tabindex : -1,
-    role: "combobox",
-    "aria-label": _ctx.ariaLabel,
-    "aria-labelledby": _ctx.ariaLabelledby,
-    "aria-haspopup": "listbox",
-    "aria-expanded": $data.overlayVisible,
-    "aria-controls": $options.id + '_list',
-    "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
-    onFocus: _cache[0] || (_cache[0] = (...args) => $options.onFocus && $options.onFocus(...args)),
-    onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
-    onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
-  }, $props.inputProps), null, 16, _hoisted_2$k)]), createElementVNode("div", _hoisted_3$d, [createElementVNode("div", {
-    class: normalizeClass($options.labelClass)
-  }, [renderSlot(_ctx.$slots, "value", {
-    value: $props.modelValue,
-    placeholder: $props.placeholder
-  }, () => [$props.display === 'comma' ? (openBlock(), createElementBlock(Fragment, {
-    key: 0
-  }, [createTextVNode(toDisplayString$1($options.label || 'empty'), 1)], 64)) : $props.display === 'chip' ? (openBlock(), createElementBlock(Fragment, {
-    key: 1
-  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.modelValue, item => {
-    return openBlock(), createElementBlock("div", {
-      key: $options.getLabelByValue(item),
-      class: "p-multiselect-token"
-    }, [renderSlot(_ctx.$slots, "chip", {
-      value: item
-    }, () => [createElementVNode("span", _hoisted_4$a, toDisplayString$1($options.getLabelByValue(item)), 1)]), !$props.disabled ? (openBlock(), createElementBlock("span", {
-      key: 0,
-      class: normalizeClass(['p-multiselect-token-icon', $props.removeTokenIcon]),
-      onClick: $event => $options.removeOption($event, item)
-    }, null, 10, _hoisted_5$9)) : createCommentVNode("", true)]);
-  }), 128)), !$props.modelValue || $props.modelValue.length === 0 ? (openBlock(), createElementBlock(Fragment, {
-    key: 0
-  }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", _hoisted_6$8, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
-    class: normalizeClass($options.dropdownIconClass),
-    "aria-hidden": "true"
-  }, null, 2)])]), createVNode(_component_Portal, {
-    appendTo: $props.appendTo
-  }, {
-    default: withCtx(() => [createVNode(Transition, {
-      name: "p-connected-overlay",
-      onEnter: $options.onOverlayEnter,
-      onAfterEnter: $options.onOverlayAfterEnter,
-      onLeave: $options.onOverlayLeave,
-      onAfterLeave: $options.onOverlayAfterLeave
-    }, {
-      default: withCtx(() => [$data.overlayVisible ? (openBlock(), createElementBlock("div", mergeProps({
-        key: 0,
-        ref: $options.overlayRef,
-        style: $props.panelStyle,
-        class: $options.panelStyleClass,
-        onClick: _cache[13] || (_cache[13] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args)),
-        onKeydown: _cache[14] || (_cache[14] = (...args) => $options.onOverlayKeyDown && $options.onOverlayKeyDown(...args))
-      }, $props.panelProps), [createElementVNode("span", {
-        ref: "firstHiddenFocusableElementOnOverlay",
-        role: "presentation",
-        "aria-hidden": "true",
-        class: "p-hidden-accessible p-hidden-focusable",
-        tabindex: 0,
-        onFocus: _cache[3] || (_cache[3] = (...args) => $options.onFirstHiddenFocus && $options.onFirstHiddenFocus(...args))
-      }, null, 544), renderSlot(_ctx.$slots, "header", {
-        value: $props.modelValue,
-        options: $options.visibleOptions
-      }), $props.showToggleAll && $props.selectionLimit == null || $props.filter ? (openBlock(), createElementBlock("div", _hoisted_7$4, [$props.showToggleAll && $props.selectionLimit == null ? (openBlock(), createElementBlock("div", {
-        key: 0,
-        class: normalizeClass($options.headerCheckboxClass),
-        onClick: _cache[6] || (_cache[6] = (...args) => $options.onToggleAll && $options.onToggleAll(...args))
-      }, [createElementVNode("div", _hoisted_8$4, [createElementVNode("input", {
-        type: "checkbox",
-        readonly: "",
-        checked: $options.allSelected,
-        "aria-label": $options.toggleAllAriaLabel,
-        onFocus: _cache[4] || (_cache[4] = (...args) => $options.onHeaderCheckboxFocus && $options.onHeaderCheckboxFocus(...args)),
-        onBlur: _cache[5] || (_cache[5] = (...args) => $options.onHeaderCheckboxBlur && $options.onHeaderCheckboxBlur(...args))
-      }, null, 40, _hoisted_9$2)]), createElementVNode("div", {
-        class: normalizeClass(['p-checkbox-box', {
-          'p-highlight': $options.allSelected,
-          'p-focus': $data.headerCheckboxFocused
-        }])
-      }, [createElementVNode("span", {
-        class: normalizeClass(['p-checkbox-icon', {
-          [$props.checkboxIcon]: $options.allSelected
-        }])
-      }, null, 2)], 2)], 2)) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_10$2, [createElementVNode("input", mergeProps({
-        ref: "filterInput",
-        type: "text",
-        value: $data.filterValue,
-        onVnodeUpdated: _cache[7] || (_cache[7] = (...args) => $options.onFilterUpdated && $options.onFilterUpdated(...args)),
-        class: "p-multiselect-filter p-inputtext p-component",
-        placeholder: $props.filterPlaceholder,
-        role: "searchbox",
-        autocomplete: "off",
-        "aria-owns": $options.id + '_list',
-        "aria-activedescendant": $options.focusedOptionId,
-        onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onFilterKeyDown && $options.onFilterKeyDown(...args)),
-        onBlur: _cache[9] || (_cache[9] = (...args) => $options.onFilterBlur && $options.onFilterBlur(...args)),
-        onInput: _cache[10] || (_cache[10] = (...args) => $options.onFilterChange && $options.onFilterChange(...args))
-      }, $props.filterInputProps), null, 16, _hoisted_11$2), createElementVNode("span", {
-        class: normalizeClass(['p-multiselect-filter-icon', $props.filterIcon])
-      }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("span", _hoisted_12$2, toDisplayString$1($options.filterResultMessageText), 1)) : createCommentVNode("", true), withDirectives((openBlock(), createElementBlock("button", mergeProps({
-        class: "p-multiselect-close p-link",
-        "aria-label": $options.closeAriaLabel,
-        onClick: _cache[11] || (_cache[11] = (...args) => $options.onCloseClick && $options.onCloseClick(...args)),
-        type: "button"
-      }, $props.closeButtonProps), [createElementVNode("span", {
-        class: normalizeClass(['p-multiselect-close-icon', $props.closeIcon])
-      }, null, 2)], 16, _hoisted_13$2)), [[_directive_ripple]])])) : createCommentVNode("", true), createElementVNode("div", {
-        class: "p-multiselect-items-wrapper",
-        style: normalizeStyle({
-          'max-height': $options.virtualScrollerDisabled ? $props.scrollHeight : ''
-        })
-      }, [createVNode(_component_VirtualScroller, mergeProps({
-        ref: $options.virtualScrollerRef
-      }, $props.virtualScrollerOptions, {
-        items: $options.visibleOptions,
-        style: {
-          height: $props.scrollHeight
-        },
-        tabindex: -1,
-        disabled: $options.virtualScrollerDisabled
-      }), createSlots({
-        content: withCtx(({
-          styleClass,
-          contentRef,
-          items,
-          getItemOptions,
-          contentStyle,
-          itemSize
-        }) => [createElementVNode("ul", {
-          ref: el => $options.listRef(el, contentRef),
-          id: $options.id + '_list',
-          class: normalizeClass(['p-multiselect-items p-component', styleClass]),
-          style: normalizeStyle(contentStyle),
-          role: "listbox",
-          "aria-multiselectable": "true"
-        }, [(openBlock(true), createElementBlock(Fragment, null, renderList(items, (option, i) => {
-          return openBlock(), createElementBlock(Fragment, {
-            key: $options.getOptionRenderKey(option, $options.getOptionIndex(i, getItemOptions))
-          }, [$options.isOptionGroup(option) ? (openBlock(), createElementBlock("li", {
-            key: 0,
-            id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
-            style: normalizeStyle({
-              height: itemSize ? itemSize + 'px' : undefined
-            }),
-            class: "p-multiselect-item-group",
-            role: "option"
-          }, [renderSlot(_ctx.$slots, "optiongroup", {
-            option: option.optionGroup,
-            index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_15)) : withDirectives((openBlock(), createElementBlock("li", {
-            key: 1,
-            id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
-            style: normalizeStyle({
-              height: itemSize ? itemSize + 'px' : undefined
-            }),
-            class: normalizeClass(['p-multiselect-item', {
-              'p-highlight': $options.isSelected(option),
-              'p-focus': $data.focusedOptionIndex === $options.getOptionIndex(i, getItemOptions),
-              'p-disabled': $options.isOptionDisabled(option)
-            }]),
-            role: "option",
-            "aria-label": $options.getOptionLabel(option),
-            "aria-selected": $options.isSelected(option),
-            "aria-disabled": $options.isOptionDisabled(option),
-            "aria-setsize": $options.ariaSetSize,
-            "aria-posinset": $options.getAriaPosInset($options.getOptionIndex(i, getItemOptions)),
-            onClick: $event => $options.onOptionSelect($event, option, $options.getOptionIndex(i, getItemOptions), true),
-            onMousemove: $event => $options.onOptionMouseMove($event, $options.getOptionIndex(i, getItemOptions))
-          }, [createElementVNode("div", _hoisted_17, [createElementVNode("div", {
-            class: normalizeClass(['p-checkbox-box', {
-              'p-highlight': $options.isSelected(option)
-            }])
-          }, [createElementVNode("span", {
-            class: normalizeClass(['p-checkbox-icon', {
-              [$props.checkboxIcon]: $options.isSelected(option)
-            }])
-          }, null, 2)], 2)]), renderSlot(_ctx.$slots, "option", {
-            option: option,
-            index: $options.getOptionIndex(i, getItemOptions)
-          }, () => [createElementVNode("span", null, toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_16)), [[_directive_ripple]])], 64);
-        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_18, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_19, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_14$1), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_20, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_21, toDisplayString$1($options.selectedMessageText), 1)]),
-        _: 2
-      }, [_ctx.$slots.loader ? {
-        name: "loader",
-        fn: withCtx(({
-          options
-        }) => [renderSlot(_ctx.$slots, "loader", {
-          options: options
-        })]),
-        key: "0"
-      } : undefined]), 1040, ["items", "style", "disabled"])], 4), renderSlot(_ctx.$slots, "footer", {
-        value: $props.modelValue,
-        options: $options.visibleOptions
-      }), createElementVNode("span", {
-        ref: "lastHiddenFocusableElementOnOverlay",
-        role: "presentation",
-        "aria-hidden": "true",
-        class: "p-hidden-accessible p-hidden-focusable",
-        tabindex: 0,
-        onFocus: _cache[12] || (_cache[12] = (...args) => $options.onLastHiddenFocus && $options.onLastHiddenFocus(...args))
-      }, null, 544)], 16)) : createCommentVNode("", true)]),
-      _: 3
-    }, 8, ["onEnter", "onAfterEnter", "onLeave", "onAfterLeave"])]),
-    _: 3
-  }, 8, ["appendTo"])], 2);
-}
-
-function styleInject$8(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$d = "\n.p-multiselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-multiselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-multiselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-multiselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-multiselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-multiselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-multiselect-token-icon {\n    cursor: pointer;\n}\n.p-multiselect .p-multiselect-panel {\n    min-width: 100%;\n}\n.p-multiselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-multiselect-items-wrapper {\n    overflow: auto;\n}\n.p-multiselect-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-multiselect-item {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-multiselect-item-group {\n    cursor: auto;\n}\n.p-multiselect-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-multiselect-filter-container {\n    position: relative;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-multiselect-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-multiselect-filter-container .p-inputtext {\n    width: 100%;\n}\n.p-multiselect-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    overflow: hidden;\n    position: relative;\n    margin-left: auto;\n}\n.p-fluid .p-multiselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$8(css_248z$d);
-script$Q.render = render$h;
-
-var script$P = {
-  name: 'Chips',
-  emits: ['update:modelValue', 'add', 'remove', 'focus', 'blur'],
-  props: {
-    modelValue: {
-      type: Array,
-      default: null
-    },
-    max: {
-      type: Number,
-      default: null
-    },
-    separator: {
-      type: [String, Object],
-      default: null
-    },
-    addOnBlur: {
-      type: Boolean,
-      default: null
-    },
-    allowDuplicate: {
-      type: Boolean,
-      default: true
-    },
-    placeholder: {
-      type: String,
-      default: null
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    },
-    inputId: {
-      type: String,
-      default: null
-    },
-    inputClass: {
-      type: String,
-      default: null
-    },
-    inputStyle: {
-      type: null,
-      default: null
-    },
-    inputProps: {
-      type: null,
-      default: null
-    },
-    removeTokenIcon: {
-      type: String,
-      default: 'pi pi-times-circle'
-    },
-    'aria-labelledby': {
-      type: String,
-      default: null
-    },
-    'aria-label': {
-      type: String,
-      default: null
-    }
-  },
-
-  data() {
-    return {
-      id: UniqueComponentId(),
-      inputValue: null,
-      focused: false,
-      focusedIndex: null
-    };
-  },
-
-  methods: {
-    onWrapperClick() {
-      this.$refs.input.focus();
-    },
-
-    onInput(event) {
-      this.inputValue = event.target.value;
-      this.focusedIndex = null;
-    },
-
-    onFocus(event) {
-      this.focused = true;
-      this.focusedIndex = null;
-      this.$emit('focus', event);
-    },
-
-    onBlur(event) {
-      this.focused = false;
-      this.focusedIndex = null;
-
-      if (this.addOnBlur) {
-        this.addItem(event, event.target.value, false);
-      }
-
-      this.$emit('blur', event);
-    },
-
-    onKeyDown(event) {
-      const inputValue = event.target.value;
-
-      switch (event.code) {
-        case 'Backspace':
-          if (inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
-            if (this.focusedIndex !== null) {
-              this.removeItem(event, this.focusedIndex);
-            } else this.removeItem(event, this.modelValue.length - 1);
-          }
-
-          break;
-
-        case 'Enter':
-          if (inputValue && inputValue.trim().length && !this.maxedOut) {
-            this.addItem(event, inputValue, true);
-          }
-
-          break;
-
-        case 'ArrowLeft':
-          if (inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
-            this.$refs.container.focus();
-          }
-
-          break;
-
-        case 'ArrowRight':
-          event.stopPropagation();
-          break;
-
-        default:
-          if (this.separator) {
-            if (this.separator === event.key || event.key.match(this.separator)) {
-              this.addItem(event, inputValue, true);
-            }
-          }
-
-          break;
-      }
-    },
-
-    onPaste(event) {
-      if (this.separator) {
-        let pastedData = (event.clipboardData || window['clipboardData']).getData('Text');
-
-        if (pastedData) {
-          let value = this.modelValue || [];
-          let pastedValues = pastedData.split(this.separator);
-          pastedValues = pastedValues.filter(val => this.allowDuplicate || value.indexOf(val) === -1);
-          value = [...value, ...pastedValues];
-          this.updateModel(event, value, true);
-        }
-      }
-    },
-
-    onContainerFocus() {
-      this.focused = true;
-    },
-
-    onContainerBlur() {
-      this.focusedIndex = -1;
-      this.focused = false;
-    },
-
-    onContainerKeyDown(event) {
-      switch (event.code) {
-        case 'ArrowLeft':
-          this.onArrowLeftKeyOn(event);
-          break;
-
-        case 'ArrowRight':
-          this.onArrowRightKeyOn(event);
-          break;
-
-        case 'Backspace':
-          this.onBackspaceKeyOn(event);
-          break;
-      }
-    },
-
-    onArrowLeftKeyOn() {
-      if (this.inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
-        this.focusedIndex = this.focusedIndex === null ? this.modelValue.length - 1 : this.focusedIndex - 1;
-        if (this.focusedIndex < 0) this.focusedIndex = 0;
-      }
-    },
-
-    onArrowRightKeyOn() {
-      if (this.inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
-        if (this.focusedIndex === this.modelValue.length - 1) {
-          this.focusedIndex = null;
-          this.$refs.input.focus();
-        } else {
-          this.focusedIndex++;
-        }
-      }
-    },
-
-    onBackspaceKeyOn(event) {
-      if (this.focusedIndex !== null) {
-        this.removeItem(event, this.focusedIndex);
-      }
-    },
-
-    updateModel(event, value, preventDefault) {
-      this.$emit('update:modelValue', value);
-      this.$emit('add', {
-        originalEvent: event,
-        value: value
-      });
-      this.$refs.input.value = '';
-      this.inputValue = '';
-      setTimeout(() => {
-        this.maxedOut && (this.focused = false);
-      }, 0);
-
-      if (preventDefault) {
-        event.preventDefault();
-      }
-    },
-
-    addItem(event, item, preventDefault) {
-      if (item && item.trim().length) {
-        let value = this.modelValue ? [...this.modelValue] : [];
-
-        if (this.allowDuplicate || value.indexOf(item) === -1) {
-          value.push(item);
-          this.updateModel(event, value, preventDefault);
-        }
-      }
-    },
-
-    removeItem(event, index) {
-      if (this.disabled) {
-        return;
-      }
-
-      let values = [...this.modelValue];
-      const removedItem = values.splice(index, 1);
-      this.focusedIndex = null;
-      this.$refs.input.focus();
-      this.$emit('update:modelValue', values);
-      this.$emit('remove', {
-        originalEvent: event,
-        value: removedItem
-      });
-    }
-
-  },
-  computed: {
-    maxedOut() {
-      return this.max && this.modelValue && this.max === this.modelValue.length;
-    },
-
-    containerClass() {
-      return ['p-chips p-component p-inputwrapper', {
-        'p-disabled': this.disabled,
-        'p-focus': this.focused,
-        'p-inputwrapper-filled': this.modelValue && this.modelValue.length || this.inputValue && this.inputValue.length,
-        'p-inputwrapper-focus': this.focused
-      }];
-    },
-
-    focusedOptionId() {
-      return this.focusedIndex !== null ? `${this.id}_chips_item_${this.focusedIndex}` : null;
-    }
-
-  }
-};
-const _hoisted_1$p = ["aria-labelledby", "aria-label", "aria-activedescendant"];
-const _hoisted_2$j = ["id", "aria-label", "aria-setsize", "aria-posinset"];
-const _hoisted_3$c = {
-  class: "p-chips-token-label"
-};
-const _hoisted_4$9 = ["onClick"];
-const _hoisted_5$8 = {
-  class: "p-chips-input-token",
-  role: "option"
-};
-const _hoisted_6$7 = ["id", "disabled", "placeholder"];
-
-function render$g(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: normalizeClass($options.containerClass)
-  }, [createElementVNode("ul", {
-    ref: "container",
-    class: "p-inputtext p-chips-multiple-container",
-    tabindex: "-1",
-    role: "listbox",
-    "aria-orientation": "horizontal",
-    "aria-labelledby": _ctx.ariaLabelledby,
-    "aria-label": _ctx.ariaLabel,
-    "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
-    onClick: _cache[5] || (_cache[5] = $event => $options.onWrapperClick()),
-    onFocus: _cache[6] || (_cache[6] = (...args) => $options.onContainerFocus && $options.onContainerFocus(...args)),
-    onBlur: _cache[7] || (_cache[7] = (...args) => $options.onContainerBlur && $options.onContainerBlur(...args)),
-    onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onContainerKeyDown && $options.onContainerKeyDown(...args))
-  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.modelValue, (val, i) => {
-    return openBlock(), createElementBlock("li", {
-      key: `${i}_${val}`,
-      id: $data.id + '_chips_item_' + i,
-      role: "option",
-      class: normalizeClass(['p-chips-token', {
-        'p-focus': $data.focusedIndex === i
-      }]),
-      "aria-label": val,
-      "aria-selected": true,
-      "aria-setsize": $props.modelValue.length,
-      "aria-posinset": i + 1
-    }, [renderSlot(_ctx.$slots, "chip", {
-      value: val
-    }, () => [createElementVNode("span", _hoisted_3$c, toDisplayString$1(val), 1)]), createElementVNode("span", {
-      class: normalizeClass(['p-chips-token-icon', $props.removeTokenIcon]),
-      onClick: $event => $options.removeItem($event, i),
-      "aria-hidden": "true"
-    }, null, 10, _hoisted_4$9)], 10, _hoisted_2$j);
-  }), 128)), createElementVNode("li", _hoisted_5$8, [createElementVNode("input", mergeProps({
-    ref: "input",
-    id: $props.inputId,
-    type: "text",
-    class: $props.inputClass,
-    style: $props.inputStyle,
-    disabled: $props.disabled || $options.maxedOut,
-    placeholder: $props.placeholder,
-    onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
-    onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event)),
-    onInput: _cache[2] || (_cache[2] = (...args) => $options.onInput && $options.onInput(...args)),
-    onKeydown: _cache[3] || (_cache[3] = $event => $options.onKeyDown($event)),
-    onPaste: _cache[4] || (_cache[4] = $event => $options.onPaste($event))
-  }, $props.inputProps), null, 16, _hoisted_6$7)])], 40, _hoisted_1$p)], 2);
-}
-
-function styleInject$7(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$c = "\n.p-chips {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-chips-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-chips-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-token-icon {\n    cursor: pointer;\n}\n.p-chips-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-chips {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
-styleInject$7(css_248z$c);
-script$P.render = render$g;
-
-var script$O = {
-  props: {
-    modelValue : [Array],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-
-const value = computed({
-    get() {
-        return props.modelValue;
-    },
-    set(val) {
-        if (val.length == 0) val =null;
-        emits('update:modelValue', val);
-    }
-});
-
-const model = inject("model");
-const store = getModel(model);
-const id = (store.active_id) ? store.active_id : store.parent_id;
-const client = inject("client");
-
-const options = ref([]);
-
-if (props.field.reference || props.field.recursive) {
-    onMounted(() => {
-        props.field.getOptions(client, model, id)
-        .then(response => options.value =response);
-    });
-} else if (props.field.name == '--id') {
-    let vals = [];
-    for(let row of store.data) {
-        vals.push({'key' : row['--id'], value : getLabel(store.fields, row) });
-    }
-    options.value = vals;
-}
-
-
-
-return (_ctx, _cache) => {
-  return (__props.field.reference || __props.field.name =='--id')
-    ? (openBlock(), createBlock(unref(script$Q), {
-        key: 0,
-        placeholder: "Please Select",
-        field: __props.field,
-        options: options.value,
-        optionLabel: "value",
-        optionValue: "key",
-        modelValue: unref(value),
-        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null))
-      }, null, 8 /* PROPS */, ["field", "options", "modelValue"]))
-    : (openBlock(), createBlock(unref(script$P), {
-        key: 1,
-        modelValue: unref(value),
-        "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
-      }, null, 8 /* PROPS */, ["modelValue"]))
-}
-}
-
-};
-
-script$O.__file = "presstojam/src/components/filter/id-filter.vue";
-
-var script$N = {
-  props: {
-    modelValue : [Object],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-
-const value = computed({
-    get() {
-        if (props.modelValue) {
-            const arr = [];
-            if (props.modelValue.min) arr.push(props.field.buildDate(props.modelValue.min));
-            if (props.modelValue.max) arr.push(props.field.buildDate(props.modelValue.max));
-            return arr;
-        } else {
-            return props.modelValue;
-        }
-    },
-    set(val) {
-        let obj = null;
-        if (val) {
-            obj = {};
-            if (val[0]) obj.min = props.field.buildString(val[0]);
-            if (val[1]) obj.max = props.field.buildString(val[1]);
-        }
-        emits('update:modelValue', obj);
-    }
-});
-
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1i), {
-    id: "range",
-    modelValue: unref(value),
-    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-    selectionMode: "range",
-    showButtonBar: true,
-    manualInput: false
-  }, null, 8 /* PROPS */, ["modelValue"]))
-}
-}
-
-};
-
-script$N.__file = "presstojam/src/components/filter/time-filter.vue";
-
-var script$M = {
-  props: {
-    modelValue : [Array],
-    field : Object
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
-
-
-
-const options = ref([]);
-
-
-
-const value = computed({
-    get() {
-        let arr = [];
-        if (tag == 'select') {
-            arr = props.modelValue;
-        } else if (props.modelValue) {
-            for(let val of props.modelValue) {
-                arr.push(val.replace(/^%+/, '').replace(/%+$/, ''));
-            }
-        }
-        return arr;
-    },
-    set(val) {
-        let arr = [];
-        for(let vl of val) {
-            arr.push("%" + vl + "%");
-        }
-        if (arr.length == 0) arr = null;
-        emits('update:modelValue', arr);
-    }
-});
-
-const tag = computed(() => {
-if (props.field.isEnum()) {
-    options.value = props.field.setContainsAsOptions();
-    return "select";
-} else if (props.field.encrypted) {
-    return "";
-} else {
-    return "input";
-}
-});
-
-
-
-return (_ctx, _cache) => {
-  return (unref(tag)=='select')
-    ? (openBlock(), createBlock(unref(script$Q), {
-        key: 0,
-        display: "chip",
-        placeholder: "Please Select",
-        modelValue: unref(value),
-        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-        options: options.value,
-        optionLabel: "key",
-        optionValue: "value"
-      }, null, 8 /* PROPS */, ["modelValue", "options"]))
-    : (unref(tag)=='input')
-      ? (openBlock(), createBlock(unref(script$P), {
-          key: 1,
-          modelValue: unref(value),
-          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
-        }, null, 8 /* PROPS */, ["modelValue"]))
-      : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$M.__file = "presstojam/src/components/filter/string-filter.vue";
-
-var script$L = {
-  props: {
-    field : Object,
-    modelValue : [String, Number, Boolean, null, Array, Object]
-},
-  emits: [
-    "update:modelValue"
-],
-  setup(__props, { emit: emits }) {
-
-const props = __props;
-
- 
-
-
-
-const value = computed({
-    get() {
-        return props.modelValue;
-    },
-    set(val) {
-        emits('update:modelValue', val);
-    }
-});
-
-return (_ctx, _cache) => {
-  return (__props.field.type=='number')
-    ? (openBlock(), createBlock(script$S, {
-        key: 0,
-        modelValue: unref(value),
-        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
-        field: __props.field
-      }, null, 8 /* PROPS */, ["modelValue", "field"]))
-    : (__props.field.type=='flag')
-      ? (openBlock(), createBlock(script$R, {
-          key: 1,
-          modelValue: unref(value),
-          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null)),
-          field: __props.field
-        }, null, 8 /* PROPS */, ["modelValue", "field"]))
-      : (__props.field.type=='id')
-        ? (openBlock(), createBlock(script$O, {
-            key: 2,
-            modelValue: unref(value),
-            "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(value) ? (value).value = $event : null)),
-            field: __props.field
-          }, null, 8 /* PROPS */, ["modelValue", "field"]))
-        : (__props.field.type=='time')
-          ? (openBlock(), createBlock(script$N, {
-              key: 3,
-              modelValue: unref(value),
-              "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => (isRef(value) ? (value).value = $event : null)),
-              field: __props.field
-            }, null, 8 /* PROPS */, ["modelValue", "field"]))
-          : (__props.field.type=='string')
-            ? (openBlock(), createBlock(script$M, {
-                key: 4,
-                modelValue: unref(value),
-                "onUpdate:modelValue": _cache[4] || (_cache[4] = $event => (isRef(value) ? (value).value = $event : null)),
-                field: __props.field
-              }, null, 8 /* PROPS */, ["modelValue", "field"]))
-            : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$L.__file = "presstojam/src/components/filter/filter-field.vue";
-
-const _hoisted_1$o = { class: "ptj-filter" };
-   
-   
-var script$K = {
-  props: {
-    bind : {
-        type : Object,
-        required : true
-    }
-   },
-  setup(__props) {
-
-const props = __props;
-
-   
-   
-
-   const model = inject("model");
-  
-   let overlay = new ref();
-
-  
-   const val = computed({
-        get() {
-            return props.bind.value;
-        },
-        set(val) {
-            if(Array.isArray(val)) {
-                for(let vl of val) {
-                    const res = props.bind.cell.validate(vl);
-                    if (res) {
-                        break;
-                    }
-                }
-            } else {
-                props.bind.cell.validate(val);
-            }
-        }
-    });
-
-
-   function toggle(e) {
-        overlay.value.toggle(e);
-   }
-
-   const badge = computed(() => {
-        if (props.bind.value) {
-            if (Array.isArray(props.bind.value)) return props.bind.value.length.toString();
-            else return "1";
-        } else {
-            return "";
-        }
-   });
-
-   
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", _hoisted_1$o, [
-    createVNode(unref(script$1K), {
-      type: "button",
-      label: _ctx.$t('models.' + unref(model) + '.fields.' + __props.bind.cell.name + '.filterlabel'),
-      onClick: toggle,
-      "aria-haspopup": "true",
-      "aria-controls": "overlay",
-      badge: unref(badge),
-      class: "p-button-secondary"
-    }, null, 8 /* PROPS */, ["label", "badge"]),
-    createVNode(unref(script$Z), {
-      ref_key: "overlay",
-      ref: overlay,
-      appendTo: "body",
-      showCloseIcon: true,
-      id: 'overlay_' + __props.bind.cell.name,
-      style: {"width":"450px"},
-      breakpoints: {'960px': '75vw'}
-    }, {
-      default: withCtx(() => [
-        createElementVNode("div", null, [
-          createVNode(script$L, {
-            field: __props.bind.cell,
-            modelValue: unref(val),
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(val) ? (val).value = $event : null))
-          }, null, 8 /* PROPS */, ["field", "modelValue"])
-        ])
-      ]),
-      _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["id"])
-  ]))
-}
-}
-
-};
-
-script$K.__file = "presstojam/src/components/filter/filter.vue";
-
-var filter = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': script$K
-});
-
-const _hoisted_1$n = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
-const _hoisted_2$i = /*#__PURE__*/createTextVNode(" Filters ");
-const _hoisted_3$b = { class: "p-buttonset" };
-const _hoisted_4$8 = { style: {"text-align":"right"} };
-
-
-var script$J = {
-  props: {
-    model : Object,
-    data : Object,
-    name : String
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-provide("model", props.model.name);
-
-
-const filtercells = computed(() => {
-    let filter_cells = {};
-    for(let i in props.model.fields) {
-        const field = props.model.fields[i];
-        if (field.background) continue;
-        if (field.type == "asset" || field.type == "json") continue;
-        filter_cells[i] = new Bind(field, props.data[i]);
-    }
-    return filter_cells;
-});
-
-
-function submit() {
-    const filters = {};
-    for(let i in filter_cells) {
-        filters[i] = filter_cells[i].value;
-    }
-    trigger("filter_form", props.name, filters);
-}
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$19), {
-    toggleable: true,
-    collapsed: true
-  }, {
-    legend: withCtx(() => [
-      _hoisted_1$n,
-      _hoisted_2$i
-    ]),
-    default: withCtx(() => [
-      createElementVNode("span", _hoisted_3$b, [
-        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(filtercells), (field) => {
-          return (openBlock(), createBlock(script$K, {
-            class: "ptj-filter",
-            bind: field,
-            key: field.name
-          }, null, 8 /* PROPS */, ["bind"]))
-        }), 128 /* KEYED_FRAGMENT */))
-      ]),
-      createElementVNode("p", _hoisted_4$8, [
-        createVNode(unref(script$1K), {
-          label: _ctx.$t('btns.filter'),
-          onClick: submit
-        }, null, 8 /* PROPS */, ["label"])
-      ])
-    ]),
-    _: 1 /* STABLE */
-  }))
-}
-}
-
-};
-
-var css_248z$b = "\n.filter-form-vue-vue-type-style-index-0-id-46638ba7-lang_ptj-filter__24-2N { \r\n    display : inline-block;\n}\r\n";
-styleInject$u(css_248z$b);
-
-script$J.__file = "presstojam/src/components/filter/filter-form.vue";
-
-const _hoisted_1$m = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
-const _hoisted_2$h = /*#__PURE__*/createTextVNode(" Groups ");
-const _hoisted_3$a = { style: {"text-align":"right"} };
-
-
-var script$I = {
-  props: {
-    data : Array,
-    model : Object,
-    name : String
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const groups = ref(props.data);
-
-
-const cells = computed(() => {
-    const group_cells = [];
-    for(let i in props.model.fields) {
-        const field = props.model.fields[i];
-        if (field.type == "id") {
-            if (field.reference_type == ReferenceTypes.REFERENCE) group_cells.push(field);
-        } else if (field.type == "flag" || (field.type == "string" && field.isEnum())) {
-            group_cells.push(field);
-        }
-    }
-    return group_cells;
-});
-
-
-function update() {
-    trigger$1("group_form", props.name, groups.value);
-} 
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$19), {
-    toggleable: true,
-    collapsed: true
-  }, {
-    legend: withCtx(() => [
-      _hoisted_1$m,
-      _hoisted_2$h
-    ]),
-    default: withCtx(() => [
-      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
-        return (openBlock(), createElementBlock("span", null, [
-          createElementVNode("label", null, toDisplayString$1(cell.name), 1 /* TEXT */),
-          createVNode(unref(script$1H), {
-            name: "group",
-            modelValue: groups.value,
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((groups).value = $event)),
-            value: cell.name
-          }, null, 8 /* PROPS */, ["modelValue", "value"])
-        ]))
-      }), 256 /* UNKEYED_FRAGMENT */)),
-      createElementVNode("p", _hoisted_3$a, [
-        createVNode(unref(script$1K), {
-          label: _ctx.$t('btns.filter'),
-          onClick: update
-        }, null, 8 /* PROPS */, ["label"])
-      ])
-    ]),
-    _: 1 /* STABLE */
-  }))
-}
-}
-
-};
-
-script$I.__file = "presstojam/src/components/group/group-form.vue";
-
-var script$H = {
-  name: 'Divider',
-  props: {
-    align: {
-      type: String,
-      default: null
-    },
-    layout: {
-      type: String,
-      default: 'horizontal'
-    },
-    type: {
-      type: String,
-      default: 'solid'
-    }
-  },
-  computed: {
-    containerClass() {
-      return ['p-divider p-component', 'p-divider-' + this.layout, 'p-divider-' + this.type, {
-        'p-divider-left': this.layout === 'horizontal' && (!this.align || this.align === 'left')
-      }, {
-        'p-divider-center': this.layout === 'horizontal' && this.align === 'center'
-      }, {
-        'p-divider-right': this.layout === 'horizontal' && this.align === 'right'
-      }, {
-        'p-divider-top': this.layout === 'vertical' && this.align === 'top'
-      }, {
-        'p-divider-center': this.layout === 'vertical' && (!this.align || this.align === 'center')
-      }, {
-        'p-divider-bottom': this.layout === 'vertical' && this.align === 'bottom'
-      }];
-    }
-
-  }
-};
-const _hoisted_1$l = ["aria-orientation"];
-const _hoisted_2$g = {
-  key: 0,
-  class: "p-divider-content"
-};
-
-function render$f(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: normalizeClass($options.containerClass),
-    role: "separator",
-    "aria-orientation": $props.layout
-  }, [_ctx.$slots.default ? (openBlock(), createElementBlock("div", _hoisted_2$g, [renderSlot(_ctx.$slots, "default")])) : createCommentVNode("", true)], 10, _hoisted_1$l);
-}
-
-function styleInject$6(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$a = "\n.p-divider-horizontal {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    width: 100%;\n    position: relative;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-divider-horizontal:before {\n    position: absolute;\n    display: block;\n    top: 50%;\n    left: 0;\n    width: 100%;\n    content: '';\n}\n.p-divider-horizontal.p-divider-left {\n    -webkit-box-pack: start;\n        -ms-flex-pack: start;\n            justify-content: flex-start;\n}\n.p-divider-horizontal.p-divider-right {\n    -webkit-box-pack: end;\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n}\n.p-divider-horizontal.p-divider-center {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-divider-content {\n    z-index: 1;\n}\n.p-divider-vertical {\n    min-height: 100%;\n    margin: 0 1rem;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    position: relative;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-divider-vertical:before {\n    position: absolute;\n    display: block;\n    top: 0;\n    left: 50%;\n    height: 100%;\n    content: '';\n}\n.p-divider-vertical.p-divider-top {\n    -webkit-box-align: start;\n        -ms-flex-align: start;\n            align-items: flex-start;\n}\n.p-divider-vertical.p-divider-center {\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-divider-vertical.p-divider-bottom {\n    -webkit-box-align: end;\n        -ms-flex-align: end;\n            align-items: flex-end;\n}\n.p-divider-solid.p-divider-horizontal:before {\n    border-top-style: solid;\n}\n.p-divider-solid.p-divider-vertical:before {\n    border-left-style: solid;\n}\n.p-divider-dashed.p-divider-horizontal:before {\n    border-top-style: dashed;\n}\n.p-divider-dashed.p-divider-vertical:before {\n    border-left-style: dashed;\n}\n.p-divider-dotted.p-divider-horizontal:before {\n    border-top-style: dotted;\n}\n.p-divider-dotted.p-divider-horizontal:before {\n    border-left-style: dotted;\n}\n";
-styleInject$6(css_248z$a);
-script$H.render = render$f;
-
-var script$G = {
-  name: 'Toolbar',
-  props: {
-    'aria-labelledby': {
-      type: String,
-      default: null
-    }
-  }
-};
-const _hoisted_1$k = ["aria-labelledby"];
-const _hoisted_2$f = {
-  class: "p-toolbar-group-left"
-};
-const _hoisted_3$9 = {
-  class: "p-toolbar-group-right"
-};
-
-function render$e(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: "p-toolbar p-component",
-    role: "toolbar",
-    "aria-labelledby": _ctx.ariaLabelledby
-  }, [createElementVNode("div", _hoisted_2$f, [renderSlot(_ctx.$slots, "start")]), createElementVNode("div", _hoisted_3$9, [renderSlot(_ctx.$slots, "end")])], 8, _hoisted_1$k);
-}
-
-function styleInject$5(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$9 = "\n.p-toolbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-toolbar-group-left,\n.p-toolbar-group-right {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
-styleInject$5(css_248z$9);
-script$G.render = render$e;
-
-const _hoisted_1$j = /*#__PURE__*/createElementVNode("label", null, "Aggregates", -1 /* HOISTED */);
-
-
-var script$F = {
-  props: {
-    schema : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-//set up repos 
-const groups = [];
-const model = getModel(props.schema.name);
-
-const summary_repo = createReportStore(model);
-const summary_data = ref([]);
-summary_repo.load().then(response => summary_data.value = response);
-
-const repos = [];
-for(let i in props.schema.numeric) {
-    const repo = createReportStore(model, props.schema.numeric[i]);
-    const repo_value = ref([]);
-    repo.load().then(response => repo_value.value = response);
-    repos.push({
-        'repo' : repo,
-        'data' : repo_value
-    });
-}
-
-//menu bar functions
-
-const type = ref('bar');
-
-function toggleType(itype) {
-    type.value = itype;
-}
-
-const agg = ref('COUNT');
-const timevalue = ref('daily');
-
-const aggvalue = computed({
-    get() {
-        return agg.value;
-    },
-    set(val) {
-        props.repo.aggregate = val;
-        agg.value = val;
-    }
-});
-
-const aggregates = [
-    { name : 'count', value : 'COUNT'},
-    { name : 'average', value : 'AVG'},
-    { name : 'minimum', value : 'MIN'},
-    { name : 'maximum', value : 'MAX'}
-];
-
-const time_groups = [
-    { name : 'Hourly', value : 'hourly'},
-    { name : 'Daily', value : 'daily'},
-    { name : 'Weekly', value : 'weekly'},
-    { name : 'Monthly', value : 'monthly'},
-    { name : 'Yearly', value : 'yearly'}
-];
-
-
-
-
-//subscribe / unsubscribe
-
-subscribe("group_form", props.schema.name, (name, groups) => {
-    if (name == props.schema.name) {
-        summary_repo.groups = groups;
-        summary_repo.reload(type.value)
-        .then(response => summary_data.value = response);
-         for(const repo of repos) {
-            repo.repo.groups = groups;
-            repo.repo.reload(type.value)
-            .then(response => repo.data.value = response);
-        }
-    }
-});
-
-
-subscribe("filter_form", props.schema.name, (name, filters) => {
-    if (name == props.schema.name) {
-        summary_repo.filters = filters;
-        for(const repo of repos) {
-            repo.filters = filters;
-        }
-    }
-});
-
-onBeforeUnmount(() => {
-    unsubscribe("group_form", props.schema.name);
-    unsubscribe("filter_form", props.schema.name);
-});
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$J, {
-      model: unref(model),
-      data: {},
-      name: props.schema.name
-    }, null, 8 /* PROPS */, ["model", "name"]),
-    createVNode(script$I, {
-      model: unref(model),
-      data: groups,
-      name: props.schema.name
-    }, null, 8 /* PROPS */, ["model", "name"]),
-    createVNode(unref(script$G), null, {
-      start: withCtx(() => [
-        _hoisted_1$j,
-        createVNode(unref(script$1v), {
-          optionValue: "value",
-          optionLabel: "name",
-          modelValue: unref(aggvalue),
-          "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(aggvalue) ? (aggvalue).value = $event : null)),
-          options: aggregates
-        }, null, 8 /* PROPS */, ["modelValue"]),
-        withDirectives(createElementVNode("label", null, "Time Groups", 512 /* NEED_PATCH */), [
-          [vShow, type.value=='line']
-        ]),
-        withDirectives(createVNode(unref(script$1v), {
-          optionValue: "value",
-          optionLabel: "name",
-          modelValue: timevalue.value,
-          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((timevalue).value = $event)),
-          options: time_groups
-        }, null, 8 /* PROPS */, ["modelValue"]), [
-          [vShow, type.value=='line']
-        ])
-      ]),
-      end: withCtx(() => [
-        (type.value=='bar')
-          ? (openBlock(), createBlock(unref(script$1K), {
-              key: 0,
-              onClick: _cache[2] || (_cache[2] = $event => (toggleType('line'))),
-              label: "Line Chart",
-              icon: "pi pi-chart-line",
-              class: "mr-2"
-            }))
-          : (openBlock(), createBlock(unref(script$1K), {
-              key: 1,
-              onClick: _cache[3] || (_cache[3] = $event => (toggleType('bar'))),
-              label: "Bar Chart",
-              icon: "pi pi-chart-bar",
-              class: "mr-2"
-            }))
-      ]),
-      _: 1 /* STABLE */
-    }),
-    createVNode(script$T, {
-      data: summary_data.value,
-      type: type.value
-    }, null, 8 /* PROPS */, ["data", "type"]),
-    (__props.schema.numeric.length > 0)
-      ? (openBlock(), createBlock(unref(script$H), { key: 0 }))
-      : createCommentVNode("v-if", true),
-    (openBlock(), createElementBlock(Fragment, null, renderList(repos, (repo, index) => {
-      return createElementVNode("div", null, [
-        createVNode(script$T, {
-          data: repo.data.value,
-          type: type.value
-        }, null, 8 /* PROPS */, ["data", "type"]),
-        (__props.schema.numeric.length > index -1)
-          ? (openBlock(), createBlock(unref(script$H), {
-              key: 0,
-              layout: "vertical"
-            }))
-          : createCommentVNode("v-if", true)
-      ])
-    }), 64 /* STABLE_FRAGMENT */))
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$F.__file = "presstojam/src/components/reports/report-display.vue";
-
-var script$E = {
-  props: {
-    model : String
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const entities = getEntities();
-
-const report_models = [];
-
-for(let i in entities) {
-    const entity = entities[i];
-    const parent = getRoot(entity);
-    if (parent.name == props.model) {
-        const obj = {name : entity.name, numeric : []};
-        for(const field in entity.cells) {
-            if (entity.cells[field].type == "number") {
-                obj.numeric.push(field);
-            }
-        }
-        report_models.push(obj);
-    }
-}
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", null, [
-    (openBlock(), createElementBlock(Fragment, null, renderList(report_models, (obj) => {
-      return createElementVNode("div", {
-        key: obj.name
-      }, [
-        createElementVNode("h2", null, "Reports For " + toDisplayString$1(_ctx.$t("models." + obj.name + ".title", 1)), 1 /* TEXT */),
-        createVNode(script$F, { schema: obj }, null, 8 /* PROPS */, ["schema"])
-      ])
-    }), 64 /* STABLE_FRAGMENT */))
-  ]))
-}
-}
-
-};
-
-script$E.__file = "presstojam/src/components/reports/report.vue";
-
-var report = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': script$E
-});
-
-var script$D = {
-  name: 'Splitter',
-  emits: ['resizestart', 'resizeend'],
-  props: {
-    layout: {
-      type: String,
-      default: 'horizontal'
-    },
-    gutterSize: {
-      type: Number,
-      default: 4
-    },
-    stateKey: {
-      type: String,
-      default: null
-    },
-    stateStorage: {
-      type: String,
-      default: 'session'
-    },
-    step: {
-      type: Number,
-      default: 5
-    }
-  },
-  dragging: false,
-  mouseMoveListener: null,
-  mouseUpListener: null,
-  touchMoveListener: null,
-  touchEndListener: null,
-  size: null,
-  gutterElement: null,
-  startPos: null,
-  prevPanelElement: null,
-  nextPanelElement: null,
-  nextPanelSize: null,
-  prevPanelSize: null,
-  panelSizes: null,
-  prevPanelIndex: null,
-  timer: null,
-
-  data() {
-    return {
-      prevSize: null
-    };
-  },
-
-  mounted() {
-    if (this.panels && this.panels.length) {
-      let initialized = false;
-
-      if (this.isStateful()) {
-        initialized = this.restoreState();
-      }
-
-      if (!initialized) {
-        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
-        let _panelSizes = [];
-        this.panels.map((panel, i) => {
-          let panelInitialSize = panel.props && panel.props.size ? panel.props.size : null;
-          let panelSize = panelInitialSize || 100 / this.panels.length;
-          _panelSizes[i] = panelSize;
-          children[i].style.flexBasis = 'calc(' + panelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        });
-        this.panelSizes = _panelSizes;
-        this.prevSize = parseFloat(_panelSizes[0]).toFixed(4);
-      }
-    }
-  },
-
-  beforeUnmount() {
-    this.clear();
-    this.unbindMouseListeners();
-  },
-
-  methods: {
-    isSplitterPanel(child) {
-      return child.type.name === 'SplitterPanel';
-    },
-
-    onResizeStart(event, index, isKeyDown) {
-      this.gutterElement = event.currentTarget || event.target.parentElement;
-      this.size = this.horizontal ? DomHandler.getWidth(this.$el) : DomHandler.getHeight(this.$el);
-
-      if (!isKeyDown) {
-        this.dragging = true;
-        this.startPos = this.layout === 'horizontal' ? event.pageX || event.changedTouches[0].pageX : event.pageY || event.changedTouches[0].pageY;
-      }
-
-      this.prevPanelElement = this.gutterElement.previousElementSibling;
-      this.nextPanelElement = this.gutterElement.nextElementSibling;
-
-      if (isKeyDown) {
-        this.prevPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true);
-        this.nextPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true);
-      } else {
-        this.prevPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true)) / this.size;
-        this.nextPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true)) / this.size;
-      }
-
-      this.prevPanelIndex = index;
-      this.$emit('resizestart', {
-        originalEvent: event,
-        sizes: this.panelSizes
-      });
-      DomHandler.addClass(this.gutterElement, 'p-splitter-gutter-resizing');
-      DomHandler.addClass(this.$el, 'p-splitter-resizing');
-    },
-
-    onResize(event, step, isKeyDown) {
-      let newPos, newPrevPanelSize, newNextPanelSize;
-
-      if (isKeyDown) {
-        if (this.horizontal) {
-          newPrevPanelSize = 100 * (this.prevPanelSize + step) / this.size;
-          newNextPanelSize = 100 * (this.nextPanelSize - step) / this.size;
-        } else {
-          newPrevPanelSize = 100 * (this.prevPanelSize - step) / this.size;
-          newNextPanelSize = 100 * (this.nextPanelSize + step) / this.size;
-        }
-      } else {
-        if (this.horizontal) newPos = event.pageX * 100 / this.size - this.startPos * 100 / this.size;else newPos = event.pageY * 100 / this.size - this.startPos * 100 / this.size;
-        newPrevPanelSize = this.prevPanelSize + newPos;
-        newNextPanelSize = this.nextPanelSize - newPos;
-      }
-
-      this.prevSize = parseFloat(newPrevPanelSize).toFixed(4);
-
-      if (this.validateResize(newPrevPanelSize, newNextPanelSize)) {
-        this.prevPanelElement.style.flexBasis = 'calc(' + newPrevPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        this.nextPanelElement.style.flexBasis = 'calc(' + newNextPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        this.panelSizes[this.prevPanelIndex] = newPrevPanelSize;
-        this.panelSizes[this.prevPanelIndex + 1] = newNextPanelSize;
-      }
-    },
-
-    onResizeEnd(event) {
-      if (this.isStateful()) {
-        this.saveState();
-      }
-
-      this.$emit('resizeend', {
-        originalEvent: event,
-        sizes: this.panelSizes
-      });
-      DomHandler.removeClass(this.gutterElement, 'p-splitter-gutter-resizing');
-      DomHandler.removeClass(this.$el, 'p-splitter-resizing');
-      this.clear();
-    },
-
-    repeat(event, index, step) {
-      this.onResizeStart(event, index, true);
-      this.onResize(event, step, true);
-    },
-
-    setTimer(event, index, step) {
-      this.clearTimer();
-      this.timer = setTimeout(() => {
-        this.repeat(event, index, step);
-      }, 40);
-    },
-
-    clearTimer() {
-      if (this.timer) {
-        clearTimeout(this.timer);
-      }
-    },
-
-    onGutterKeyUp() {
-      this.clearTimer();
-      this.onResizeEnd();
-    },
-
-    onGutterKeyDown(event, index) {
-      switch (event.code) {
-        case 'ArrowLeft':
-          {
-            if (this.layout === 'horizontal') {
-              this.setTimer(event, index, this.step * -1);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowRight':
-          {
-            if (this.layout === 'horizontal') {
-              this.setTimer(event, index, this.step);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowDown':
-          {
-            if (this.layout === 'vertical') {
-              this.setTimer(event, index, this.step * -1);
-            }
-
-            event.preventDefault();
-            break;
-          }
-
-        case 'ArrowUp':
-          {
-            if (this.layout === 'vertical') {
-              this.setTimer(event, index, this.step);
-            }
-
-            event.preventDefault();
-            break;
-          }
-      }
-    },
-
-    onGutterMouseDown(event, index) {
-      this.onResizeStart(event, index);
-      this.bindMouseListeners();
-    },
-
-    onGutterTouchStart(event, index) {
-      this.onResizeStart(event, index);
-      this.bindTouchListeners();
-      event.preventDefault();
-    },
-
-    onGutterTouchMove(event) {
-      this.onResize(event);
-      event.preventDefault();
-    },
-
-    onGutterTouchEnd(event) {
-      this.onResizeEnd(event);
-      this.unbindTouchListeners();
-      event.preventDefault();
-    },
-
-    bindMouseListeners() {
-      if (!this.mouseMoveListener) {
-        this.mouseMoveListener = event => this.onResize(event);
-
-        document.addEventListener('mousemove', this.mouseMoveListener);
-      }
-
-      if (!this.mouseUpListener) {
-        this.mouseUpListener = event => {
-          this.onResizeEnd(event);
-          this.unbindMouseListeners();
-        };
-
-        document.addEventListener('mouseup', this.mouseUpListener);
-      }
-    },
-
-    bindTouchListeners() {
-      if (!this.touchMoveListener) {
-        this.touchMoveListener = event => this.onResize(event.changedTouches[0]);
-
-        document.addEventListener('touchmove', this.touchMoveListener);
-      }
-
-      if (!this.touchEndListener) {
-        this.touchEndListener = event => {
-          this.resizeEnd(event);
-          this.unbindTouchListeners();
-        };
-
-        document.addEventListener('touchend', this.touchEndListener);
-      }
-    },
-
-    validateResize(newPrevPanelSize, newNextPanelSize) {
-      let prevPanelMinSize = ObjectUtils.getVNodeProp(this.panels[0], 'minSize');
-
-      if (this.panels[0].props && prevPanelMinSize && prevPanelMinSize > newPrevPanelSize) {
-        return false;
-      }
-
-      let newPanelMinSize = ObjectUtils.getVNodeProp(this.panels[1], 'minSize');
-
-      if (this.panels[1].props && newPanelMinSize && newPanelMinSize > newNextPanelSize) {
-        return false;
-      }
-
-      return true;
-    },
-
-    unbindMouseListeners() {
-      if (this.mouseMoveListener) {
-        document.removeEventListener('mousemove', this.mouseMoveListener);
-        this.mouseMoveListener = null;
-      }
-
-      if (this.mouseUpListener) {
-        document.removeEventListener('mouseup', this.mouseUpListener);
-        this.mouseUpListener = null;
-      }
-    },
-
-    unbindTouchListeners() {
-      if (this.touchMoveListener) {
-        document.removeEventListener('touchmove', this.touchMoveListener);
-        this.touchMoveListener = null;
-      }
-
-      if (this.touchEndListener) {
-        document.removeEventListener('touchend', this.touchEndListener);
-        this.touchEndListener = null;
-      }
-    },
-
-    clear() {
-      this.dragging = false;
-      this.size = null;
-      this.startPos = null;
-      this.prevPanelElement = null;
-      this.nextPanelElement = null;
-      this.prevPanelSize = null;
-      this.nextPanelSize = null;
-      this.gutterElement = null;
-      this.prevPanelIndex = null;
-    },
-
-    isStateful() {
-      return this.stateKey != null;
-    },
-
-    getStorage() {
-      switch (this.stateStorage) {
-        case 'local':
-          return window.localStorage;
-
-        case 'session':
-          return window.sessionStorage;
-
-        default:
-          throw new Error(this.stateStorage + ' is not a valid value for the state storage, supported values are "local" and "session".');
-      }
-    },
-
-    saveState() {
-      this.getStorage().setItem(this.stateKey, JSON.stringify(this.panelSizes));
-    },
-
-    restoreState() {
-      const storage = this.getStorage();
-      const stateString = storage.getItem(this.stateKey);
-
-      if (stateString) {
-        this.panelSizes = JSON.parse(stateString);
-        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
-        children.forEach((child, i) => {
-          child.style.flexBasis = 'calc(' + this.panelSizes[i] + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
-        });
-        return true;
-      }
-
-      return false;
-    }
-
-  },
-  computed: {
-    containerClass() {
-      return ['p-splitter p-component', 'p-splitter-' + this.layout];
-    },
-
-    panels() {
-      const panels = [];
-      this.$slots.default().forEach(child => {
-        if (this.isSplitterPanel(child)) {
-          panels.push(child);
-        } else if (child.children instanceof Array) {
-          child.children.forEach(nestedChild => {
-            if (this.isSplitterPanel(nestedChild)) {
-              panels.push(nestedChild);
-            }
-          });
-        }
-      });
-      return panels;
-    },
-
-    gutterStyle() {
-      if (this.horizontal) return {
-        width: this.gutterSize + 'px'
-      };else return {
-        height: this.gutterSize + 'px'
-      };
-    },
-
-    horizontal() {
-      return this.layout === 'horizontal';
-    }
-
-  }
-};
-const _hoisted_1$i = ["onMousedown", "onTouchstart", "onTouchmove", "onTouchend"];
-const _hoisted_2$e = ["aria-orientation", "aria-valuenow", "onKeydown"];
-
-function render$d(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    class: normalizeClass($options.containerClass)
-  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.panels, (panel, i) => {
-    return openBlock(), createElementBlock(Fragment, {
-      key: i
-    }, [(openBlock(), createBlock(resolveDynamicComponent(panel), {
-      tabindex: "-1"
-    })), i !== $options.panels.length - 1 ? (openBlock(), createElementBlock("div", {
-      key: 0,
-      class: "p-splitter-gutter",
-      role: "separator",
-      tabindex: "-1",
-      onMousedown: $event => $options.onGutterMouseDown($event, i),
-      onTouchstart: $event => $options.onGutterTouchStart($event, i),
-      onTouchmove: $event => $options.onGutterTouchMove($event, i),
-      onTouchend: $event => $options.onGutterTouchEnd($event, i)
-    }, [createElementVNode("div", {
-      class: "p-splitter-gutter-handle",
-      tabindex: "0",
-      style: normalizeStyle($options.gutterStyle),
-      "aria-orientation": $props.layout,
-      "aria-valuenow": $data.prevSize,
-      onKeyup: _cache[0] || (_cache[0] = (...args) => $options.onGutterKeyUp && $options.onGutterKeyUp(...args)),
-      onKeydown: $event => $options.onGutterKeyDown($event, i)
-    }, null, 44, _hoisted_2$e)], 40, _hoisted_1$i)) : createCommentVNode("", true)], 64);
-  }), 128))], 2);
-}
-
-function styleInject$4(css, ref) {
-  if (ref === void 0) ref = {};
-  var insertAt = ref.insertAt;
-
-  if (!css || typeof document === 'undefined') {
-    return;
-  }
-
-  var head = document.head || document.getElementsByTagName('head')[0];
-  var style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (insertAt === 'top') {
-    if (head.firstChild) {
-      head.insertBefore(style, head.firstChild);
-    } else {
-      head.appendChild(style);
-    }
-  } else {
-    head.appendChild(style);
-  }
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-}
-
-var css_248z$8 = "\n.p-splitter {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-splitter-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-splitter-panel {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n.p-splitter-panel-nested {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-splitter-panel .p-splitter {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n    border: 0 none;\n}\n.p-splitter-gutter {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: col-resize;\n}\n.p-splitter-horizontal.p-splitter-resizing {\n    cursor: col-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-horizontal > .p-splitter-gutter > .p-splitter-gutter-handle {\n    height: 24px;\n    width: 100%;\n}\n.p-splitter-horizontal > .p-splitter-gutter {\n    cursor: col-resize;\n}\n.p-splitter-vertical.p-splitter-resizing {\n    cursor: row-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-vertical > .p-splitter-gutter {\n    cursor: row-resize;\n}\n.p-splitter-vertical > .p-splitter-gutter > .p-splitter-gutter-handle {\n    width: 24px;\n    height: 100%;\n}\n";
-styleInject$4(css_248z$8);
-script$D.render = render$d;
-
-var script$C = {
-  name: 'SplitterPanel',
-  props: {
-    size: {
-      type: Number,
-      default: null
-    },
-    minSize: {
-      type: Number,
-      default: null
-    }
-  },
-  computed: {
-    containerClass() {
-      return ['p-splitter-panel', {
-        'p-splitter-panel-nested': this.isNested
-      }];
-    },
-
-    isNested() {
-      return this.$slots.default().some(child => {
-        return child.type.name === 'Splitter';
-      });
-    }
-
-  }
-};
-
-function render$c(_ctx, _cache, $props, $setup, $data, $options) {
-  return openBlock(), createElementBlock("div", {
-    ref: "container",
-    class: normalizeClass($options.containerClass)
-  }, [renderSlot(_ctx.$slots, "default")], 2);
-}
-
-script$C.render = render$c;
-
-var script$B = {
-  props: {
-        model : String,
-        id : Number
-    },
-  setup(__props) {
-
-    
-
-return (_ctx, _cache) => {
-  const _component_router_link = resolveComponent("router-link");
-
-  return (openBlock(), createBlock(_component_router_link, {
-    to: { name : 'primary', params : {'model' : __props.model, 'id' : __props.id }}
-  }, {
-    default: withCtx(({isActive, href, navigate}) => [
-      createVNode(unref(script$1K), {
-        icon: "pi pi-chevron-right",
-        class: "p-button-rounded p-button-success mr-2"
-      })
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["to"]))
-}
-}
-
-};
-
-script$B.__file = "presstojam/src/components/actions/primary-action.vue";
-
-var script$A = {
-  props: {
-    value : [Number, String],
-    field : Object
-},
-  setup(__props) {
-
-
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("span", null, toDisplayString$1(__props.value), 1 /* TEXT */))
-}
-}
-
-};
-
-script$A.__file = "presstojam/src/components/view/number.vue";
-
-const _hoisted_1$h = {
-  key: 0,
-  class: "pi pi-check"
-};
-const _hoisted_2$d = { key: 1 };
-
-
-var script$z = {
-  props: {
-    value : [Number, Boolean],
-    field : Object
-},
-  setup(__props) {
-
-inject("client");
-
-
-
-return (_ctx, _cache) => {
-  return (__props.field.useIcons() && __props.value)
-    ? (openBlock(), createElementBlock("i", _hoisted_1$h))
-    : (openBlock(), createElementBlock("span", _hoisted_2$d, toDisplayString$1(__props.field.display(__props.value)), 1 /* TEXT */))
-}
-}
-
-};
-
-script$z.__file = "presstojam/src/components/view/flag.vue";
-
-const _hoisted_1$g = { key: 1 };
-
-
-var script$y = {
-  props: {
-    value : [Number, String ],
-    field : Object,
-    row : Object,
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-let show_route = false;
-if (props.field.reference_type == ReferenceTypes.REFERENCE && hasEntity(props.field.reference) && props.value) {
-    show_route = true;
-}
-
-
-let display = computed(() => {
-    if (props.field.reference_type == ReferenceTypes.REFERENCE) {
-        const data = [];
-    
-
-        if (props.field.custom_fields.length) {
-            for(const field of props.field.custom_fields) {
-                data.push(props.row[props.field.name + "/" + field]);
-            }
-        } else {
-            
-            const ref_route = getModel(props.field.reference);
-            
-            for(const i in ref_route.fields) {
-                if (ref_route.fields[i].summary) {
-                    data.push(props.row[props.field.name + "/" + i]);
-                }
-            }
-        }
-        return data.join(" ");
-    } else {
-        return props.value; 
-    }
-});
-
-
-
-return (_ctx, _cache) => {
-  const _component_router_link = resolveComponent("router-link");
-
-  return (unref(show_route))
-    ? (openBlock(), createBlock(_component_router_link, {
-        key: 0,
-        to: { name : 'primary', params : {'model' : __props.field.reference, 'id' : __props.value }}
-      }, {
-        default: withCtx(() => [
-          createTextVNode(toDisplayString$1(unref(display)), 1 /* TEXT */)
-        ]),
-        _: 1 /* STABLE */
-      }, 8 /* PROPS */, ["to"]))
-    : (openBlock(), createElementBlock("span", _hoisted_1$g, toDisplayString$1(unref(display)), 1 /* TEXT */))
-}
-}
-
-};
-
-script$y.__file = "presstojam/src/components/view/id.vue";
-
-var script$x = {
-  props: {
-    value : [Number, String],
-    field : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const val = computed(() => {
-    var t = props.field.clean(props.value);
-    return (!t) ? t : t.toLocaleDateString("en-UK");
-});
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("span", null, toDisplayString$1(unref(val)), 1 /* TEXT */))
-}
-}
-
-};
-
-script$x.__file = "presstojam/src/components/view/time.vue";
-
-const _hoisted_1$f = { key: 0 };
-const _hoisted_2$c = { key: 1 };
-
-
-var script$w = {
-  props: {
-    value : [String],
-    field : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const tag = computed(() => {
- if (props.field.html || props.field.max > 300) {
-    return "textarea";
- } else {
-    return "input";
- }
-});
-
-
-
-
-return (_ctx, _cache) => {
-  return (unref(tag)=='textarea')
-    ? (openBlock(), createElementBlock("div", _hoisted_1$f, toDisplayString$1(__props.value), 1 /* TEXT */))
-    : (openBlock(), createElementBlock("span", _hoisted_2$c, toDisplayString$1(props.field.clean(__props.value)), 1 /* TEXT */))
-}
-}
-
-};
-
-script$w.__file = "presstojam/src/components/view/string.vue";
-
-const _hoisted_1$e = /*#__PURE__*/createElementVNode("i", { class: "pi pi-download" }, null, -1 /* HOISTED */);
-const _hoisted_2$b = [
-  _hoisted_1$e
-];
-
-
-var script$v = {
-  props: {
-    value : String,
-    field : Object,
-    id : Number
-},
-  setup(__props) {
-
-const props = __props;
-
-const client = inject("client");
-
-
-
-
-function download() {
-    client.getAsset("/asset/" + props.field.model + "/" + props.field.name + "/" + props.id)
-    .then(blob => {
-
-        const anchor = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        anchor.href = url;
-        anchor.download = props.field.val;
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        URL.revokeObjectURL(url);
-    })
-    .catch(e => {
-        console.log(e);
-    });
-}
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("span", null, [
-    createTextVNode(toDisplayString$1(__props.value) + " ", 1 /* TEXT */),
-    createElementVNode("a", {
-      onClick: _cache[0] || (_cache[0] = $event => (download()))
-    }, _hoisted_2$b)
-  ]))
-}
-}
-
-};
-
-script$v.__file = "presstojam/src/components/view/asset.vue";
-
-const _hoisted_1$d = { key: 0 };
-const _hoisted_2$a = { key: 1 };
-
-
-var script$u = {
-  props: {
-    value : [Object, String],
-    field : Object
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const jsonVal = props.field.clean(props.value);
-
-
-
-return (_ctx, _cache) => {
-  return (__props.field.fields.length > 0)
-    ? (openBlock(), createElementBlock("div", _hoisted_1$d, [
-        (openBlock(true), createElementBlock(Fragment, null, renderList(__props.field.fields, (field) => {
-          return (openBlock(), createElementBlock("div", {
-            key: field.name
-          }, [
-            createElementVNode("label", null, toDisplayString$1(_ctx.$t("models." + field.model + ".fields." + field.name + ".label")), 1 /* TEXT */),
-            createVNode(script$t, {
-              field: field,
-              value: unref(jsonVal)[field.name]
-            }, null, 8 /* PROPS */, ["field", "value"])
-          ]))
-        }), 128 /* KEYED_FRAGMENT */))
-      ]))
-    : (openBlock(), createElementBlock("div", _hoisted_2$a, [
-        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(jsonVal), (value, field) => {
-          return (openBlock(), createElementBlock("div", { key: field }, [
-            createElementVNode("span", null, toDisplayString$1(field) + ": ", 1 /* TEXT */),
-            createElementVNode("span", null, toDisplayString$1(value), 1 /* TEXT */)
-          ]))
-        }), 128 /* KEYED_FRAGMENT */))
-      ]))
-}
-}
-
-};
-
-script$u.__file = "presstojam/src/components/view/json.vue";
-
-var script$t = {
-  props: {
-    field : Object,
-    row : [Array,Object],
-},
-  setup(__props) {
-
- 
-
-return (_ctx, _cache) => {
-  return (__props.field.type=='number')
-    ? (openBlock(), createBlock(script$A, {
-        key: 0,
-        value: __props.row[__props.field.slug],
-        field: __props.field
-      }, null, 8 /* PROPS */, ["value", "field"]))
-    : (__props.field.type=='flag')
-      ? (openBlock(), createBlock(script$z, {
-          key: 1,
-          value: __props.row[__props.field.slug],
-          field: __props.field
-        }, null, 8 /* PROPS */, ["value", "field"]))
-      : (__props.field.type=='id')
-        ? (openBlock(), createBlock(script$y, {
-            key: 2,
-            value: __props.row[__props.field.slug],
-            field: __props.field,
-            row: __props.row
-          }, null, 8 /* PROPS */, ["value", "field", "row"]))
-        : (__props.field.type=='asset')
-          ? (openBlock(), createBlock(script$v, {
-              key: 3,
-              value: __props.row[__props.field.slug],
-              field: __props.field,
-              id: __props.row['--id']
-            }, null, 8 /* PROPS */, ["value", "field", "id"]))
-          : (__props.field.type=='time')
-            ? (openBlock(), createBlock(script$x, {
-                key: 4,
-                value: __props.row[__props.field.slug],
-                field: __props.field
-              }, null, 8 /* PROPS */, ["value", "field"]))
-            : (__props.field.type=='json')
-              ? (openBlock(), createBlock(script$u, {
-                  key: 5,
-                  value: __props.row[__props.field.slug],
-                  field: __props.field
-                }, null, 8 /* PROPS */, ["value", "field"]))
-              : (__props.field.type=='string')
-                ? (openBlock(), createBlock(script$w, {
-                    key: 6,
-                    value: __props.row[__props.field.slug],
-                    field: __props.field
-                  }, null, 8 /* PROPS */, ["value", "field"]))
-                : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$t.__file = "presstojam/src/components/view/view-field.vue";
-
-var viewField = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': script$t
-});
-
-var script$s = {
-  props: {
-       model : Object,
-       data : Object,
-       name : String
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-      
-    subscribe("form_saved", "create", (response, method, model) => {
-        if (model.name == props.model.name && method == "post") {
-            trigger$1("effect_created", props.name, response);
-        }
-    });
-
-    onBeforeUnmount(() => {
-        unsubscribe("form_saved", "create");
-    });
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(script$12, {
-    model: __props.model,
-    data: __props.data
-  }, null, 8 /* PROPS */, ["model", "data"]))
-}
-}
-
-};
-
-script$s.__file = "presstojam/src/components/effects/create-effect.vue";
-
-var script$r = {
-  props: {
-       name : String,
-       model : Object,
-       parent_id : Number
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-    const i18n = inject("i18n");
-    const t = i18n.t;
-
- 
-    const header = (props.model.parent) 
-        ? "Add " + t("models." + props.model.name + ".title", 1) + " to " + t("models." + props.model.parent + ".title", 1)
-        : "Create " + t("models." + props.model.name + ".title", 1);
-
-    const data = {};
-    if (props.parent_id) data["--parent"] = props.parent_id;
-
-    function createRow() {
-      trigger$1("dialog_open",
-        script$s, 
-        {
-            name : props.name,
-            model : props.model,
-            data : data
-        }, 
-        header);
-    }
-    
- 
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1K), {
-    label: "New",
-    icon: "pi pi-plus",
-    class: "p-button-success mr-2",
-    onClick: createRow
-  }))
-}
-}
-
-};
-
-script$r.__file = "presstojam/src/components/actions/create-action.vue";
-
-const _hoisted_1$c = /*#__PURE__*/createElementVNode("p", null, "Are you sure you want to delete:", -1 /* HOISTED */);
-const _hoisted_2$9 = /*#__PURE__*/createTextVNode("Type ");
-const _hoisted_3$8 = /*#__PURE__*/createTextVNode(" in the box below");
-const _hoisted_4$7 = { class: "p-inputgroup" };
-const _hoisted_5$7 = /*#__PURE__*/createTextVNode("Delete");
- 
-    
-var script$q = {
-  props: {
-        name : String,
-        data : Array,
-    },
-  setup(__props) {
-
-const props = __props;
-
-    const client = inject("client");
-
-    
-
-
-    const repo = getStore(props.name);
-    const check_str = "delete";
-
-    let delval = ref("");
-
-    const disabled = computed(() => {
-        return (delval.value == check_str) ? false : true;
-    });
-
-
-    function del() {
-        let params = {};
-        const keys = [];
-     
-        for(const row of props.data) {
-            keys.push(row['--id']);
-        }
-        params["--id"] = keys;
-       
-
-        client.delete("/data/" +repo.store.name, params)
-        .then(() => {
-            repo.remove(keys);
-            trigger$1("effect_deleted", props.name);
-        })
-        .catch(e => console.log(e));
-    }
-    
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    _hoisted_1$c,
-    createElementVNode("ul", null, [
-      (openBlock(true), createElementBlock(Fragment, null, renderList(__props.data, (item) => {
-        return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(unref(repo).model.fields, item)), 1 /* TEXT */))
-      }), 256 /* UNKEYED_FRAGMENT */))
-    ]),
-    createElementVNode("p", null, [
-      _hoisted_2$9,
-      createElementVNode("i", null, toDisplayString$1(check_str)),
-      _hoisted_3$8
-    ]),
-    createElementVNode("div", _hoisted_4$7, [
-      createVNode(unref(script$1L), {
-        placeholder: check_str,
-        modelValue: unref(delval),
-        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(delval) ? (delval).value = $event : delval = $event))
-      }, null, 8 /* PROPS */, ["modelValue"]),
-      createVNode(unref(script$1K), {
-        label: "Delete",
-        disabled: unref(disabled),
-        icon: "pi pi-trash",
-        onClick: del,
-        class: "p-button-danger"
-      }, {
-        default: withCtx(() => [
-          _hoisted_5$7
-        ]),
-        _: 1 /* STABLE */
-      }, 8 /* PROPS */, ["disabled"])
-    ])
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-script$q.__file = "presstojam/src/components/effects/delete-effect.vue";
-
-var script$p = {
-  props: {
-        name : String,
-        data : [Object, Array]
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-
-    function delRow() {
-
-        const arg_data = (Array.isArray(props.data)) ? props.data : [props.data];
-        trigger$1(
-            "dialog_open",
-            script$q, 
-            {
-                name : props.name,
-                data : arg_data
-            }, 
-            "Delete");
-    }
-
-    const disabled = computed(() => {
-        return (!props.data) ? true : false;
-    });
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1K), {
-    label: "Delete",
-    icon: "pi pi-trash",
-    class: "p-button-danger",
-    disabled: unref(disabled),
-    onClick: delRow
-  }, null, 8 /* PROPS */, ["disabled"]))
-}
-}
-
-};
-
-script$p.__file = "presstojam/src/components/actions/delete-action.vue";
+script$M.__file = "presstojam/src/components/effects/edit-effect.vue";
 
 var script$a$1 = {
   name: 'RowRadioButton',
@@ -36242,15 +32167,15 @@ var script$a$1 = {
 
   }
 };
-const _hoisted_1$a = ["aria-checked"];
+const _hoisted_1$a$1 = ["aria-checked"];
 
-const _hoisted_2$7 = /*#__PURE__*/createElementVNode("div", {
+const _hoisted_2$7$1 = /*#__PURE__*/createElementVNode("div", {
   class: "p-radiobutton-icon"
 }, null, -1);
 
-const _hoisted_3$6$1 = [_hoisted_2$7];
+const _hoisted_3$6$1 = [_hoisted_2$7$1];
 
-function render$a(_ctx, _cache, $props, $setup, $data, $options) {
+function render$a$1(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass(['p-radiobutton p-component', {
       'p-radiobutton-focused': $data.focused
@@ -36269,10 +32194,10 @@ function render$a(_ctx, _cache, $props, $setup, $data, $options) {
     }]),
     role: "radio",
     "aria-checked": $props.checked
-  }, _hoisted_3$6$1, 10, _hoisted_1$a)], 34);
+  }, _hoisted_3$6$1, 10, _hoisted_1$a$1)], 34);
 }
 
-script$a$1.render = render$a;
+script$a$1.render = render$a$1;
 var script$9$1 = {
   name: 'RowCheckbox',
   inheritAttrs: false,
@@ -36309,9 +32234,9 @@ var script$9$1 = {
 
   }
 };
-const _hoisted_1$9 = ["aria-checked", "tabindex"];
+const _hoisted_1$9$1 = ["aria-checked", "tabindex"];
 
-function render$9(_ctx, _cache, $props, $setup, $data, $options) {
+function render$9$1(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass(['p-checkbox p-component', {
       'p-checkbox-focused': $data.focused
@@ -36334,10 +32259,10 @@ function render$9(_ctx, _cache, $props, $setup, $data, $options) {
     class: normalizeClass(['p-checkbox-icon', {
       'pi pi-check': $props.checked
     }])
-  }, null, 2)], 42, _hoisted_1$9)], 2);
+  }, null, 2)], 42, _hoisted_1$9$1)], 2);
 }
 
-script$9$1.render = render$9;
+script$9$1.render = render$9$1;
 var script$8$1 = {
   name: 'BodyCell',
   emits: ['cell-edit-init', 'cell-edit-complete', 'cell-edit-cancel', 'row-edit-init', 'row-edit-save', 'row-edit-cancel', 'row-toggle', 'radio-change', 'checkbox-change', 'editing-meta-change'],
@@ -36807,7 +32732,7 @@ var script$8$1 = {
     ripple: Ripple
   }
 };
-const _hoisted_1$8 = {
+const _hoisted_1$8$1 = {
   key: 0,
   class: "p-column-title"
 };
@@ -36830,7 +32755,7 @@ const _hoisted_6$3$1 = /*#__PURE__*/createElementVNode("span", {
 
 const _hoisted_7$1$1 = [_hoisted_6$3$1];
 
-function render$8(_ctx, _cache, $props, $setup, $data, $options) {
+function render$8$1(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTRadioButton = resolveComponent("DTRadioButton");
 
   const _component_DTCheckbox = resolveComponent("DTCheckbox");
@@ -36855,7 +32780,7 @@ function render$8(_ctx, _cache, $props, $setup, $data, $options) {
     onClick: _cache[6] || (_cache[6] = (...args) => $options.onClick && $options.onClick(...args)),
     onKeydown: _cache[7] || (_cache[7] = (...args) => $options.onKeyDown && $options.onKeyDown(...args)),
     role: "cell"
-  }, [$props.responsiveLayout === 'stack' ? (openBlock(), createElementBlock("span", _hoisted_1$8, toDisplayString$1($options.columnProp('header')), 1)) : createCommentVNode("", true), $props.column.children && $props.column.children.body && !$data.d_editing ? (openBlock(), createBlock(resolveDynamicComponent($props.column.children.body), {
+  }, [$props.responsiveLayout === 'stack' ? (openBlock(), createElementBlock("span", _hoisted_1$8$1, toDisplayString$1($options.columnProp('header')), 1)) : createCommentVNode("", true), $props.column.children && $props.column.children.body && !$data.d_editing ? (openBlock(), createBlock(resolveDynamicComponent($props.column.children.body), {
     key: 1,
     data: $props.rowData,
     column: $props.column,
@@ -36923,7 +32848,7 @@ function render$8(_ctx, _cache, $props, $setup, $data, $options) {
   }, [createTextVNode(toDisplayString$1($options.resolveFieldData()), 1)], 64))], 38));
 }
 
-script$8$1.render = render$8;
+script$8$1.render = render$8$1;
 var script$7$1 = {
   name: 'TableBody',
   emits: ['rowgroup-toggle', 'row-click', 'row-dblclick', 'row-rightclick', 'row-touchend', 'row-keydown', 'row-mousedown', 'row-dragstart', 'row-dragover', 'row-dragleave', 'row-dragend', 'row-drop', 'row-toggle', 'radio-change', 'checkbox-change', 'cell-edit-init', 'cell-edit-complete', 'cell-edit-cancel', 'row-edit-init', 'row-edit-save', 'row-edit-cancel', 'editing-meta-change'],
@@ -37472,7 +33397,7 @@ const _hoisted_5$2$1 = {
 };
 const _hoisted_6$2$1 = ["colspan"];
 
-function render$7(_ctx, _cache, $props, $setup, $data, $options) {
+function render$7$1(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTBodyCell = resolveComponent("DTBodyCell");
 
   return openBlock(), createElementBlock("tbody", {
@@ -37572,7 +33497,7 @@ function render$7(_ctx, _cache, $props, $setup, $data, $options) {
   })) : createCommentVNode("", true)], 8, _hoisted_6$2$1)]))], 4);
 }
 
-script$7$1.render = render$7;
+script$7$1.render = render$7$1;
 var script$6$1 = {
   name: 'FooterCell',
   props: {
@@ -37649,7 +33574,7 @@ var script$6$1 = {
 };
 const _hoisted_1$6$1 = ["colspan", "rowspan"];
 
-function render$6(_ctx, _cache, $props, $setup, $data, $options) {
+function render$6$1(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("td", {
     style: normalizeStyle($options.containerStyle),
     class: normalizeClass($options.containerClass),
@@ -37662,7 +33587,7 @@ function render$6(_ctx, _cache, $props, $setup, $data, $options) {
   }, null, 8, ["column"])) : createCommentVNode("", true), createTextVNode(" " + toDisplayString$1($options.columnProp('footer')), 1)], 14, _hoisted_1$6$1);
 }
 
-script$6$1.render = render$6;
+script$6$1.render = render$6$1;
 var script$5$1 = {
   name: 'TableFooter',
   props: {
@@ -38403,28 +34328,28 @@ const _hoisted_5$1$1 = /*#__PURE__*/createElementVNode("span", {
 }, null, -1);
 
 const _hoisted_6$1$1 = [_hoisted_5$1$1];
-const _hoisted_7$3 = {
+const _hoisted_7$5 = {
   key: 0,
   class: "p-column-filter-row-items"
 };
-const _hoisted_8$3 = ["onClick", "onKeydown", "tabindex"];
+const _hoisted_8$4 = ["onClick", "onKeydown", "tabindex"];
 
-const _hoisted_9$1 = /*#__PURE__*/createElementVNode("li", {
+const _hoisted_9$2 = /*#__PURE__*/createElementVNode("li", {
   class: "p-column-filter-separator"
 }, null, -1);
 
-const _hoisted_10$1 = {
+const _hoisted_10$2 = {
   key: 0,
   class: "p-column-filter-operator"
 };
-const _hoisted_11$1 = {
+const _hoisted_11$2 = {
   class: "p-column-filter-constraints"
 };
-const _hoisted_12$1 = {
+const _hoisted_12$2 = {
   key: 1,
   class: "p-column-filter-add-rule"
 };
-const _hoisted_13$1 = {
+const _hoisted_13$2 = {
   class: "p-column-filter-buttonbar"
 };
 
@@ -38478,7 +34403,7 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
         field: $props.field,
         filterModel: $props.filters[$props.field],
         filterCallback: $options.filterCallback
-      }, null, 8, ["field", "filterModel", "filterCallback"])), $props.display === 'row' ? (openBlock(), createElementBlock("ul", _hoisted_7$3, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.matchModes, (matchMode, i) => {
+      }, null, 8, ["field", "filterModel", "filterCallback"])), $props.display === 'row' ? (openBlock(), createElementBlock("ul", _hoisted_7$5, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.matchModes, (matchMode, i) => {
         return openBlock(), createElementBlock("li", {
           key: matchMode.label,
           class: normalizeClass(["p-column-filter-row-item", {
@@ -38487,21 +34412,21 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
           onClick: $event => $options.onRowMatchModeChange(matchMode.value),
           onKeydown: [_cache[3] || (_cache[3] = $event => $options.onRowMatchModeKeyDown($event)), withKeys(withModifiers($event => $options.onRowMatchModeChange(matchMode.value), ["prevent"]), ["enter"])],
           tabindex: i === 0 ? '0' : null
-        }, toDisplayString$1(matchMode.label), 43, _hoisted_8$3);
-      }), 128)), _hoisted_9$1, createElementVNode("li", {
+        }, toDisplayString$1(matchMode.label), 43, _hoisted_8$4);
+      }), 128)), _hoisted_9$2, createElementVNode("li", {
         class: "p-column-filter-row-item",
         onClick: _cache[4] || (_cache[4] = $event => $options.clearFilter()),
         onKeydown: [_cache[5] || (_cache[5] = $event => $options.onRowMatchModeKeyDown($event)), _cache[6] || (_cache[6] = withKeys($event => _ctx.onRowClearItemClick(), ["enter"]))]
       }, toDisplayString$1($options.noFilterLabel), 33)])) : (openBlock(), createElementBlock(Fragment, {
         key: 1
-      }, [$options.isShowOperator ? (openBlock(), createElementBlock("div", _hoisted_10$1, [createVNode(_component_CFDropdown, {
+      }, [$options.isShowOperator ? (openBlock(), createElementBlock("div", _hoisted_10$2, [createVNode(_component_CFDropdown, {
         options: $options.operatorOptions,
         modelValue: $options.operator,
         "onUpdate:modelValue": _cache[7] || (_cache[7] = $event => $options.onOperatorChange($event)),
         class: "p-column-filter-operator-dropdown",
         optionLabel: "label",
         optionValue: "value"
-      }, null, 8, ["options", "modelValue"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_11$1, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.fieldConstraints, (fieldConstraint, i) => {
+      }, null, 8, ["options", "modelValue"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_11$2, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.fieldConstraints, (fieldConstraint, i) => {
         return openBlock(), createElementBlock("div", {
           key: i,
           class: "p-column-filter-constraint"
@@ -38526,13 +34451,13 @@ function render$3$1(_ctx, _cache, $props, $setup, $data, $options) {
           onClick: $event => $options.removeConstraint(i),
           label: $options.removeRuleButtonLabel
         }, null, 8, ["onClick", "label"])) : createCommentVNode("", true)])]);
-      }), 128))]), $options.isShowAddConstraint ? (openBlock(), createElementBlock("div", _hoisted_12$1, [createVNode(_component_CFButton, {
+      }), 128))]), $options.isShowAddConstraint ? (openBlock(), createElementBlock("div", _hoisted_12$2, [createVNode(_component_CFButton, {
         type: "button",
         label: $options.addRuleButtonLabel,
         icon: "pi pi-plus",
         class: "p-column-filter-add-button p-button-text p-button-sm",
         onClick: _cache[8] || (_cache[8] = $event => $options.addConstraint())
-      }, null, 8, ["label"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_13$1, [!$props.filterClearTemplate && $props.showClearButton ? (openBlock(), createBlock(_component_CFButton, {
+      }, null, 8, ["label"])])) : createCommentVNode("", true), createElementVNode("div", _hoisted_13$2, [!$props.filterClearTemplate && $props.showClearButton ? (openBlock(), createBlock(_component_CFButton, {
         key: 0,
         type: "button",
         class: "p-button-outlined p-button-sm",
@@ -39149,7 +35074,7 @@ function render$1$1(_ctx, _cache, $props, $setup, $data, $options) {
 }
 
 script$1$1.render = render$1$1;
-var script$o = {
+var script$L = {
   name: 'DataTable',
   emits: ['value-change', 'update:first', 'update:rows', 'page', 'update:sortField', 'update:sortOrder', 'update:multiSortMeta', 'sort', 'filter', 'row-click', 'row-dblclick', 'update:selection', 'row-select', 'row-unselect', 'update:contextMenuSelection', 'row-contextmenu', 'row-unselect-all', 'row-select-all', 'select-all-change', 'column-resize-end', 'column-reorder', 'row-reorder', 'update:expandedRows', 'row-collapse', 'row-expand', 'update:expandedRowGroups', 'rowgroup-collapse', 'rowgroup-expand', 'update:filters', 'state-restore', 'state-save', 'cell-edit-init', 'cell-edit-complete', 'cell-edit-cancel', 'update:editingRows', 'row-edit-init', 'row-edit-save', 'row-edit-cancel'],
   props: {
@@ -41150,26 +37075,26 @@ var script$o = {
     DTVirtualScroller: script$1w
   }
 };
-const _hoisted_1$b = {
+const _hoisted_1$j = {
   key: 0,
   class: "p-datatable-loading-overlay p-component-overlay"
 };
-const _hoisted_2$8 = {
+const _hoisted_2$g = {
   key: 1,
   class: "p-datatable-header"
 };
-const _hoisted_3$7 = {
+const _hoisted_3$e = {
   key: 4,
   class: "p-datatable-footer"
 };
-const _hoisted_4$6 = {
+const _hoisted_4$a = {
   ref: "resizeHelper",
   class: "p-column-resizer-helper",
   style: {
     "display": "none"
   }
 };
-const _hoisted_5$6 = {
+const _hoisted_5$9 = {
   key: 5,
   ref: "reorderIndicatorUp",
   class: "pi pi-arrow-down p-datatable-reorder-indicator-up",
@@ -41178,7 +37103,7 @@ const _hoisted_5$6 = {
     "display": "none"
   }
 };
-const _hoisted_6$6 = {
+const _hoisted_6$8 = {
   key: 6,
   ref: "reorderIndicatorDown",
   class: "pi pi-arrow-up p-datatable-reorder-indicator-down",
@@ -41188,7 +37113,7 @@ const _hoisted_6$6 = {
   }
 };
 
-function render$b(_ctx, _cache, $props, $setup, $data, $options) {
+function render$c(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_DTPaginator = resolveComponent("DTPaginator");
 
   const _component_DTTableHeader = resolveComponent("DTTableHeader");
@@ -41202,12 +37127,12 @@ function render$b(_ctx, _cache, $props, $setup, $data, $options) {
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.containerClass),
     "data-scrollselectors": ".p-datatable-wrapper"
-  }, [renderSlot(_ctx.$slots, "default"), $props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$b, [_ctx.$slots.loading ? renderSlot(_ctx.$slots, "loading", {
+  }, [renderSlot(_ctx.$slots, "default"), $props.loading ? (openBlock(), createElementBlock("div", _hoisted_1$j, [_ctx.$slots.loading ? renderSlot(_ctx.$slots, "loading", {
     key: 0
   }) : (openBlock(), createElementBlock("i", {
     key: 1,
     class: normalizeClass($options.loadingIconClass)
-  }, null, 2))])) : createCommentVNode("", true), _ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$8, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DTPaginator, {
+  }, null, 2))])) : createCommentVNode("", true), _ctx.$slots.header ? (openBlock(), createElementBlock("div", _hoisted_2$g, [renderSlot(_ctx.$slots, "header")])) : createCommentVNode("", true), $options.paginatorTop ? (openBlock(), createBlock(_component_DTPaginator, {
     key: 2,
     rows: $data.d_rows,
     first: $data.d_first,
@@ -41413,10 +37338,10 @@ function render$b(_ctx, _cache, $props, $setup, $data, $options) {
     name: "end",
     fn: withCtx(() => [renderSlot(_ctx.$slots, "paginatorend")]),
     key: "1"
-  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_3$7, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$6, null, 512), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_5$6, null, 512)) : createCommentVNode("", true), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_6$6, null, 512)) : createCommentVNode("", true)], 2);
+  } : undefined]), 1032, ["rows", "first", "totalRecords", "pageLinkSize", "template", "rowsPerPageOptions", "currentPageReportTemplate", "alwaysShow"])) : createCommentVNode("", true), _ctx.$slots.footer ? (openBlock(), createElementBlock("div", _hoisted_3$e, [renderSlot(_ctx.$slots, "footer")])) : createCommentVNode("", true), createElementVNode("div", _hoisted_4$a, null, 512), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_5$9, null, 512)) : createCommentVNode("", true), $props.reorderableColumns ? (openBlock(), createElementBlock("span", _hoisted_6$8, null, 512)) : createCommentVNode("", true)], 2);
 }
 
-function styleInject$3(css, ref) {
+function styleInject$8(css, ref) {
   if (ref === void 0) ref = {};
   var insertAt = ref.insertAt;
 
@@ -41445,11 +37370,11 @@ function styleInject$3(css, ref) {
   }
 }
 
-var css_248z$7 = "\n.p-datatable {\n    position: relative;\n}\n.p-datatable table {\n    border-collapse: collapse;\n    min-width: 100%;\n    table-layout: fixed;\n}\n.p-datatable .p-sortable-column {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-datatable .p-sortable-column .p-column-title,\n.p-datatable .p-sortable-column .p-sortable-column-icon,\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    vertical-align: middle;\n}\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper > table,\n.p-datatable-auto-layout > .p-datatable-wrapper > table {\n    table-layout: auto;\n}\n.p-datatable-hoverable-rows .p-selectable-row {\n    cursor: pointer;\n}\n\n/* Scrollable */\n.p-datatable-scrollable .p-datatable-wrapper {\n    position: relative;\n    overflow: auto;\n}\n.p-datatable-scrollable .p-datatable-thead,\n.p-datatable-scrollable .p-datatable-tbody,\n.p-datatable-scrollable .p-datatable-tfoot {\n    display: block;\n}\n.p-datatable-scrollable .p-datatable-thead > tr,\n.p-datatable-scrollable .p-datatable-tbody > tr,\n.p-datatable-scrollable .p-datatable-tfoot > tr {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n    width: 100%;\n}\n.p-datatable-scrollable .p-datatable-thead > tr > th,\n.p-datatable-scrollable .p-datatable-tbody > tr > td,\n.p-datatable-scrollable .p-datatable-tfoot > tr > td {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 0px;\n            flex: 1 1 0;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable-scrollable .p-datatable-thead {\n    position: sticky;\n    top: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-frozen-tbody {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-tfoot {\n    position: sticky;\n    bottom: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-frozen-column {\n    position: sticky;\n    background: inherit;\n}\n.p-datatable-scrollable th.p-frozen-column {\n    z-index: 1;\n}\n.p-datatable-scrollable-both .p-datatable-thead > tr > th,\n.p-datatable-scrollable-both .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-both .p-datatable-tfoot > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-thead > tr > th .p-datatable-scrollable-horizontal .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-tfoot > tr > td {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 0 auto;\n            flex: 1 0 auto;\n}\n.p-datatable-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    height: 100%;\n}\n.p-datatable-flex-scrollable .p-datatable-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n}\n.p-datatable-scrollable .p-rowgroup-header {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot {\n    display: table;\n    border-collapse: collapse;\n    width: 100%;\n    table-layout: fixed;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr {\n    display: table-row;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr > th,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr > td {\n    display: table-cell;\n}\n.p-datatable-scrollable .p-virtualscroller > .p-datatable-table {\n    display: inline-block; /* For Safari */\n}\n\n/* Resizable */\n.p-datatable-resizable > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-resizable .p-datatable-thead > tr > th,\n.p-datatable-resizable .p-datatable-tfoot > tr > td,\n.p-datatable-resizable .p-datatable-tbody > tr > td {\n    overflow: hidden;\n    white-space: nowrap;\n}\n.p-datatable-resizable .p-resizable-column:not(.p-frozen-column) {\n    background-clip: padding-box;\n    position: relative;\n}\n.p-datatable-resizable-fit .p-resizable-column:last-child .p-column-resizer {\n    display: none;\n}\n.p-datatable .p-column-resizer {\n    display: block;\n    position: absolute !important;\n    top: 0;\n    right: 0;\n    margin: 0;\n    width: 0.5rem;\n    height: 100%;\n    padding: 0px;\n    cursor: col-resize;\n    border: 1px solid transparent;\n}\n.p-datatable .p-column-header-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable .p-column-resizer-helper {\n    width: 1px;\n    position: absolute;\n    z-index: 10;\n    display: none;\n}\n.p-datatable .p-row-editor-init,\n.p-datatable .p-row-editor-save,\n.p-datatable .p-row-editor-cancel {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Expand */\n.p-datatable .p-row-toggler {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Reorder */\n.p-datatable-reorder-indicator-up,\n.p-datatable-reorder-indicator-down {\n    position: absolute;\n    display: none;\n}\n.p-reorderable-column,\n.p-datatable-reorderablerow-handle {\n    cursor: move;\n}\n\n/* Loader */\n.p-datatable .p-datatable-loading-overlay {\n    position: absolute;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    z-index: 2;\n}\n\n/* Filter */\n.p-column-filter-row {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    width: 100%;\n}\n.p-column-filter-menu {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    margin-left: auto;\n}\n.p-column-filter-row .p-column-filter-element {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-column-filter-menu-button,\n.p-column-filter-clear-button {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-column-filter-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-column-filter-row-items {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-column-filter-row-item {\n    cursor: pointer;\n}\n.p-column-filter-add-button,\n.p-column-filter-remove-button {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-column-filter-add-button .p-button-label,\n.p-column-filter-remove-button .p-button-label {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n}\n.p-column-filter-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-column-filter-buttonbar .p-button:not(.p-button-icon-only) {\n    width: auto;\n}\n\n/* Responsive */\n.p-datatable .p-datatable-tbody > tr > td > .p-column-title {\n    display: none;\n}\n\n/* VirtualScroller */\n.p-datatable .p-virtualscroller-loading {\n    -webkit-transform: none !important;\n            transform: none !important;\n    min-height: 0;\n    position: sticky;\n    top: 0;\n    left: 0;\n}\n";
-styleInject$3(css_248z$7);
-script$o.render = render$b;
+var css_248z$d = "\n.p-datatable {\n    position: relative;\n}\n.p-datatable table {\n    border-collapse: collapse;\n    min-width: 100%;\n    table-layout: fixed;\n}\n.p-datatable .p-sortable-column {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-datatable .p-sortable-column .p-column-title,\n.p-datatable .p-sortable-column .p-sortable-column-icon,\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    vertical-align: middle;\n}\n.p-datatable .p-sortable-column .p-sortable-column-badge {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-responsive-scroll > .p-datatable-wrapper > table,\n.p-datatable-auto-layout > .p-datatable-wrapper > table {\n    table-layout: auto;\n}\n.p-datatable-hoverable-rows .p-selectable-row {\n    cursor: pointer;\n}\n\n/* Scrollable */\n.p-datatable-scrollable .p-datatable-wrapper {\n    position: relative;\n    overflow: auto;\n}\n.p-datatable-scrollable .p-datatable-thead,\n.p-datatable-scrollable .p-datatable-tbody,\n.p-datatable-scrollable .p-datatable-tfoot {\n    display: block;\n}\n.p-datatable-scrollable .p-datatable-thead > tr,\n.p-datatable-scrollable .p-datatable-tbody > tr,\n.p-datatable-scrollable .p-datatable-tfoot > tr {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n    width: 100%;\n}\n.p-datatable-scrollable .p-datatable-thead > tr > th,\n.p-datatable-scrollable .p-datatable-tbody > tr > td,\n.p-datatable-scrollable .p-datatable-tfoot > tr > td {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 0px;\n            flex: 1 1 0;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable-scrollable .p-datatable-thead {\n    position: sticky;\n    top: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-frozen-tbody {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-datatable-tfoot {\n    position: sticky;\n    bottom: 0;\n    z-index: 1;\n}\n.p-datatable-scrollable .p-frozen-column {\n    position: sticky;\n    background: inherit;\n}\n.p-datatable-scrollable th.p-frozen-column {\n    z-index: 1;\n}\n.p-datatable-scrollable-both .p-datatable-thead > tr > th,\n.p-datatable-scrollable-both .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-both .p-datatable-tfoot > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-thead > tr > th .p-datatable-scrollable-horizontal .p-datatable-tbody > tr > td,\n.p-datatable-scrollable-horizontal .p-datatable-tfoot > tr > td {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 0 auto;\n            flex: 1 0 auto;\n}\n.p-datatable-flex-scrollable {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    height: 100%;\n}\n.p-datatable-flex-scrollable .p-datatable-wrapper {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n    -webkit-box-flex: 1;\n        -ms-flex: 1;\n            flex: 1;\n    height: 100%;\n}\n.p-datatable-scrollable .p-rowgroup-header {\n    position: sticky;\n    z-index: 1;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot {\n    display: table;\n    border-collapse: collapse;\n    width: 100%;\n    table-layout: fixed;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr {\n    display: table-row;\n}\n.p-datatable-scrollable.p-datatable-grouped-header .p-datatable-thead > tr > th,\n.p-datatable-scrollable.p-datatable-grouped-footer .p-datatable-tfoot > tr > td {\n    display: table-cell;\n}\n.p-datatable-scrollable .p-virtualscroller > .p-datatable-table {\n    display: inline-block; /* For Safari */\n}\n\n/* Resizable */\n.p-datatable-resizable > .p-datatable-wrapper {\n    overflow-x: auto;\n}\n.p-datatable-resizable .p-datatable-thead > tr > th,\n.p-datatable-resizable .p-datatable-tfoot > tr > td,\n.p-datatable-resizable .p-datatable-tbody > tr > td {\n    overflow: hidden;\n    white-space: nowrap;\n}\n.p-datatable-resizable .p-resizable-column:not(.p-frozen-column) {\n    background-clip: padding-box;\n    position: relative;\n}\n.p-datatable-resizable-fit .p-resizable-column:last-child .p-column-resizer {\n    display: none;\n}\n.p-datatable .p-column-resizer {\n    display: block;\n    position: absolute !important;\n    top: 0;\n    right: 0;\n    margin: 0;\n    width: 0.5rem;\n    height: 100%;\n    padding: 0px;\n    cursor: col-resize;\n    border: 1px solid transparent;\n}\n.p-datatable .p-column-header-content {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n.p-datatable .p-column-resizer-helper {\n    width: 1px;\n    position: absolute;\n    z-index: 10;\n    display: none;\n}\n.p-datatable .p-row-editor-init,\n.p-datatable .p-row-editor-save,\n.p-datatable .p-row-editor-cancel {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Expand */\n.p-datatable .p-row-toggler {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    overflow: hidden;\n    position: relative;\n}\n\n/* Reorder */\n.p-datatable-reorder-indicator-up,\n.p-datatable-reorder-indicator-down {\n    position: absolute;\n    display: none;\n}\n.p-reorderable-column,\n.p-datatable-reorderablerow-handle {\n    cursor: move;\n}\n\n/* Loader */\n.p-datatable .p-datatable-loading-overlay {\n    position: absolute;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    z-index: 2;\n}\n\n/* Filter */\n.p-column-filter-row {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    width: 100%;\n}\n.p-column-filter-menu {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    margin-left: auto;\n}\n.p-column-filter-row .p-column-filter-element {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    width: 1%;\n}\n.p-column-filter-menu-button,\n.p-column-filter-clear-button {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    cursor: pointer;\n    text-decoration: none;\n    overflow: hidden;\n    position: relative;\n}\n.p-column-filter-overlay {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-column-filter-row-items {\n    margin: 0;\n    padding: 0;\n    list-style: none;\n}\n.p-column-filter-row-item {\n    cursor: pointer;\n}\n.p-column-filter-add-button,\n.p-column-filter-remove-button {\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-column-filter-add-button .p-button-label,\n.p-column-filter-remove-button .p-button-label {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n}\n.p-column-filter-buttonbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-column-filter-buttonbar .p-button:not(.p-button-icon-only) {\n    width: auto;\n}\n\n/* Responsive */\n.p-datatable .p-datatable-tbody > tr > td > .p-column-title {\n    display: none;\n}\n\n/* VirtualScroller */\n.p-datatable .p-virtualscroller-loading {\n    -webkit-transform: none !important;\n            transform: none !important;\n    min-height: 0;\n    position: sticky;\n    top: 0;\n    left: 0;\n}\n";
+styleInject$8(css_248z$d);
+script$L.render = render$c;
 
-var script$n = {
+var script$K = {
   name: 'Column',
   props: {
     columnKey: {
@@ -41636,7 +37561,7 @@ var script$n = {
 
 };
 
-var script$m = {
+var script$J = {
   props: {
     model : {
         type : Object,
@@ -41670,17 +37595,17 @@ client.get("/audit/" + props.model.name + "/" + props.id)
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$o), { value: data.value }, {
+  return (openBlock(), createBlock(unref(script$L), { value: data.value }, {
     default: withCtx(() => [
-      createVNode(unref(script$n), {
+      createVNode(unref(script$K), {
         field: "user-login-id/name",
         header: "User"
       }),
-      createVNode(unref(script$n), {
+      createVNode(unref(script$K), {
         field: "action",
         header: "Type"
       }),
-      createVNode(unref(script$n), {
+      createVNode(unref(script$K), {
         field: "log",
         header: "Values"
       }, {
@@ -41693,7 +37618,7 @@ return (_ctx, _cache) => {
         ]),
         _: 1 /* STABLE */
       }),
-      createVNode(unref(script$n), {
+      createVNode(unref(script$K), {
         field: "--created",
         header: "Date"
       })
@@ -41705,9 +37630,9 @@ return (_ctx, _cache) => {
 
 };
 
-script$m.__file = "presstojam/src/components/effects/audit-effect.vue";
+script$J.__file = "presstojam/src/components/effects/audit-effect.vue";
 
-var script$l = {
+var script$I = {
   props: {
         model : Object,
         data : Object,
@@ -41720,9 +37645,9 @@ const props = __props;
     
 
     function showAudit() {
-        trigger$1(
+        trigger(
             "dialog_open",    
-            script$m, 
+            script$J, 
             {model : props.model, id : props.data['--id']}, 
             "Audit Log");
     }
@@ -41743,1265 +37668,61 @@ return (_ctx, _cache) => {
 
 };
 
-script$l.__file = "presstojam/src/components/actions/audit-action.vue";
+script$I.__file = "presstojam/src/components/actions/audit-action.vue";
 
-const _hoisted_1$7 = /*#__PURE__*/createTextVNode("New row created");
-const _hoisted_2$6 = /*#__PURE__*/createTextVNode("Rows removed");
-const _hoisted_3$6 = /*#__PURE__*/createTextVNode("Saved");
-
-
-var script$k = {
-  props: {
-    name : {
-      type : String,
-      required : true
-    }
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const repo = getStore(props.name);
-const store = repo.store;
-
-
-const expanded = ref(false);
-const delrow = ref(false);
-const newrow = ref(false);
-store.fields['--sort'];
-const saved = ref(false);
-
-
-store.setTableCells();
-const cells = store.getEnabledSummaryCells();
-
-const selected = ref(null);
-
-const data = ref([]);
-const active = ref({});
-
-repo.load()
-.then(response => {
-   data.value = toTree(response, store.fields);
-});
-
-
-repo.active.value['--recursive'] = 0;
-
-const expandedKeys = ref({});
-
-const collapseAll = () => {
-    expandedKeys.value = {};
-    expanded.value = false;
-};
-
-const expandAll = () => {
-    for (let node of data.value) {
-        expandNode(node);
-    }
-    expandedKeys.value = {...expandedKeys.value};
-    expanded.value = true;
-};
-
-const expandNode = (node) => {
-    if (node.children && node.children.length) {
-      expandedKeys.value[node.key] = true;
-      for (let child of node.children) {
-          expandNode(child);
-      }
-    }
-};
-
-
-function setActive(node) {
-  active.value = node.data;
-  saved.value = false;
-}
-
-
-subscribe("effect_created", props.name, (name, response) => {
-    if (props.name == name) {
-        newrow.value = true;
-        repo.reload()
-        .then(response => {
-          data.value = toTree(response, store.fields);
-        });
-        trigger$1("dialog_close");
-    }
-});
-
-subscribe("effect_deleted", props.name, name => {
-    if (props.name == name) {
-        delrow.value = true;
-        repo.reload()
-        .then(response => {
-          data.value = toTree(response, store.fields);
-        });
-        trigger$1("dialog_close");
-    }
-});
-
-
-subscribe("effect_updated", props.name, (name, response) => {
-    if (props.name == name) {
-        saved.value = true;
-        repo.reload()
-        .then(response => {
-          data.value = toTree(response, store.fields);
-        });
-    }
-});
-
-onBeforeUnmount(() => {
-  unsubscribe("effect_created", props.name);
-  unsubscribe("effect_updated", props.name);
-  unsubscribe("effect_deleted", props.name);
-});
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$D), null, {
-    default: withCtx(() => [
-      createVNode(unref(script$C), null, {
-        default: withCtx(() => [
-          (newrow.value)
-            ? (openBlock(), createBlock(unref(script$1J), {
-                key: 0,
-                severity: "success"
-              }, {
-                default: withCtx(() => [
-                  _hoisted_1$7
-                ]),
-                _: 1 /* STABLE */
-              }))
-            : createCommentVNode("v-if", true),
-          (delrow.value)
-            ? (openBlock(), createBlock(unref(script$1J), {
-                key: 1,
-                severity: "success"
-              }, {
-                default: withCtx(() => [
-                  _hoisted_2$6
-                ]),
-                _: 1 /* STABLE */
-              }))
-            : createCommentVNode("v-if", true),
-          createVNode(unref(script$G), { class: "mb-4" }, {
-            start: withCtx(() => [
-              (expanded.value)
-                ? (openBlock(), createBlock(unref(script$1K), {
-                    key: 0,
-                    type: "button",
-                    icon: "pi pi-minus",
-                    label: "Collapse All",
-                    onClick: collapseAll
-                  }))
-                : (openBlock(), createBlock(unref(script$1K), {
-                    key: 1,
-                    type: "button",
-                    icon: "pi pi-plus",
-                    label: "Expand All",
-                    onClick: expandAll
-                  }))
-            ]),
-            end: withCtx(() => [
-              (unref(store).perms.includes('post'))
-                ? (openBlock(), createBlock(script$r, {
-                    key: 0,
-                    name: __props.name,
-                    model: unref(store),
-                    parent_id: parseInt(unref(repo).parent_id)
-                  }, null, 8 /* PROPS */, ["name", "model", "parent_id"]))
-                : createCommentVNode("v-if", true)
-            ]),
-            _: 1 /* STABLE */
-          }),
-          createVNode(unref(script$1o), {
-            value: data.value,
-            selectionMode: "single",
-            onNodeSelect: setActive,
-            filter: true,
-            filterMode: "lenient",
-            selectionKeys: selected.value,
-            "onUpdate:selectionKeys": _cache[0] || (_cache[0] = $event => ((selected).value = $event)),
-            expandedKeys: expandedKeys.value
-          }, {
-            default: withCtx((slotProps) => [
-              (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
-                return (openBlock(), createBlock(script$t, {
-                  row: slotProps.node.data,
-                  field: cell
-                }, null, 8 /* PROPS */, ["row", "field"]))
-              }), 256 /* UNKEYED_FRAGMENT */))
-            ]),
-            _: 1 /* STABLE */
-          }, 8 /* PROPS */, ["value", "selectionKeys", "expandedKeys"])
-        ]),
-        _: 1 /* STABLE */
-      }),
-      createVNode(unref(script$C), null, {
-        default: withCtx(() => [
-          (active.value['--id'])
-            ? (openBlock(), createBlock(unref(script$14), {
-                header: _ctx.$t('models.' +unref(store).name + '.title'),
-                key: active.value['--id']
-              }, {
-                icons: withCtx(() => [
-                  (unref(store).audit)
-                    ? (openBlock(), createBlock(script$l, {
-                        key: 0,
-                        model: unref(store),
-                        data: active.value,
-                        long: true
-                      }, null, 8 /* PROPS */, ["model", "data"]))
-                    : createCommentVNode("v-if", true),
-                  (unref(store).perms.includes('delete'))
-                    ? (openBlock(), createBlock(script$p, {
-                        key: 1,
-                        name: __props.name,
-                        data: active.value
-                      }, null, 8 /* PROPS */, ["name", "data"]))
-                    : createCommentVNode("v-if", true),
-                  createVNode(script$B, {
-                    model: unref(store).name,
-                    id: active.value['--id']
-                  }, null, 8 /* PROPS */, ["model", "id"]),
-                  (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
-                    return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({ data: active.value }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
-                  }), 256 /* UNKEYED_FRAGMENT */))
-                ]),
-                default: withCtx(() => [
-                  (saved.value)
-                    ? (openBlock(), createBlock(unref(script$1J), {
-                        key: 0,
-                        severity: "success"
-                      }, {
-                        default: withCtx(() => [
-                          _hoisted_3$6
-                        ]),
-                        _: 1 /* STABLE */
-                      }))
-                    : createCommentVNode("v-if", true),
-                  (active.value['--id'])
-                    ? (openBlock(), createBlock(script$W, {
-                        key: 1,
-                        model: unref(store),
-                        data: active.value
-                      }, null, 8 /* PROPS */, ["model", "data"]))
-                    : createCommentVNode("v-if", true)
-                ]),
-                _: 1 /* STABLE */
-              }, 8 /* PROPS */, ["header"]))
-            : createCommentVNode("v-if", true)
-        ]),
-        _: 1 /* STABLE */
-      })
-    ]),
-    _: 1 /* STABLE */
-  }))
-}
-}
-
-};
-
-var css_248z$6 = "\n.tree-vue-vue-type-style-index-0-id-49a3d7ba-scoped-true-lang_wrapper__KEFQt[data-v-49a3d7ba] {\r\n  display : grid;\r\n  margin-left : 0;\r\n  margin-right : 0;\r\n  box-sizing : content-box;\n}\r\n\r\n";
-styleInject$u(css_248z$6);
-
-script$k.__scopeId = "data-v-49a3d7ba";
-script$k.__file = "presstojam/src/components/tree/tree.vue";
-
-var tree = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': script$k
-});
-
-//download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
-// v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
-// v2 added named files via a[download], msSaveBlob, IE (10+) support, and window.URL support for larger+faster saves than dataURLs
-// v3 added dataURL and Blob Input, bind-toggle arity, and legacy dataURL fallback was improved with force-download mime and base64 support
-// data can be a string, Blob, File, or dataURL
-function download(data, strFileName, strMimeType) {
-  var self = window,
-      // this script is only for browsers anyway...
-  u = "application/octet-stream",
-      // this default mime also triggers iframe downloads
-  m = strMimeType || u,
-      x = data,
-      D = document,
-      a = D.createElement("a"),
-      z = function (a) {
-    return String(a);
-  },
-      B = self.Blob || self.MozBlob || self.WebKitBlob || z,
-      BB = self.MSBlobBuilder || self.WebKitBlobBuilder || self.BlobBuilder,
-      fn = strFileName || "download",
-      blob,
-      b,
-      fr; //if(typeof B.bind === 'function' ){ B=B.bind(self); }
-
-
-  if (String(this) === "true") {
-    //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
-    x = [x, m];
-    m = x[0];
-    x = x[1];
-  } //go ahead and download dataURLs right away
-
-
-  if (String(x).match(/^data\:[\w+\-]+\/[\w+\-]+[,;]/)) {
-    return navigator.msSaveBlob ? // IE10 can't do a[download], only Blobs:
-    navigator.msSaveBlob(d2b(x), fn) : saver(x); // everyone else can save dataURLs un-processed
-  } //end if dataURL passed?
-
-
-  try {
-    blob = x instanceof B ? x : new B([x], {
-      type: m
-    });
-  } catch (y) {
-    if (BB) {
-      b = new BB();
-      b.append([x]);
-      blob = b.getBlob(m); // the blob
-    }
-  }
-
-  function d2b(u) {
-    var p = u.split(/[:;,]/),
-        t = p[1],
-        dec = p[2] == "base64" ? atob : decodeURIComponent,
-        bin = dec(p.pop()),
-        mx = bin.length,
-        i = 0,
-        uia = new Uint8Array(mx);
-
-    for (i; i < mx; ++i) uia[i] = bin.charCodeAt(i);
-
-    return new B([uia], {
-      type: t
-    });
-  }
-
-  function saver(url, winMode) {
-    if ('download' in a) {
-      //html5 A[download] 			
-      a.href = url;
-      a.setAttribute("download", fn);
-      a.innerHTML = "downloading...";
-      D.body.appendChild(a);
-      setTimeout(function () {
-        a.click();
-        D.body.removeChild(a);
-
-        if (winMode === true) {
-          setTimeout(function () {
-            self.URL.revokeObjectURL(a.href);
-          }, 250);
-        }
-      }, 66);
-      return true;
-    } //do iframe dataURL download (old ch+FF):
-
-
-    var f = D.createElement("iframe");
-    D.body.appendChild(f);
-
-    if (!winMode) {
-      // force a mime that will download:
-      url = "data:" + url.replace(/^data:([\w\/\-\+]+)/, u);
-    }
-
-    f.src = url;
-    setTimeout(function () {
-      D.body.removeChild(f);
-    }, 333);
-  } //end saver 
-
-
-  if (navigator.msSaveBlob) {
-    // IE10+ : (has Blob, but not a[download] or URL)
-    return navigator.msSaveBlob(blob, fn);
-  }
-
-  if (self.URL) {
-    // simple fast and modern way using Blob and URL:
-    saver(self.URL.createObjectURL(blob), true);
-  } else {
-    // handle non-Blob()+non-URL browsers:
-    if (typeof blob === "string" || blob.constructor === z) {
-      try {
-        return saver("data:" + m + ";base64," + self.btoa(blob));
-      } catch (y) {
-        return saver("data:" + m + "," + encodeURIComponent(blob));
-      }
-    } // Blob but not URL:
-
-
-    fr = new FileReader();
-
-    fr.onload = function (e) {
-      saver(this.result);
+class SingleData extends Data {
+  constructor(model) {
+    super(model);
+    this._active_id = 0;
+    model.limit = 1;
+    model.order = {
+      "--id": "ASC"
     };
-
-    fr.readAsDataURL(blob);
+    this._data.value = {};
   }
 
-  return true;
-}
+  get type() {
+    return "single";
+  }
 
-function buildData(data, headers) {
-  let value = "";
+  get active_id() {
+    return this._active_id;
+  }
 
-  for (const rowObj of data) {
-    for (const x in headers) {
-      const header = headers[x].key;
-      let new_val = rowObj[header];
-      if (new_val) new_val = new_val.toString().replace(/\,/g, '');
-      value += new_val; //add value to build an array.
-
-      value += x < headers.length - 1 ? "," : "\n";
+  load() {
+    if (!this._load_promise) {
+      this._is_loading.value = true;
+      this._load_promise = this._model.load();
     }
-  }
 
-  return value;
-}
-
-function exportCSV(name) {
-  const repo = getStore(name);
-  const store = repo.store;
-  const cells = store.fields;
-  const i18n = useI18n();
-  const t = i18n.global.t;
-  getClient();
-  const headers = [];
-
-  if (store.export_fields) {
-    if (Array.isArray(store.export_fields)) {
-      for (const index in store.export_fields) {
-        headers.push({
-          key: store.export_fields[index],
-          label: t("models." + store.name + ".fields." + store.export_fields[index] + ".label")
-        });
-      }
-    } else {
-      for (const key in store.export_fields) {
-        headers.push({
-          key: key,
-          label: store.export_fields[key]
-        });
-      }
-    }
-  } else {
-    for (const key in cells) {
-      if (key == "--owner" || key == "--parent") continue;
-      headers.push({
-        key: key,
-        label: t("models." + store.name + ".fields." + key + ".label")
-      });
-    }
-  }
-
-  let value = "";
-
-  for (const x in headers) {
-    value += headers[x].label;
-    value += x < headers.length - 1 ? "," : "\n";
-  }
-
-  if (repo.pagination.count) {
-    //need to load all data
-    repo.loadAll().then(data => {
-      value += buildData(data, headers);
-      download(value, store.name + '.csv');
-    }).catch(e => console.log(e));
-  } else {
-    repo.load().then(data => {
-      value += buildData(data, headers);
-      download(value, store.name + '.csv');
+    this._load_promise.then(response => {
+      this._is_loading.value = false;
+      this._data.value = response;
+      this._active_id = this._data.value['--id'];
+    }).catch(e => {
+      console.log(e);
+      this._is_loading.value = false;
+      throw e;
     });
+
+    return this._load_promise;
   }
-}
 
-var script$j = {
-  props: {
-    name : String
-},
-  setup(__props) {
+  reload() {
+    this._active.value = {};
+    this._load_promise = null;
+    return this.load();
+  }
 
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1K), {
-    label: "Export",
-    icon: "pi pi-external-link",
-    class: "p-button-help mr-2",
-    onClick: _cache[0] || (_cache[0] = $event => (unref(exportCSV)(__props.name)))
-  }))
-}
-}
-
-};
-
-script$j.__file = "presstojam/src/components/actions/export-action.vue";
-
-const _hoisted_1$6 = { key: 0 };
-const _hoisted_2$5 = /*#__PURE__*/createElementVNode("h3", null, "Column Headers", -1 /* HOISTED */);
-const _hoisted_3$5 = { class: "p-inputgroup" };
-const _hoisted_4$5 = ["onUpdate:modelValue"];
-const _hoisted_5$5 = { class: "p-inputgroup-addon" };
-const _hoisted_6$5 = ["onClick"];
-const _hoisted_7$2 = { key: 1 };
-const _hoisted_8$2 = /*#__PURE__*/createElementVNode("h3", null, "Results", -1 /* HOISTED */);
-
-
-var script$i = {
-  props: {
-    name : String
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-const repo = getStore(props.name);
-const store = repo.store;
-
-const client = inject("client");
-
-const is_passed = ref(false);
-const success = ref(0);
-const failed = ref(0);
-
-
-let headers = [];
-const oheaders = [];
-for(let i in store.fields) {
-    if (!store.fields[i].system) {
-        headers.push(i);
-        oheaders.push(i);
+  overwrite(obj) {
+    for (let i in obj) {
+      this._data.value[i] = obj[i];
     }
+  }
+
 }
 
-
-
-function importCSV( evt ){
-    const formData = new FormData();
-    for(const key in oheaders) {
-        formData.append("headers[" + oheaders[key] + "]", headers[key]);
-    }
-    formData.append("upload-csv", evt.files[0]);
-    return client.post("/bulk/" + props.name, formData)
-    .then(response => {
-        is_passed.value = true;
-        success.value = response.success;
-        failed.value = response.failure;
-    });
-}
-
-
-function refreshHeader(key, headers) {
-    headers[key] = oheaders[key];
-}
-
-
-
-return (_ctx, _cache) => {
-  return (is_passed.value == false)
-    ? (openBlock(), createElementBlock("div", _hoisted_1$6, [
-        _hoisted_2$5,
-        createElementVNode("table", null, [
-          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(headers), (header, key) => {
-            return (openBlock(), createElementBlock("tr", null, [
-              createElementVNode("td", null, toDisplayString$1((key + 1)) + ".", 1 /* TEXT */),
-              createElementVNode("td", null, [
-                createElementVNode("div", _hoisted_3$5, [
-                  withDirectives(createElementVNode("input", {
-                    type: "text",
-                    "onUpdate:modelValue": $event => ((unref(headers)[key]) = $event),
-                    class: "form-control"
-                  }, null, 8 /* PROPS */, _hoisted_4$5), [
-                    [vModelText, unref(headers)[key]]
-                  ]),
-                  createElementVNode("span", _hoisted_5$5, [
-                    createElementVNode("i", {
-                      class: "pi pi-refresh",
-                      onClick: $event => (refreshHeader(key, unref(headers))),
-                      style: {"cursor":"pointer"}
-                    }, null, 8 /* PROPS */, _hoisted_6$5)
-                  ])
-                ])
-              ])
-            ]))
-          }), 256 /* UNKEYED_FRAGMENT */))
-        ]),
-        createElementVNode("div", null, [
-          createVNode(unref(script$1b), {
-            name: "file",
-            mode: "basic",
-            customUpload: true,
-            onUploader: importCSV,
-            auto: true
-          })
-        ])
-      ]))
-    : (openBlock(), createElementBlock("div", _hoisted_7$2, [
-        _hoisted_8$2,
-        createElementVNode("p", null, "Passed: " + toDisplayString$1(success.value), 1 /* TEXT */),
-        createElementVNode("p", null, "Failed: " + toDisplayString$1(failed.value), 1 /* TEXT */)
-      ]))
-}
-}
-
-};
-
-script$i.__file = "presstojam/src/components/import/import.vue";
-
-const _hoisted_1$5 = /*#__PURE__*/createTextVNode("Import");
-
-
-    
-var script$h = {
-  props: {
-        name : String
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-
-    function toggleImport() {
-        trigger$1(
-            "dialog_open",
-            script$i, 
-            {
-                name : props.name,
-            },
-            "Import"
-        );
-    }
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1K), {
-    icon: "pi pi-upload",
-    class: "mr-2",
-    onClick: toggleImport
-  }, {
-    default: withCtx(() => [
-      _hoisted_1$5
-    ]),
-    _: 1 /* STABLE */
-  }))
-}
-}
-
-};
-
-script$h.__file = "presstojam/src/components/actions/import-action.vue";
-
-var script$g = {
-  props: {
-        model : Object,
-        data : Object,
-        name : String
-    },
-  setup(__props) {
-
-const props = __props;
-
-    
-
-    const i18n = inject("i18n");
-    const t = i18n.t;
-
-    const header = "Edit " + t("models." + props.model.name + ".title", 1);
-
-
-    function editRow() {
-        trigger$1(
-            "dialog_open",
-            script$W, 
-            {
-                model : props.model,
-                data : props.data,
-                name : props.name
-            },
-            header
-        );
-    }
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$1K), {
-    icon: "pi pi-pencil",
-    class: "p-button-rounded p-button-success mr-2",
-    onClick: editRow
-  }))
-}
-}
-
-};
-
-script$g.__file = "presstojam/src/components/actions/edit-action.vue";
-
-var script$f = {
-  props: {
-    name : String,
-    parent_id : Number
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-let key = ref(0);
-
-function loadChild(new_val, old_val) {
-    if (new_val == old_val) return;
-    const name = props.name + "-" + new_val;
-    key = name;
-    let repo;
-    if (hasStore(name)) {
-        repo = getStore(name);
-    } else {
-        repo = createRepoStore(getModel(props.name, true));
-        repo.parent_id = new_val;
-        regStore(name, repo);
-    }
-    
-    repo.load();
-}
-
-watch(() => props.parent_id, loadChild);
-
-loadChild(props.parent_id, 0);
-
-
-return (_ctx, _cache) => {
-  return (unref(key))
-    ? (openBlock(), createBlock(script$e, {
-        name: unref(key),
-        key: unref(key)
-      }, null, 8 /* PROPS */, ["name"]))
-    : createCommentVNode("v-if", true)
-}
-}
-
-};
-
-script$f.__file = "presstojam/src/components/table/child-table.vue";
-
-const _withScopeId$1 = n => (pushScopeId("data-v-29f6384d"),n=n(),popScopeId(),n);
-const _hoisted_1$4 = /*#__PURE__*/createTextVNode("New row created");
-const _hoisted_2$4 = /*#__PURE__*/createTextVNode("Rows removed");
-const _hoisted_3$4 = /*#__PURE__*/createTextVNode("Row Updated");
-const _hoisted_4$4 = {
-  key: 0,
-  class: "p-input-icon-left mr-2"
-};
-const _hoisted_5$4 = /*#__PURE__*/ _withScopeId$1(() => /*#__PURE__*/createElementVNode("i", { class: "pi pi-search" }, null, -1 /* HOISTED */));
-const _hoisted_6$4 = { key: 4 };
-
-
-
-
-var script$e = {
-  props: {
-    name : {
-      type : String,
-      required : true
-    }
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const group = ref();
-const data = ref([]);
-const selected = ref([]);
-const search = ref();
-const active_options = ref();
-const newrow = ref(false);
-const delrow = ref(false);
-const editrow = ref(false);
-
-
-const repo = getStore(props.name);
-const store = repo.store;
-
-const max_cols = (!store.max_cols) ? 10 : store.max_cols;
-
-//setup cells
-//const has_export = true;
-store.setTableCells();
-const cells = store.getEnabledCells();
-const col_expandable = (Object.keys(cells).length > max_cols) ? true : false;
-const fixed_fields = [];
-const optional_fields = [];
-
-
-
-
-
-repo.load()
-.then(rows => {
-    data.value = rows;
-});
-
-
-
-const fields = computed(() => {
-    const fcells = {};
-    for(let i of fixed_fields) {
-        fcells[i] = cells[i];
-    }
-
-    if (active_options.value) {
-        for(let i of active_options.value) {
-            fcells[i] = cells[i];
-        }
-    }
-
-    return fcells;
-});
-
-
-for(let i in cells) {
-    if (!col_expandable || fixed_fields.length < max_cols)  
-        fixed_fields.push(i);
-    else if (col_expandable) 
-        optional_fields.push(i);
-}
-
-
-subscribe("effect_created", props.name, (name, response) => {
-    if (props.name == name) {
-        newrow.value = true;
-        repo.loadRow(response)
-       .then(obj => {
-         data.value.push(obj);
-       });
-        trigger$1("dialog_close");
-    }
-});
-
-
-subscribe("effect_edited", props.name, (name, response) => {
-    if (props.name == name) {
-        repo.loadRow(response)
-        .then(obj => {
-            for(const i in data.value) {
-                if (data.value[i]['--id'] == response['--id']) {
-                    data.value[i] = obj;
-                }
-            }
-            editrow.value = true;
-            trigger$1("dialog_close");
-        });
-    }
-});
-
-
-subscribe("effect_deleted", props.name, name => {
-    if (props.name == name) {
-        delrow.value = true;
-        trigger$1("dialog_close");
-        repo.load()
-       .then(response => {
-         data.value[0] = response;
-       });
-    }
-});
-
-
-onBeforeUnmount(() => {
-    unsubscribe("effect_created", props.name);
-    unsubscribe("effect_updated", props.name);
-    unsubscribe("effect_delete", props.name);
-});
-
-
-const children = (store.fields['--id']) ? store.fields['--id'].reference : [];
-const has_primary = (children.length > 1) ? true : false;
-const has_expandable = (children.length == 1) ? true : false;
-const has_sort = store.fields['--sort'];
-const sortable = (!props.nosort && !repo.hasPagination() && !has_sort) ? true : false;
-const global_filter_fields = [];
-if (!repo.hasPagination()) {
-    for(let field in props.fields) {
-        global_filter_fields.push(field);
-    }
-}
-
-const atts = {};
-const events = {};
-let groupcell;
-if (store.group) {
-    atts.rowGroupMode = "subheader";
-    atts.groupRowsBy=store.group;
-} else if (store.distinguish) {
-    let id = store.distinguish;
-    atts.rowClass = function(data) {
-        return id + "-" + data[id];
-    };
-}
-
-
-const total_records = computed(() => {
-    return repo.pagination.count.value;
-});
-
-
-if (repo.hasPagination()) {
-    atts.lazy = true;
-    atts.paginator = true;
-    atts.rows = repo.pagination.rows_per_page;
-    atts.paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink";
-    events.page = function(evt) {
-        repo.setPagination(evt.page)
-        .then(response => {
-            data.value = response;
-        });
-    };
-}
-
-groupcell = fields[store.group];
-
-const filters = computed(() => {
-    if (!props.search) return {};
-    let filters = { 'global' : {  value : props.search, matchMode: FilterMatchMode.CONTAINS } };
-    return filters;
-});
-
-
-
-
-function rowClass(data) {
-    let classes = [];
-    if (store.classes) {
-        for(let cls of store.classes) {
-            if (data[cls.att] == cls.value) classes.push(cls.class);
-        }
-    }
-    return (classes.length) ? classes.join(" ") : null;
-}
-
-//expandable rows function
-const expandedRows = ref([]);
-const onRowExpand = (event) => {
-    //expandedRows.value = [{"Time":"Coming"}];
-    event.data.children = [];
-    repo.active.value = event.data;
-};
-
-const onRowCollapse = (event) => {
-   event.data.children = [];
-};
-
-
-
-
-function onRowReorder(e) {
-   //need to emit
-   store.saveOrder(e.value);
-}
-
-
-
-onMounted (() => {
-    const groupclasses = store.groupclasses;
-    if (groupclasses) {
-        for(const cls in groupclasses) {
-            const val = groupclasses[cls];
-            
-            //apply to the rows retroactively
-            let tgs = group.value.getElementsByClassName(cls);
-            for(let el of tgs) {
-                if (el.classList.contains("ptj-group")) {
-                    let pel=el.closest(".p-rowgroup-header");
-                    pel.classList.add(val);
-                    while(pel=pel.nextElementSibling) {
-                        if (pel.classList.contains('p-rowgroup-header')) {
-                            break;
-                        }
-                        pel.classList.add(val);
-                    }
-                }
-            }
-        }
-    }
-
-});
-
-
-
-
-
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    (unref(repo).pagination.rows_per_page && !unref(store).no_filter)
-      ? (openBlock(), createBlock(script$J, {
-          key: 0,
-          model: unref(repo).store,
-          data: unref(repo).filters
-        }, null, 8 /* PROPS */, ["model", "data"]))
-      : createCommentVNode("v-if", true),
-    (newrow.value)
-      ? (openBlock(), createBlock(unref(script$1J), {
-          key: 1,
-          severity: "success"
-        }, {
-          default: withCtx(() => [
-            _hoisted_1$4
-          ]),
-          _: 1 /* STABLE */
-        }))
-      : createCommentVNode("v-if", true),
-    (delrow.value)
-      ? (openBlock(), createBlock(unref(script$1J), {
-          key: 2,
-          severity: "success"
-        }, {
-          default: withCtx(() => [
-            _hoisted_2$4
-          ]),
-          _: 1 /* STABLE */
-        }))
-      : createCommentVNode("v-if", true),
-    (editrow.value)
-      ? (openBlock(), createBlock(unref(script$1J), {
-          key: 3,
-          severity: "success"
-        }, {
-          default: withCtx(() => [
-            _hoisted_3$4
-          ]),
-          _: 1 /* STABLE */
-        }))
-      : createCommentVNode("v-if", true),
-    createVNode(unref(script$G), { class: "mb-4" }, {
-      start: withCtx(() => [
-        (!unref(repo).pagination.rows_per_page)
-          ? (openBlock(), createElementBlock("span", _hoisted_4$4, [
-              _hoisted_5$4,
-              createVNode(unref(script$1L), {
-                modelValue: search.value,
-                "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((search).value = $event)),
-                placeholder: "Keyword Search"
-              }, null, 8 /* PROPS */, ["modelValue"])
-            ]))
-          : createCommentVNode("v-if", true),
-        (unref(col_expandable))
-          ? (openBlock(), createBlock(unref(script$Q), {
-              key: 1,
-              modelValue: active_options.value,
-              "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((active_options).value = $event)),
-              options: optional_fields,
-              placeholder: "Select Columns",
-              style: {"width":"20em"}
-            }, null, 8 /* PROPS */, ["modelValue"]))
-          : createCommentVNode("v-if", true)
-      ]),
-      end: withCtx(() => [
-        (unref(store).import)
-          ? (openBlock(), createBlock(script$h, {
-              key: 0,
-              name: __props.name
-            }, null, 8 /* PROPS */, ["name"]))
-          : createCommentVNode("v-if", true),
-        (unref(store).export)
-          ? (openBlock(), createBlock(script$j, {
-              key: 1,
-              name: __props.name
-            }, null, 8 /* PROPS */, ["name"]))
-          : createCommentVNode("v-if", true),
-        (unref(store).perms.includes('post'))
-          ? (openBlock(), createBlock(script$r, {
-              key: 2,
-              name: __props.name,
-              model: unref(store),
-              parent_id: parseInt(unref(repo).parent_id)
-            }, null, 8 /* PROPS */, ["name", "model", "parent_id"]))
-          : createCommentVNode("v-if", true),
-        (unref(store).perms.includes('delete'))
-          ? (openBlock(), createBlock(script$p, {
-              key: 3,
-              name: __props.name,
-              data: selected.value.value
-            }, null, 8 /* PROPS */, ["name", "data"]))
-          : createCommentVNode("v-if", true)
-      ]),
-      _: 1 /* STABLE */
-    }),
-    (unref(repo).pagination.rows_per_page)
-      ? (openBlock(), createElementBlock("p", _hoisted_6$4, "Total Rows: " + toDisplayString$1(unref(repo).pagination.count), 1 /* TEXT */))
-      : createCommentVNode("v-if", true),
-    createElementVNode("div", {
-      ref_key: "group",
-      ref: group
-    }, [
-      createVNode(unref(script$o), mergeProps({
-        value: data.value,
-        selection: selected.value.value,
-        "onUpdate:selection": _cache[2] || (_cache[2] = $event => ((selected.value.value) = $event)),
-        dataKey: "--id",
-        rowClass: rowClass,
-        responsiveLayout: "stack",
-        loading: unref(repo).is_loading.value,
-        rowHover: true,
-        onRowReorder: onRowReorder,
-        onRowExpand: onRowExpand,
-        onRowCollapse: onRowCollapse,
-        expandedRows: expandedRows.value,
-        "onUpdate:expandedRows": _cache[3] || (_cache[3] = $event => ((expandedRows).value = $event)),
-        globalFilterFields: global_filter_fields,
-        totalRecords: unref(total_records),
-        filters: unref(filters)
-      }, atts, toHandlers(events)), createSlots({
-        expansion: withCtx((slotProps) => [
-          createVNode(unref(script$1M), null, {
-            title: withCtx(() => [
-              createTextVNode(toDisplayString$1(_ctx.$t("models." + unref(store).children_models[0] + ".title")), 1 /* TEXT */)
-            ]),
-            content: withCtx(() => [
-              (openBlock(), createBlock(script$f, {
-                name: unref(store).children_models[0],
-                parent_id: slotProps.data['--id'],
-                key: slotProps.data['--id']
-              }, null, 8 /* PROPS */, ["name", "parent_id"]))
-            ]),
-            _: 2 /* DYNAMIC */
-          }, 1024 /* DYNAMIC_SLOTS */)
-        ]),
-        default: withCtx(() => [
-          (unref(has_expandable))
-            ? (openBlock(), createBlock(unref(script$n), {
-                key: 0,
-                expander: true,
-                headerStyle: "width: 3rem"
-              }))
-            : createCommentVNode("v-if", true),
-          (unref(has_sort))
-            ? (openBlock(), createBlock(unref(script$n), {
-                key: 1,
-                rowReorder: true,
-                headerStyle: "width: 3rem",
-                reorderableColumn: false
-              }))
-            : createCommentVNode("v-if", true),
-          (unref(store).perms.includes('delete'))
-            ? (openBlock(), createBlock(unref(script$n), {
-                key: 2,
-                selectionMode: "multiple",
-                style: {"width":"3rem"},
-                exportable: false
-              }))
-            : createCommentVNode("v-if", true),
-          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(fields), (cell) => {
-            return (openBlock(), createBlock(unref(script$n), {
-              field: cell.slug,
-              sortable: unref(sortable),
-              header: _ctx.$t('models.' + cell.model + '.fields.' + cell.name + '.label'),
-              key: cell.name
-            }, {
-              body: withCtx((slotProps) => [
-                createVNode(script$t, {
-                  row: slotProps.data,
-                  field: cell
-                }, null, 8 /* PROPS */, ["row", "field"])
-              ]),
-              _: 2 /* DYNAMIC */
-            }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["field", "sortable", "header"]))
-          }), 128 /* KEYED_FRAGMENT */)),
-          createVNode(unref(script$n), {
-            exportable: false,
-            style: {"min-width":"8rem"}
-          }, {
-            body: withCtx((slotProps) => [
-              (unref(has_primary))
-                ? (openBlock(), createBlock(script$B, {
-                    key: 0,
-                    model: unref(store).name,
-                    id: slotProps.data['--id']
-                  }, null, 8 /* PROPS */, ["model", "id"]))
-                : createCommentVNode("v-if", true),
-              (unref(store).perms.includes('put'))
-                ? (openBlock(), createBlock(script$g, {
-                    key: 1,
-                    data: slotProps.data,
-                    model: unref(store),
-                    name: __props.name
-                  }, null, 8 /* PROPS */, ["data", "model", "name"]))
-                : createCommentVNode("v-if", true),
-              (unref(store).audit)
-                ? (openBlock(), createBlock(script$l, {
-                    key: 2,
-                    data: slotProps.data,
-                    model: unref(store)
-                  }, null, 8 /* PROPS */, ["data", "model"]))
-                : createCommentVNode("v-if", true),
-              (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
-                return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps(component.atts, {
-                  data: slotProps.data,
-                  short: true
-                }), null, 16 /* FULL_PROPS */, ["data"]))
-              }), 256 /* UNKEYED_FRAGMENT */))
-            ]),
-            _: 1 /* STABLE */
-          })
-        ]),
-        _: 2 /* DYNAMIC */
-      }, [
-        (atts.groupRowsBy)
-          ? {
-              name: "groupheader",
-              fn: withCtx((slotProps) => [
-                createElementVNode("div", {
-                  class: normalizeClass(["ptj-group", slotProps.data[unref(groupcell).name]])
-                }, [
-                  createVNode(script$t, {
-                    row: slotProps.data,
-                    field: unref(groupcell)
-                  }, null, 8 /* PROPS */, ["row", "field"])
-                ], 2 /* CLASS */)
-              ])
-            }
-          : undefined
-      ]), 1040 /* FULL_PROPS, DYNAMIC_SLOTS */, ["value", "selection", "loading", "expandedRows", "totalRecords", "filters"])
-    ], 512 /* NEED_PATCH */)
-  ], 64 /* STABLE_FRAGMENT */))
-}
-}
-
-};
-
-var css_248z$5 = "\ntable[data-v-29f6384d], thead[data-v-29f6384d], tbody[data-v-29f6384d], tr[data-v-29f6384d] {\r\n    width : 100%;\n}\n.table-display-vue-vue-type-style-index-0-id-29f6384d-scoped-true-lang_ptj-table-wrapper__fKjz7[data-v-29f6384d] {\r\n    position : relative;\n}\r\n\r\n\r\n";
-styleInject$u(css_248z$5);
-
-script$e.__scopeId = "data-v-29f6384d";
-script$e.__file = "presstojam/src/components/table/table-display.vue";
-
-var tableDisplay = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  'default': script$e
-});
-
-/*
-
-*/
-
-var script$d = {
+var script$H = {
   props: {
     model : String,
     base : String
@@ -43010,60 +37731,244 @@ var script$d = {
 
 const props = __props;
 
+const i18n = inject("i18n");
+const t = i18n.t;
 
 
 
-const repo = getStore(props.model);
-const store =repo.store;
-
-repo.load();
 
 
-const recursive = computed(() => {
-    for(let i in store.fields) {
-        if (store.fields[i].recursive) return true;
-    }
-    return false;
+const repo = new SingleData(props.model);
+
+regStore(props.model, repo);
+repo.load()
+.catch(e => console.log(e));
+
+
+const label = computed(() => {
+    return t('models.' + props.model + '.title') + ': ';// + repo.label.value;
 });
 
-repo.trigger("mounted");
+
+subscribe("effect_edited", props.model.name, response => {
+    console.log(response, arguments);
+});
+
+
+onBeforeUnmount(() => {
+    unsubscribe("effect_edited", props.model_name);
+});
 
 
 return (_ctx, _cache) => {
   return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$X, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$14), {
-      header: unref(store).title,
-      class: normalizeClass(["gc-repo", __props.model])
-    }, {
-      default: withCtx(() => [
-        (unref(recursive))
-          ? (openBlock(), createBlock(script$k, {
+    createVNode(script$N, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+    createVNode(unref(script$W), { header: unref(label) }, {
+      icons: withCtx(() => [
+        (_ctx.store.audit)
+          ? (openBlock(), createBlock(script$I, {
               key: 0,
-              name: __props.model
-            }, null, 8 /* PROPS */, ["name"]))
-          : (openBlock(), createBlock(script$e, {
-              key: 1,
-              name: __props.model
-            }, null, 8 /* PROPS */, ["name"]))
+              model: _ctx.store,
+              data: _ctx.data,
+              long: true
+            }, null, 8 /* PROPS */, ["model", "data"]))
+          : createCommentVNode("v-if", true),
+        (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.store.actions, (component) => {
+          return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({ data: _ctx.data }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
+        }), 256 /* UNKEYED_FRAGMENT */))
+      ]),
+      default: withCtx(() => [
+        (unref(repo).data.value['--id'])
+          ? (openBlock(), createBlock(script$M, {
+              key: 0,
+              id: unref(repo).data.value['--id'],
+              name: props.model
+            }, null, 8 /* PROPS */, ["id", "name"]))
+          : createCommentVNode("v-if", true)
       ]),
       _: 1 /* STABLE */
-    }, 8 /* PROPS */, ["header", "class"])
+    }, 8 /* PROPS */, ["header"])
   ], 64 /* STABLE_FRAGMENT */))
 }
 }
 
 };
 
-var css_248z$4 = "\ntable[data-v-e5ad478c], thead[data-v-e5ad478c], tbody[data-v-e5ad478c], tr[data-v-e5ad478c] {\r\n    width : 100%;\n}\n.repo-vue-vue-type-style-index-0-id-e5ad478c-scoped-true-lang_ptj-table-wrapper__8hxfO[data-v-e5ad478c] {\r\n    position : relative;\n}\r\n\r\n";
-styleInject$u(css_248z$4);
+script$H.__file = "presstojam/src/components/active/single.vue";
 
-script$d.__scopeId = "data-v-e5ad478c";
-script$d.__file = "presstojam/src/components/repo/repo.vue";
-
-var script$c = {
+var script$G = {
+  name: 'Chart',
+  emits: ['select', 'loaded'],
   props: {
-    model : String
+    type: String,
+    data: null,
+    options: null,
+    plugins: null,
+    width: {
+      type: Number,
+      default: 300
+    },
+    height: {
+      type: Number,
+      default: 150
+    }
+  },
+  chart: null,
+  watch: {
+    /*
+     * Use deep watch to enable triggering watch for changes within structure
+     * otherwise the entire data object needs to be replaced to trigger watch
+     */
+    data: {
+      handler() {
+        this.reinit();
+      },
+
+      deep: true
+    },
+
+    type() {
+      this.reinit();
+    },
+
+    options() {
+      this.reinit();
+    }
+
+  },
+
+  mounted() {
+    this.initChart();
+  },
+
+  beforeUnmount() {
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+  },
+
+  methods: {
+    initChart() {
+      Promise.resolve().then(function () { return auto; }).then(module => {
+        if (this.chart) {
+          this.chart.destroy();
+          this.chart = null;
+        }
+
+        if (module && module.default) {
+          this.chart = new module.default(this.$refs.canvas, {
+            type: this.type,
+            data: this.data,
+            options: this.options,
+            plugins: this.plugins
+          });
+        }
+
+        this.$emit('loaded', this.chart);
+      });
+    },
+
+    getCanvas() {
+      return this.$canvas;
+    },
+
+    getChart() {
+      return this.chart;
+    },
+
+    getBase64Image() {
+      return this.chart.toBase64Image();
+    },
+
+    refresh() {
+      if (this.chart) {
+        this.chart.update();
+      }
+    },
+
+    reinit() {
+      this.initChart();
+    },
+
+    onCanvasClick(event) {
+      if (this.chart) {
+        const element = this.chart.getElementsAtEventForMode(event, 'nearest', {
+          intersect: true
+        }, false);
+        const dataset = this.chart.getElementsAtEventForMode(event, 'dataset', {
+          intersect: true
+        }, false);
+
+        if (element && element[0] && dataset) {
+          this.$emit('select', {
+            originalEvent: event,
+            element: element[0],
+            dataset: dataset
+          });
+        }
+      }
+    },
+
+    generateLegend() {
+      if (this.chart) {
+        return this.chart.generateLegend();
+      }
+    }
+
+  }
+};
+const _hoisted_1$i = {
+  class: "p-chart"
+};
+const _hoisted_2$f = ["width", "height"];
+
+function render$b(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", _hoisted_1$i, [createElementVNode("canvas", {
+    ref: "canvas",
+    width: $props.width,
+    height: $props.height,
+    onClick: _cache[0] || (_cache[0] = $event => $options.onCanvasClick($event))
+  }, null, 8, _hoisted_2$f)]);
+}
+
+function styleInject$7(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$c = "\n.p-chart {\n    position: relative;\n}\n";
+styleInject$7(css_248z$c);
+script$G.render = render$b;
+
+var script$F = {
+  props: {
+    repo : Object,
+    type : [String]
 },
   setup(__props) {
 
@@ -43072,50 +37977,2653 @@ const props = __props;
 
 
 
-const repo = getStore(props.model);
-const store =repo.store;
-repo.load();
 
-const component = computed(() => {
-    if (!store) return "";
-    else if (store.fields["--recursive"]) return "recursive";
-    else if (store.singleton) return "form";
-    else return "table";
+const chart_data = computed(() => {
+    const obj = {
+        labels : ['Count'],
+        datasets : props.repo.data
+    };
+    return obj;
 });
 
-function reload() {
-    store.value.reload();
-}
+const options = {
+	responsive: true,
+	hoverMode: 'index',
+	stacked: false,
+	/*scales: {
+        yAxes: [{
+            type: 'linear',
+            display: true,
+            position: 'left',
+            id: 'y-axis-1',
+        },
+        {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            id: 'y-axis-2',
+            gridLines: {
+                drawOnChartArea: false
+            }
+        }]
+	}*/
+};
+
+const bar_options = {
+    indexAxis : 'y'
+};
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$14), {
-    header: _ctx.$t('models.' + __props.model + '.title', 2),
-    class: normalizeClass(["gc-child", __props.model])
-  }, {
-    default: withCtx(() => [
-      (unref(component) == 'recursive')
-        ? (openBlock(), createBlock(script$k, {
-            key: 0,
-            name: props.model,
-            onOnMove: reload
-          }, null, 8 /* PROPS */, ["name"]))
-        : (unref(component) == 'table')
-          ? (openBlock(), createBlock(script$e, {
-              key: 1,
-              name: props.model
-            }, null, 8 /* PROPS */, ["name"]))
-          : createCommentVNode("v-if", true)
-    ]),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["header", "class"]))
+  return (__props.type=='bar')
+    ? (openBlock(), createBlock(unref(script$G), {
+        key: 0,
+        type: "bar",
+        data: unref(chart_data),
+        options: bar_options
+      }, null, 8 /* PROPS */, ["data"]))
+    : (openBlock(), createBlock(unref(script$G), {
+        key: 1,
+        type: "line",
+        data: unref(chart_data),
+        options: options
+      }, null, 8 /* PROPS */, ["data"]))
 }
 }
 
 };
 
-script$c.__file = "presstojam/src/components/active/child-panel.vue";
+script$F.__file = "presstojam/src/components/reports/report-chart.vue";
 
-var script$b = {
+const _hoisted_1$h = { class: "p-inputgroup" };
+const _hoisted_2$e = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "min", -1 /* HOISTED */);
+const _hoisted_3$d = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, " - ", -1 /* HOISTED */);
+const _hoisted_4$9 = /*#__PURE__*/createElementVNode("span", { class: "p-inputgroup-addon" }, "max", -1 /* HOISTED */);
+
+
+var script$E = {
+  props: {
+   bind : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const field = props.bind.cell;
+const repo = inject("repo");
+const name = props.bind.cell.name;
+
+const min = computed({
+    get() {
+        return (repo.filters[name]) ? repo.filters[name].min : null;
+    },
+    set(val) {
+        const filters = repo.filters;
+        if (!filters[name]) filters[bind.name] = {};
+        filters[props.bind.name].min = val;
+        repo.reload();
+    }
+});
+
+const max = computed({
+    get() {
+        return max_value.value;
+    },
+    set(val) {
+        if (val < min_value.value) val = min_value.value;
+        const filters = repo.filters;
+        if (!filters[props.bind.name]) filters[props.bind.name] = {};
+        filters[props.bind.name].max = val;
+        repo.reload();
+    }
+}); 
+
+function clear() {
+    min_value.value = null;
+    max_value.value = null;
+    const filters = repo.filters;
+    if (filters[props.bind.name]) {
+        delete filters[props.bind.name];
+        repo.reload();
+    }
+}
+
+
+
+const atts = computed(() => {
+    let atts = {};
+    if (props.field.round) {
+        let step = "0.";
+        for(let i=0; i<props.field.round - 1; ++i) {
+            step += "0";
+        }
+        step += "1";
+        atts["step"]  = parseInt(step);
+    }
+    return atts;
+});
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("div", _hoisted_1$h, [
+    _hoisted_2$e,
+    createVNode(unref(script$1u), mergeProps({
+      name: unref(field).name,
+      modelValue: unref(min),
+      "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(min) ? (min).value = $event : null))
+    }, unref(atts), {
+      onBlur: _cache[1] || (_cache[1] = $event => (unref(field).validateon = true))
+    }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
+    _hoisted_3$d,
+    createVNode(unref(script$1u), mergeProps({
+      name: unref(field).name,
+      modelValue: unref(max),
+      "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => (isRef(max) ? (max).value = $event : null))
+    }, unref(atts), {
+      onBlur: _cache[3] || (_cache[3] = $event => (unref(field).validateon = true))
+    }), null, 16 /* FULL_PROPS */, ["name", "modelValue"]),
+    _hoisted_4$9,
+    createVNode(unref(script$1K), {
+      label: "clear",
+      onClick: clear
+    })
+  ]))
+}
+}
+
+};
+
+script$E.__file = "presstojam/src/components/filter/number-filter.vue";
+
+var script$D = {
+  props: {
+    bind : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const repo = inject("repo");
+
+const value = computed({
+    get() {
+        return (!repo.filters[props.bind.cell.name]) ? { value : 0, label : 'All'} : repo.filters[props.bind.cell.name];
+    },
+    set(val) {
+        if (val == 0) val = null;
+        else if (val == 2) val = 0;
+        if (val != repo.filters[props.bind.cell.name]) {
+            repo.filters[props.bind.cell.name] = val;
+            repo.reload();
+        }
+    }
+});
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1v), {
+    name: __props.bind.cell.name,
+    modelValue: unref(value),
+    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
+    optionLabel: "label",
+    optionValue: "value",
+    options: [
+            {value : 0, label : 'All' }, 
+            { value : 1, label : 'Checked' }, 
+            { value : 2, label : 'Unchecked'}]
+  }, null, 8 /* PROPS */, ["name", "modelValue"]))
+}
+}
+
+};
+
+script$D.__file = "presstojam/src/components/filter/flag-filter.vue";
+
+var script$C = {
+  name: 'MultiSelect',
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'before-show', 'before-hide', 'show', 'hide', 'filter', 'selectall-change'],
+  props: {
+    modelValue: null,
+    options: Array,
+    optionLabel: null,
+    optionValue: null,
+    optionDisabled: null,
+    optionGroupLabel: null,
+    optionGroupChildren: null,
+    scrollHeight: {
+      type: String,
+      default: '200px'
+    },
+    placeholder: String,
+    disabled: Boolean,
+    inputId: {
+      type: String,
+      default: null
+    },
+    inputProps: {
+      type: null,
+      default: null
+    },
+    panelClass: {
+      type: String,
+      default: null
+    },
+    panelStyle: {
+      type: null,
+      default: null
+    },
+    panelProps: {
+      type: null,
+      default: null
+    },
+    filterInputProps: {
+      type: null,
+      default: null
+    },
+    closeButtonProps: {
+      type: null,
+      default: null
+    },
+    dataKey: null,
+    filter: Boolean,
+    filterPlaceholder: String,
+    filterLocale: String,
+    filterMatchMode: {
+      type: String,
+      default: 'contains'
+    },
+    filterFields: {
+      type: Array,
+      default: null
+    },
+    appendTo: {
+      type: String,
+      default: 'body'
+    },
+    display: {
+      type: String,
+      default: 'comma'
+    },
+    selectedItemsLabel: {
+      type: String,
+      default: '{0} items selected'
+    },
+    maxSelectedLabels: {
+      type: Number,
+      default: null
+    },
+    selectionLimit: {
+      type: Number,
+      default: null
+    },
+    showToggleAll: {
+      type: Boolean,
+      default: true
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    },
+    checkboxIcon: {
+      type: String,
+      default: 'pi pi-check'
+    },
+    closeIcon: {
+      type: String,
+      default: 'pi pi-times'
+    },
+    dropdownIcon: {
+      type: String,
+      default: 'pi pi-chevron-down'
+    },
+    filterIcon: {
+      type: String,
+      default: 'pi pi-search'
+    },
+    loadingIcon: {
+      type: String,
+      default: 'pi pi-spinner pi-spin'
+    },
+    removeTokenIcon: {
+      type: String,
+      default: 'pi pi-times-circle'
+    },
+    selectAll: {
+      type: Boolean,
+      default: null
+    },
+    resetFilterOnHide: {
+      type: Boolean,
+      default: false
+    },
+    virtualScrollerOptions: {
+      type: Object,
+      default: null
+    },
+    autoOptionFocus: {
+      type: Boolean,
+      default: true
+    },
+    autoFilterFocus: {
+      type: Boolean,
+      default: false
+    },
+    filterMessage: {
+      type: String,
+      default: null
+    },
+    selectionMessage: {
+      type: String,
+      default: null
+    },
+    emptySelectionMessage: {
+      type: String,
+      default: null
+    },
+    emptyFilterMessage: {
+      type: String,
+      default: null
+    },
+    emptyMessage: {
+      type: String,
+      default: null
+    },
+    tabindex: {
+      type: Number,
+      default: 0
+    },
+    'aria-label': {
+      type: String,
+      default: null
+    },
+    'aria-labelledby': {
+      type: String,
+      default: null
+    }
+  },
+  outsideClickListener: null,
+  scrollHandler: null,
+  resizeListener: null,
+  overlay: null,
+  list: null,
+  virtualScroller: null,
+  startRangeIndex: -1,
+  searchTimeout: null,
+  searchValue: '',
+  selectOnFocus: false,
+  focusOnHover: false,
+
+  data() {
+    return {
+      focused: false,
+      focusedOptionIndex: -1,
+      headerCheckboxFocused: false,
+      filterValue: null,
+      overlayVisible: false
+    };
+  },
+
+  watch: {
+    options() {
+      this.autoUpdateModel();
+    }
+
+  },
+
+  mounted() {
+    this.autoUpdateModel();
+  },
+
+  beforeUnmount() {
+    this.unbindOutsideClickListener();
+    this.unbindResizeListener();
+
+    if (this.scrollHandler) {
+      this.scrollHandler.destroy();
+      this.scrollHandler = null;
+    }
+
+    if (this.overlay) {
+      ZIndexUtils.clear(this.overlay);
+      this.overlay = null;
+    }
+  },
+
+  methods: {
+    getOptionIndex(index, fn) {
+      return this.virtualScrollerDisabled ? index : fn && fn(index)['index'];
+    },
+
+    getOptionLabel(option) {
+      return this.optionLabel ? ObjectUtils.resolveFieldData(option, this.optionLabel) : option;
+    },
+
+    getOptionValue(option) {
+      return this.optionValue ? ObjectUtils.resolveFieldData(option, this.optionValue) : option;
+    },
+
+    getOptionRenderKey(option) {
+      return this.dataKey ? ObjectUtils.resolveFieldData(option, this.dataKey) : this.getOptionLabel(option);
+    },
+
+    isOptionDisabled(option) {
+      if (this.maxSelectionLimitReached && !this.isSelected(option)) {
+        return true;
+      }
+
+      return this.optionDisabled ? ObjectUtils.resolveFieldData(option, this.optionDisabled) : false;
+    },
+
+    isOptionGroup(option) {
+      return this.optionGroupLabel && option.optionGroup && option.group;
+    },
+
+    getOptionGroupLabel(optionGroup) {
+      return ObjectUtils.resolveFieldData(optionGroup, this.optionGroupLabel);
+    },
+
+    getOptionGroupChildren(optionGroup) {
+      return ObjectUtils.resolveFieldData(optionGroup, this.optionGroupChildren);
+    },
+
+    getAriaPosInset(index) {
+      return (this.optionGroupLabel ? index - this.visibleOptions.slice(0, index).filter(option => this.isOptionGroup(option)).length : index) + 1;
+    },
+
+    show(isFocus) {
+      this.$emit('before-show');
+      this.overlayVisible = true;
+      this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
+      isFocus && DomHandler.focus(this.$refs.focusInput);
+    },
+
+    hide(isFocus) {
+      this.$emit('before-hide');
+      this.overlayVisible = false;
+      this.focusedOptionIndex = -1;
+      this.searchValue = '';
+      this.resetFilterOnHide && (this.filterValue = null);
+      isFocus && DomHandler.focus(this.$refs.focusInput);
+    },
+
+    onFocus(event) {
+      this.focused = true;
+      this.focusedOptionIndex = this.focusedOptionIndex !== -1 ? this.focusedOptionIndex : this.overlayVisible && this.autoOptionFocus ? this.findFirstFocusedOptionIndex() : -1;
+      this.overlayVisible && this.scrollInView(this.focusedOptionIndex);
+      this.$emit('focus', event);
+    },
+
+    onBlur(event) {
+      this.focused = false;
+      this.focusedOptionIndex = -1;
+      this.searchValue = '';
+      this.$emit('blur', event);
+    },
+
+    onKeyDown(event) {
+      const metaKey = event.metaKey || event.ctrlKey;
+
+      switch (event.code) {
+        case 'ArrowDown':
+          this.onArrowDownKey(event);
+          break;
+
+        case 'ArrowUp':
+          this.onArrowUpKey(event);
+          break;
+
+        case 'Home':
+          this.onHomeKey(event);
+          break;
+
+        case 'End':
+          this.onEndKey(event);
+          break;
+
+        case 'PageDown':
+          this.onPageDownKey(event);
+          break;
+
+        case 'PageUp':
+          this.onPageUpKey(event);
+          break;
+
+        case 'Enter':
+        case 'Space':
+          this.onEnterKey(event);
+          break;
+
+        case 'Escape':
+          this.onEscapeKey(event);
+          break;
+
+        case 'Tab':
+          this.onTabKey(event);
+          break;
+
+        case 'ShiftLeft':
+        case 'ShiftRight':
+          this.onShiftKey(event);
+          break;
+
+        default:
+          if (event.code === 'KeyA' && metaKey) {
+            const value = this.visibleOptions.filter(option => this.isValidOption(option)).map(option => this.getOptionValue(option));
+            this.updateModel(event, value);
+            event.preventDefault();
+            break;
+          }
+
+          if (!metaKey && ObjectUtils.isPrintableCharacter(event.key)) {
+            !this.overlayVisible && this.show();
+            this.searchOptions(event);
+            event.preventDefault();
+          }
+
+          break;
+      }
+    },
+
+    onContainerClick(event) {
+      if (this.disabled || this.loading) {
+        return;
+      }
+
+      if (!this.overlay || !this.overlay.contains(event.target)) {
+        this.overlayVisible ? this.hide(true) : this.show(true);
+      }
+    },
+
+    onFirstHiddenFocus(event) {
+      const relatedTarget = event.relatedTarget;
+
+      if (relatedTarget === this.$refs.focusInput) {
+        const firstFocusableEl = DomHandler.getFirstFocusableElement(this.overlay, ':not(.p-hidden-focusable)');
+        DomHandler.focus(firstFocusableEl);
+      } else {
+        DomHandler.focus(this.$refs.focusInput);
+      }
+    },
+
+    onLastHiddenFocus() {
+      DomHandler.focus(this.$refs.firstHiddenFocusableElementOnOverlay);
+    },
+
+    onCloseClick() {
+      this.hide(true);
+    },
+
+    onHeaderCheckboxFocus() {
+      this.headerCheckboxFocused = true;
+    },
+
+    onHeaderCheckboxBlur() {
+      this.headerCheckboxFocused = false;
+    },
+
+    onOptionSelect(event, option, index = -1, isFocus = false) {
+      if (this.disabled || this.isOptionDisabled(option)) {
+        return;
+      }
+
+      let selected = this.isSelected(option);
+      let value = null;
+      if (selected) value = this.modelValue.filter(val => !ObjectUtils.equals(val, this.getOptionValue(option), this.equalityKey));else value = [...(this.modelValue || []), this.getOptionValue(option)];
+      this.updateModel(event, value);
+      index !== -1 && (this.focusedOptionIndex = index);
+      isFocus && DomHandler.focus(this.$refs.focusInput);
+    },
+
+    onOptionMouseMove(event, index) {
+      if (this.focusOnHover) {
+        this.changeFocusedOptionIndex(event, index);
+      }
+    },
+
+    onOptionSelectRange(event, start = -1, end = -1) {
+      start === -1 && (start = this.findNearestSelectedOptionIndex(end, true));
+      end === -1 && (end = this.findNearestSelectedOptionIndex(start));
+
+      if (start !== -1 && end !== -1) {
+        const rangeStart = Math.min(start, end);
+        const rangeEnd = Math.max(start, end);
+        const value = this.visibleOptions.slice(rangeStart, rangeEnd + 1).filter(option => this.isValidOption(option)).map(option => this.getOptionValue(option));
+        this.updateModel(event, value);
+      }
+    },
+
+    onFilterChange(event) {
+      const value = event.target.value;
+      this.filterValue = value;
+      this.focusedOptionIndex = -1;
+      this.$emit('filter', {
+        originalEvent: event,
+        value
+      });
+      !this.virtualScrollerDisabled && this.virtualScroller.scrollToIndex(0);
+    },
+
+    onFilterKeyDown(event) {
+      switch (event.code) {
+        case 'ArrowDown':
+          this.onArrowDownKey(event);
+          break;
+
+        case 'ArrowUp':
+          this.onArrowUpKey(event, true);
+          break;
+
+        case 'ArrowLeft':
+        case 'ArrowRight':
+          this.onArrowLeftKey(event, true);
+          break;
+
+        case 'Home':
+          this.onHomeKey(event, true);
+          break;
+
+        case 'End':
+          this.onEndKey(event, true);
+          break;
+
+        case 'Enter':
+          this.onEnterKey(event);
+          break;
+
+        case 'Escape':
+          this.onEscapeKey(event);
+          break;
+
+        case 'Tab':
+          this.onTabKey(event, true);
+          break;
+      }
+    },
+
+    onFilterBlur() {
+      this.focusedOptionIndex = -1;
+    },
+
+    onFilterUpdated() {
+      if (this.overlayVisible) {
+        this.alignOverlay();
+      }
+    },
+
+    onOverlayClick(event) {
+      OverlayEventBus.emit('overlay-click', {
+        originalEvent: event,
+        target: this.$el
+      });
+    },
+
+    onOverlayKeyDown(event) {
+      switch (event.code) {
+        case 'Escape':
+          this.onEscapeKey(event);
+          break;
+      }
+    },
+
+    onArrowDownKey(event) {
+      const optionIndex = this.focusedOptionIndex !== -1 ? this.findNextOptionIndex(this.focusedOptionIndex) : this.findFirstFocusedOptionIndex();
+
+      if (event.shiftKey) {
+        this.onOptionSelectRange(event, this.startRangeIndex, optionIndex);
+      }
+
+      this.changeFocusedOptionIndex(event, optionIndex);
+      !this.overlayVisible && this.show();
+      event.preventDefault();
+    },
+
+    onArrowUpKey(event, pressedInInputText = false) {
+      if (event.altKey && !pressedInInputText) {
+        if (this.focusedOptionIndex !== -1) {
+          this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
+        }
+
+        this.overlayVisible && this.hide();
+        event.preventDefault();
+      } else {
+        const optionIndex = this.focusedOptionIndex !== -1 ? this.findPrevOptionIndex(this.focusedOptionIndex) : this.findLastFocusedOptionIndex();
+
+        if (event.shiftKey) {
+          this.onOptionSelectRange(event, optionIndex, this.startRangeIndex);
+        }
+
+        this.changeFocusedOptionIndex(event, optionIndex);
+        !this.overlayVisible && this.show();
+        event.preventDefault();
+      }
+    },
+
+    onArrowLeftKey(event, pressedInInputText = false) {
+      pressedInInputText && (this.focusedOptionIndex = -1);
+    },
+
+    onHomeKey(event, pressedInInputText = false) {
+      if (pressedInInputText) {
+        event.currentTarget.setSelectionRange(0, 0);
+        this.focusedOptionIndex = -1;
+      } else {
+        let metaKey = event.metaKey || event.ctrlKey;
+        let optionIndex = this.findFirstOptionIndex();
+
+        if (event.shiftKey && metaKey) {
+          this.onOptionSelectRange(event, optionIndex, this.startRangeIndex);
+        }
+
+        this.changeFocusedOptionIndex(event, optionIndex);
+        !this.overlayVisible && this.show();
+      }
+
+      event.preventDefault();
+    },
+
+    onEndKey(event, pressedInInputText = false) {
+      if (pressedInInputText) {
+        const target = event.currentTarget;
+        const len = target.value.length;
+        target.setSelectionRange(len, len);
+        this.focusedOptionIndex = -1;
+      } else {
+        let metaKey = event.metaKey || event.ctrlKey;
+        let optionIndex = this.findLastOptionIndex();
+
+        if (event.shiftKey && metaKey) {
+          this.onOptionSelectRange(event, this.startRangeIndex, optionIndex);
+        }
+
+        this.changeFocusedOptionIndex(event, optionIndex);
+        !this.overlayVisible && this.show();
+      }
+
+      event.preventDefault();
+    },
+
+    onPageUpKey(event) {
+      this.scrollInView(0);
+      event.preventDefault();
+    },
+
+    onPageDownKey(event) {
+      this.scrollInView(this.visibleOptions.length - 1);
+      event.preventDefault();
+    },
+
+    onEnterKey(event) {
+      if (!this.overlayVisible) {
+        this.onArrowDownKey(event);
+      } else {
+        if (this.focusedOptionIndex !== -1) {
+          if (event.shiftKey) this.onOptionSelectRange(event, this.focusedOptionIndex);else this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
+        }
+      }
+
+      event.preventDefault();
+    },
+
+    onEscapeKey(event) {
+      this.overlayVisible && this.hide(true);
+      event.preventDefault();
+    },
+
+    onTabKey(event, pressedInInputText = false) {
+      if (!pressedInInputText) {
+        if (this.overlayVisible && this.hasFocusableElements()) {
+          DomHandler.focus(this.$refs.firstHiddenFocusableElementOnOverlay);
+          event.preventDefault();
+        } else {
+          if (this.focusedOptionIndex !== -1) {
+            this.onOptionSelect(event, this.visibleOptions[this.focusedOptionIndex]);
+          }
+
+          this.overlayVisible && this.hide(this.filter);
+        }
+      }
+    },
+
+    onShiftKey() {
+      this.startRangeIndex = this.focusedOptionIndex;
+    },
+
+    onOverlayEnter(el) {
+      ZIndexUtils.set('overlay', el, this.$primevue.config.zIndex.overlay);
+      this.alignOverlay();
+      this.scrollInView();
+      this.autoFilterFocus && DomHandler.focus(this.$refs.filterInput);
+    },
+
+    onOverlayAfterEnter() {
+      this.bindOutsideClickListener();
+      this.bindScrollListener();
+      this.bindResizeListener();
+      this.$emit('show');
+    },
+
+    onOverlayLeave() {
+      this.unbindOutsideClickListener();
+      this.unbindScrollListener();
+      this.unbindResizeListener();
+      this.$emit('hide');
+      this.overlay = null;
+    },
+
+    onOverlayAfterLeave(el) {
+      ZIndexUtils.clear(el);
+    },
+
+    alignOverlay() {
+      if (this.appendTo === 'self') {
+        DomHandler.relativePosition(this.overlay, this.$el);
+      } else {
+        this.overlay.style.minWidth = DomHandler.getOuterWidth(this.$el) + 'px';
+        DomHandler.absolutePosition(this.overlay, this.$el);
+      }
+    },
+
+    bindOutsideClickListener() {
+      if (!this.outsideClickListener) {
+        this.outsideClickListener = event => {
+          if (this.overlayVisible && this.isOutsideClicked(event)) {
+            this.hide();
+          }
+        };
+
+        document.addEventListener('click', this.outsideClickListener);
+      }
+    },
+
+    unbindOutsideClickListener() {
+      if (this.outsideClickListener) {
+        document.removeEventListener('click', this.outsideClickListener);
+        this.outsideClickListener = null;
+      }
+    },
+
+    bindScrollListener() {
+      if (!this.scrollHandler) {
+        this.scrollHandler = new ConnectedOverlayScrollHandler(this.$refs.container, () => {
+          if (this.overlayVisible) {
+            this.hide();
+          }
+        });
+      }
+
+      this.scrollHandler.bindScrollListener();
+    },
+
+    unbindScrollListener() {
+      if (this.scrollHandler) {
+        this.scrollHandler.unbindScrollListener();
+      }
+    },
+
+    bindResizeListener() {
+      if (!this.resizeListener) {
+        this.resizeListener = () => {
+          if (this.overlayVisible && !DomHandler.isTouchDevice()) {
+            this.hide();
+          }
+        };
+
+        window.addEventListener('resize', this.resizeListener);
+      }
+    },
+
+    unbindResizeListener() {
+      if (this.resizeListener) {
+        window.removeEventListener('resize', this.resizeListener);
+        this.resizeListener = null;
+      }
+    },
+
+    isOutsideClicked(event) {
+      return !(this.$el.isSameNode(event.target) || this.$el.contains(event.target) || this.overlay && this.overlay.contains(event.target));
+    },
+
+    getLabelByValue(value) {
+      const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
+      const matchedOption = options.find(option => !this.isOptionGroup(option) && ObjectUtils.equals(this.getOptionValue(option), value, this.equalityKey));
+      return matchedOption ? this.getOptionLabel(matchedOption) : null;
+    },
+
+    getSelectedItemsLabel() {
+      let pattern = /{(.*?)}/;
+
+      if (pattern.test(this.selectedItemsLabel)) {
+        return this.selectedItemsLabel.replace(this.selectedItemsLabel.match(pattern)[0], this.modelValue.length + '');
+      }
+
+      return this.selectedItemsLabel;
+    },
+
+    onToggleAll(event) {
+      if (this.selectAll !== null) {
+        this.$emit('selectall-change', {
+          originalEvent: event,
+          checked: !this.allSelected
+        });
+      } else {
+        const value = this.allSelected ? [] : this.visibleOptions.filter(option => !this.isOptionDisabled(option) && !this.isOptionGroup(option)).map(option => this.getOptionValue(option));
+        this.updateModel(event, value);
+      }
+
+      this.headerCheckboxFocused = true;
+    },
+
+    removeOption(event, optionValue) {
+      let value = this.modelValue.filter(val => !ObjectUtils.equals(val, optionValue, this.equalityKey));
+      this.updateModel(event, value);
+    },
+
+    clearFilter() {
+      this.filterValue = null;
+    },
+
+    hasFocusableElements() {
+      return DomHandler.getFocusableElements(this.overlay, ':not(.p-hidden-focusable)').length > 0;
+    },
+
+    isOptionMatched(option) {
+      return this.isValidOption(option) && this.getOptionLabel(option).toLocaleLowerCase(this.filterLocale).startsWith(this.searchValue.toLocaleLowerCase(this.filterLocale));
+    },
+
+    isValidOption(option) {
+      return option && !(this.isOptionDisabled(option) || this.isOptionGroup(option));
+    },
+
+    isValidSelectedOption(option) {
+      return this.isValidOption(option) && this.isSelected(option);
+    },
+
+    isSelected(option) {
+      const optionValue = this.getOptionValue(option);
+      return (this.modelValue || []).some(value => ObjectUtils.equals(value, optionValue, this.equalityKey));
+    },
+
+    findFirstOptionIndex() {
+      return this.visibleOptions.findIndex(option => this.isValidOption(option));
+    },
+
+    findLastOptionIndex() {
+      return ObjectUtils.findLastIndex(this.visibleOptions, option => this.isValidOption(option));
+    },
+
+    findNextOptionIndex(index) {
+      const matchedOptionIndex = index < this.visibleOptions.length - 1 ? this.visibleOptions.slice(index + 1).findIndex(option => this.isValidOption(option)) : -1;
+      return matchedOptionIndex > -1 ? matchedOptionIndex + index + 1 : index;
+    },
+
+    findPrevOptionIndex(index) {
+      const matchedOptionIndex = index > 0 ? ObjectUtils.findLastIndex(this.visibleOptions.slice(0, index), option => this.isValidOption(option)) : -1;
+      return matchedOptionIndex > -1 ? matchedOptionIndex : index;
+    },
+
+    findFirstSelectedOptionIndex() {
+      return this.hasSelectedOption ? this.visibleOptions.findIndex(option => this.isValidSelectedOption(option)) : -1;
+    },
+
+    findLastSelectedOptionIndex() {
+      return this.hasSelectedOption ? ObjectUtils.findLastIndex(this.visibleOptions, option => this.isValidSelectedOption(option)) : -1;
+    },
+
+    findNextSelectedOptionIndex(index) {
+      const matchedOptionIndex = this.hasSelectedOption && index < this.visibleOptions.length - 1 ? this.visibleOptions.slice(index + 1).findIndex(option => this.isValidSelectedOption(option)) : -1;
+      return matchedOptionIndex > -1 ? matchedOptionIndex + index + 1 : -1;
+    },
+
+    findPrevSelectedOptionIndex(index) {
+      const matchedOptionIndex = this.hasSelectedOption && index > 0 ? ObjectUtils.findLastIndex(this.visibleOptions.slice(0, index), option => this.isValidSelectedOption(option)) : -1;
+      return matchedOptionIndex > -1 ? matchedOptionIndex : -1;
+    },
+
+    findNearestSelectedOptionIndex(index, firstCheckUp = false) {
+      let matchedOptionIndex = -1;
+
+      if (this.hasSelectedOption) {
+        if (firstCheckUp) {
+          matchedOptionIndex = this.findPrevSelectedOptionIndex(index);
+          matchedOptionIndex = matchedOptionIndex === -1 ? this.findNextSelectedOptionIndex(index) : matchedOptionIndex;
+        } else {
+          matchedOptionIndex = this.findNextSelectedOptionIndex(index);
+          matchedOptionIndex = matchedOptionIndex === -1 ? this.findPrevSelectedOptionIndex(index) : matchedOptionIndex;
+        }
+      }
+
+      return matchedOptionIndex > -1 ? matchedOptionIndex : index;
+    },
+
+    findFirstFocusedOptionIndex() {
+      const selectedIndex = this.findFirstSelectedOptionIndex();
+      return selectedIndex < 0 ? this.findFirstOptionIndex() : selectedIndex;
+    },
+
+    findLastFocusedOptionIndex() {
+      const selectedIndex = this.findLastSelectedOptionIndex();
+      return selectedIndex < 0 ? this.findLastOptionIndex() : selectedIndex;
+    },
+
+    searchOptions(event) {
+      this.searchValue = (this.searchValue || '') + event.key;
+      let optionIndex = -1;
+
+      if (this.focusedOptionIndex !== -1) {
+        optionIndex = this.visibleOptions.slice(this.focusedOptionIndex).findIndex(option => this.isOptionMatched(option));
+        optionIndex = optionIndex === -1 ? this.visibleOptions.slice(0, this.focusedOptionIndex).findIndex(option => this.isOptionMatched(option)) : optionIndex + this.focusedOptionIndex;
+      } else {
+        optionIndex = this.visibleOptions.findIndex(option => this.isOptionMatched(option));
+      }
+
+      if (optionIndex === -1 && this.focusedOptionIndex === -1) {
+        const selectedIndex = this.findSelectedOptionIndex();
+        optionIndex = selectedIndex < 0 ? this.findFirstOptionIndex() : selectedIndex;
+      }
+
+      if (optionIndex !== -1) {
+        this.changeFocusedOptionIndex(event, optionIndex);
+      }
+
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+
+      this.searchTimeout = setTimeout(() => {
+        this.searchValue = '';
+        this.searchTimeout = null;
+      }, 500);
+    },
+
+    changeFocusedOptionIndex(event, index) {
+      if (this.focusedOptionIndex !== index) {
+        this.focusedOptionIndex = index;
+        this.scrollInView();
+      }
+    },
+
+    scrollInView(index = -1) {
+      const id = index !== -1 ? `${this.id}_${index}` : this.focusedOptionId;
+      const element = DomHandler.findSingle(this.list, `li[id="${id}"]`);
+
+      if (element) {
+        element.scrollIntoView && element.scrollIntoView({
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      } else if (!this.virtualScrollerDisabled) {
+        this.virtualScroller && this.virtualScroller.scrollToIndex(index !== -1 ? index : this.focusedOptionIndex);
+      }
+    },
+
+    autoUpdateModel() {
+      if (this.selectOnFocus && this.autoOptionFocus && !this.hasSelectedOption) {
+        this.focusedOptionIndex = this.findFirstFocusedOptionIndex();
+        const value = this.getOptionValue(this.visibleOptions[this.focusedOptionIndex]);
+        this.updateModel(null, [value]);
+      }
+    },
+
+    updateModel(event, value) {
+      this.$emit('update:modelValue', value);
+      this.$emit('change', {
+        originalEvent: event,
+        value
+      });
+    },
+
+    flatOptions(options) {
+      return (options || []).reduce((result, option, index) => {
+        result.push({
+          optionGroup: option,
+          group: true,
+          index
+        });
+        const optionGroupChildren = this.getOptionGroupChildren(option);
+        optionGroupChildren && optionGroupChildren.forEach(o => result.push(o));
+        return result;
+      }, []);
+    },
+
+    overlayRef(el) {
+      this.overlay = el;
+    },
+
+    listRef(el, contentRef) {
+      this.list = el;
+      contentRef && contentRef(el); // For VirtualScroller
+    },
+
+    virtualScrollerRef(el) {
+      this.virtualScroller = el;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-multiselect p-component p-inputwrapper', {
+        'p-multiselect-chip': this.display === 'chip',
+        'p-disabled': this.disabled,
+        'p-focus': this.focused,
+        'p-inputwrapper-filled': this.modelValue && this.modelValue.length,
+        'p-inputwrapper-focus': this.focused || this.overlayVisible,
+        'p-overlay-open': this.overlayVisible
+      }];
+    },
+
+    labelClass() {
+      return ['p-multiselect-label', {
+        'p-placeholder': this.label === this.placeholder,
+        'p-multiselect-label-empty': !this.placeholder && (!this.modelValue || this.modelValue.length === 0)
+      }];
+    },
+
+    dropdownIconClass() {
+      return ['p-multiselect-trigger-icon', this.loading ? this.loadingIcon : this.dropdownIcon];
+    },
+
+    panelStyleClass() {
+      return ['p-multiselect-panel p-component', this.panelClass, {
+        'p-input-filled': this.$primevue.config.inputStyle === 'filled',
+        'p-ripple-disabled': this.$primevue.config.ripple === false
+      }];
+    },
+
+    headerCheckboxClass() {
+      return ['p-checkbox p-component', {
+        'p-checkbox-checked': this.allSelected,
+        'p-checkbox-focused': this.headerCheckboxFocused
+      }];
+    },
+
+    visibleOptions() {
+      const options = this.optionGroupLabel ? this.flatOptions(this.options) : this.options || [];
+
+      if (this.filterValue) {
+        const filteredOptions = FilterService.filter(options, this.searchFields, this.filterValue, this.filterMatchMode, this.filterLocale);
+
+        if (this.optionGroupLabel) {
+          const optionGroups = this.options || [];
+          const filtered = [];
+          optionGroups.forEach(group => {
+            const filteredItems = group.items.filter(item => filteredOptions.includes(item));
+            if (filteredItems.length > 0) filtered.push({ ...group,
+              items: [...filteredItems]
+            });
+          });
+          return this.flatOptions(filtered);
+        }
+
+        return filteredOptions;
+      }
+
+      return options;
+    },
+
+    label() {
+      // TODO: Refactor
+      let label;
+
+      if (this.modelValue && this.modelValue.length) {
+        if (ObjectUtils.isNotEmpty(this.maxSelectedLabels) && this.modelValue.length > this.maxSelectedLabels) {
+          return this.getSelectedItemsLabel();
+        } else {
+          label = '';
+
+          for (let i = 0; i < this.modelValue.length; i++) {
+            if (i !== 0) {
+              label += ', ';
+            }
+
+            label += this.getLabelByValue(this.modelValue[i]);
+          }
+        }
+      } else {
+        label = this.placeholder;
+      }
+
+      return label;
+    },
+
+    allSelected() {
+      return this.selectAll !== null ? this.selectAll : ObjectUtils.isNotEmpty(this.visibleOptions) && this.visibleOptions.filter(option => !this.isOptionDisabled(option)).every(option => this.isOptionGroup(option) || this.isValidSelectedOption(option));
+    },
+
+    hasSelectedOption() {
+      return ObjectUtils.isNotEmpty(this.modelValue);
+    },
+
+    equalityKey() {
+      return this.optionValue ? null : this.dataKey;
+    },
+
+    searchFields() {
+      return this.filterFields || [this.optionLabel];
+    },
+
+    maxSelectionLimitReached() {
+      return this.selectionLimit && this.modelValue && this.modelValue.length === this.selectionLimit;
+    },
+
+    filterResultMessageText() {
+      return ObjectUtils.isNotEmpty(this.visibleOptions) ? this.filterMessageText.replaceAll('{0}', this.visibleOptions.length) : this.emptyFilterMessageText;
+    },
+
+    filterMessageText() {
+      return this.filterMessage || this.$primevue.config.locale.searchMessage || '';
+    },
+
+    emptyFilterMessageText() {
+      return this.emptyFilterMessage || this.$primevue.config.locale.emptySearchMessage || this.$primevue.config.locale.emptyFilterMessage || '';
+    },
+
+    emptyMessageText() {
+      return this.emptyMessage || this.$primevue.config.locale.emptyMessage || '';
+    },
+
+    selectionMessageText() {
+      return this.selectionMessage || this.$primevue.config.locale.selectionMessage || '';
+    },
+
+    emptySelectionMessageText() {
+      return this.emptySelectionMessage || this.$primevue.config.locale.emptySelectionMessage || '';
+    },
+
+    selectedMessageText() {
+      return this.hasSelectedOption ? this.selectionMessageText.replaceAll('{0}', this.modelValue.length) : this.emptySelectionMessageText;
+    },
+
+    id() {
+      return this.$attrs.id || UniqueComponentId();
+    },
+
+    focusedOptionId() {
+      return this.focusedOptionIndex !== -1 ? `${this.id}_${this.focusedOptionIndex}` : null;
+    },
+
+    ariaSetSize() {
+      return this.visibleOptions.filter(option => !this.isOptionGroup(option)).length;
+    },
+
+    toggleAllAriaLabel() {
+      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria[this.allSelected ? 'selectAll' : 'unselectAll'] : undefined;
+    },
+
+    closeAriaLabel() {
+      return this.$primevue.config.locale.aria ? this.$primevue.config.locale.aria.close : undefined;
+    },
+
+    virtualScrollerDisabled() {
+      return !this.virtualScrollerOptions;
+    }
+
+  },
+  directives: {
+    ripple: Ripple
+  },
+  components: {
+    VirtualScroller: script$1w,
+    Portal: script$1B
+  }
+};
+const _hoisted_1$g = {
+  class: "p-hidden-accessible"
+};
+const _hoisted_2$d = ["id", "disabled", "placeholder", "tabindex", "aria-label", "aria-labelledby", "aria-expanded", "aria-controls", "aria-activedescendant"];
+const _hoisted_3$c = {
+  class: "p-multiselect-label-container"
+};
+const _hoisted_4$8 = {
+  class: "p-multiselect-token-label"
+};
+const _hoisted_5$8 = ["onClick"];
+const _hoisted_6$7 = {
+  class: "p-multiselect-trigger"
+};
+const _hoisted_7$4 = {
+  key: 0,
+  class: "p-multiselect-header"
+};
+const _hoisted_8$3 = {
+  class: "p-hidden-accessible"
+};
+const _hoisted_9$1 = ["checked", "aria-label"];
+const _hoisted_10$1 = {
+  key: 1,
+  class: "p-multiselect-filter-container"
+};
+const _hoisted_11$1 = ["value", "placeholder", "aria-owns", "aria-activedescendant"];
+const _hoisted_12$1 = {
+  key: 2,
+  role: "status",
+  "aria-live": "polite",
+  class: "p-hidden-accessible"
+};
+const _hoisted_13$1 = ["aria-label"];
+const _hoisted_14$1 = ["id"];
+const _hoisted_15 = ["id"];
+const _hoisted_16 = ["id", "aria-label", "aria-selected", "aria-disabled", "aria-setsize", "aria-posinset", "onClick", "onMousemove"];
+const _hoisted_17 = {
+  class: "p-checkbox p-component"
+};
+const _hoisted_18 = {
+  key: 0,
+  class: "p-multiselect-empty-message",
+  role: "option"
+};
+const _hoisted_19 = {
+  key: 1,
+  class: "p-multiselect-empty-message",
+  role: "option"
+};
+const _hoisted_20 = {
+  key: 0,
+  role: "status",
+  "aria-live": "polite",
+  class: "p-hidden-accessible"
+};
+const _hoisted_21 = {
+  role: "status",
+  "aria-live": "polite",
+  class: "p-hidden-accessible"
+};
+
+function render$a(_ctx, _cache, $props, $setup, $data, $options) {
+  const _component_VirtualScroller = resolveComponent("VirtualScroller");
+
+  const _component_Portal = resolveComponent("Portal");
+
+  const _directive_ripple = resolveDirective("ripple");
+
+  return openBlock(), createElementBlock("div", {
+    ref: "container",
+    class: normalizeClass($options.containerClass),
+    onClick: _cache[15] || (_cache[15] = (...args) => $options.onContainerClick && $options.onContainerClick(...args))
+  }, [createElementVNode("div", _hoisted_1$g, [createElementVNode("input", mergeProps({
+    ref: "focusInput",
+    id: $props.inputId,
+    type: "text",
+    readonly: "",
+    disabled: $props.disabled,
+    placeholder: $props.placeholder,
+    tabindex: !$props.disabled ? $props.tabindex : -1,
+    role: "combobox",
+    "aria-label": _ctx.ariaLabel,
+    "aria-labelledby": _ctx.ariaLabelledby,
+    "aria-haspopup": "listbox",
+    "aria-expanded": $data.overlayVisible,
+    "aria-controls": $options.id + '_list',
+    "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
+    onFocus: _cache[0] || (_cache[0] = (...args) => $options.onFocus && $options.onFocus(...args)),
+    onBlur: _cache[1] || (_cache[1] = (...args) => $options.onBlur && $options.onBlur(...args)),
+    onKeydown: _cache[2] || (_cache[2] = (...args) => $options.onKeyDown && $options.onKeyDown(...args))
+  }, $props.inputProps), null, 16, _hoisted_2$d)]), createElementVNode("div", _hoisted_3$c, [createElementVNode("div", {
+    class: normalizeClass($options.labelClass)
+  }, [renderSlot(_ctx.$slots, "value", {
+    value: $props.modelValue,
+    placeholder: $props.placeholder
+  }, () => [$props.display === 'comma' ? (openBlock(), createElementBlock(Fragment, {
+    key: 0
+  }, [createTextVNode(toDisplayString$1($options.label || 'empty'), 1)], 64)) : $props.display === 'chip' ? (openBlock(), createElementBlock(Fragment, {
+    key: 1
+  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.modelValue, item => {
+    return openBlock(), createElementBlock("div", {
+      key: $options.getLabelByValue(item),
+      class: "p-multiselect-token"
+    }, [renderSlot(_ctx.$slots, "chip", {
+      value: item
+    }, () => [createElementVNode("span", _hoisted_4$8, toDisplayString$1($options.getLabelByValue(item)), 1)]), !$props.disabled ? (openBlock(), createElementBlock("span", {
+      key: 0,
+      class: normalizeClass(['p-multiselect-token-icon', $props.removeTokenIcon]),
+      onClick: $event => $options.removeOption($event, item)
+    }, null, 10, _hoisted_5$8)) : createCommentVNode("", true)]);
+  }), 128)), !$props.modelValue || $props.modelValue.length === 0 ? (openBlock(), createElementBlock(Fragment, {
+    key: 0
+  }, [createTextVNode(toDisplayString$1($props.placeholder || 'empty'), 1)], 64)) : createCommentVNode("", true)], 64)) : createCommentVNode("", true)])], 2)]), createElementVNode("div", _hoisted_6$7, [renderSlot(_ctx.$slots, "indicator", {}, () => [createElementVNode("span", {
+    class: normalizeClass($options.dropdownIconClass),
+    "aria-hidden": "true"
+  }, null, 2)])]), createVNode(_component_Portal, {
+    appendTo: $props.appendTo
+  }, {
+    default: withCtx(() => [createVNode(Transition, {
+      name: "p-connected-overlay",
+      onEnter: $options.onOverlayEnter,
+      onAfterEnter: $options.onOverlayAfterEnter,
+      onLeave: $options.onOverlayLeave,
+      onAfterLeave: $options.onOverlayAfterLeave
+    }, {
+      default: withCtx(() => [$data.overlayVisible ? (openBlock(), createElementBlock("div", mergeProps({
+        key: 0,
+        ref: $options.overlayRef,
+        style: $props.panelStyle,
+        class: $options.panelStyleClass,
+        onClick: _cache[13] || (_cache[13] = (...args) => $options.onOverlayClick && $options.onOverlayClick(...args)),
+        onKeydown: _cache[14] || (_cache[14] = (...args) => $options.onOverlayKeyDown && $options.onOverlayKeyDown(...args))
+      }, $props.panelProps), [createElementVNode("span", {
+        ref: "firstHiddenFocusableElementOnOverlay",
+        role: "presentation",
+        "aria-hidden": "true",
+        class: "p-hidden-accessible p-hidden-focusable",
+        tabindex: 0,
+        onFocus: _cache[3] || (_cache[3] = (...args) => $options.onFirstHiddenFocus && $options.onFirstHiddenFocus(...args))
+      }, null, 544), renderSlot(_ctx.$slots, "header", {
+        value: $props.modelValue,
+        options: $options.visibleOptions
+      }), $props.showToggleAll && $props.selectionLimit == null || $props.filter ? (openBlock(), createElementBlock("div", _hoisted_7$4, [$props.showToggleAll && $props.selectionLimit == null ? (openBlock(), createElementBlock("div", {
+        key: 0,
+        class: normalizeClass($options.headerCheckboxClass),
+        onClick: _cache[6] || (_cache[6] = (...args) => $options.onToggleAll && $options.onToggleAll(...args))
+      }, [createElementVNode("div", _hoisted_8$3, [createElementVNode("input", {
+        type: "checkbox",
+        readonly: "",
+        checked: $options.allSelected,
+        "aria-label": $options.toggleAllAriaLabel,
+        onFocus: _cache[4] || (_cache[4] = (...args) => $options.onHeaderCheckboxFocus && $options.onHeaderCheckboxFocus(...args)),
+        onBlur: _cache[5] || (_cache[5] = (...args) => $options.onHeaderCheckboxBlur && $options.onHeaderCheckboxBlur(...args))
+      }, null, 40, _hoisted_9$1)]), createElementVNode("div", {
+        class: normalizeClass(['p-checkbox-box', {
+          'p-highlight': $options.allSelected,
+          'p-focus': $data.headerCheckboxFocused
+        }])
+      }, [createElementVNode("span", {
+        class: normalizeClass(['p-checkbox-icon', {
+          [$props.checkboxIcon]: $options.allSelected
+        }])
+      }, null, 2)], 2)], 2)) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("div", _hoisted_10$1, [createElementVNode("input", mergeProps({
+        ref: "filterInput",
+        type: "text",
+        value: $data.filterValue,
+        onVnodeUpdated: _cache[7] || (_cache[7] = (...args) => $options.onFilterUpdated && $options.onFilterUpdated(...args)),
+        class: "p-multiselect-filter p-inputtext p-component",
+        placeholder: $props.filterPlaceholder,
+        role: "searchbox",
+        autocomplete: "off",
+        "aria-owns": $options.id + '_list',
+        "aria-activedescendant": $options.focusedOptionId,
+        onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onFilterKeyDown && $options.onFilterKeyDown(...args)),
+        onBlur: _cache[9] || (_cache[9] = (...args) => $options.onFilterBlur && $options.onFilterBlur(...args)),
+        onInput: _cache[10] || (_cache[10] = (...args) => $options.onFilterChange && $options.onFilterChange(...args))
+      }, $props.filterInputProps), null, 16, _hoisted_11$1), createElementVNode("span", {
+        class: normalizeClass(['p-multiselect-filter-icon', $props.filterIcon])
+      }, null, 2)])) : createCommentVNode("", true), $props.filter ? (openBlock(), createElementBlock("span", _hoisted_12$1, toDisplayString$1($options.filterResultMessageText), 1)) : createCommentVNode("", true), withDirectives((openBlock(), createElementBlock("button", mergeProps({
+        class: "p-multiselect-close p-link",
+        "aria-label": $options.closeAriaLabel,
+        onClick: _cache[11] || (_cache[11] = (...args) => $options.onCloseClick && $options.onCloseClick(...args)),
+        type: "button"
+      }, $props.closeButtonProps), [createElementVNode("span", {
+        class: normalizeClass(['p-multiselect-close-icon', $props.closeIcon])
+      }, null, 2)], 16, _hoisted_13$1)), [[_directive_ripple]])])) : createCommentVNode("", true), createElementVNode("div", {
+        class: "p-multiselect-items-wrapper",
+        style: normalizeStyle({
+          'max-height': $options.virtualScrollerDisabled ? $props.scrollHeight : ''
+        })
+      }, [createVNode(_component_VirtualScroller, mergeProps({
+        ref: $options.virtualScrollerRef
+      }, $props.virtualScrollerOptions, {
+        items: $options.visibleOptions,
+        style: {
+          height: $props.scrollHeight
+        },
+        tabindex: -1,
+        disabled: $options.virtualScrollerDisabled
+      }), createSlots({
+        content: withCtx(({
+          styleClass,
+          contentRef,
+          items,
+          getItemOptions,
+          contentStyle,
+          itemSize
+        }) => [createElementVNode("ul", {
+          ref: el => $options.listRef(el, contentRef),
+          id: $options.id + '_list',
+          class: normalizeClass(['p-multiselect-items p-component', styleClass]),
+          style: normalizeStyle(contentStyle),
+          role: "listbox",
+          "aria-multiselectable": "true"
+        }, [(openBlock(true), createElementBlock(Fragment, null, renderList(items, (option, i) => {
+          return openBlock(), createElementBlock(Fragment, {
+            key: $options.getOptionRenderKey(option, $options.getOptionIndex(i, getItemOptions))
+          }, [$options.isOptionGroup(option) ? (openBlock(), createElementBlock("li", {
+            key: 0,
+            id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
+            style: normalizeStyle({
+              height: itemSize ? itemSize + 'px' : undefined
+            }),
+            class: "p-multiselect-item-group",
+            role: "option"
+          }, [renderSlot(_ctx.$slots, "optiongroup", {
+            option: option.optionGroup,
+            index: $options.getOptionIndex(i, getItemOptions)
+          }, () => [createTextVNode(toDisplayString$1($options.getOptionGroupLabel(option.optionGroup)), 1)])], 12, _hoisted_15)) : withDirectives((openBlock(), createElementBlock("li", {
+            key: 1,
+            id: $options.id + '_' + $options.getOptionIndex(i, getItemOptions),
+            style: normalizeStyle({
+              height: itemSize ? itemSize + 'px' : undefined
+            }),
+            class: normalizeClass(['p-multiselect-item', {
+              'p-highlight': $options.isSelected(option),
+              'p-focus': $data.focusedOptionIndex === $options.getOptionIndex(i, getItemOptions),
+              'p-disabled': $options.isOptionDisabled(option)
+            }]),
+            role: "option",
+            "aria-label": $options.getOptionLabel(option),
+            "aria-selected": $options.isSelected(option),
+            "aria-disabled": $options.isOptionDisabled(option),
+            "aria-setsize": $options.ariaSetSize,
+            "aria-posinset": $options.getAriaPosInset($options.getOptionIndex(i, getItemOptions)),
+            onClick: $event => $options.onOptionSelect($event, option, $options.getOptionIndex(i, getItemOptions), true),
+            onMousemove: $event => $options.onOptionMouseMove($event, $options.getOptionIndex(i, getItemOptions))
+          }, [createElementVNode("div", _hoisted_17, [createElementVNode("div", {
+            class: normalizeClass(['p-checkbox-box', {
+              'p-highlight': $options.isSelected(option)
+            }])
+          }, [createElementVNode("span", {
+            class: normalizeClass(['p-checkbox-icon', {
+              [$props.checkboxIcon]: $options.isSelected(option)
+            }])
+          }, null, 2)], 2)]), renderSlot(_ctx.$slots, "option", {
+            option: option,
+            index: $options.getOptionIndex(i, getItemOptions)
+          }, () => [createElementVNode("span", null, toDisplayString$1($options.getOptionLabel(option)), 1)])], 46, _hoisted_16)), [[_directive_ripple]])], 64);
+        }), 128)), $data.filterValue && (!items || items && items.length === 0) ? (openBlock(), createElementBlock("li", _hoisted_18, [renderSlot(_ctx.$slots, "emptyfilter", {}, () => [createTextVNode(toDisplayString$1($options.emptyFilterMessageText), 1)])])) : !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("li", _hoisted_19, [renderSlot(_ctx.$slots, "empty", {}, () => [createTextVNode(toDisplayString$1($options.emptyMessageText), 1)])])) : createCommentVNode("", true)], 14, _hoisted_14$1), !$props.options || $props.options && $props.options.length === 0 ? (openBlock(), createElementBlock("span", _hoisted_20, toDisplayString$1($options.emptyMessageText), 1)) : createCommentVNode("", true), createElementVNode("span", _hoisted_21, toDisplayString$1($options.selectedMessageText), 1)]),
+        _: 2
+      }, [_ctx.$slots.loader ? {
+        name: "loader",
+        fn: withCtx(({
+          options
+        }) => [renderSlot(_ctx.$slots, "loader", {
+          options: options
+        })]),
+        key: "0"
+      } : undefined]), 1040, ["items", "style", "disabled"])], 4), renderSlot(_ctx.$slots, "footer", {
+        value: $props.modelValue,
+        options: $options.visibleOptions
+      }), createElementVNode("span", {
+        ref: "lastHiddenFocusableElementOnOverlay",
+        role: "presentation",
+        "aria-hidden": "true",
+        class: "p-hidden-accessible p-hidden-focusable",
+        tabindex: 0,
+        onFocus: _cache[12] || (_cache[12] = (...args) => $options.onLastHiddenFocus && $options.onLastHiddenFocus(...args))
+      }, null, 544)], 16)) : createCommentVNode("", true)]),
+      _: 3
+    }, 8, ["onEnter", "onAfterEnter", "onLeave", "onAfterLeave"])]),
+    _: 3
+  }, 8, ["appendTo"])], 2);
+}
+
+function styleInject$6(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$b = "\n.p-multiselect {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    cursor: pointer;\n    position: relative;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-multiselect-trigger {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n}\n.p-multiselect-label-container {\n    overflow: hidden;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    cursor: pointer;\n}\n.p-multiselect-label {\n    display: block;\n    white-space: nowrap;\n    cursor: pointer;\n    overflow: hidden;\n    text-overflow: ellipsis;\n}\n.p-multiselect-label-empty {\n    overflow: hidden;\n    visibility: hidden;\n}\n.p-multiselect-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-multiselect-token-icon {\n    cursor: pointer;\n}\n.p-multiselect .p-multiselect-panel {\n    min-width: 100%;\n}\n.p-multiselect-panel {\n    position: absolute;\n    top: 0;\n    left: 0;\n}\n.p-multiselect-items-wrapper {\n    overflow: auto;\n}\n.p-multiselect-items {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n}\n.p-multiselect-item {\n    cursor: pointer;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    font-weight: normal;\n    white-space: nowrap;\n    position: relative;\n    overflow: hidden;\n}\n.p-multiselect-item-group {\n    cursor: auto;\n}\n.p-multiselect-header {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n}\n.p-multiselect-filter-container {\n    position: relative;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-multiselect-filter-icon {\n    position: absolute;\n    top: 50%;\n    margin-top: -0.5rem;\n}\n.p-multiselect-filter-container .p-inputtext {\n    width: 100%;\n}\n.p-multiselect-close {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    overflow: hidden;\n    position: relative;\n    margin-left: auto;\n}\n.p-fluid .p-multiselect {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$6(css_248z$b);
+script$C.render = render$a;
+
+var script$B = {
+  name: 'Chips',
+  emits: ['update:modelValue', 'add', 'remove', 'focus', 'blur'],
+  props: {
+    modelValue: {
+      type: Array,
+      default: null
+    },
+    max: {
+      type: Number,
+      default: null
+    },
+    separator: {
+      type: [String, Object],
+      default: null
+    },
+    addOnBlur: {
+      type: Boolean,
+      default: null
+    },
+    allowDuplicate: {
+      type: Boolean,
+      default: true
+    },
+    placeholder: {
+      type: String,
+      default: null
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    inputId: {
+      type: String,
+      default: null
+    },
+    inputClass: {
+      type: String,
+      default: null
+    },
+    inputStyle: {
+      type: null,
+      default: null
+    },
+    inputProps: {
+      type: null,
+      default: null
+    },
+    removeTokenIcon: {
+      type: String,
+      default: 'pi pi-times-circle'
+    },
+    'aria-labelledby': {
+      type: String,
+      default: null
+    },
+    'aria-label': {
+      type: String,
+      default: null
+    }
+  },
+
+  data() {
+    return {
+      id: UniqueComponentId(),
+      inputValue: null,
+      focused: false,
+      focusedIndex: null
+    };
+  },
+
+  methods: {
+    onWrapperClick() {
+      this.$refs.input.focus();
+    },
+
+    onInput(event) {
+      this.inputValue = event.target.value;
+      this.focusedIndex = null;
+    },
+
+    onFocus(event) {
+      this.focused = true;
+      this.focusedIndex = null;
+      this.$emit('focus', event);
+    },
+
+    onBlur(event) {
+      this.focused = false;
+      this.focusedIndex = null;
+
+      if (this.addOnBlur) {
+        this.addItem(event, event.target.value, false);
+      }
+
+      this.$emit('blur', event);
+    },
+
+    onKeyDown(event) {
+      const inputValue = event.target.value;
+
+      switch (event.code) {
+        case 'Backspace':
+          if (inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
+            if (this.focusedIndex !== null) {
+              this.removeItem(event, this.focusedIndex);
+            } else this.removeItem(event, this.modelValue.length - 1);
+          }
+
+          break;
+
+        case 'Enter':
+          if (inputValue && inputValue.trim().length && !this.maxedOut) {
+            this.addItem(event, inputValue, true);
+          }
+
+          break;
+
+        case 'ArrowLeft':
+          if (inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
+            this.$refs.container.focus();
+          }
+
+          break;
+
+        case 'ArrowRight':
+          event.stopPropagation();
+          break;
+
+        default:
+          if (this.separator) {
+            if (this.separator === event.key || event.key.match(this.separator)) {
+              this.addItem(event, inputValue, true);
+            }
+          }
+
+          break;
+      }
+    },
+
+    onPaste(event) {
+      if (this.separator) {
+        let pastedData = (event.clipboardData || window['clipboardData']).getData('Text');
+
+        if (pastedData) {
+          let value = this.modelValue || [];
+          let pastedValues = pastedData.split(this.separator);
+          pastedValues = pastedValues.filter(val => this.allowDuplicate || value.indexOf(val) === -1);
+          value = [...value, ...pastedValues];
+          this.updateModel(event, value, true);
+        }
+      }
+    },
+
+    onContainerFocus() {
+      this.focused = true;
+    },
+
+    onContainerBlur() {
+      this.focusedIndex = -1;
+      this.focused = false;
+    },
+
+    onContainerKeyDown(event) {
+      switch (event.code) {
+        case 'ArrowLeft':
+          this.onArrowLeftKeyOn(event);
+          break;
+
+        case 'ArrowRight':
+          this.onArrowRightKeyOn(event);
+          break;
+
+        case 'Backspace':
+          this.onBackspaceKeyOn(event);
+          break;
+      }
+    },
+
+    onArrowLeftKeyOn() {
+      if (this.inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
+        this.focusedIndex = this.focusedIndex === null ? this.modelValue.length - 1 : this.focusedIndex - 1;
+        if (this.focusedIndex < 0) this.focusedIndex = 0;
+      }
+    },
+
+    onArrowRightKeyOn() {
+      if (this.inputValue.length === 0 && this.modelValue && this.modelValue.length > 0) {
+        if (this.focusedIndex === this.modelValue.length - 1) {
+          this.focusedIndex = null;
+          this.$refs.input.focus();
+        } else {
+          this.focusedIndex++;
+        }
+      }
+    },
+
+    onBackspaceKeyOn(event) {
+      if (this.focusedIndex !== null) {
+        this.removeItem(event, this.focusedIndex);
+      }
+    },
+
+    updateModel(event, value, preventDefault) {
+      this.$emit('update:modelValue', value);
+      this.$emit('add', {
+        originalEvent: event,
+        value: value
+      });
+      this.$refs.input.value = '';
+      this.inputValue = '';
+      setTimeout(() => {
+        this.maxedOut && (this.focused = false);
+      }, 0);
+
+      if (preventDefault) {
+        event.preventDefault();
+      }
+    },
+
+    addItem(event, item, preventDefault) {
+      if (item && item.trim().length) {
+        let value = this.modelValue ? [...this.modelValue] : [];
+
+        if (this.allowDuplicate || value.indexOf(item) === -1) {
+          value.push(item);
+          this.updateModel(event, value, preventDefault);
+        }
+      }
+    },
+
+    removeItem(event, index) {
+      if (this.disabled) {
+        return;
+      }
+
+      let values = [...this.modelValue];
+      const removedItem = values.splice(index, 1);
+      this.focusedIndex = null;
+      this.$refs.input.focus();
+      this.$emit('update:modelValue', values);
+      this.$emit('remove', {
+        originalEvent: event,
+        value: removedItem
+      });
+    }
+
+  },
+  computed: {
+    maxedOut() {
+      return this.max && this.modelValue && this.max === this.modelValue.length;
+    },
+
+    containerClass() {
+      return ['p-chips p-component p-inputwrapper', {
+        'p-disabled': this.disabled,
+        'p-focus': this.focused,
+        'p-inputwrapper-filled': this.modelValue && this.modelValue.length || this.inputValue && this.inputValue.length,
+        'p-inputwrapper-focus': this.focused
+      }];
+    },
+
+    focusedOptionId() {
+      return this.focusedIndex !== null ? `${this.id}_chips_item_${this.focusedIndex}` : null;
+    }
+
+  }
+};
+const _hoisted_1$f = ["aria-labelledby", "aria-label", "aria-activedescendant"];
+const _hoisted_2$c = ["id", "aria-label", "aria-setsize", "aria-posinset"];
+const _hoisted_3$b = {
+  class: "p-chips-token-label"
+};
+const _hoisted_4$7 = ["onClick"];
+const _hoisted_5$7 = {
+  class: "p-chips-input-token",
+  role: "option"
+};
+const _hoisted_6$6 = ["id", "disabled", "placeholder"];
+
+function render$9(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: normalizeClass($options.containerClass)
+  }, [createElementVNode("ul", {
+    ref: "container",
+    class: "p-inputtext p-chips-multiple-container",
+    tabindex: "-1",
+    role: "listbox",
+    "aria-orientation": "horizontal",
+    "aria-labelledby": _ctx.ariaLabelledby,
+    "aria-label": _ctx.ariaLabel,
+    "aria-activedescendant": $data.focused ? $options.focusedOptionId : undefined,
+    onClick: _cache[5] || (_cache[5] = $event => $options.onWrapperClick()),
+    onFocus: _cache[6] || (_cache[6] = (...args) => $options.onContainerFocus && $options.onContainerFocus(...args)),
+    onBlur: _cache[7] || (_cache[7] = (...args) => $options.onContainerBlur && $options.onContainerBlur(...args)),
+    onKeydown: _cache[8] || (_cache[8] = (...args) => $options.onContainerKeyDown && $options.onContainerKeyDown(...args))
+  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($props.modelValue, (val, i) => {
+    return openBlock(), createElementBlock("li", {
+      key: `${i}_${val}`,
+      id: $data.id + '_chips_item_' + i,
+      role: "option",
+      class: normalizeClass(['p-chips-token', {
+        'p-focus': $data.focusedIndex === i
+      }]),
+      "aria-label": val,
+      "aria-selected": true,
+      "aria-setsize": $props.modelValue.length,
+      "aria-posinset": i + 1
+    }, [renderSlot(_ctx.$slots, "chip", {
+      value: val
+    }, () => [createElementVNode("span", _hoisted_3$b, toDisplayString$1(val), 1)]), createElementVNode("span", {
+      class: normalizeClass(['p-chips-token-icon', $props.removeTokenIcon]),
+      onClick: $event => $options.removeItem($event, i),
+      "aria-hidden": "true"
+    }, null, 10, _hoisted_4$7)], 10, _hoisted_2$c);
+  }), 128)), createElementVNode("li", _hoisted_5$7, [createElementVNode("input", mergeProps({
+    ref: "input",
+    id: $props.inputId,
+    type: "text",
+    class: $props.inputClass,
+    style: $props.inputStyle,
+    disabled: $props.disabled || $options.maxedOut,
+    placeholder: $props.placeholder,
+    onFocus: _cache[0] || (_cache[0] = $event => $options.onFocus($event)),
+    onBlur: _cache[1] || (_cache[1] = $event => $options.onBlur($event)),
+    onInput: _cache[2] || (_cache[2] = (...args) => $options.onInput && $options.onInput(...args)),
+    onKeydown: _cache[3] || (_cache[3] = $event => $options.onKeyDown($event)),
+    onPaste: _cache[4] || (_cache[4] = $event => $options.onPaste($event))
+  }, $props.inputProps), null, 16, _hoisted_6$6)])], 40, _hoisted_1$f)], 2);
+}
+
+function styleInject$5(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$a = "\n.p-chips {\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-multiple-container {\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    cursor: text;\n    overflow: hidden;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-chips-token {\n    cursor: default;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-flex: 0;\n        -ms-flex: 0 0 auto;\n            flex: 0 0 auto;\n}\n.p-chips-input-token {\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n    display: -webkit-inline-box;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n}\n.p-chips-token-icon {\n    cursor: pointer;\n}\n.p-chips-input-token input {\n    border: 0 none;\n    outline: 0 none;\n    background-color: transparent;\n    margin: 0;\n    padding: 0;\n    -webkit-box-shadow: none;\n            box-shadow: none;\n    border-radius: 0;\n    width: 100%;\n}\n.p-fluid .p-chips {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n";
+styleInject$5(css_248z$a);
+script$B.render = render$9;
+
+var script$A = {
+  props: {
+    modelValue : [Array],
+    field : Object
+},
+  emits: [
+    "update:modelValue"
+],
+  setup(__props, { emit: emits }) {
+
+const props = __props;
+
+
+
+
+
+
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(val) {
+        if (val.length == 0) val =null;
+        emits('update:modelValue', val);
+    }
+});
+
+const model = inject("model");
+const store = new Model(model);
+const id = (store.active_id) ? store.active_id : store.parent_id;
+const client = inject("client");
+
+const options = ref([]);
+
+if (props.field.reference || props.field.recursive) {
+    onMounted(() => {
+        props.field.getOptions(client, model, id)
+        .then(response => options.value =response);
+    });
+} else if (props.field.name == '--id') {
+    let vals = [];
+    for(let row of store.data) {
+        vals.push({'key' : row['--id'], value : getLabel(store.fields, row) });
+    }
+    options.value = vals;
+}
+
+
+
+return (_ctx, _cache) => {
+  return (__props.field.reference || __props.field.name =='--id')
+    ? (openBlock(), createBlock(unref(script$C), {
+        key: 0,
+        placeholder: "Please Select",
+        field: __props.field,
+        options: options.value,
+        optionLabel: "value",
+        optionValue: "key",
+        modelValue: unref(value),
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null))
+      }, null, 8 /* PROPS */, ["field", "options", "modelValue"]))
+    : (openBlock(), createBlock(unref(script$B), {
+        key: 1,
+        modelValue: unref(value),
+        "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
+      }, null, 8 /* PROPS */, ["modelValue"]))
+}
+}
+
+};
+
+script$A.__file = "presstojam/src/components/filter/id-filter.vue";
+
+var script$z = {
+  props: {
+    bind : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const repo = inject("repo");
+
+const value = computed({
+    get() {
+        return repo.filters[props.bind.cell.name];
+    },
+    set(ival) {
+        let obj = null;
+        if (ival) {
+            obj = {};
+            if (ival[0]) obj.min = props.bind.cell.buildString(ival[0]);
+            if (ival[1]) obj.max = props.bind.cell.buildString(ival[1]);
+        }
+        const filters = repo.filters;
+        if (filters[props.bind.cell.name] != ival) {
+            filters[props.bind.cell.name] = ival;
+            repo.reload();
+        }
+    }
+});
+
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$18), {
+    modelValue: unref(value),
+    "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
+    selectionMode: "range",
+    manualInput: false
+  }, null, 8 /* PROPS */, ["modelValue"]))
+}
+}
+
+};
+
+script$z.__file = "presstojam/src/components/filter/time-filter.vue";
+
+var script$y = {
+  props: {
+    bind : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const repo = inject("repo");
+
+const options = ref([]);
+
+const value = computed({
+    get() {
+        return repo.filters[props.bind.cell.name];
+    },
+    set(val) {
+        const filter = repo.filters;
+        if (!val.length) {
+            if (filter[props.bind.name]) {
+                delete filter[props.bind.cell.name];
+                repo.reload();
+            }
+        } else {
+            if (props.bind.cell.isEnum()) {
+                filter[props.bind.cell.name] = val;
+            } else {
+                const oval = [];
+                for(const i in val) {
+                    oval.push("%" + val[i] + "%");
+                }
+            }
+            repo.reload();
+        }
+    }
+});
+
+const tag = computed(() => {
+if (props.bind.cell.isEnum()) {
+    const coptions = [];
+    for(let i in props.bind.cell.list) {
+        coptions.push({ key : props.bind.cell.list[i], value : props.bind.cell.list[i] });
+    }
+
+    options.value = coptions;
+    return "select";
+} else {
+    return "input";
+}
+});
+
+
+
+return (_ctx, _cache) => {
+  return (unref(tag)=='select')
+    ? (openBlock(), createBlock(unref(script$C), {
+        key: 0,
+        display: "chip",
+        placeholder: "Please Select",
+        modelValue: unref(value),
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(value) ? (value).value = $event : null)),
+        options: options.value,
+        optionLabel: "key",
+        optionValue: "value"
+      }, null, 8 /* PROPS */, ["modelValue", "options"]))
+    : (unref(tag)=='input')
+      ? (openBlock(), createBlock(unref(script$B), {
+          key: 1,
+          modelValue: unref(value),
+          "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => (isRef(value) ? (value).value = $event : null))
+        }, null, 8 /* PROPS */, ["modelValue"]))
+      : createCommentVNode("v-if", true)
+}
+}
+
+};
+
+script$y.__file = "presstojam/src/components/filter/string-filter.vue";
+
+var script$x = {
+  props: {
+    bind : Object,
+},
+  setup(__props) {
+
+ 
+
+
+
+return (_ctx, _cache) => {
+  return (__props.bind.cell.type=='number')
+    ? (openBlock(), createBlock(script$E, {
+        key: 0,
+        bind: __props.bind
+      }, null, 8 /* PROPS */, ["bind"]))
+    : (__props.bind.cell.type=='flag')
+      ? (openBlock(), createBlock(script$D, {
+          key: 1,
+          bind: __props.bind
+        }, null, 8 /* PROPS */, ["bind"]))
+      : (__props.bind.cell.type=='id')
+        ? (openBlock(), createBlock(script$A, {
+            key: 2,
+            bind: __props.bind
+          }, null, 8 /* PROPS */, ["bind"]))
+        : (__props.bind.cell.type=='time')
+          ? (openBlock(), createBlock(script$z, {
+              key: 3,
+              bind: __props.bind
+            }, null, 8 /* PROPS */, ["bind"]))
+          : (__props.bind.cell.type=='string')
+            ? (openBlock(), createBlock(script$y, {
+                key: 4,
+                bind: __props.bind
+              }, null, 8 /* PROPS */, ["bind"]))
+            : createCommentVNode("v-if", true)
+}
+}
+
+};
+
+script$x.__file = "presstojam/src/components/filter/filter-field.vue";
+
+const _hoisted_1$e = { class: "ptj-filter" };
+   
+   
+var script$w = {
+  props: {
+    bind : {
+        type : Object,
+        required : true
+    }
+   },
+  setup(__props) {
+
+const props = __props;
+
+   
+   
+
+   const model = inject("model");
+  
+   let overlay = new ref();
+
+  
+   const val = computed({
+        get() {
+            return props.bind.value;
+        },
+        set(val) {
+            if(Array.isArray(val)) {
+                for(let vl of val) {
+                    const res = props.bind.cell.validate(vl);
+                    if (res) {
+                        break;
+                    }
+                }
+            } else {
+                props.bind.cell.validate(val);
+            }
+        }
+    });
+
+
+   function toggle(e) {
+        overlay.value.toggle(e);
+   }
+
+   const badge = computed(() => {
+        if (props.bind.value) {
+            if (Array.isArray(props.bind.value)) return props.bind.value.length.toString();
+            else return "1";
+        } else {
+            return "";
+        }
+   });
+
+   
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("div", _hoisted_1$e, [
+    createVNode(unref(script$1K), {
+      type: "button",
+      label: _ctx.$t('models.' + unref(model).name + '.fields.' + __props.bind.cell.name + '.label'),
+      onClick: toggle,
+      "aria-haspopup": "true",
+      "aria-controls": "overlay",
+      badge: unref(badge),
+      class: "p-button-secondary"
+    }, null, 8 /* PROPS */, ["label", "badge"]),
+    createVNode(unref(script$P), {
+      ref_key: "overlay",
+      ref: overlay,
+      appendTo: "body",
+      showCloseIcon: true,
+      id: 'overlay_' + __props.bind.cell.name,
+      style: {"width":"450px"},
+      breakpoints: {'960px': '75vw'}
+    }, {
+      default: withCtx(() => [
+        createElementVNode("div", null, [
+          createVNode(script$x, {
+            bind: __props.bind,
+            modelValue: unref(val),
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(val) ? (val).value = $event : null))
+          }, null, 8 /* PROPS */, ["bind", "modelValue"])
+        ])
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["id"])
+  ]))
+}
+}
+
+};
+
+script$w.__file = "presstojam/src/components/filter/filter.vue";
+
+var filter = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': script$w
+});
+
+const _hoisted_1$d = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
+const _hoisted_2$b = /*#__PURE__*/createTextVNode(" Filters ");
+const _hoisted_3$a = { class: "p-buttonset" };
+
+
+var script$v = {
+  props: {
+    repo : {
+        type : Object,
+        required : true
+    },
+    name : String
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const model = props.repo.model;
+
+provide("model", model);
+provide("repo", props.repo);
+
+const fields = model.getEnabledCells();
+const filtercells = {};
+
+for(const i in fields) {
+    const field = fields[i];
+    if (i == "--owner" || i == "--sort" || i== "--parent" || field.type == "asset" || field.type == "json" || field.encrypted) continue;
+    filtercells[i] = new Bind(field);
+}
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$$), {
+    toggleable: true,
+    collapsed: true
+  }, {
+    legend: withCtx(() => [
+      _hoisted_1$d,
+      _hoisted_2$b
+    ]),
+    default: withCtx(() => [
+      createElementVNode("span", _hoisted_3$a, [
+        (openBlock(), createElementBlock(Fragment, null, renderList(filtercells, (field) => {
+          return createVNode(script$w, {
+            class: "ptj-filter",
+            bind: field,
+            key: field.name
+          }, null, 8 /* PROPS */, ["bind"])
+        }), 64 /* STABLE_FRAGMENT */))
+      ])
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+var css_248z$9 = "\n.filter-form-vue-vue-type-style-index-0-id-46638ba7-lang_ptj-filter__24-2N { \r\n    display : inline-block;\n}\r\n";
+styleInject$t(css_248z$9);
+
+script$v.__file = "presstojam/src/components/filter/filter-form.vue";
+
+const _hoisted_1$c = /*#__PURE__*/createElementVNode("i", { class: "pi pi-filter" }, null, -1 /* HOISTED */);
+const _hoisted_2$a = /*#__PURE__*/createTextVNode(" Groups ");
+const _hoisted_3$9 = { style: {"text-align":"right"} };
+
+
+var script$u = {
+  props: {
+    repo : Object,
+    name : String
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const groups = ref(props.repo.groups);
+const fields = props.repo.model.fields;
+
+const cells = computed(() => {
+    const group_cells = [];
+    for(let i in fields) {
+        const field = fields[i];
+        if (field.type == "id") {
+            if (field.reference_type == ReferenceTypes.REFERENCE) group_cells.push(field);
+        } else if (field.type == "flag" || (field.type == "string" && field.isEnum())) {
+            group_cells.push(field);
+        }
+    }
+    return group_cells;
+});
+
+
+function update() {
+    props.repo.groups = groups.value;
+    props.repo.reload();
+    trigger("group_form", props.name, groups.value);
+} 
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$$), {
+    toggleable: true,
+    collapsed: true
+  }, {
+    legend: withCtx(() => [
+      _hoisted_1$c,
+      _hoisted_2$a
+    ]),
+    default: withCtx(() => [
+      (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
+        return (openBlock(), createElementBlock("span", null, [
+          createElementVNode("label", null, toDisplayString$1(cell.name), 1 /* TEXT */),
+          createVNode(unref(script$1H), {
+            name: "group",
+            modelValue: groups.value,
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((groups).value = $event)),
+            value: cell.name
+          }, null, 8 /* PROPS */, ["modelValue", "value"])
+        ]))
+      }), 256 /* UNKEYED_FRAGMENT */)),
+      createElementVNode("p", _hoisted_3$9, [
+        createVNode(unref(script$1K), {
+          label: _ctx.$t('btns.filter'),
+          onClick: update
+        }, null, 8 /* PROPS */, ["label"])
+      ])
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+script$u.__file = "presstojam/src/components/group/group-form.vue";
+
+class ReportData extends Data {
+  constructor(model, field) {
+    super(model);
+    this._aggregate = null;
+    this._filters = [];
+    this._field = field;
+    this._aggregate = "COUNT";
+    this._groups = [];
+    this._time_group;
+    this._load_line_promise = null;
+    this._data.value = [];
+  }
+
+  get filters() {
+    return this._filters;
+  }
+
+  set filters(filters) {
+    this._filters = filters;
+  }
+
+  get groups() {
+    return this._groups;
+  }
+
+  set groups(groups) {
+    this._groups = groups;
+  }
+
+  get aggregate() {
+    return this._aggregate;
+  }
+
+  set aggregate(agg) {
+    this._aggregate = agg;
+  }
+
+  set timegroup(timegroup) {
+    this._time_group = timegroup;
+  }
+
+  get field() {
+    return this._field;
+  }
+
+  get type() {
+    return "report";
+  }
+
+  getDataSets(response) {
+    const data_sets = {};
+    if (response.length == 0) return data_sets;
+
+    if (this._groups.length == 0) {
+      data_sets["main"] = [response[0].count];
+    } else {
+      for (const row of response) {
+        let keys = [];
+
+        for (const group of this._groups) {
+          keys.push(group + ":" + row[group]);
+        }
+
+        const key = keys.join(", ");
+        if (!data_sets[key]) data_sets[key] = [];
+        data_sets[key].push(row.count);
+      }
+    }
+
+    return data_sets;
+  }
+
+  load(type) {
+    if (!this._load_promise) {
+      this._is_loading.value = true;
+      this._model.limit = 0;
+      const groups = { ...this._groups
+      };
+
+      if (type == 'line') {
+        if (this._time_group) {
+          groups.push({
+            name: '--created',
+            func: 'DATEPART',
+            args: {}
+          });
+        }
+      }
+
+      this._model.group = groups;
+      this._load_promise = this._model.loadReport(this._filters, this._field, this._aggregate).then(response => {
+        const data = this.getDataSets(response);
+        const datasets = [];
+
+        for (const key in data) {
+          datasets.push({
+            label: key,
+            data: data[key]
+          });
+        }
+
+        this._is_loading.value = false;
+        this._data = datasets;
+        return this._data;
+      }).catch(e => {
+        console.log(e);
+        this._is_loading.value = false;
+        throw e;
+      });
+    }
+
+    return this._load_promise;
+  }
+
+  reload(type) {
+    return this.load(type);
+  }
+
+}
+
+var script$t = {
+  name: 'Toolbar',
+  props: {
+    'aria-labelledby': {
+      type: String,
+      default: null
+    }
+  }
+};
+const _hoisted_1$b = ["aria-labelledby"];
+const _hoisted_2$9 = {
+  class: "p-toolbar-group-left"
+};
+const _hoisted_3$8 = {
+  class: "p-toolbar-group-right"
+};
+
+function render$8(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: "p-toolbar p-component",
+    role: "toolbar",
+    "aria-labelledby": _ctx.ariaLabelledby
+  }, [createElementVNode("div", _hoisted_2$9, [renderSlot(_ctx.$slots, "start")]), createElementVNode("div", _hoisted_3$8, [renderSlot(_ctx.$slots, "end")])], 8, _hoisted_1$b);
+}
+
+function styleInject$4(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$8 = "\n.p-toolbar {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: justify;\n        -ms-flex-pack: justify;\n            justify-content: space-between;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n}\n.p-toolbar-group-left,\n.p-toolbar-group-right {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n}\n";
+styleInject$4(css_248z$8);
+script$t.render = render$8;
+
+var script$s = {
   name: 'TabView',
   emits: ['update:activeIndex', 'tab-change', 'tab-click'],
   props: {
@@ -43436,25 +40944,25 @@ var script$b = {
     ripple: Ripple
   }
 };
-const _hoisted_1$3 = {
+const _hoisted_1$a = {
   class: "p-tabview-nav-container"
 };
-const _hoisted_2$3 = ["tabindex", "aria-label"];
+const _hoisted_2$8 = ["tabindex", "aria-label"];
 
-const _hoisted_3$3 = /*#__PURE__*/createElementVNode("span", {
+const _hoisted_3$7 = /*#__PURE__*/createElementVNode("span", {
   class: "pi pi-chevron-left",
   "aria-hidden": "true"
 }, null, -1);
 
-const _hoisted_4$3 = [_hoisted_3$3];
-const _hoisted_5$3 = {
+const _hoisted_4$6 = [_hoisted_3$7];
+const _hoisted_5$6 = {
   ref: "nav",
   class: "p-tabview-nav",
   role: "tablist"
 };
-const _hoisted_6$3 = ["data-index"];
-const _hoisted_7$1 = ["id", "tabindex", "aria-disabled", "aria-selected", "aria-controls", "onClick", "onKeydown"];
-const _hoisted_8$1 = {
+const _hoisted_6$5 = ["data-index"];
+const _hoisted_7$3 = ["id", "tabindex", "aria-disabled", "aria-selected", "aria-controls", "onClick", "onKeydown"];
+const _hoisted_8$2 = {
   key: 0,
   class: "p-tabview-title"
 };
@@ -43477,12 +40985,12 @@ const _hoisted_13 = {
 };
 const _hoisted_14 = ["aria-labelledby"];
 
-function render$5(_ctx, _cache, $props, $setup, $data, $options) {
+function render$7(_ctx, _cache, $props, $setup, $data, $options) {
   const _directive_ripple = resolveDirective("ripple");
 
   return openBlock(), createElementBlock("div", {
     class: normalizeClass($options.contentClasses)
-  }, [createElementVNode("div", _hoisted_1$3, [$props.scrollable && !$data.isPrevButtonDisabled ? withDirectives((openBlock(), createElementBlock("button", mergeProps({
+  }, [createElementVNode("div", _hoisted_1$a, [$props.scrollable && !$data.isPrevButtonDisabled ? withDirectives((openBlock(), createElementBlock("button", mergeProps({
     key: 0,
     ref: "prevBtn",
     type: "button",
@@ -43490,11 +40998,11 @@ function render$5(_ctx, _cache, $props, $setup, $data, $options) {
     tabindex: $props.tabindex,
     "aria-label": $options.prevButtonAriaLabel,
     onClick: _cache[0] || (_cache[0] = (...args) => $options.onPrevButtonClick && $options.onPrevButtonClick(...args))
-  }, $props.previousButtonProps), _hoisted_4$3, 16, _hoisted_2$3)), [[_directive_ripple]]) : createCommentVNode("", true), createElementVNode("div", {
+  }, $props.previousButtonProps), _hoisted_4$6, 16, _hoisted_2$8)), [[_directive_ripple]]) : createCommentVNode("", true), createElementVNode("div", {
     ref: "content",
     class: "p-tabview-nav-content",
     onScroll: _cache[1] || (_cache[1] = (...args) => $options.onScroll && $options.onScroll(...args))
-  }, [createElementVNode("ul", _hoisted_5$3, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.tabs, (tab, i) => {
+  }, [createElementVNode("ul", _hoisted_5$6, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.tabs, (tab, i) => {
     return openBlock(), createElementBlock("li", mergeProps({
       key: $options.getKey(tab, i),
       style: $options.getTabProp(tab, 'headerStyle'),
@@ -43511,9 +41019,9 @@ function render$5(_ctx, _cache, $props, $setup, $data, $options) {
       "aria-controls": $options.getTabContentId(i),
       onClick: $event => $options.onTabClick($event, tab, i),
       onKeydown: $event => $options.onTabKeyDown($event, tab, i)
-    }, $options.getTabProp(tab, 'headerActionProps')), [tab.props && tab.props.header ? (openBlock(), createElementBlock("span", _hoisted_8$1, toDisplayString$1(tab.props.header), 1)) : createCommentVNode("", true), tab.children && tab.children.header ? (openBlock(), createBlock(resolveDynamicComponent(tab.children.header), {
+    }, $options.getTabProp(tab, 'headerActionProps')), [tab.props && tab.props.header ? (openBlock(), createElementBlock("span", _hoisted_8$2, toDisplayString$1(tab.props.header), 1)) : createCommentVNode("", true), tab.children && tab.children.header ? (openBlock(), createBlock(resolveDynamicComponent(tab.children.header), {
       key: 1
-    })) : createCommentVNode("", true)], 16, _hoisted_7$1)), [[_directive_ripple]])], 16, _hoisted_6$3);
+    })) : createCommentVNode("", true)], 16, _hoisted_7$3)), [[_directive_ripple]])], 16, _hoisted_6$5);
   }), 128)), createElementVNode("li", _hoisted_9, null, 512)], 512)], 544), $props.scrollable && !$data.isNextButtonDisabled ? withDirectives((openBlock(), createElementBlock("button", mergeProps({
     key: 1,
     ref: "nextBtn",
@@ -43533,6 +41041,733 @@ function render$5(_ctx, _cache, $props, $setup, $data, $options) {
       "aria-labelledby": $options.getTabHeaderActionId(i)
     }, $options.getTabProp(tab, 'contentProps')), [(openBlock(), createBlock(resolveDynamicComponent(tab)))], 16, _hoisted_14)), [[vShow, $props.lazy ? true : $options.isTabActive(i)]]) : createCommentVNode("", true)], 64);
   }), 128))])], 2);
+}
+
+function styleInject$3(css, ref) {
+  if (ref === void 0) ref = {};
+  var insertAt = ref.insertAt;
+
+  if (!css || typeof document === 'undefined') {
+    return;
+  }
+
+  var head = document.head || document.getElementsByTagName('head')[0];
+  var style = document.createElement('style');
+  style.type = 'text/css';
+
+  if (insertAt === 'top') {
+    if (head.firstChild) {
+      head.insertBefore(style, head.firstChild);
+    } else {
+      head.appendChild(style);
+    }
+  } else {
+    head.appendChild(style);
+  }
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var css_248z$7 = "\n.p-tabview-nav-container {\n    position: relative;\n}\n.p-tabview-scrollable .p-tabview-nav-container {\n    overflow: hidden;\n}\n.p-tabview-nav-content {\n    overflow-x: auto;\n    overflow-y: hidden;\n    scroll-behavior: smooth;\n    scrollbar-width: none;\n    -ms-scroll-chaining: contain auto;\n        overscroll-behavior: contain auto;\n}\n.p-tabview-nav {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-tabview-header-action {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    position: relative;\n    text-decoration: none;\n    overflow: hidden;\n}\n.p-tabview-ink-bar {\n    display: none;\n    z-index: 1;\n}\n.p-tabview-header-action:focus {\n    z-index: 1;\n}\n.p-tabview-title {\n    line-height: 1;\n    white-space: nowrap;\n}\n.p-tabview-nav-btn {\n    position: absolute;\n    top: 0;\n    z-index: 2;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tabview-nav-prev {\n    left: 0;\n}\n.p-tabview-nav-next {\n    right: 0;\n}\n.p-tabview-nav-content::-webkit-scrollbar {\n    display: none;\n}\n";
+styleInject$3(css_248z$7);
+script$s.render = render$7;
+
+var script$r = {
+  name: 'TabPanel',
+  props: {
+    header: null,
+    headerStyle: null,
+    headerClass: null,
+    headerProps: null,
+    headerActionProps: null,
+    contentStyle: null,
+    contentClass: null,
+    contentProps: null,
+    disabled: Boolean
+  }
+};
+
+function render$6(_ctx, _cache, $props, $setup, $data, $options) {
+  return renderSlot(_ctx.$slots, "default");
+}
+
+script$r.render = render$6;
+
+const _hoisted_1$9 = /*#__PURE__*/createElementVNode("label", null, "Aggregates", -1 /* HOISTED */);
+
+
+
+var script$q = {
+  props: {
+    schema : Object
+},
+  async setup(__props) {
+
+let __temp, __restore;
+
+const props = __props;
+
+const summary_repo = new ReportData(props.schema.name);
+(
+  ([__temp,__restore] = withAsyncContext(() => summary_repo.load())),
+  await __temp,
+  __restore()
+);
+
+const repos = [];
+for(let i in props.schema.numeric) {
+    if (i == "--sort") continue;
+    const repo = new ReportData(props.schema.name, props.schema.numeric[i]);
+    (
+  ([__temp,__restore] = withAsyncContext(() => repo.load())),
+  await __temp,
+  __restore()
+);
+    repos.push(repo);
+}
+
+//menu bar functions
+
+const type = ref('bar');
+
+function toggleType(itype) {
+    type.value = itype;
+}
+
+const agg = ref('COUNT');
+const timevalue = ref('daily');
+
+const aggvalue = computed({
+    get() {
+        return agg.value;
+    },
+    set(val) {
+        props.repo.aggregate = val;
+        agg.value = val;
+    }
+});
+
+const aggregates = [
+    { name : 'count', value : 'COUNT'},
+    { name : 'average', value : 'AVG'},
+    { name : 'minimum', value : 'MIN'},
+    { name : 'maximum', value : 'MAX'}
+];
+
+const time_groups = [
+    { name : 'Hourly', value : 'hourly'},
+    { name : 'Daily', value : 'daily'},
+    { name : 'Weekly', value : 'weekly'},
+    { name : 'Monthly', value : 'monthly'},
+    { name : 'Yearly', value : 'yearly'}
+];
+
+
+
+
+//subscribe / unsubscribe
+
+subscribe("group_form", props.schema.name, (name, groups) => {
+    if (name == props.schema.name) {
+         for(const repo of repos) {
+            repo.groups = groups;
+            repo.reload(type.value);
+        }
+    }
+});
+
+
+subscribe("filter_form", props.schema.name, (name, filters) => {
+    if (name == props.schema.name) {
+        for(const repo of repos) {
+            repo.filters = filters;
+            repo.reload();
+        }
+    }
+});
+
+onBeforeUnmount(() => {
+    unsubscribe("group_form", props.schema.name);
+    unsubscribe("filter_form", props.schema.name);
+});
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1M), null, {
+    title: withCtx(() => [
+      createTextVNode(toDisplayString$1(_ctx.$t("models." + props.schema.name  + ".title")), 1 /* TEXT */)
+    ]),
+    content: withCtx(() => [
+      createVNode(script$v, {
+        repo: unref(summary_repo),
+        name: props.schema.name
+      }, null, 8 /* PROPS */, ["repo", "name"]),
+      createVNode(script$u, {
+        repo: unref(summary_repo),
+        name: props.schema.name
+      }, null, 8 /* PROPS */, ["repo", "name"]),
+      createVNode(unref(script$t), null, {
+        start: withCtx(() => [
+          _hoisted_1$9,
+          createVNode(unref(script$1v), {
+            optionValue: "value",
+            optionLabel: "name",
+            modelValue: unref(aggvalue),
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(aggvalue) ? (aggvalue).value = $event : null)),
+            options: aggregates
+          }, null, 8 /* PROPS */, ["modelValue"]),
+          withDirectives(createElementVNode("label", null, "Time Groups", 512 /* NEED_PATCH */), [
+            [vShow, type.value=='line']
+          ]),
+          withDirectives(createVNode(unref(script$1v), {
+            optionValue: "value",
+            optionLabel: "name",
+            modelValue: timevalue.value,
+            "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((timevalue).value = $event)),
+            options: time_groups
+          }, null, 8 /* PROPS */, ["modelValue"]), [
+            [vShow, type.value=='line']
+          ])
+        ]),
+        end: withCtx(() => [
+          (type.value=='bar')
+            ? (openBlock(), createBlock(unref(script$1K), {
+                key: 0,
+                onClick: _cache[2] || (_cache[2] = $event => (toggleType('line'))),
+                label: "Line Chart",
+                icon: "pi pi-chart-line",
+                class: "mr-2"
+              }))
+            : (openBlock(), createBlock(unref(script$1K), {
+                key: 1,
+                onClick: _cache[3] || (_cache[3] = $event => (toggleType('bar'))),
+                label: "Bar Chart",
+                icon: "pi pi-chart-bar",
+                class: "mr-2"
+              }))
+        ]),
+        _: 1 /* STABLE */
+      }),
+      createVNode(unref(script$s), null, {
+        default: withCtx(() => [
+          createVNode(unref(script$r), { header: "Summary" }, {
+            default: withCtx(() => [
+              createVNode(script$F, {
+                repo: unref(summary_repo),
+                type: type.value
+              }, null, 8 /* PROPS */, ["repo", "type"])
+            ]),
+            _: 1 /* STABLE */
+          }),
+          (openBlock(), createElementBlock(Fragment, null, renderList(repos, (repo) => {
+            return createVNode(unref(script$r), {
+              header: _ctx.$t('models.' + props.schema.name + '.fields.' + repo.field + '.label')
+            }, {
+              default: withCtx(() => [
+                createVNode(script$F, {
+                  repo: repo,
+                  type: type.value
+                }, null, 8 /* PROPS */, ["repo", "type"])
+              ]),
+              _: 2 /* DYNAMIC */
+            }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["header"])
+          }), 64 /* STABLE_FRAGMENT */))
+        ]),
+        _: 1 /* STABLE */
+      })
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+script$q.__file = "presstojam/src/components/reports/report-display.vue";
+
+var script$p = {
+  props: {
+    model : String
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const entities = getEntities();
+
+const report_models = [];
+
+for(let i in entities) {
+    const entity = entities[i];
+    const parent = getRoot(entity);
+    if (parent.name == props.model) {
+        const obj = {name : entity.name, numeric : []};
+        for(const field in entity.cells) {
+            if (entity.cells[field].type == "number") {
+                obj.numeric.push(field);
+            }
+        }
+        report_models.push(obj);
+    }
+}
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("div", null, [
+    (openBlock(), createElementBlock(Fragment, null, renderList(report_models, (obj) => {
+      return createVNode(script$q, {
+        key: obj.name,
+        schema: obj
+      }, null, 8 /* PROPS */, ["schema"])
+    }), 64 /* STABLE_FRAGMENT */))
+  ]))
+}
+}
+
+};
+
+script$p.__file = "presstojam/src/components/reports/report.vue";
+
+var report = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': script$p
+});
+
+var script$o = {
+  name: 'Splitter',
+  emits: ['resizestart', 'resizeend'],
+  props: {
+    layout: {
+      type: String,
+      default: 'horizontal'
+    },
+    gutterSize: {
+      type: Number,
+      default: 4
+    },
+    stateKey: {
+      type: String,
+      default: null
+    },
+    stateStorage: {
+      type: String,
+      default: 'session'
+    },
+    step: {
+      type: Number,
+      default: 5
+    }
+  },
+  dragging: false,
+  mouseMoveListener: null,
+  mouseUpListener: null,
+  touchMoveListener: null,
+  touchEndListener: null,
+  size: null,
+  gutterElement: null,
+  startPos: null,
+  prevPanelElement: null,
+  nextPanelElement: null,
+  nextPanelSize: null,
+  prevPanelSize: null,
+  panelSizes: null,
+  prevPanelIndex: null,
+  timer: null,
+
+  data() {
+    return {
+      prevSize: null
+    };
+  },
+
+  mounted() {
+    if (this.panels && this.panels.length) {
+      let initialized = false;
+
+      if (this.isStateful()) {
+        initialized = this.restoreState();
+      }
+
+      if (!initialized) {
+        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
+        let _panelSizes = [];
+        this.panels.map((panel, i) => {
+          let panelInitialSize = panel.props && panel.props.size ? panel.props.size : null;
+          let panelSize = panelInitialSize || 100 / this.panels.length;
+          _panelSizes[i] = panelSize;
+          children[i].style.flexBasis = 'calc(' + panelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        });
+        this.panelSizes = _panelSizes;
+        this.prevSize = parseFloat(_panelSizes[0]).toFixed(4);
+      }
+    }
+  },
+
+  beforeUnmount() {
+    this.clear();
+    this.unbindMouseListeners();
+  },
+
+  methods: {
+    isSplitterPanel(child) {
+      return child.type.name === 'SplitterPanel';
+    },
+
+    onResizeStart(event, index, isKeyDown) {
+      this.gutterElement = event.currentTarget || event.target.parentElement;
+      this.size = this.horizontal ? DomHandler.getWidth(this.$el) : DomHandler.getHeight(this.$el);
+
+      if (!isKeyDown) {
+        this.dragging = true;
+        this.startPos = this.layout === 'horizontal' ? event.pageX || event.changedTouches[0].pageX : event.pageY || event.changedTouches[0].pageY;
+      }
+
+      this.prevPanelElement = this.gutterElement.previousElementSibling;
+      this.nextPanelElement = this.gutterElement.nextElementSibling;
+
+      if (isKeyDown) {
+        this.prevPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true);
+        this.nextPanelSize = this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true);
+      } else {
+        this.prevPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.prevPanelElement, true) : DomHandler.getOuterHeight(this.prevPanelElement, true)) / this.size;
+        this.nextPanelSize = 100 * (this.horizontal ? DomHandler.getOuterWidth(this.nextPanelElement, true) : DomHandler.getOuterHeight(this.nextPanelElement, true)) / this.size;
+      }
+
+      this.prevPanelIndex = index;
+      this.$emit('resizestart', {
+        originalEvent: event,
+        sizes: this.panelSizes
+      });
+      DomHandler.addClass(this.gutterElement, 'p-splitter-gutter-resizing');
+      DomHandler.addClass(this.$el, 'p-splitter-resizing');
+    },
+
+    onResize(event, step, isKeyDown) {
+      let newPos, newPrevPanelSize, newNextPanelSize;
+
+      if (isKeyDown) {
+        if (this.horizontal) {
+          newPrevPanelSize = 100 * (this.prevPanelSize + step) / this.size;
+          newNextPanelSize = 100 * (this.nextPanelSize - step) / this.size;
+        } else {
+          newPrevPanelSize = 100 * (this.prevPanelSize - step) / this.size;
+          newNextPanelSize = 100 * (this.nextPanelSize + step) / this.size;
+        }
+      } else {
+        if (this.horizontal) newPos = event.pageX * 100 / this.size - this.startPos * 100 / this.size;else newPos = event.pageY * 100 / this.size - this.startPos * 100 / this.size;
+        newPrevPanelSize = this.prevPanelSize + newPos;
+        newNextPanelSize = this.nextPanelSize - newPos;
+      }
+
+      this.prevSize = parseFloat(newPrevPanelSize).toFixed(4);
+
+      if (this.validateResize(newPrevPanelSize, newNextPanelSize)) {
+        this.prevPanelElement.style.flexBasis = 'calc(' + newPrevPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        this.nextPanelElement.style.flexBasis = 'calc(' + newNextPanelSize + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        this.panelSizes[this.prevPanelIndex] = newPrevPanelSize;
+        this.panelSizes[this.prevPanelIndex + 1] = newNextPanelSize;
+      }
+    },
+
+    onResizeEnd(event) {
+      if (this.isStateful()) {
+        this.saveState();
+      }
+
+      this.$emit('resizeend', {
+        originalEvent: event,
+        sizes: this.panelSizes
+      });
+      DomHandler.removeClass(this.gutterElement, 'p-splitter-gutter-resizing');
+      DomHandler.removeClass(this.$el, 'p-splitter-resizing');
+      this.clear();
+    },
+
+    repeat(event, index, step) {
+      this.onResizeStart(event, index, true);
+      this.onResize(event, step, true);
+    },
+
+    setTimer(event, index, step) {
+      this.clearTimer();
+      this.timer = setTimeout(() => {
+        this.repeat(event, index, step);
+      }, 40);
+    },
+
+    clearTimer() {
+      if (this.timer) {
+        clearTimeout(this.timer);
+      }
+    },
+
+    onGutterKeyUp() {
+      this.clearTimer();
+      this.onResizeEnd();
+    },
+
+    onGutterKeyDown(event, index) {
+      switch (event.code) {
+        case 'ArrowLeft':
+          {
+            if (this.layout === 'horizontal') {
+              this.setTimer(event, index, this.step * -1);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowRight':
+          {
+            if (this.layout === 'horizontal') {
+              this.setTimer(event, index, this.step);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowDown':
+          {
+            if (this.layout === 'vertical') {
+              this.setTimer(event, index, this.step * -1);
+            }
+
+            event.preventDefault();
+            break;
+          }
+
+        case 'ArrowUp':
+          {
+            if (this.layout === 'vertical') {
+              this.setTimer(event, index, this.step);
+            }
+
+            event.preventDefault();
+            break;
+          }
+      }
+    },
+
+    onGutterMouseDown(event, index) {
+      this.onResizeStart(event, index);
+      this.bindMouseListeners();
+    },
+
+    onGutterTouchStart(event, index) {
+      this.onResizeStart(event, index);
+      this.bindTouchListeners();
+      event.preventDefault();
+    },
+
+    onGutterTouchMove(event) {
+      this.onResize(event);
+      event.preventDefault();
+    },
+
+    onGutterTouchEnd(event) {
+      this.onResizeEnd(event);
+      this.unbindTouchListeners();
+      event.preventDefault();
+    },
+
+    bindMouseListeners() {
+      if (!this.mouseMoveListener) {
+        this.mouseMoveListener = event => this.onResize(event);
+
+        document.addEventListener('mousemove', this.mouseMoveListener);
+      }
+
+      if (!this.mouseUpListener) {
+        this.mouseUpListener = event => {
+          this.onResizeEnd(event);
+          this.unbindMouseListeners();
+        };
+
+        document.addEventListener('mouseup', this.mouseUpListener);
+      }
+    },
+
+    bindTouchListeners() {
+      if (!this.touchMoveListener) {
+        this.touchMoveListener = event => this.onResize(event.changedTouches[0]);
+
+        document.addEventListener('touchmove', this.touchMoveListener);
+      }
+
+      if (!this.touchEndListener) {
+        this.touchEndListener = event => {
+          this.resizeEnd(event);
+          this.unbindTouchListeners();
+        };
+
+        document.addEventListener('touchend', this.touchEndListener);
+      }
+    },
+
+    validateResize(newPrevPanelSize, newNextPanelSize) {
+      let prevPanelMinSize = ObjectUtils.getVNodeProp(this.panels[0], 'minSize');
+
+      if (this.panels[0].props && prevPanelMinSize && prevPanelMinSize > newPrevPanelSize) {
+        return false;
+      }
+
+      let newPanelMinSize = ObjectUtils.getVNodeProp(this.panels[1], 'minSize');
+
+      if (this.panels[1].props && newPanelMinSize && newPanelMinSize > newNextPanelSize) {
+        return false;
+      }
+
+      return true;
+    },
+
+    unbindMouseListeners() {
+      if (this.mouseMoveListener) {
+        document.removeEventListener('mousemove', this.mouseMoveListener);
+        this.mouseMoveListener = null;
+      }
+
+      if (this.mouseUpListener) {
+        document.removeEventListener('mouseup', this.mouseUpListener);
+        this.mouseUpListener = null;
+      }
+    },
+
+    unbindTouchListeners() {
+      if (this.touchMoveListener) {
+        document.removeEventListener('touchmove', this.touchMoveListener);
+        this.touchMoveListener = null;
+      }
+
+      if (this.touchEndListener) {
+        document.removeEventListener('touchend', this.touchEndListener);
+        this.touchEndListener = null;
+      }
+    },
+
+    clear() {
+      this.dragging = false;
+      this.size = null;
+      this.startPos = null;
+      this.prevPanelElement = null;
+      this.nextPanelElement = null;
+      this.prevPanelSize = null;
+      this.nextPanelSize = null;
+      this.gutterElement = null;
+      this.prevPanelIndex = null;
+    },
+
+    isStateful() {
+      return this.stateKey != null;
+    },
+
+    getStorage() {
+      switch (this.stateStorage) {
+        case 'local':
+          return window.localStorage;
+
+        case 'session':
+          return window.sessionStorage;
+
+        default:
+          throw new Error(this.stateStorage + ' is not a valid value for the state storage, supported values are "local" and "session".');
+      }
+    },
+
+    saveState() {
+      this.getStorage().setItem(this.stateKey, JSON.stringify(this.panelSizes));
+    },
+
+    restoreState() {
+      const storage = this.getStorage();
+      const stateString = storage.getItem(this.stateKey);
+
+      if (stateString) {
+        this.panelSizes = JSON.parse(stateString);
+        let children = [...this.$el.children].filter(child => DomHandler.hasClass(child, 'p-splitter-panel'));
+        children.forEach((child, i) => {
+          child.style.flexBasis = 'calc(' + this.panelSizes[i] + '% - ' + (this.panels.length - 1) * this.gutterSize + 'px)';
+        });
+        return true;
+      }
+
+      return false;
+    }
+
+  },
+  computed: {
+    containerClass() {
+      return ['p-splitter p-component', 'p-splitter-' + this.layout];
+    },
+
+    panels() {
+      const panels = [];
+      this.$slots.default().forEach(child => {
+        if (this.isSplitterPanel(child)) {
+          panels.push(child);
+        } else if (child.children instanceof Array) {
+          child.children.forEach(nestedChild => {
+            if (this.isSplitterPanel(nestedChild)) {
+              panels.push(nestedChild);
+            }
+          });
+        }
+      });
+      return panels;
+    },
+
+    gutterStyle() {
+      if (this.horizontal) return {
+        width: this.gutterSize + 'px'
+      };else return {
+        height: this.gutterSize + 'px'
+      };
+    },
+
+    horizontal() {
+      return this.layout === 'horizontal';
+    }
+
+  }
+};
+const _hoisted_1$8 = ["onMousedown", "onTouchstart", "onTouchmove", "onTouchend"];
+const _hoisted_2$7 = ["aria-orientation", "aria-valuenow", "onKeydown"];
+
+function render$5(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", {
+    class: normalizeClass($options.containerClass)
+  }, [(openBlock(true), createElementBlock(Fragment, null, renderList($options.panels, (panel, i) => {
+    return openBlock(), createElementBlock(Fragment, {
+      key: i
+    }, [(openBlock(), createBlock(resolveDynamicComponent(panel), {
+      tabindex: "-1"
+    })), i !== $options.panels.length - 1 ? (openBlock(), createElementBlock("div", {
+      key: 0,
+      class: "p-splitter-gutter",
+      role: "separator",
+      tabindex: "-1",
+      onMousedown: $event => $options.onGutterMouseDown($event, i),
+      onTouchstart: $event => $options.onGutterTouchStart($event, i),
+      onTouchmove: $event => $options.onGutterTouchMove($event, i),
+      onTouchend: $event => $options.onGutterTouchEnd($event, i)
+    }, [createElementVNode("div", {
+      class: "p-splitter-gutter-handle",
+      tabindex: "0",
+      style: normalizeStyle($options.gutterStyle),
+      "aria-orientation": $props.layout,
+      "aria-valuenow": $data.prevSize,
+      onKeyup: _cache[0] || (_cache[0] = (...args) => $options.onGutterKeyUp && $options.onGutterKeyUp(...args)),
+      onKeydown: $event => $options.onGutterKeyDown($event, i)
+    }, null, 44, _hoisted_2$7)], 40, _hoisted_1$8)) : createCommentVNode("", true)], 64);
+  }), 128))], 2);
 }
 
 function styleInject$2(css, ref) {
@@ -43564,35 +41799,4716 @@ function styleInject$2(css, ref) {
   }
 }
 
-var css_248z$3 = "\n.p-tabview-nav-container {\n    position: relative;\n}\n.p-tabview-scrollable .p-tabview-nav-container {\n    overflow: hidden;\n}\n.p-tabview-nav-content {\n    overflow-x: auto;\n    overflow-y: hidden;\n    scroll-behavior: smooth;\n    scrollbar-width: none;\n    -ms-scroll-chaining: contain auto;\n        overscroll-behavior: contain auto;\n}\n.p-tabview-nav {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    margin: 0;\n    padding: 0;\n    list-style-type: none;\n    -webkit-box-flex: 1;\n        -ms-flex: 1 1 auto;\n            flex: 1 1 auto;\n}\n.p-tabview-header-action {\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    position: relative;\n    text-decoration: none;\n    overflow: hidden;\n}\n.p-tabview-ink-bar {\n    display: none;\n    z-index: 1;\n}\n.p-tabview-header-action:focus {\n    z-index: 1;\n}\n.p-tabview-title {\n    line-height: 1;\n    white-space: nowrap;\n}\n.p-tabview-nav-btn {\n    position: absolute;\n    top: 0;\n    z-index: 2;\n    height: 100%;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n}\n.p-tabview-nav-prev {\n    left: 0;\n}\n.p-tabview-nav-next {\n    right: 0;\n}\n.p-tabview-nav-content::-webkit-scrollbar {\n    display: none;\n}\n";
-styleInject$2(css_248z$3);
-script$b.render = render$5;
+var css_248z$6 = "\n.p-splitter {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: nowrap;\n        flex-wrap: nowrap;\n}\n.p-splitter-vertical {\n    -webkit-box-orient: vertical;\n    -webkit-box-direction: normal;\n        -ms-flex-direction: column;\n            flex-direction: column;\n}\n.p-splitter-panel {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n}\n.p-splitter-panel-nested {\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n}\n.p-splitter-panel .p-splitter {\n    -webkit-box-flex: 1;\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n    border: 0 none;\n}\n.p-splitter-gutter {\n    -webkit-box-flex: 0;\n        -ms-flex-positive: 0;\n            flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    display: -webkit-box;\n    display: -ms-flexbox;\n    display: flex;\n    -webkit-box-align: center;\n        -ms-flex-align: center;\n            align-items: center;\n    -webkit-box-pack: center;\n        -ms-flex-pack: center;\n            justify-content: center;\n    cursor: col-resize;\n}\n.p-splitter-horizontal.p-splitter-resizing {\n    cursor: col-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-horizontal > .p-splitter-gutter > .p-splitter-gutter-handle {\n    height: 24px;\n    width: 100%;\n}\n.p-splitter-horizontal > .p-splitter-gutter {\n    cursor: col-resize;\n}\n.p-splitter-vertical.p-splitter-resizing {\n    cursor: row-resize;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n.p-splitter-vertical > .p-splitter-gutter {\n    cursor: row-resize;\n}\n.p-splitter-vertical > .p-splitter-gutter > .p-splitter-gutter-handle {\n    width: 24px;\n    height: 100%;\n}\n";
+styleInject$2(css_248z$6);
+script$o.render = render$5;
 
-var script$a = {
-  name: 'TabPanel',
+var script$n = {
+  name: 'SplitterPanel',
   props: {
-    header: null,
-    headerStyle: null,
-    headerClass: null,
-    headerProps: null,
-    headerActionProps: null,
-    contentStyle: null,
-    contentClass: null,
-    contentProps: null,
-    disabled: Boolean
+    size: {
+      type: Number,
+      default: null
+    },
+    minSize: {
+      type: Number,
+      default: null
+    }
+  },
+  computed: {
+    containerClass() {
+      return ['p-splitter-panel', {
+        'p-splitter-panel-nested': this.isNested
+      }];
+    },
+
+    isNested() {
+      return this.$slots.default().some(child => {
+        return child.type.name === 'Splitter';
+      });
+    }
+
   }
 };
 
 function render$4(_ctx, _cache, $props, $setup, $data, $options) {
-  return renderSlot(_ctx.$slots, "default");
+  return openBlock(), createElementBlock("div", {
+    ref: "container",
+    class: normalizeClass($options.containerClass)
+  }, [renderSlot(_ctx.$slots, "default")], 2);
 }
 
-script$a.render = render$4;
+script$n.render = render$4;
+
+var script$m = {
+  props: {
+        model : String,
+        id : Number
+    },
+  setup(__props) {
+
+    
+
+return (_ctx, _cache) => {
+  const _component_router_link = resolveComponent("router-link");
+
+  return (openBlock(), createBlock(_component_router_link, {
+    to: { name : 'primary', params : {'model' : __props.model, 'id' : __props.id }}
+  }, {
+    default: withCtx(({isActive, href, navigate}) => [
+      createVNode(unref(script$1K), {
+        icon: "pi pi-chevron-right",
+        class: "p-button-rounded p-button-success mr-2"
+      })
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["to"]))
+}
+}
+
+};
+
+script$m.__file = "presstojam/src/components/actions/primary-action.vue";
+
+var script$l = {
+  props: {
+        id : {
+            type : Number,
+            default : 0
+        },
+        name : String
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+
+      
+    subscribe("form_saved", "create", (response, method, model) => {
+        if (model.name == props.model.name && method == "post") {
+            trigger("effect_created", props.name, response);
+        }
+    });
+
+    onBeforeUnmount(() => {
+        unsubscribe("form_saved", "create");
+    });
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(script$U, {
+    entity_name: __props.name,
+    id: __props.id
+  }, null, 8 /* PROPS */, ["entity_name", "id"]))
+}
+}
+
+};
+
+script$l.__file = "presstojam/src/components/effects/create-effect.vue";
+
+var script$k = {
+  props: {
+       name : String,
+       id : {
+        type : Number,
+        default : 0
+       },
+       model : Object
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+    const i18n = inject("i18n");
+    const t = i18n.t;
+
+ 
+    const header = (props.model.parent) 
+        ? "Add " + t("models." + props.model.name + ".title", 1) + " to " + t("models." + props.model.parent + ".title", 1)
+        : "Create " + t("models." + props.model.name + ".title", 1);
+    if (props.parent_id) props.parent_id;
+
+    function createRow() {
+      trigger("dialog_open",
+        script$l, 
+        {
+            name : props.name,
+            id : props.id
+        }, 
+        header);
+    }
+    
+ 
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1K), {
+    label: "New",
+    icon: "pi pi-plus",
+    class: "p-button-success mr-2",
+    onClick: createRow
+  }))
+}
+}
+
+};
+
+script$k.__file = "presstojam/src/components/actions/create-action.vue";
+
+const _hoisted_1$7 = /*#__PURE__*/createElementVNode("p", null, "Are you sure you want to delete:", -1 /* HOISTED */);
+const _hoisted_2$6 = /*#__PURE__*/createTextVNode("Type ");
+const _hoisted_3$6 = /*#__PURE__*/createTextVNode(" in the box below");
+const _hoisted_4$5 = { class: "p-inputgroup" };
+const _hoisted_5$5 = /*#__PURE__*/createTextVNode("Delete");
+ 
+    
+var script$j = {
+  props: {
+        name : String,
+        data : Array,
+        repo : Object
+    },
+  setup(__props) {
+
+const props = __props;
+
+    const client = inject("client");
+
+    
+
+
+    const check_str = "delete";
+
+    let delval = ref("");
+
+    const disabled = computed(() => {
+        return (delval.value == check_str) ? false : true;
+    });
+
+
+    function del() {
+        let params = {};
+        const keys = [];
+     
+        for(const row of props.data) {
+            keys.push(row['--id']);
+        }
+        params["--id"] = keys;
+       
+
+        client.delete("/data/" +props.repo.store.name, params)
+        .then(() => {
+            repo.remove(keys);
+            trigger("effect_deleted", props.name);
+        })
+        .catch(e => console.log(e));
+    }
+    
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock(Fragment, null, [
+    _hoisted_1$7,
+    createElementVNode("ul", null, [
+      (openBlock(true), createElementBlock(Fragment, null, renderList(__props.data, (item) => {
+        return (openBlock(), createElementBlock("li", null, toDisplayString$1(unref(getLabel)(__props.repo.model.fields, item)), 1 /* TEXT */))
+      }), 256 /* UNKEYED_FRAGMENT */))
+    ]),
+    createElementVNode("p", null, [
+      _hoisted_2$6,
+      createElementVNode("i", null, toDisplayString$1(check_str)),
+      _hoisted_3$6
+    ]),
+    createElementVNode("div", _hoisted_4$5, [
+      createVNode(unref(script$1L), {
+        placeholder: check_str,
+        modelValue: unref(delval),
+        "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => (isRef(delval) ? (delval).value = $event : delval = $event))
+      }, null, 8 /* PROPS */, ["modelValue"]),
+      createVNode(unref(script$1K), {
+        label: "Delete",
+        disabled: unref(disabled),
+        icon: "pi pi-trash",
+        onClick: del,
+        class: "p-button-danger"
+      }, {
+        default: withCtx(() => [
+          _hoisted_5$5
+        ]),
+        _: 1 /* STABLE */
+      }, 8 /* PROPS */, ["disabled"])
+    ])
+  ], 64 /* STABLE_FRAGMENT */))
+}
+}
+
+};
+
+script$j.__file = "presstojam/src/components/effects/delete-effect.vue";
+
+var script$i = {
+  props: {
+        name : String,
+        data : [Object, Array]
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+
+    function delRow() {
+
+        const arg_data = (Array.isArray(props.data)) ? props.data : [props.data];
+        trigger(
+            "dialog_open",
+            script$j, 
+            {
+                name : props.name,
+                data : arg_data
+            }, 
+            "Delete");
+    }
+
+    const disabled = computed(() => {
+        return (!props.data) ? true : false;
+    });
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1K), {
+    label: "Delete",
+    icon: "pi pi-trash",
+    class: "p-button-danger",
+    disabled: unref(disabled),
+    onClick: delRow
+  }, null, 8 /* PROPS */, ["disabled"]))
+}
+}
+
+};
+
+script$i.__file = "presstojam/src/components/actions/delete-action.vue";
+
+/**!
+ * Sortable 1.15.0
+ * @author	RubaXa   <trash@rubaxa.org>
+ * @author	owenm    <owen23355@gmail.com>
+ * @license MIT
+ */
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+
+    if (enumerableOnly) {
+      symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+    }
+
+    keys.push.apply(keys, symbols);
+  }
+
+  return keys;
+}
+
+function _objectSpread2(target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i] != null ? arguments[i] : {};
+
+    if (i % 2) {
+      ownKeys(Object(source), true).forEach(function (key) {
+        _defineProperty(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys(Object(source)).forEach(function (key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
+    }
+  }
+
+  return target;
+}
+
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function (obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof = function (obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof(obj);
+}
+
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+function _extends() {
+  _extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  };
+
+  return _extends.apply(this, arguments);
+}
+
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+
+  return target;
+}
+
+function _objectWithoutProperties(source, excluded) {
+  if (source == null) return {};
+
+  var target = _objectWithoutPropertiesLoose(source, excluded);
+
+  var key, i;
+
+  if (Object.getOwnPropertySymbols) {
+    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+
+    for (i = 0; i < sourceSymbolKeys.length; i++) {
+      key = sourceSymbolKeys[i];
+      if (excluded.indexOf(key) >= 0) continue;
+      if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+      target[key] = source[key];
+    }
+  }
+
+  return target;
+}
+
+var version$1 = "1.15.0";
+
+function userAgent(pattern) {
+  if (typeof window !== 'undefined' && window.navigator) {
+    return !! /*@__PURE__*/navigator.userAgent.match(pattern);
+  }
+}
+
+var IE11OrLess = userAgent(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i);
+var Edge = userAgent(/Edge/i);
+var FireFox = userAgent(/firefox/i);
+var Safari = userAgent(/safari/i) && !userAgent(/chrome/i) && !userAgent(/android/i);
+var IOS = userAgent(/iP(ad|od|hone)/i);
+var ChromeForAndroid = userAgent(/chrome/i) && userAgent(/android/i);
+var captureMode = {
+  capture: false,
+  passive: false
+};
+
+function on(el, event, fn) {
+  el.addEventListener(event, fn, !IE11OrLess && captureMode);
+}
+
+function off(el, event, fn) {
+  el.removeEventListener(event, fn, !IE11OrLess && captureMode);
+}
+
+function matches(
+/**HTMLElement*/
+el,
+/**String*/
+selector) {
+  if (!selector) return;
+  selector[0] === '>' && (selector = selector.substring(1));
+
+  if (el) {
+    try {
+      if (el.matches) {
+        return el.matches(selector);
+      } else if (el.msMatchesSelector) {
+        return el.msMatchesSelector(selector);
+      } else if (el.webkitMatchesSelector) {
+        return el.webkitMatchesSelector(selector);
+      }
+    } catch (_) {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+function getParentOrHost(el) {
+  return el.host && el !== document && el.host.nodeType ? el.host : el.parentNode;
+}
+
+function closest(
+/**HTMLElement*/
+el,
+/**String*/
+selector,
+/**HTMLElement*/
+ctx, includeCTX) {
+  if (el) {
+    ctx = ctx || document;
+
+    do {
+      if (selector != null && (selector[0] === '>' ? el.parentNode === ctx && matches(el, selector) : matches(el, selector)) || includeCTX && el === ctx) {
+        return el;
+      }
+
+      if (el === ctx) break;
+      /* jshint boss:true */
+    } while (el = getParentOrHost(el));
+  }
+
+  return null;
+}
+
+var R_SPACE = /\s+/g;
+
+function toggleClass(el, name, state) {
+  if (el && name) {
+    if (el.classList) {
+      el.classList[state ? 'add' : 'remove'](name);
+    } else {
+      var className = (' ' + el.className + ' ').replace(R_SPACE, ' ').replace(' ' + name + ' ', ' ');
+      el.className = (className + (state ? ' ' + name : '')).replace(R_SPACE, ' ');
+    }
+  }
+}
+
+function css(el, prop, val) {
+  var style = el && el.style;
+
+  if (style) {
+    if (val === void 0) {
+      if (document.defaultView && document.defaultView.getComputedStyle) {
+        val = document.defaultView.getComputedStyle(el, '');
+      } else if (el.currentStyle) {
+        val = el.currentStyle;
+      }
+
+      return prop === void 0 ? val : val[prop];
+    } else {
+      if (!(prop in style) && prop.indexOf('webkit') === -1) {
+        prop = '-webkit-' + prop;
+      }
+
+      style[prop] = val + (typeof val === 'string' ? '' : 'px');
+    }
+  }
+}
+
+function matrix(el, selfOnly) {
+  var appliedTransforms = '';
+
+  if (typeof el === 'string') {
+    appliedTransforms = el;
+  } else {
+    do {
+      var transform = css(el, 'transform');
+
+      if (transform && transform !== 'none') {
+        appliedTransforms = transform + ' ' + appliedTransforms;
+      }
+      /* jshint boss:true */
+
+    } while (!selfOnly && (el = el.parentNode));
+  }
+
+  var matrixFn = window.DOMMatrix || window.WebKitCSSMatrix || window.CSSMatrix || window.MSCSSMatrix;
+  /*jshint -W056 */
+
+  return matrixFn && new matrixFn(appliedTransforms);
+}
+
+function find(ctx, tagName, iterator) {
+  if (ctx) {
+    var list = ctx.getElementsByTagName(tagName),
+        i = 0,
+        n = list.length;
+
+    if (iterator) {
+      for (; i < n; i++) {
+        iterator(list[i], i);
+      }
+    }
+
+    return list;
+  }
+
+  return [];
+}
+
+function getWindowScrollingElement() {
+  var scrollingElement = document.scrollingElement;
+
+  if (scrollingElement) {
+    return scrollingElement;
+  } else {
+    return document.documentElement;
+  }
+}
+/**
+ * Returns the "bounding client rect" of given element
+ * @param  {HTMLElement} el                       The element whose boundingClientRect is wanted
+ * @param  {[Boolean]} relativeToContainingBlock  Whether the rect should be relative to the containing block of (including) the container
+ * @param  {[Boolean]} relativeToNonStaticParent  Whether the rect should be relative to the relative parent of (including) the contaienr
+ * @param  {[Boolean]} undoScale                  Whether the container's scale() should be undone
+ * @param  {[HTMLElement]} container              The parent the element will be placed in
+ * @return {Object}                               The boundingClientRect of el, with specified adjustments
+ */
+
+
+function getRect(el, relativeToContainingBlock, relativeToNonStaticParent, undoScale, container) {
+  if (!el.getBoundingClientRect && el !== window) return;
+  var elRect, top, left, bottom, right, height, width;
+
+  if (el !== window && el.parentNode && el !== getWindowScrollingElement()) {
+    elRect = el.getBoundingClientRect();
+    top = elRect.top;
+    left = elRect.left;
+    bottom = elRect.bottom;
+    right = elRect.right;
+    height = elRect.height;
+    width = elRect.width;
+  } else {
+    top = 0;
+    left = 0;
+    bottom = window.innerHeight;
+    right = window.innerWidth;
+    height = window.innerHeight;
+    width = window.innerWidth;
+  }
+
+  if ((relativeToContainingBlock || relativeToNonStaticParent) && el !== window) {
+    // Adjust for translate()
+    container = container || el.parentNode; // solves #1123 (see: https://stackoverflow.com/a/37953806/6088312)
+    // Not needed on <= IE11
+
+    if (!IE11OrLess) {
+      do {
+        if (container && container.getBoundingClientRect && (css(container, 'transform') !== 'none' || relativeToNonStaticParent && css(container, 'position') !== 'static')) {
+          var containerRect = container.getBoundingClientRect(); // Set relative to edges of padding box of container
+
+          top -= containerRect.top + parseInt(css(container, 'border-top-width'));
+          left -= containerRect.left + parseInt(css(container, 'border-left-width'));
+          bottom = top + elRect.height;
+          right = left + elRect.width;
+          break;
+        }
+        /* jshint boss:true */
+
+      } while (container = container.parentNode);
+    }
+  }
+
+  if (undoScale && el !== window) {
+    // Adjust for scale()
+    var elMatrix = matrix(container || el),
+        scaleX = elMatrix && elMatrix.a,
+        scaleY = elMatrix && elMatrix.d;
+
+    if (elMatrix) {
+      top /= scaleY;
+      left /= scaleX;
+      width /= scaleX;
+      height /= scaleY;
+      bottom = top + height;
+      right = left + width;
+    }
+  }
+
+  return {
+    top: top,
+    left: left,
+    bottom: bottom,
+    right: right,
+    width: width,
+    height: height
+  };
+}
+/**
+ * Checks if a side of an element is scrolled past a side of its parents
+ * @param  {HTMLElement}  el           The element who's side being scrolled out of view is in question
+ * @param  {String}       elSide       Side of the element in question ('top', 'left', 'right', 'bottom')
+ * @param  {String}       parentSide   Side of the parent in question ('top', 'left', 'right', 'bottom')
+ * @return {HTMLElement}               The parent scroll element that the el's side is scrolled past, or null if there is no such element
+ */
+
+
+function isScrolledPast(el, elSide, parentSide) {
+  var parent = getParentAutoScrollElement(el, true),
+      elSideVal = getRect(el)[elSide];
+  /* jshint boss:true */
+
+  while (parent) {
+    var parentSideVal = getRect(parent)[parentSide],
+        visible = void 0;
+
+    if (parentSide === 'top' || parentSide === 'left') {
+      visible = elSideVal >= parentSideVal;
+    } else {
+      visible = elSideVal <= parentSideVal;
+    }
+
+    if (!visible) return parent;
+    if (parent === getWindowScrollingElement()) break;
+    parent = getParentAutoScrollElement(parent, false);
+  }
+
+  return false;
+}
+/**
+ * Gets nth child of el, ignoring hidden children, sortable's elements (does not ignore clone if it's visible)
+ * and non-draggable elements
+ * @param  {HTMLElement} el       The parent element
+ * @param  {Number} childNum      The index of the child
+ * @param  {Object} options       Parent Sortable's options
+ * @return {HTMLElement}          The child at index childNum, or null if not found
+ */
+
+
+function getChild(el, childNum, options, includeDragEl) {
+  var currentChild = 0,
+      i = 0,
+      children = el.children;
+
+  while (i < children.length) {
+    if (children[i].style.display !== 'none' && children[i] !== Sortable.ghost && (includeDragEl || children[i] !== Sortable.dragged) && closest(children[i], options.draggable, el, false)) {
+      if (currentChild === childNum) {
+        return children[i];
+      }
+
+      currentChild++;
+    }
+
+    i++;
+  }
+
+  return null;
+}
+/**
+ * Gets the last child in the el, ignoring ghostEl or invisible elements (clones)
+ * @param  {HTMLElement} el       Parent element
+ * @param  {selector} selector    Any other elements that should be ignored
+ * @return {HTMLElement}          The last child, ignoring ghostEl
+ */
+
+
+function lastChild(el, selector) {
+  var last = el.lastElementChild;
+
+  while (last && (last === Sortable.ghost || css(last, 'display') === 'none' || selector && !matches(last, selector))) {
+    last = last.previousElementSibling;
+  }
+
+  return last || null;
+}
+/**
+ * Returns the index of an element within its parent for a selected set of
+ * elements
+ * @param  {HTMLElement} el
+ * @param  {selector} selector
+ * @return {number}
+ */
+
+
+function index$2(el, selector) {
+  var index = 0;
+
+  if (!el || !el.parentNode) {
+    return -1;
+  }
+  /* jshint boss:true */
+
+
+  while (el = el.previousElementSibling) {
+    if (el.nodeName.toUpperCase() !== 'TEMPLATE' && el !== Sortable.clone && (!selector || matches(el, selector))) {
+      index++;
+    }
+  }
+
+  return index;
+}
+/**
+ * Returns the scroll offset of the given element, added with all the scroll offsets of parent elements.
+ * The value is returned in real pixels.
+ * @param  {HTMLElement} el
+ * @return {Array}             Offsets in the format of [left, top]
+ */
+
+
+function getRelativeScrollOffset(el) {
+  var offsetLeft = 0,
+      offsetTop = 0,
+      winScroller = getWindowScrollingElement();
+
+  if (el) {
+    do {
+      var elMatrix = matrix(el),
+          scaleX = elMatrix.a,
+          scaleY = elMatrix.d;
+      offsetLeft += el.scrollLeft * scaleX;
+      offsetTop += el.scrollTop * scaleY;
+    } while (el !== winScroller && (el = el.parentNode));
+  }
+
+  return [offsetLeft, offsetTop];
+}
+/**
+ * Returns the index of the object within the given array
+ * @param  {Array} arr   Array that may or may not hold the object
+ * @param  {Object} obj  An object that has a key-value pair unique to and identical to a key-value pair in the object you want to find
+ * @return {Number}      The index of the object in the array, or -1
+ */
+
+
+function indexOfObject(arr, obj) {
+  for (var i in arr) {
+    if (!arr.hasOwnProperty(i)) continue;
+
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key) && obj[key] === arr[i][key]) return Number(i);
+    }
+  }
+
+  return -1;
+}
+
+function getParentAutoScrollElement(el, includeSelf) {
+  // skip to window
+  if (!el || !el.getBoundingClientRect) return getWindowScrollingElement();
+  var elem = el;
+  var gotSelf = false;
+
+  do {
+    // we don't need to get elem css if it isn't even overflowing in the first place (performance)
+    if (elem.clientWidth < elem.scrollWidth || elem.clientHeight < elem.scrollHeight) {
+      var elemCSS = css(elem);
+
+      if (elem.clientWidth < elem.scrollWidth && (elemCSS.overflowX == 'auto' || elemCSS.overflowX == 'scroll') || elem.clientHeight < elem.scrollHeight && (elemCSS.overflowY == 'auto' || elemCSS.overflowY == 'scroll')) {
+        if (!elem.getBoundingClientRect || elem === document.body) return getWindowScrollingElement();
+        if (gotSelf || includeSelf) return elem;
+        gotSelf = true;
+      }
+    }
+    /* jshint boss:true */
+
+  } while (elem = elem.parentNode);
+
+  return getWindowScrollingElement();
+}
+
+function extend(dst, src) {
+  if (dst && src) {
+    for (var key in src) {
+      if (src.hasOwnProperty(key)) {
+        dst[key] = src[key];
+      }
+    }
+  }
+
+  return dst;
+}
+
+function isRectEqual(rect1, rect2) {
+  return Math.round(rect1.top) === Math.round(rect2.top) && Math.round(rect1.left) === Math.round(rect2.left) && Math.round(rect1.height) === Math.round(rect2.height) && Math.round(rect1.width) === Math.round(rect2.width);
+}
+
+var _throttleTimeout;
+
+function throttle(callback, ms) {
+  return function () {
+    if (!_throttleTimeout) {
+      var args = arguments,
+          _this = this;
+
+      if (args.length === 1) {
+        callback.call(_this, args[0]);
+      } else {
+        callback.apply(_this, args);
+      }
+
+      _throttleTimeout = setTimeout(function () {
+        _throttleTimeout = void 0;
+      }, ms);
+    }
+  };
+}
+
+function cancelThrottle() {
+  clearTimeout(_throttleTimeout);
+  _throttleTimeout = void 0;
+}
+
+function scrollBy(el, x, y) {
+  el.scrollLeft += x;
+  el.scrollTop += y;
+}
+
+function clone$2(el) {
+  var Polymer = window.Polymer;
+  var $ = window.jQuery || window.Zepto;
+
+  if (Polymer && Polymer.dom) {
+    return Polymer.dom(el).cloneNode(true);
+  } else if ($) {
+    return $(el).clone(true)[0];
+  } else {
+    return el.cloneNode(true);
+  }
+}
+
+var expando = 'Sortable' + new Date().getTime();
+
+function AnimationStateManager() {
+  var animationStates = [],
+      animationCallbackId;
+  return {
+    captureAnimationState: function captureAnimationState() {
+      animationStates = [];
+      if (!this.options.animation) return;
+      var children = [].slice.call(this.el.children);
+      children.forEach(function (child) {
+        if (css(child, 'display') === 'none' || child === Sortable.ghost) return;
+        animationStates.push({
+          target: child,
+          rect: getRect(child)
+        });
+
+        var fromRect = _objectSpread2({}, animationStates[animationStates.length - 1].rect); // If animating: compensate for current animation
+
+
+        if (child.thisAnimationDuration) {
+          var childMatrix = matrix(child, true);
+
+          if (childMatrix) {
+            fromRect.top -= childMatrix.f;
+            fromRect.left -= childMatrix.e;
+          }
+        }
+
+        child.fromRect = fromRect;
+      });
+    },
+    addAnimationState: function addAnimationState(state) {
+      animationStates.push(state);
+    },
+    removeAnimationState: function removeAnimationState(target) {
+      animationStates.splice(indexOfObject(animationStates, {
+        target: target
+      }), 1);
+    },
+    animateAll: function animateAll(callback) {
+      var _this = this;
+
+      if (!this.options.animation) {
+        clearTimeout(animationCallbackId);
+        if (typeof callback === 'function') callback();
+        return;
+      }
+
+      var animating = false,
+          animationTime = 0;
+      animationStates.forEach(function (state) {
+        var time = 0,
+            target = state.target,
+            fromRect = target.fromRect,
+            toRect = getRect(target),
+            prevFromRect = target.prevFromRect,
+            prevToRect = target.prevToRect,
+            animatingRect = state.rect,
+            targetMatrix = matrix(target, true);
+
+        if (targetMatrix) {
+          // Compensate for current animation
+          toRect.top -= targetMatrix.f;
+          toRect.left -= targetMatrix.e;
+        }
+
+        target.toRect = toRect;
+
+        if (target.thisAnimationDuration) {
+          // Could also check if animatingRect is between fromRect and toRect
+          if (isRectEqual(prevFromRect, toRect) && !isRectEqual(fromRect, toRect) && // Make sure animatingRect is on line between toRect & fromRect
+          (animatingRect.top - toRect.top) / (animatingRect.left - toRect.left) === (fromRect.top - toRect.top) / (fromRect.left - toRect.left)) {
+            // If returning to same place as started from animation and on same axis
+            time = calculateRealTime(animatingRect, prevFromRect, prevToRect, _this.options);
+          }
+        } // if fromRect != toRect: animate
+
+
+        if (!isRectEqual(toRect, fromRect)) {
+          target.prevFromRect = fromRect;
+          target.prevToRect = toRect;
+
+          if (!time) {
+            time = _this.options.animation;
+          }
+
+          _this.animate(target, animatingRect, toRect, time);
+        }
+
+        if (time) {
+          animating = true;
+          animationTime = Math.max(animationTime, time);
+          clearTimeout(target.animationResetTimer);
+          target.animationResetTimer = setTimeout(function () {
+            target.animationTime = 0;
+            target.prevFromRect = null;
+            target.fromRect = null;
+            target.prevToRect = null;
+            target.thisAnimationDuration = null;
+          }, time);
+          target.thisAnimationDuration = time;
+        }
+      });
+      clearTimeout(animationCallbackId);
+
+      if (!animating) {
+        if (typeof callback === 'function') callback();
+      } else {
+        animationCallbackId = setTimeout(function () {
+          if (typeof callback === 'function') callback();
+        }, animationTime);
+      }
+
+      animationStates = [];
+    },
+    animate: function animate(target, currentRect, toRect, duration) {
+      if (duration) {
+        css(target, 'transition', '');
+        css(target, 'transform', '');
+        var elMatrix = matrix(this.el),
+            scaleX = elMatrix && elMatrix.a,
+            scaleY = elMatrix && elMatrix.d,
+            translateX = (currentRect.left - toRect.left) / (scaleX || 1),
+            translateY = (currentRect.top - toRect.top) / (scaleY || 1);
+        target.animatingX = !!translateX;
+        target.animatingY = !!translateY;
+        css(target, 'transform', 'translate3d(' + translateX + 'px,' + translateY + 'px,0)');
+        this.forRepaintDummy = repaint(target); // repaint
+
+        css(target, 'transition', 'transform ' + duration + 'ms' + (this.options.easing ? ' ' + this.options.easing : ''));
+        css(target, 'transform', 'translate3d(0,0,0)');
+        typeof target.animated === 'number' && clearTimeout(target.animated);
+        target.animated = setTimeout(function () {
+          css(target, 'transition', '');
+          css(target, 'transform', '');
+          target.animated = false;
+          target.animatingX = false;
+          target.animatingY = false;
+        }, duration);
+      }
+    }
+  };
+}
+
+function repaint(target) {
+  return target.offsetWidth;
+}
+
+function calculateRealTime(animatingRect, fromRect, toRect, options) {
+  return Math.sqrt(Math.pow(fromRect.top - animatingRect.top, 2) + Math.pow(fromRect.left - animatingRect.left, 2)) / Math.sqrt(Math.pow(fromRect.top - toRect.top, 2) + Math.pow(fromRect.left - toRect.left, 2)) * options.animation;
+}
+
+var plugins$1 = [];
+var defaults$1 = {
+  initializeByDefault: true
+};
+var PluginManager = {
+  mount: function mount(plugin) {
+    // Set default static properties
+    for (var option in defaults$1) {
+      if (defaults$1.hasOwnProperty(option) && !(option in plugin)) {
+        plugin[option] = defaults$1[option];
+      }
+    }
+
+    plugins$1.forEach(function (p) {
+      if (p.pluginName === plugin.pluginName) {
+        throw "Sortable: Cannot mount plugin ".concat(plugin.pluginName, " more than once");
+      }
+    });
+    plugins$1.push(plugin);
+  },
+  pluginEvent: function pluginEvent(eventName, sortable, evt) {
+    var _this = this;
+
+    this.eventCanceled = false;
+
+    evt.cancel = function () {
+      _this.eventCanceled = true;
+    };
+
+    var eventNameGlobal = eventName + 'Global';
+    plugins$1.forEach(function (plugin) {
+      if (!sortable[plugin.pluginName]) return; // Fire global events if it exists in this sortable
+
+      if (sortable[plugin.pluginName][eventNameGlobal]) {
+        sortable[plugin.pluginName][eventNameGlobal](_objectSpread2({
+          sortable: sortable
+        }, evt));
+      } // Only fire plugin event if plugin is enabled in this sortable,
+      // and plugin has event defined
+
+
+      if (sortable.options[plugin.pluginName] && sortable[plugin.pluginName][eventName]) {
+        sortable[plugin.pluginName][eventName](_objectSpread2({
+          sortable: sortable
+        }, evt));
+      }
+    });
+  },
+  initializePlugins: function initializePlugins(sortable, el, defaults, options) {
+    plugins$1.forEach(function (plugin) {
+      var pluginName = plugin.pluginName;
+      if (!sortable.options[pluginName] && !plugin.initializeByDefault) return;
+      var initialized = new plugin(sortable, el, sortable.options);
+      initialized.sortable = sortable;
+      initialized.options = sortable.options;
+      sortable[pluginName] = initialized; // Add default options from plugin
+
+      _extends(defaults, initialized.defaults);
+    });
+
+    for (var option in sortable.options) {
+      if (!sortable.options.hasOwnProperty(option)) continue;
+      var modified = this.modifyOption(sortable, option, sortable.options[option]);
+
+      if (typeof modified !== 'undefined') {
+        sortable.options[option] = modified;
+      }
+    }
+  },
+  getEventProperties: function getEventProperties(name, sortable) {
+    var eventProperties = {};
+    plugins$1.forEach(function (plugin) {
+      if (typeof plugin.eventProperties !== 'function') return;
+
+      _extends(eventProperties, plugin.eventProperties.call(sortable[plugin.pluginName], name));
+    });
+    return eventProperties;
+  },
+  modifyOption: function modifyOption(sortable, name, value) {
+    var modifiedValue;
+    plugins$1.forEach(function (plugin) {
+      // Plugin must exist on the Sortable
+      if (!sortable[plugin.pluginName]) return; // If static option listener exists for this option, call in the context of the Sortable's instance of this plugin
+
+      if (plugin.optionListeners && typeof plugin.optionListeners[name] === 'function') {
+        modifiedValue = plugin.optionListeners[name].call(sortable[plugin.pluginName], value);
+      }
+    });
+    return modifiedValue;
+  }
+};
+
+function dispatchEvent(_ref) {
+  var sortable = _ref.sortable,
+      rootEl = _ref.rootEl,
+      name = _ref.name,
+      targetEl = _ref.targetEl,
+      cloneEl = _ref.cloneEl,
+      toEl = _ref.toEl,
+      fromEl = _ref.fromEl,
+      oldIndex = _ref.oldIndex,
+      newIndex = _ref.newIndex,
+      oldDraggableIndex = _ref.oldDraggableIndex,
+      newDraggableIndex = _ref.newDraggableIndex,
+      originalEvent = _ref.originalEvent,
+      putSortable = _ref.putSortable,
+      extraEventProperties = _ref.extraEventProperties;
+  sortable = sortable || rootEl && rootEl[expando];
+  if (!sortable) return;
+  var evt,
+      options = sortable.options,
+      onName = 'on' + name.charAt(0).toUpperCase() + name.substr(1); // Support for new CustomEvent feature
+
+  if (window.CustomEvent && !IE11OrLess && !Edge) {
+    evt = new CustomEvent(name, {
+      bubbles: true,
+      cancelable: true
+    });
+  } else {
+    evt = document.createEvent('Event');
+    evt.initEvent(name, true, true);
+  }
+
+  evt.to = toEl || rootEl;
+  evt.from = fromEl || rootEl;
+  evt.item = targetEl || rootEl;
+  evt.clone = cloneEl;
+  evt.oldIndex = oldIndex;
+  evt.newIndex = newIndex;
+  evt.oldDraggableIndex = oldDraggableIndex;
+  evt.newDraggableIndex = newDraggableIndex;
+  evt.originalEvent = originalEvent;
+  evt.pullMode = putSortable ? putSortable.lastPutMode : undefined;
+
+  var allEventProperties = _objectSpread2(_objectSpread2({}, extraEventProperties), PluginManager.getEventProperties(name, sortable));
+
+  for (var option in allEventProperties) {
+    evt[option] = allEventProperties[option];
+  }
+
+  if (rootEl) {
+    rootEl.dispatchEvent(evt);
+  }
+
+  if (options[onName]) {
+    options[onName].call(sortable, evt);
+  }
+}
+
+var _excluded = ["evt"];
+
+var pluginEvent = function pluginEvent(eventName, sortable) {
+  var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+      originalEvent = _ref.evt,
+      data = _objectWithoutProperties(_ref, _excluded);
+
+  PluginManager.pluginEvent.bind(Sortable)(eventName, sortable, _objectSpread2({
+    dragEl: dragEl,
+    parentEl: parentEl,
+    ghostEl: ghostEl,
+    rootEl: rootEl,
+    nextEl: nextEl,
+    lastDownEl: lastDownEl,
+    cloneEl: cloneEl,
+    cloneHidden: cloneHidden,
+    dragStarted: moved,
+    putSortable: putSortable,
+    activeSortable: Sortable.active,
+    originalEvent: originalEvent,
+    oldIndex: oldIndex,
+    oldDraggableIndex: oldDraggableIndex,
+    newIndex: newIndex,
+    newDraggableIndex: newDraggableIndex,
+    hideGhostForTarget: _hideGhostForTarget,
+    unhideGhostForTarget: _unhideGhostForTarget,
+    cloneNowHidden: function cloneNowHidden() {
+      cloneHidden = true;
+    },
+    cloneNowShown: function cloneNowShown() {
+      cloneHidden = false;
+    },
+    dispatchSortableEvent: function dispatchSortableEvent(name) {
+      _dispatchEvent({
+        sortable: sortable,
+        name: name,
+        originalEvent: originalEvent
+      });
+    }
+  }, data));
+};
+
+function _dispatchEvent(info) {
+  dispatchEvent(_objectSpread2({
+    putSortable: putSortable,
+    cloneEl: cloneEl,
+    targetEl: dragEl,
+    rootEl: rootEl,
+    oldIndex: oldIndex,
+    oldDraggableIndex: oldDraggableIndex,
+    newIndex: newIndex,
+    newDraggableIndex: newDraggableIndex
+  }, info));
+}
+
+var dragEl,
+    parentEl,
+    ghostEl,
+    rootEl,
+    nextEl,
+    lastDownEl,
+    cloneEl,
+    cloneHidden,
+    oldIndex,
+    newIndex,
+    oldDraggableIndex,
+    newDraggableIndex,
+    activeGroup,
+    putSortable,
+    awaitingDragStarted = false,
+    ignoreNextClick = false,
+    sortables = [],
+    tapEvt,
+    touchEvt,
+    lastDx,
+    lastDy,
+    tapDistanceLeft,
+    tapDistanceTop,
+    moved,
+    lastTarget,
+    lastDirection,
+    pastFirstInvertThresh = false,
+    isCircumstantialInvert = false,
+    targetMoveDistance,
+    // For positioning ghost absolutely
+ghostRelativeParent,
+    ghostRelativeParentInitialScroll = [],
+    // (left, top)
+_silent = false,
+    savedInputChecked = [];
+/** @const */
+
+var documentExists = typeof document !== 'undefined',
+    PositionGhostAbsolutely = IOS,
+    CSSFloatProperty = Edge || IE11OrLess ? 'cssFloat' : 'float',
+    // This will not pass for IE9, because IE9 DnD only works on anchors
+supportDraggable = documentExists && !ChromeForAndroid && !IOS && 'draggable' in document.createElement('div'),
+    supportCssPointerEvents = function () {
+  if (!documentExists) return; // false when <= IE11
+
+  if (IE11OrLess) {
+    return false;
+  }
+
+  var el = document.createElement('x');
+  el.style.cssText = 'pointer-events:auto';
+  return el.style.pointerEvents === 'auto';
+}(),
+    _detectDirection = function _detectDirection(el, options) {
+  var elCSS = css(el),
+      elWidth = parseInt(elCSS.width) - parseInt(elCSS.paddingLeft) - parseInt(elCSS.paddingRight) - parseInt(elCSS.borderLeftWidth) - parseInt(elCSS.borderRightWidth),
+      child1 = getChild(el, 0, options),
+      child2 = getChild(el, 1, options),
+      firstChildCSS = child1 && css(child1),
+      secondChildCSS = child2 && css(child2),
+      firstChildWidth = firstChildCSS && parseInt(firstChildCSS.marginLeft) + parseInt(firstChildCSS.marginRight) + getRect(child1).width,
+      secondChildWidth = secondChildCSS && parseInt(secondChildCSS.marginLeft) + parseInt(secondChildCSS.marginRight) + getRect(child2).width;
+
+  if (elCSS.display === 'flex') {
+    return elCSS.flexDirection === 'column' || elCSS.flexDirection === 'column-reverse' ? 'vertical' : 'horizontal';
+  }
+
+  if (elCSS.display === 'grid') {
+    return elCSS.gridTemplateColumns.split(' ').length <= 1 ? 'vertical' : 'horizontal';
+  }
+
+  if (child1 && firstChildCSS["float"] && firstChildCSS["float"] !== 'none') {
+    var touchingSideChild2 = firstChildCSS["float"] === 'left' ? 'left' : 'right';
+    return child2 && (secondChildCSS.clear === 'both' || secondChildCSS.clear === touchingSideChild2) ? 'vertical' : 'horizontal';
+  }
+
+  return child1 && (firstChildCSS.display === 'block' || firstChildCSS.display === 'flex' || firstChildCSS.display === 'table' || firstChildCSS.display === 'grid' || firstChildWidth >= elWidth && elCSS[CSSFloatProperty] === 'none' || child2 && elCSS[CSSFloatProperty] === 'none' && firstChildWidth + secondChildWidth > elWidth) ? 'vertical' : 'horizontal';
+},
+    _dragElInRowColumn = function _dragElInRowColumn(dragRect, targetRect, vertical) {
+  var dragElS1Opp = vertical ? dragRect.left : dragRect.top,
+      dragElS2Opp = vertical ? dragRect.right : dragRect.bottom,
+      dragElOppLength = vertical ? dragRect.width : dragRect.height,
+      targetS1Opp = vertical ? targetRect.left : targetRect.top,
+      targetS2Opp = vertical ? targetRect.right : targetRect.bottom,
+      targetOppLength = vertical ? targetRect.width : targetRect.height;
+  return dragElS1Opp === targetS1Opp || dragElS2Opp === targetS2Opp || dragElS1Opp + dragElOppLength / 2 === targetS1Opp + targetOppLength / 2;
+},
+
+/**
+ * Detects first nearest empty sortable to X and Y position using emptyInsertThreshold.
+ * @param  {Number} x      X position
+ * @param  {Number} y      Y position
+ * @return {HTMLElement}   Element of the first found nearest Sortable
+ */
+_detectNearestEmptySortable = function _detectNearestEmptySortable(x, y) {
+  var ret;
+  sortables.some(function (sortable) {
+    var threshold = sortable[expando].options.emptyInsertThreshold;
+    if (!threshold || lastChild(sortable)) return;
+    var rect = getRect(sortable),
+        insideHorizontally = x >= rect.left - threshold && x <= rect.right + threshold,
+        insideVertically = y >= rect.top - threshold && y <= rect.bottom + threshold;
+
+    if (insideHorizontally && insideVertically) {
+      return ret = sortable;
+    }
+  });
+  return ret;
+},
+    _prepareGroup = function _prepareGroup(options) {
+  function toFn(value, pull) {
+    return function (to, from, dragEl, evt) {
+      var sameGroup = to.options.group.name && from.options.group.name && to.options.group.name === from.options.group.name;
+
+      if (value == null && (pull || sameGroup)) {
+        // Default pull value
+        // Default pull and put value if same group
+        return true;
+      } else if (value == null || value === false) {
+        return false;
+      } else if (pull && value === 'clone') {
+        return value;
+      } else if (typeof value === 'function') {
+        return toFn(value(to, from, dragEl, evt), pull)(to, from, dragEl, evt);
+      } else {
+        var otherGroup = (pull ? to : from).options.group.name;
+        return value === true || typeof value === 'string' && value === otherGroup || value.join && value.indexOf(otherGroup) > -1;
+      }
+    };
+  }
+
+  var group = {};
+  var originalGroup = options.group;
+
+  if (!originalGroup || _typeof(originalGroup) != 'object') {
+    originalGroup = {
+      name: originalGroup
+    };
+  }
+
+  group.name = originalGroup.name;
+  group.checkPull = toFn(originalGroup.pull, true);
+  group.checkPut = toFn(originalGroup.put);
+  group.revertClone = originalGroup.revertClone;
+  options.group = group;
+},
+    _hideGhostForTarget = function _hideGhostForTarget() {
+  if (!supportCssPointerEvents && ghostEl) {
+    css(ghostEl, 'display', 'none');
+  }
+},
+    _unhideGhostForTarget = function _unhideGhostForTarget() {
+  if (!supportCssPointerEvents && ghostEl) {
+    css(ghostEl, 'display', '');
+  }
+}; // #1184 fix - Prevent click event on fallback if dragged but item not changed position
+
+
+if (documentExists && !ChromeForAndroid) {
+  document.addEventListener('click', function (evt) {
+    if (ignoreNextClick) {
+      evt.preventDefault();
+      evt.stopPropagation && evt.stopPropagation();
+      evt.stopImmediatePropagation && evt.stopImmediatePropagation();
+      ignoreNextClick = false;
+      return false;
+    }
+  }, true);
+}
+
+var nearestEmptyInsertDetectEvent = function nearestEmptyInsertDetectEvent(evt) {
+  if (dragEl) {
+    evt = evt.touches ? evt.touches[0] : evt;
+
+    var nearest = _detectNearestEmptySortable(evt.clientX, evt.clientY);
+
+    if (nearest) {
+      // Create imitation event
+      var event = {};
+
+      for (var i in evt) {
+        if (evt.hasOwnProperty(i)) {
+          event[i] = evt[i];
+        }
+      }
+
+      event.target = event.rootEl = nearest;
+      event.preventDefault = void 0;
+      event.stopPropagation = void 0;
+
+      nearest[expando]._onDragOver(event);
+    }
+  }
+};
+
+var _checkOutsideTargetEl = function _checkOutsideTargetEl(evt) {
+  if (dragEl) {
+    dragEl.parentNode[expando]._isOutsideThisEl(evt.target);
+  }
+};
+/**
+ * @class  Sortable
+ * @param  {HTMLElement}  el
+ * @param  {Object}       [options]
+ */
+
+
+function Sortable(el, options) {
+  if (!(el && el.nodeType && el.nodeType === 1)) {
+    throw "Sortable: `el` must be an HTMLElement, not ".concat({}.toString.call(el));
+  }
+
+  this.el = el; // root element
+
+  this.options = options = _extends({}, options); // Export instance
+
+  el[expando] = this;
+  var defaults = {
+    group: null,
+    sort: true,
+    disabled: false,
+    store: null,
+    handle: null,
+    draggable: /^[uo]l$/i.test(el.nodeName) ? '>li' : '>*',
+    swapThreshold: 1,
+    // percentage; 0 <= x <= 1
+    invertSwap: false,
+    // invert always
+    invertedSwapThreshold: null,
+    // will be set to same as swapThreshold if default
+    removeCloneOnHide: true,
+    direction: function direction() {
+      return _detectDirection(el, this.options);
+    },
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    ignore: 'a, img',
+    filter: null,
+    preventOnFilter: true,
+    animation: 0,
+    easing: null,
+    setData: function setData(dataTransfer, dragEl) {
+      dataTransfer.setData('Text', dragEl.textContent);
+    },
+    dropBubble: false,
+    dragoverBubble: false,
+    dataIdAttr: 'data-id',
+    delay: 0,
+    delayOnTouchOnly: false,
+    touchStartThreshold: (Number.parseInt ? Number : window).parseInt(window.devicePixelRatio, 10) || 1,
+    forceFallback: false,
+    fallbackClass: 'sortable-fallback',
+    fallbackOnBody: false,
+    fallbackTolerance: 0,
+    fallbackOffset: {
+      x: 0,
+      y: 0
+    },
+    supportPointer: Sortable.supportPointer !== false && 'PointerEvent' in window && !Safari,
+    emptyInsertThreshold: 5
+  };
+  PluginManager.initializePlugins(this, el, defaults); // Set default options
+
+  for (var name in defaults) {
+    !(name in options) && (options[name] = defaults[name]);
+  }
+
+  _prepareGroup(options); // Bind all private methods
+
+
+  for (var fn in this) {
+    if (fn.charAt(0) === '_' && typeof this[fn] === 'function') {
+      this[fn] = this[fn].bind(this);
+    }
+  } // Setup drag mode
+
+
+  this.nativeDraggable = options.forceFallback ? false : supportDraggable;
+
+  if (this.nativeDraggable) {
+    // Touch start threshold cannot be greater than the native dragstart threshold
+    this.options.touchStartThreshold = 1;
+  } // Bind events
+
+
+  if (options.supportPointer) {
+    on(el, 'pointerdown', this._onTapStart);
+  } else {
+    on(el, 'mousedown', this._onTapStart);
+    on(el, 'touchstart', this._onTapStart);
+  }
+
+  if (this.nativeDraggable) {
+    on(el, 'dragover', this);
+    on(el, 'dragenter', this);
+  }
+
+  sortables.push(this.el); // Restore sorting
+
+  options.store && options.store.get && this.sort(options.store.get(this) || []); // Add animation state manager
+
+  _extends(this, AnimationStateManager());
+}
+
+Sortable.prototype =
+/** @lends Sortable.prototype */
+{
+  constructor: Sortable,
+  _isOutsideThisEl: function _isOutsideThisEl(target) {
+    if (!this.el.contains(target) && target !== this.el) {
+      lastTarget = null;
+    }
+  },
+  _getDirection: function _getDirection(evt, target) {
+    return typeof this.options.direction === 'function' ? this.options.direction.call(this, evt, target, dragEl) : this.options.direction;
+  },
+  _onTapStart: function _onTapStart(
+  /** Event|TouchEvent */
+  evt) {
+    if (!evt.cancelable) return;
+
+    var _this = this,
+        el = this.el,
+        options = this.options,
+        preventOnFilter = options.preventOnFilter,
+        type = evt.type,
+        touch = evt.touches && evt.touches[0] || evt.pointerType && evt.pointerType === 'touch' && evt,
+        target = (touch || evt).target,
+        originalTarget = evt.target.shadowRoot && (evt.path && evt.path[0] || evt.composedPath && evt.composedPath()[0]) || target,
+        filter = options.filter;
+
+    _saveInputCheckedState(el); // Don't trigger start event when an element is been dragged, otherwise the evt.oldindex always wrong when set option.group.
+
+
+    if (dragEl) {
+      return;
+    }
+
+    if (/mousedown|pointerdown/.test(type) && evt.button !== 0 || options.disabled) {
+      return; // only left button and enabled
+    } // cancel dnd if original target is content editable
+
+
+    if (originalTarget.isContentEditable) {
+      return;
+    } // Safari ignores further event handling after mousedown
+
+
+    if (!this.nativeDraggable && Safari && target && target.tagName.toUpperCase() === 'SELECT') {
+      return;
+    }
+
+    target = closest(target, options.draggable, el, false);
+
+    if (target && target.animated) {
+      return;
+    }
+
+    if (lastDownEl === target) {
+      // Ignoring duplicate `down`
+      return;
+    } // Get the index of the dragged element within its parent
+
+
+    oldIndex = index$2(target);
+    oldDraggableIndex = index$2(target, options.draggable); // Check filter
+
+    if (typeof filter === 'function') {
+      if (filter.call(this, evt, target, this)) {
+        _dispatchEvent({
+          sortable: _this,
+          rootEl: originalTarget,
+          name: 'filter',
+          targetEl: target,
+          toEl: el,
+          fromEl: el
+        });
+
+        pluginEvent('filter', _this, {
+          evt: evt
+        });
+        preventOnFilter && evt.cancelable && evt.preventDefault();
+        return; // cancel dnd
+      }
+    } else if (filter) {
+      filter = filter.split(',').some(function (criteria) {
+        criteria = closest(originalTarget, criteria.trim(), el, false);
+
+        if (criteria) {
+          _dispatchEvent({
+            sortable: _this,
+            rootEl: criteria,
+            name: 'filter',
+            targetEl: target,
+            fromEl: el,
+            toEl: el
+          });
+
+          pluginEvent('filter', _this, {
+            evt: evt
+          });
+          return true;
+        }
+      });
+
+      if (filter) {
+        preventOnFilter && evt.cancelable && evt.preventDefault();
+        return; // cancel dnd
+      }
+    }
+
+    if (options.handle && !closest(originalTarget, options.handle, el, false)) {
+      return;
+    } // Prepare `dragstart`
+
+
+    this._prepareDragStart(evt, touch, target);
+  },
+  _prepareDragStart: function _prepareDragStart(
+  /** Event */
+  evt,
+  /** Touch */
+  touch,
+  /** HTMLElement */
+  target) {
+    var _this = this,
+        el = _this.el,
+        options = _this.options,
+        ownerDocument = el.ownerDocument,
+        dragStartFn;
+
+    if (target && !dragEl && target.parentNode === el) {
+      var dragRect = getRect(target);
+      rootEl = el;
+      dragEl = target;
+      parentEl = dragEl.parentNode;
+      nextEl = dragEl.nextSibling;
+      lastDownEl = target;
+      activeGroup = options.group;
+      Sortable.dragged = dragEl;
+      tapEvt = {
+        target: dragEl,
+        clientX: (touch || evt).clientX,
+        clientY: (touch || evt).clientY
+      };
+      tapDistanceLeft = tapEvt.clientX - dragRect.left;
+      tapDistanceTop = tapEvt.clientY - dragRect.top;
+      this._lastX = (touch || evt).clientX;
+      this._lastY = (touch || evt).clientY;
+      dragEl.style['will-change'] = 'all';
+
+      dragStartFn = function dragStartFn() {
+        pluginEvent('delayEnded', _this, {
+          evt: evt
+        });
+
+        if (Sortable.eventCanceled) {
+          _this._onDrop();
+
+          return;
+        } // Delayed drag has been triggered
+        // we can re-enable the events: touchmove/mousemove
+
+
+        _this._disableDelayedDragEvents();
+
+        if (!FireFox && _this.nativeDraggable) {
+          dragEl.draggable = true;
+        } // Bind the events: dragstart/dragend
+
+
+        _this._triggerDragStart(evt, touch); // Drag start event
+
+
+        _dispatchEvent({
+          sortable: _this,
+          name: 'choose',
+          originalEvent: evt
+        }); // Chosen item
+
+
+        toggleClass(dragEl, options.chosenClass, true);
+      }; // Disable "draggable"
+
+
+      options.ignore.split(',').forEach(function (criteria) {
+        find(dragEl, criteria.trim(), _disableDraggable);
+      });
+      on(ownerDocument, 'dragover', nearestEmptyInsertDetectEvent);
+      on(ownerDocument, 'mousemove', nearestEmptyInsertDetectEvent);
+      on(ownerDocument, 'touchmove', nearestEmptyInsertDetectEvent);
+      on(ownerDocument, 'mouseup', _this._onDrop);
+      on(ownerDocument, 'touchend', _this._onDrop);
+      on(ownerDocument, 'touchcancel', _this._onDrop); // Make dragEl draggable (must be before delay for FireFox)
+
+      if (FireFox && this.nativeDraggable) {
+        this.options.touchStartThreshold = 4;
+        dragEl.draggable = true;
+      }
+
+      pluginEvent('delayStart', this, {
+        evt: evt
+      }); // Delay is impossible for native DnD in Edge or IE
+
+      if (options.delay && (!options.delayOnTouchOnly || touch) && (!this.nativeDraggable || !(Edge || IE11OrLess))) {
+        if (Sortable.eventCanceled) {
+          this._onDrop();
+
+          return;
+        } // If the user moves the pointer or let go the click or touch
+        // before the delay has been reached:
+        // disable the delayed drag
+
+
+        on(ownerDocument, 'mouseup', _this._disableDelayedDrag);
+        on(ownerDocument, 'touchend', _this._disableDelayedDrag);
+        on(ownerDocument, 'touchcancel', _this._disableDelayedDrag);
+        on(ownerDocument, 'mousemove', _this._delayedDragTouchMoveHandler);
+        on(ownerDocument, 'touchmove', _this._delayedDragTouchMoveHandler);
+        options.supportPointer && on(ownerDocument, 'pointermove', _this._delayedDragTouchMoveHandler);
+        _this._dragStartTimer = setTimeout(dragStartFn, options.delay);
+      } else {
+        dragStartFn();
+      }
+    }
+  },
+  _delayedDragTouchMoveHandler: function _delayedDragTouchMoveHandler(
+  /** TouchEvent|PointerEvent **/
+  e) {
+    var touch = e.touches ? e.touches[0] : e;
+
+    if (Math.max(Math.abs(touch.clientX - this._lastX), Math.abs(touch.clientY - this._lastY)) >= Math.floor(this.options.touchStartThreshold / (this.nativeDraggable && window.devicePixelRatio || 1))) {
+      this._disableDelayedDrag();
+    }
+  },
+  _disableDelayedDrag: function _disableDelayedDrag() {
+    dragEl && _disableDraggable(dragEl);
+    clearTimeout(this._dragStartTimer);
+
+    this._disableDelayedDragEvents();
+  },
+  _disableDelayedDragEvents: function _disableDelayedDragEvents() {
+    var ownerDocument = this.el.ownerDocument;
+    off(ownerDocument, 'mouseup', this._disableDelayedDrag);
+    off(ownerDocument, 'touchend', this._disableDelayedDrag);
+    off(ownerDocument, 'touchcancel', this._disableDelayedDrag);
+    off(ownerDocument, 'mousemove', this._delayedDragTouchMoveHandler);
+    off(ownerDocument, 'touchmove', this._delayedDragTouchMoveHandler);
+    off(ownerDocument, 'pointermove', this._delayedDragTouchMoveHandler);
+  },
+  _triggerDragStart: function _triggerDragStart(
+  /** Event */
+  evt,
+  /** Touch */
+  touch) {
+    touch = touch || evt.pointerType == 'touch' && evt;
+
+    if (!this.nativeDraggable || touch) {
+      if (this.options.supportPointer) {
+        on(document, 'pointermove', this._onTouchMove);
+      } else if (touch) {
+        on(document, 'touchmove', this._onTouchMove);
+      } else {
+        on(document, 'mousemove', this._onTouchMove);
+      }
+    } else {
+      on(dragEl, 'dragend', this);
+      on(rootEl, 'dragstart', this._onDragStart);
+    }
+
+    try {
+      if (document.selection) {
+        // Timeout neccessary for IE9
+        _nextTick(function () {
+          document.selection.empty();
+        });
+      } else {
+        window.getSelection().removeAllRanges();
+      }
+    } catch (err) {}
+  },
+  _dragStarted: function _dragStarted(fallback, evt) {
+    awaitingDragStarted = false;
+
+    if (rootEl && dragEl) {
+      pluginEvent('dragStarted', this, {
+        evt: evt
+      });
+
+      if (this.nativeDraggable) {
+        on(document, 'dragover', _checkOutsideTargetEl);
+      }
+
+      var options = this.options; // Apply effect
+
+      !fallback && toggleClass(dragEl, options.dragClass, false);
+      toggleClass(dragEl, options.ghostClass, true);
+      Sortable.active = this;
+      fallback && this._appendGhost(); // Drag start event
+
+      _dispatchEvent({
+        sortable: this,
+        name: 'start',
+        originalEvent: evt
+      });
+    } else {
+      this._nulling();
+    }
+  },
+  _emulateDragOver: function _emulateDragOver() {
+    if (touchEvt) {
+      this._lastX = touchEvt.clientX;
+      this._lastY = touchEvt.clientY;
+
+      _hideGhostForTarget();
+
+      var target = document.elementFromPoint(touchEvt.clientX, touchEvt.clientY);
+      var parent = target;
+
+      while (target && target.shadowRoot) {
+        target = target.shadowRoot.elementFromPoint(touchEvt.clientX, touchEvt.clientY);
+        if (target === parent) break;
+        parent = target;
+      }
+
+      dragEl.parentNode[expando]._isOutsideThisEl(target);
+
+      if (parent) {
+        do {
+          if (parent[expando]) {
+            var inserted = void 0;
+            inserted = parent[expando]._onDragOver({
+              clientX: touchEvt.clientX,
+              clientY: touchEvt.clientY,
+              target: target,
+              rootEl: parent
+            });
+
+            if (inserted && !this.options.dragoverBubble) {
+              break;
+            }
+          }
+
+          target = parent; // store last element
+        }
+        /* jshint boss:true */
+        while (parent = parent.parentNode);
+      }
+
+      _unhideGhostForTarget();
+    }
+  },
+  _onTouchMove: function _onTouchMove(
+  /**TouchEvent*/
+  evt) {
+    if (tapEvt) {
+      var options = this.options,
+          fallbackTolerance = options.fallbackTolerance,
+          fallbackOffset = options.fallbackOffset,
+          touch = evt.touches ? evt.touches[0] : evt,
+          ghostMatrix = ghostEl && matrix(ghostEl, true),
+          scaleX = ghostEl && ghostMatrix && ghostMatrix.a,
+          scaleY = ghostEl && ghostMatrix && ghostMatrix.d,
+          relativeScrollOffset = PositionGhostAbsolutely && ghostRelativeParent && getRelativeScrollOffset(ghostRelativeParent),
+          dx = (touch.clientX - tapEvt.clientX + fallbackOffset.x) / (scaleX || 1) + (relativeScrollOffset ? relativeScrollOffset[0] - ghostRelativeParentInitialScroll[0] : 0) / (scaleX || 1),
+          dy = (touch.clientY - tapEvt.clientY + fallbackOffset.y) / (scaleY || 1) + (relativeScrollOffset ? relativeScrollOffset[1] - ghostRelativeParentInitialScroll[1] : 0) / (scaleY || 1); // only set the status to dragging, when we are actually dragging
+
+      if (!Sortable.active && !awaitingDragStarted) {
+        if (fallbackTolerance && Math.max(Math.abs(touch.clientX - this._lastX), Math.abs(touch.clientY - this._lastY)) < fallbackTolerance) {
+          return;
+        }
+
+        this._onDragStart(evt, true);
+      }
+
+      if (ghostEl) {
+        if (ghostMatrix) {
+          ghostMatrix.e += dx - (lastDx || 0);
+          ghostMatrix.f += dy - (lastDy || 0);
+        } else {
+          ghostMatrix = {
+            a: 1,
+            b: 0,
+            c: 0,
+            d: 1,
+            e: dx,
+            f: dy
+          };
+        }
+
+        var cssMatrix = "matrix(".concat(ghostMatrix.a, ",").concat(ghostMatrix.b, ",").concat(ghostMatrix.c, ",").concat(ghostMatrix.d, ",").concat(ghostMatrix.e, ",").concat(ghostMatrix.f, ")");
+        css(ghostEl, 'webkitTransform', cssMatrix);
+        css(ghostEl, 'mozTransform', cssMatrix);
+        css(ghostEl, 'msTransform', cssMatrix);
+        css(ghostEl, 'transform', cssMatrix);
+        lastDx = dx;
+        lastDy = dy;
+        touchEvt = touch;
+      }
+
+      evt.cancelable && evt.preventDefault();
+    }
+  },
+  _appendGhost: function _appendGhost() {
+    // Bug if using scale(): https://stackoverflow.com/questions/2637058
+    // Not being adjusted for
+    if (!ghostEl) {
+      var container = this.options.fallbackOnBody ? document.body : rootEl,
+          rect = getRect(dragEl, true, PositionGhostAbsolutely, true, container),
+          options = this.options; // Position absolutely
+
+      if (PositionGhostAbsolutely) {
+        // Get relatively positioned parent
+        ghostRelativeParent = container;
+
+        while (css(ghostRelativeParent, 'position') === 'static' && css(ghostRelativeParent, 'transform') === 'none' && ghostRelativeParent !== document) {
+          ghostRelativeParent = ghostRelativeParent.parentNode;
+        }
+
+        if (ghostRelativeParent !== document.body && ghostRelativeParent !== document.documentElement) {
+          if (ghostRelativeParent === document) ghostRelativeParent = getWindowScrollingElement();
+          rect.top += ghostRelativeParent.scrollTop;
+          rect.left += ghostRelativeParent.scrollLeft;
+        } else {
+          ghostRelativeParent = getWindowScrollingElement();
+        }
+
+        ghostRelativeParentInitialScroll = getRelativeScrollOffset(ghostRelativeParent);
+      }
+
+      ghostEl = dragEl.cloneNode(true);
+      toggleClass(ghostEl, options.ghostClass, false);
+      toggleClass(ghostEl, options.fallbackClass, true);
+      toggleClass(ghostEl, options.dragClass, true);
+      css(ghostEl, 'transition', '');
+      css(ghostEl, 'transform', '');
+      css(ghostEl, 'box-sizing', 'border-box');
+      css(ghostEl, 'margin', 0);
+      css(ghostEl, 'top', rect.top);
+      css(ghostEl, 'left', rect.left);
+      css(ghostEl, 'width', rect.width);
+      css(ghostEl, 'height', rect.height);
+      css(ghostEl, 'opacity', '0.8');
+      css(ghostEl, 'position', PositionGhostAbsolutely ? 'absolute' : 'fixed');
+      css(ghostEl, 'zIndex', '100000');
+      css(ghostEl, 'pointerEvents', 'none');
+      Sortable.ghost = ghostEl;
+      container.appendChild(ghostEl); // Set transform-origin
+
+      css(ghostEl, 'transform-origin', tapDistanceLeft / parseInt(ghostEl.style.width) * 100 + '% ' + tapDistanceTop / parseInt(ghostEl.style.height) * 100 + '%');
+    }
+  },
+  _onDragStart: function _onDragStart(
+  /**Event*/
+  evt,
+  /**boolean*/
+  fallback) {
+    var _this = this;
+
+    var dataTransfer = evt.dataTransfer;
+    var options = _this.options;
+    pluginEvent('dragStart', this, {
+      evt: evt
+    });
+
+    if (Sortable.eventCanceled) {
+      this._onDrop();
+
+      return;
+    }
+
+    pluginEvent('setupClone', this);
+
+    if (!Sortable.eventCanceled) {
+      cloneEl = clone$2(dragEl);
+      cloneEl.removeAttribute("id");
+      cloneEl.draggable = false;
+      cloneEl.style['will-change'] = '';
+
+      this._hideClone();
+
+      toggleClass(cloneEl, this.options.chosenClass, false);
+      Sortable.clone = cloneEl;
+    } // #1143: IFrame support workaround
+
+
+    _this.cloneId = _nextTick(function () {
+      pluginEvent('clone', _this);
+      if (Sortable.eventCanceled) return;
+
+      if (!_this.options.removeCloneOnHide) {
+        rootEl.insertBefore(cloneEl, dragEl);
+      }
+
+      _this._hideClone();
+
+      _dispatchEvent({
+        sortable: _this,
+        name: 'clone'
+      });
+    });
+    !fallback && toggleClass(dragEl, options.dragClass, true); // Set proper drop events
+
+    if (fallback) {
+      ignoreNextClick = true;
+      _this._loopId = setInterval(_this._emulateDragOver, 50);
+    } else {
+      // Undo what was set in _prepareDragStart before drag started
+      off(document, 'mouseup', _this._onDrop);
+      off(document, 'touchend', _this._onDrop);
+      off(document, 'touchcancel', _this._onDrop);
+
+      if (dataTransfer) {
+        dataTransfer.effectAllowed = 'move';
+        options.setData && options.setData.call(_this, dataTransfer, dragEl);
+      }
+
+      on(document, 'drop', _this); // #1276 fix:
+
+      css(dragEl, 'transform', 'translateZ(0)');
+    }
+
+    awaitingDragStarted = true;
+    _this._dragStartId = _nextTick(_this._dragStarted.bind(_this, fallback, evt));
+    on(document, 'selectstart', _this);
+    moved = true;
+
+    if (Safari) {
+      css(document.body, 'user-select', 'none');
+    }
+  },
+  // Returns true - if no further action is needed (either inserted or another condition)
+  _onDragOver: function _onDragOver(
+  /**Event*/
+  evt) {
+    var el = this.el,
+        target = evt.target,
+        dragRect,
+        targetRect,
+        revert,
+        options = this.options,
+        group = options.group,
+        activeSortable = Sortable.active,
+        isOwner = activeGroup === group,
+        canSort = options.sort,
+        fromSortable = putSortable || activeSortable,
+        vertical,
+        _this = this,
+        completedFired = false;
+
+    if (_silent) return;
+
+    function dragOverEvent(name, extra) {
+      pluginEvent(name, _this, _objectSpread2({
+        evt: evt,
+        isOwner: isOwner,
+        axis: vertical ? 'vertical' : 'horizontal',
+        revert: revert,
+        dragRect: dragRect,
+        targetRect: targetRect,
+        canSort: canSort,
+        fromSortable: fromSortable,
+        target: target,
+        completed: completed,
+        onMove: function onMove(target, after) {
+          return _onMove(rootEl, el, dragEl, dragRect, target, getRect(target), evt, after);
+        },
+        changed: changed
+      }, extra));
+    } // Capture animation state
+
+
+    function capture() {
+      dragOverEvent('dragOverAnimationCapture');
+
+      _this.captureAnimationState();
+
+      if (_this !== fromSortable) {
+        fromSortable.captureAnimationState();
+      }
+    } // Return invocation when dragEl is inserted (or completed)
+
+
+    function completed(insertion) {
+      dragOverEvent('dragOverCompleted', {
+        insertion: insertion
+      });
+
+      if (insertion) {
+        // Clones must be hidden before folding animation to capture dragRectAbsolute properly
+        if (isOwner) {
+          activeSortable._hideClone();
+        } else {
+          activeSortable._showClone(_this);
+        }
+
+        if (_this !== fromSortable) {
+          // Set ghost class to new sortable's ghost class
+          toggleClass(dragEl, putSortable ? putSortable.options.ghostClass : activeSortable.options.ghostClass, false);
+          toggleClass(dragEl, options.ghostClass, true);
+        }
+
+        if (putSortable !== _this && _this !== Sortable.active) {
+          putSortable = _this;
+        } else if (_this === Sortable.active && putSortable) {
+          putSortable = null;
+        } // Animation
+
+
+        if (fromSortable === _this) {
+          _this._ignoreWhileAnimating = target;
+        }
+
+        _this.animateAll(function () {
+          dragOverEvent('dragOverAnimationComplete');
+          _this._ignoreWhileAnimating = null;
+        });
+
+        if (_this !== fromSortable) {
+          fromSortable.animateAll();
+          fromSortable._ignoreWhileAnimating = null;
+        }
+      } // Null lastTarget if it is not inside a previously swapped element
+
+
+      if (target === dragEl && !dragEl.animated || target === el && !target.animated) {
+        lastTarget = null;
+      } // no bubbling and not fallback
+
+
+      if (!options.dragoverBubble && !evt.rootEl && target !== document) {
+        dragEl.parentNode[expando]._isOutsideThisEl(evt.target); // Do not detect for empty insert if already inserted
+
+
+        !insertion && nearestEmptyInsertDetectEvent(evt);
+      }
+
+      !options.dragoverBubble && evt.stopPropagation && evt.stopPropagation();
+      return completedFired = true;
+    } // Call when dragEl has been inserted
+
+
+    function changed() {
+      newIndex = index$2(dragEl);
+      newDraggableIndex = index$2(dragEl, options.draggable);
+
+      _dispatchEvent({
+        sortable: _this,
+        name: 'change',
+        toEl: el,
+        newIndex: newIndex,
+        newDraggableIndex: newDraggableIndex,
+        originalEvent: evt
+      });
+    }
+
+    if (evt.preventDefault !== void 0) {
+      evt.cancelable && evt.preventDefault();
+    }
+
+    target = closest(target, options.draggable, el, true);
+    dragOverEvent('dragOver');
+    if (Sortable.eventCanceled) return completedFired;
+
+    if (dragEl.contains(evt.target) || target.animated && target.animatingX && target.animatingY || _this._ignoreWhileAnimating === target) {
+      return completed(false);
+    }
+
+    ignoreNextClick = false;
+
+    if (activeSortable && !options.disabled && (isOwner ? canSort || (revert = parentEl !== rootEl) // Reverting item into the original list
+    : putSortable === this || (this.lastPutMode = activeGroup.checkPull(this, activeSortable, dragEl, evt)) && group.checkPut(this, activeSortable, dragEl, evt))) {
+      vertical = this._getDirection(evt, target) === 'vertical';
+      dragRect = getRect(dragEl);
+      dragOverEvent('dragOverValid');
+      if (Sortable.eventCanceled) return completedFired;
+
+      if (revert) {
+        parentEl = rootEl; // actualization
+
+        capture();
+
+        this._hideClone();
+
+        dragOverEvent('revert');
+
+        if (!Sortable.eventCanceled) {
+          if (nextEl) {
+            rootEl.insertBefore(dragEl, nextEl);
+          } else {
+            rootEl.appendChild(dragEl);
+          }
+        }
+
+        return completed(true);
+      }
+
+      var elLastChild = lastChild(el, options.draggable);
+
+      if (!elLastChild || _ghostIsLast(evt, vertical, this) && !elLastChild.animated) {
+        // Insert to end of list
+        // If already at end of list: Do not insert
+        if (elLastChild === dragEl) {
+          return completed(false);
+        } // if there is a last element, it is the target
+
+
+        if (elLastChild && el === evt.target) {
+          target = elLastChild;
+        }
+
+        if (target) {
+          targetRect = getRect(target);
+        }
+
+        if (_onMove(rootEl, el, dragEl, dragRect, target, targetRect, evt, !!target) !== false) {
+          capture();
+
+          if (elLastChild && elLastChild.nextSibling) {
+            // the last draggable element is not the last node
+            el.insertBefore(dragEl, elLastChild.nextSibling);
+          } else {
+            el.appendChild(dragEl);
+          }
+
+          parentEl = el; // actualization
+
+          changed();
+          return completed(true);
+        }
+      } else if (elLastChild && _ghostIsFirst(evt, vertical, this)) {
+        // Insert to start of list
+        var firstChild = getChild(el, 0, options, true);
+
+        if (firstChild === dragEl) {
+          return completed(false);
+        }
+
+        target = firstChild;
+        targetRect = getRect(target);
+
+        if (_onMove(rootEl, el, dragEl, dragRect, target, targetRect, evt, false) !== false) {
+          capture();
+          el.insertBefore(dragEl, firstChild);
+          parentEl = el; // actualization
+
+          changed();
+          return completed(true);
+        }
+      } else if (target.parentNode === el) {
+        targetRect = getRect(target);
+        var direction = 0,
+            targetBeforeFirstSwap,
+            differentLevel = dragEl.parentNode !== el,
+            differentRowCol = !_dragElInRowColumn(dragEl.animated && dragEl.toRect || dragRect, target.animated && target.toRect || targetRect, vertical),
+            side1 = vertical ? 'top' : 'left',
+            scrolledPastTop = isScrolledPast(target, 'top', 'top') || isScrolledPast(dragEl, 'top', 'top'),
+            scrollBefore = scrolledPastTop ? scrolledPastTop.scrollTop : void 0;
+
+        if (lastTarget !== target) {
+          targetBeforeFirstSwap = targetRect[side1];
+          pastFirstInvertThresh = false;
+          isCircumstantialInvert = !differentRowCol && options.invertSwap || differentLevel;
+        }
+
+        direction = _getSwapDirection(evt, target, targetRect, vertical, differentRowCol ? 1 : options.swapThreshold, options.invertedSwapThreshold == null ? options.swapThreshold : options.invertedSwapThreshold, isCircumstantialInvert, lastTarget === target);
+        var sibling;
+
+        if (direction !== 0) {
+          // Check if target is beside dragEl in respective direction (ignoring hidden elements)
+          var dragIndex = index$2(dragEl);
+
+          do {
+            dragIndex -= direction;
+            sibling = parentEl.children[dragIndex];
+          } while (sibling && (css(sibling, 'display') === 'none' || sibling === ghostEl));
+        } // If dragEl is already beside target: Do not insert
+
+
+        if (direction === 0 || sibling === target) {
+          return completed(false);
+        }
+
+        lastTarget = target;
+        lastDirection = direction;
+        var nextSibling = target.nextElementSibling,
+            after = false;
+        after = direction === 1;
+
+        var moveVector = _onMove(rootEl, el, dragEl, dragRect, target, targetRect, evt, after);
+
+        if (moveVector !== false) {
+          if (moveVector === 1 || moveVector === -1) {
+            after = moveVector === 1;
+          }
+
+          _silent = true;
+          setTimeout(_unsilent, 30);
+          capture();
+
+          if (after && !nextSibling) {
+            el.appendChild(dragEl);
+          } else {
+            target.parentNode.insertBefore(dragEl, after ? nextSibling : target);
+          } // Undo chrome's scroll adjustment (has no effect on other browsers)
+
+
+          if (scrolledPastTop) {
+            scrollBy(scrolledPastTop, 0, scrollBefore - scrolledPastTop.scrollTop);
+          }
+
+          parentEl = dragEl.parentNode; // actualization
+          // must be done before animation
+
+          if (targetBeforeFirstSwap !== undefined && !isCircumstantialInvert) {
+            targetMoveDistance = Math.abs(targetBeforeFirstSwap - getRect(target)[side1]);
+          }
+
+          changed();
+          return completed(true);
+        }
+      }
+
+      if (el.contains(dragEl)) {
+        return completed(false);
+      }
+    }
+
+    return false;
+  },
+  _ignoreWhileAnimating: null,
+  _offMoveEvents: function _offMoveEvents() {
+    off(document, 'mousemove', this._onTouchMove);
+    off(document, 'touchmove', this._onTouchMove);
+    off(document, 'pointermove', this._onTouchMove);
+    off(document, 'dragover', nearestEmptyInsertDetectEvent);
+    off(document, 'mousemove', nearestEmptyInsertDetectEvent);
+    off(document, 'touchmove', nearestEmptyInsertDetectEvent);
+  },
+  _offUpEvents: function _offUpEvents() {
+    var ownerDocument = this.el.ownerDocument;
+    off(ownerDocument, 'mouseup', this._onDrop);
+    off(ownerDocument, 'touchend', this._onDrop);
+    off(ownerDocument, 'pointerup', this._onDrop);
+    off(ownerDocument, 'touchcancel', this._onDrop);
+    off(document, 'selectstart', this);
+  },
+  _onDrop: function _onDrop(
+  /**Event*/
+  evt) {
+    var el = this.el,
+        options = this.options; // Get the index of the dragged element within its parent
+
+    newIndex = index$2(dragEl);
+    newDraggableIndex = index$2(dragEl, options.draggable);
+    pluginEvent('drop', this, {
+      evt: evt
+    });
+    parentEl = dragEl && dragEl.parentNode; // Get again after plugin event
+
+    newIndex = index$2(dragEl);
+    newDraggableIndex = index$2(dragEl, options.draggable);
+
+    if (Sortable.eventCanceled) {
+      this._nulling();
+
+      return;
+    }
+
+    awaitingDragStarted = false;
+    isCircumstantialInvert = false;
+    pastFirstInvertThresh = false;
+    clearInterval(this._loopId);
+    clearTimeout(this._dragStartTimer);
+
+    _cancelNextTick(this.cloneId);
+
+    _cancelNextTick(this._dragStartId); // Unbind events
+
+
+    if (this.nativeDraggable) {
+      off(document, 'drop', this);
+      off(el, 'dragstart', this._onDragStart);
+    }
+
+    this._offMoveEvents();
+
+    this._offUpEvents();
+
+    if (Safari) {
+      css(document.body, 'user-select', '');
+    }
+
+    css(dragEl, 'transform', '');
+
+    if (evt) {
+      if (moved) {
+        evt.cancelable && evt.preventDefault();
+        !options.dropBubble && evt.stopPropagation();
+      }
+
+      ghostEl && ghostEl.parentNode && ghostEl.parentNode.removeChild(ghostEl);
+
+      if (rootEl === parentEl || putSortable && putSortable.lastPutMode !== 'clone') {
+        // Remove clone(s)
+        cloneEl && cloneEl.parentNode && cloneEl.parentNode.removeChild(cloneEl);
+      }
+
+      if (dragEl) {
+        if (this.nativeDraggable) {
+          off(dragEl, 'dragend', this);
+        }
+
+        _disableDraggable(dragEl);
+
+        dragEl.style['will-change'] = ''; // Remove classes
+        // ghostClass is added in dragStarted
+
+        if (moved && !awaitingDragStarted) {
+          toggleClass(dragEl, putSortable ? putSortable.options.ghostClass : this.options.ghostClass, false);
+        }
+
+        toggleClass(dragEl, this.options.chosenClass, false); // Drag stop event
+
+        _dispatchEvent({
+          sortable: this,
+          name: 'unchoose',
+          toEl: parentEl,
+          newIndex: null,
+          newDraggableIndex: null,
+          originalEvent: evt
+        });
+
+        if (rootEl !== parentEl) {
+          if (newIndex >= 0) {
+            // Add event
+            _dispatchEvent({
+              rootEl: parentEl,
+              name: 'add',
+              toEl: parentEl,
+              fromEl: rootEl,
+              originalEvent: evt
+            }); // Remove event
+
+
+            _dispatchEvent({
+              sortable: this,
+              name: 'remove',
+              toEl: parentEl,
+              originalEvent: evt
+            }); // drag from one list and drop into another
+
+
+            _dispatchEvent({
+              rootEl: parentEl,
+              name: 'sort',
+              toEl: parentEl,
+              fromEl: rootEl,
+              originalEvent: evt
+            });
+
+            _dispatchEvent({
+              sortable: this,
+              name: 'sort',
+              toEl: parentEl,
+              originalEvent: evt
+            });
+          }
+
+          putSortable && putSortable.save();
+        } else {
+          if (newIndex !== oldIndex) {
+            if (newIndex >= 0) {
+              // drag & drop within the same list
+              _dispatchEvent({
+                sortable: this,
+                name: 'update',
+                toEl: parentEl,
+                originalEvent: evt
+              });
+
+              _dispatchEvent({
+                sortable: this,
+                name: 'sort',
+                toEl: parentEl,
+                originalEvent: evt
+              });
+            }
+          }
+        }
+
+        if (Sortable.active) {
+          /* jshint eqnull:true */
+          if (newIndex == null || newIndex === -1) {
+            newIndex = oldIndex;
+            newDraggableIndex = oldDraggableIndex;
+          }
+
+          _dispatchEvent({
+            sortable: this,
+            name: 'end',
+            toEl: parentEl,
+            originalEvent: evt
+          }); // Save sorting
+
+
+          this.save();
+        }
+      }
+    }
+
+    this._nulling();
+  },
+  _nulling: function _nulling() {
+    pluginEvent('nulling', this);
+    rootEl = dragEl = parentEl = ghostEl = nextEl = cloneEl = lastDownEl = cloneHidden = tapEvt = touchEvt = moved = newIndex = newDraggableIndex = oldIndex = oldDraggableIndex = lastTarget = lastDirection = putSortable = activeGroup = Sortable.dragged = Sortable.ghost = Sortable.clone = Sortable.active = null;
+    savedInputChecked.forEach(function (el) {
+      el.checked = true;
+    });
+    savedInputChecked.length = lastDx = lastDy = 0;
+  },
+  handleEvent: function handleEvent(
+  /**Event*/
+  evt) {
+    switch (evt.type) {
+      case 'drop':
+      case 'dragend':
+        this._onDrop(evt);
+
+        break;
+
+      case 'dragenter':
+      case 'dragover':
+        if (dragEl) {
+          this._onDragOver(evt);
+
+          _globalDragOver(evt);
+        }
+
+        break;
+
+      case 'selectstart':
+        evt.preventDefault();
+        break;
+    }
+  },
+
+  /**
+   * Serializes the item into an array of string.
+   * @returns {String[]}
+   */
+  toArray: function toArray() {
+    var order = [],
+        el,
+        children = this.el.children,
+        i = 0,
+        n = children.length,
+        options = this.options;
+
+    for (; i < n; i++) {
+      el = children[i];
+
+      if (closest(el, options.draggable, this.el, false)) {
+        order.push(el.getAttribute(options.dataIdAttr) || _generateId(el));
+      }
+    }
+
+    return order;
+  },
+
+  /**
+   * Sorts the elements according to the array.
+   * @param  {String[]}  order  order of the items
+   */
+  sort: function sort(order, useAnimation) {
+    var items = {},
+        rootEl = this.el;
+    this.toArray().forEach(function (id, i) {
+      var el = rootEl.children[i];
+
+      if (closest(el, this.options.draggable, rootEl, false)) {
+        items[id] = el;
+      }
+    }, this);
+    useAnimation && this.captureAnimationState();
+    order.forEach(function (id) {
+      if (items[id]) {
+        rootEl.removeChild(items[id]);
+        rootEl.appendChild(items[id]);
+      }
+    });
+    useAnimation && this.animateAll();
+  },
+
+  /**
+   * Save the current sorting
+   */
+  save: function save() {
+    var store = this.options.store;
+    store && store.set && store.set(this);
+  },
+
+  /**
+   * For each element in the set, get the first element that matches the selector by testing the element itself and traversing up through its ancestors in the DOM tree.
+   * @param   {HTMLElement}  el
+   * @param   {String}       [selector]  default: `options.draggable`
+   * @returns {HTMLElement|null}
+   */
+  closest: function closest$1(el, selector) {
+    return closest(el, selector || this.options.draggable, this.el, false);
+  },
+
+  /**
+   * Set/get option
+   * @param   {string} name
+   * @param   {*}      [value]
+   * @returns {*}
+   */
+  option: function option(name, value) {
+    var options = this.options;
+
+    if (value === void 0) {
+      return options[name];
+    } else {
+      var modifiedValue = PluginManager.modifyOption(this, name, value);
+
+      if (typeof modifiedValue !== 'undefined') {
+        options[name] = modifiedValue;
+      } else {
+        options[name] = value;
+      }
+
+      if (name === 'group') {
+        _prepareGroup(options);
+      }
+    }
+  },
+
+  /**
+   * Destroy
+   */
+  destroy: function destroy() {
+    pluginEvent('destroy', this);
+    var el = this.el;
+    el[expando] = null;
+    off(el, 'mousedown', this._onTapStart);
+    off(el, 'touchstart', this._onTapStart);
+    off(el, 'pointerdown', this._onTapStart);
+
+    if (this.nativeDraggable) {
+      off(el, 'dragover', this);
+      off(el, 'dragenter', this);
+    } // Remove draggable attributes
+
+
+    Array.prototype.forEach.call(el.querySelectorAll('[draggable]'), function (el) {
+      el.removeAttribute('draggable');
+    });
+
+    this._onDrop();
+
+    this._disableDelayedDragEvents();
+
+    sortables.splice(sortables.indexOf(this.el), 1);
+    this.el = el = null;
+  },
+  _hideClone: function _hideClone() {
+    if (!cloneHidden) {
+      pluginEvent('hideClone', this);
+      if (Sortable.eventCanceled) return;
+      css(cloneEl, 'display', 'none');
+
+      if (this.options.removeCloneOnHide && cloneEl.parentNode) {
+        cloneEl.parentNode.removeChild(cloneEl);
+      }
+
+      cloneHidden = true;
+    }
+  },
+  _showClone: function _showClone(putSortable) {
+    if (putSortable.lastPutMode !== 'clone') {
+      this._hideClone();
+
+      return;
+    }
+
+    if (cloneHidden) {
+      pluginEvent('showClone', this);
+      if (Sortable.eventCanceled) return; // show clone at dragEl or original position
+
+      if (dragEl.parentNode == rootEl && !this.options.group.revertClone) {
+        rootEl.insertBefore(cloneEl, dragEl);
+      } else if (nextEl) {
+        rootEl.insertBefore(cloneEl, nextEl);
+      } else {
+        rootEl.appendChild(cloneEl);
+      }
+
+      if (this.options.group.revertClone) {
+        this.animate(dragEl, cloneEl);
+      }
+
+      css(cloneEl, 'display', '');
+      cloneHidden = false;
+    }
+  }
+};
+
+function _globalDragOver(
+/**Event*/
+evt) {
+  if (evt.dataTransfer) {
+    evt.dataTransfer.dropEffect = 'move';
+  }
+
+  evt.cancelable && evt.preventDefault();
+}
+
+function _onMove(fromEl, toEl, dragEl, dragRect, targetEl, targetRect, originalEvent, willInsertAfter) {
+  var evt,
+      sortable = fromEl[expando],
+      onMoveFn = sortable.options.onMove,
+      retVal; // Support for new CustomEvent feature
+
+  if (window.CustomEvent && !IE11OrLess && !Edge) {
+    evt = new CustomEvent('move', {
+      bubbles: true,
+      cancelable: true
+    });
+  } else {
+    evt = document.createEvent('Event');
+    evt.initEvent('move', true, true);
+  }
+
+  evt.to = toEl;
+  evt.from = fromEl;
+  evt.dragged = dragEl;
+  evt.draggedRect = dragRect;
+  evt.related = targetEl || toEl;
+  evt.relatedRect = targetRect || getRect(toEl);
+  evt.willInsertAfter = willInsertAfter;
+  evt.originalEvent = originalEvent;
+  fromEl.dispatchEvent(evt);
+
+  if (onMoveFn) {
+    retVal = onMoveFn.call(sortable, evt, originalEvent);
+  }
+
+  return retVal;
+}
+
+function _disableDraggable(el) {
+  el.draggable = false;
+}
+
+function _unsilent() {
+  _silent = false;
+}
+
+function _ghostIsFirst(evt, vertical, sortable) {
+  var rect = getRect(getChild(sortable.el, 0, sortable.options, true));
+  var spacer = 10;
+  return vertical ? evt.clientX < rect.left - spacer || evt.clientY < rect.top && evt.clientX < rect.right : evt.clientY < rect.top - spacer || evt.clientY < rect.bottom && evt.clientX < rect.left;
+}
+
+function _ghostIsLast(evt, vertical, sortable) {
+  var rect = getRect(lastChild(sortable.el, sortable.options.draggable));
+  var spacer = 10;
+  return vertical ? evt.clientX > rect.right + spacer || evt.clientX <= rect.right && evt.clientY > rect.bottom && evt.clientX >= rect.left : evt.clientX > rect.right && evt.clientY > rect.top || evt.clientX <= rect.right && evt.clientY > rect.bottom + spacer;
+}
+
+function _getSwapDirection(evt, target, targetRect, vertical, swapThreshold, invertedSwapThreshold, invertSwap, isLastTarget) {
+  var mouseOnAxis = vertical ? evt.clientY : evt.clientX,
+      targetLength = vertical ? targetRect.height : targetRect.width,
+      targetS1 = vertical ? targetRect.top : targetRect.left,
+      targetS2 = vertical ? targetRect.bottom : targetRect.right,
+      invert = false;
+
+  if (!invertSwap) {
+    // Never invert or create dragEl shadow when target movemenet causes mouse to move past the end of regular swapThreshold
+    if (isLastTarget && targetMoveDistance < targetLength * swapThreshold) {
+      // multiplied only by swapThreshold because mouse will already be inside target by (1 - threshold) * targetLength / 2
+      // check if past first invert threshold on side opposite of lastDirection
+      if (!pastFirstInvertThresh && (lastDirection === 1 ? mouseOnAxis > targetS1 + targetLength * invertedSwapThreshold / 2 : mouseOnAxis < targetS2 - targetLength * invertedSwapThreshold / 2)) {
+        // past first invert threshold, do not restrict inverted threshold to dragEl shadow
+        pastFirstInvertThresh = true;
+      }
+
+      if (!pastFirstInvertThresh) {
+        // dragEl shadow (target move distance shadow)
+        if (lastDirection === 1 ? mouseOnAxis < targetS1 + targetMoveDistance // over dragEl shadow
+        : mouseOnAxis > targetS2 - targetMoveDistance) {
+          return -lastDirection;
+        }
+      } else {
+        invert = true;
+      }
+    } else {
+      // Regular
+      if (mouseOnAxis > targetS1 + targetLength * (1 - swapThreshold) / 2 && mouseOnAxis < targetS2 - targetLength * (1 - swapThreshold) / 2) {
+        return _getInsertDirection(target);
+      }
+    }
+  }
+
+  invert = invert || invertSwap;
+
+  if (invert) {
+    // Invert of regular
+    if (mouseOnAxis < targetS1 + targetLength * invertedSwapThreshold / 2 || mouseOnAxis > targetS2 - targetLength * invertedSwapThreshold / 2) {
+      return mouseOnAxis > targetS1 + targetLength / 2 ? 1 : -1;
+    }
+  }
+
+  return 0;
+}
+/**
+ * Gets the direction dragEl must be swapped relative to target in order to make it
+ * seem that dragEl has been "inserted" into that element's position
+ * @param  {HTMLElement} target       The target whose position dragEl is being inserted at
+ * @return {Number}                   Direction dragEl must be swapped
+ */
+
+
+function _getInsertDirection(target) {
+  if (index$2(dragEl) < index$2(target)) {
+    return 1;
+  } else {
+    return -1;
+  }
+}
+/**
+ * Generate id
+ * @param   {HTMLElement} el
+ * @returns {String}
+ * @private
+ */
+
+
+function _generateId(el) {
+  var str = el.tagName + el.className + el.src + el.href + el.textContent,
+      i = str.length,
+      sum = 0;
+
+  while (i--) {
+    sum += str.charCodeAt(i);
+  }
+
+  return sum.toString(36);
+}
+
+function _saveInputCheckedState(root) {
+  savedInputChecked.length = 0;
+  var inputs = root.getElementsByTagName('input');
+  var idx = inputs.length;
+
+  while (idx--) {
+    var el = inputs[idx];
+    el.checked && savedInputChecked.push(el);
+  }
+}
+
+function _nextTick(fn) {
+  return setTimeout(fn, 0);
+}
+
+function _cancelNextTick(id) {
+  return clearTimeout(id);
+} // Fixed #973:
+
+
+if (documentExists) {
+  on(document, 'touchmove', function (evt) {
+    if ((Sortable.active || awaitingDragStarted) && evt.cancelable) {
+      evt.preventDefault();
+    }
+  });
+} // Export utils
+
+
+Sortable.utils = {
+  on: on,
+  off: off,
+  css: css,
+  find: find,
+  is: function is(el, selector) {
+    return !!closest(el, selector, el, false);
+  },
+  extend: extend,
+  throttle: throttle,
+  closest: closest,
+  toggleClass: toggleClass,
+  clone: clone$2,
+  index: index$2,
+  nextTick: _nextTick,
+  cancelNextTick: _cancelNextTick,
+  detectDirection: _detectDirection,
+  getChild: getChild
+};
+/**
+ * Get the Sortable instance of an element
+ * @param  {HTMLElement} element The element
+ * @return {Sortable|undefined}         The instance of Sortable
+ */
+
+Sortable.get = function (element) {
+  return element[expando];
+};
+/**
+ * Mount a plugin to Sortable
+ * @param  {...SortablePlugin|SortablePlugin[]} plugins       Plugins being mounted
+ */
+
+
+Sortable.mount = function () {
+  for (var _len = arguments.length, plugins = new Array(_len), _key = 0; _key < _len; _key++) {
+    plugins[_key] = arguments[_key];
+  }
+
+  if (plugins[0].constructor === Array) plugins = plugins[0];
+  plugins.forEach(function (plugin) {
+    if (!plugin.prototype || !plugin.prototype.constructor) {
+      throw "Sortable: Mounted plugin must be a constructor function, not ".concat({}.toString.call(plugin));
+    }
+
+    if (plugin.utils) Sortable.utils = _objectSpread2(_objectSpread2({}, Sortable.utils), plugin.utils);
+    PluginManager.mount(plugin);
+  });
+};
+/**
+ * Create sortable instance
+ * @param {HTMLElement}  el
+ * @param {Object}      [options]
+ */
+
+
+Sortable.create = function (el, options) {
+  return new Sortable(el, options);
+}; // Export
+
+
+Sortable.version = version$1;
+var autoScrolls = [],
+    scrollEl,
+    scrollRootEl,
+    scrolling = false,
+    lastAutoScrollX,
+    lastAutoScrollY,
+    touchEvt$1,
+    pointerElemChangedInterval;
+
+function AutoScrollPlugin() {
+  function AutoScroll() {
+    this.defaults = {
+      scroll: true,
+      forceAutoScrollFallback: false,
+      scrollSensitivity: 30,
+      scrollSpeed: 10,
+      bubbleScroll: true
+    }; // Bind all private methods
+
+    for (var fn in this) {
+      if (fn.charAt(0) === '_' && typeof this[fn] === 'function') {
+        this[fn] = this[fn].bind(this);
+      }
+    }
+  }
+
+  AutoScroll.prototype = {
+    dragStarted: function dragStarted(_ref) {
+      var originalEvent = _ref.originalEvent;
+
+      if (this.sortable.nativeDraggable) {
+        on(document, 'dragover', this._handleAutoScroll);
+      } else {
+        if (this.options.supportPointer) {
+          on(document, 'pointermove', this._handleFallbackAutoScroll);
+        } else if (originalEvent.touches) {
+          on(document, 'touchmove', this._handleFallbackAutoScroll);
+        } else {
+          on(document, 'mousemove', this._handleFallbackAutoScroll);
+        }
+      }
+    },
+    dragOverCompleted: function dragOverCompleted(_ref2) {
+      var originalEvent = _ref2.originalEvent; // For when bubbling is canceled and using fallback (fallback 'touchmove' always reached)
+
+      if (!this.options.dragOverBubble && !originalEvent.rootEl) {
+        this._handleAutoScroll(originalEvent);
+      }
+    },
+    drop: function drop() {
+      if (this.sortable.nativeDraggable) {
+        off(document, 'dragover', this._handleAutoScroll);
+      } else {
+        off(document, 'pointermove', this._handleFallbackAutoScroll);
+        off(document, 'touchmove', this._handleFallbackAutoScroll);
+        off(document, 'mousemove', this._handleFallbackAutoScroll);
+      }
+
+      clearPointerElemChangedInterval();
+      clearAutoScrolls();
+      cancelThrottle();
+    },
+    nulling: function nulling() {
+      touchEvt$1 = scrollRootEl = scrollEl = scrolling = pointerElemChangedInterval = lastAutoScrollX = lastAutoScrollY = null;
+      autoScrolls.length = 0;
+    },
+    _handleFallbackAutoScroll: function _handleFallbackAutoScroll(evt) {
+      this._handleAutoScroll(evt, true);
+    },
+    _handleAutoScroll: function _handleAutoScroll(evt, fallback) {
+      var _this = this;
+
+      var x = (evt.touches ? evt.touches[0] : evt).clientX,
+          y = (evt.touches ? evt.touches[0] : evt).clientY,
+          elem = document.elementFromPoint(x, y);
+      touchEvt$1 = evt; // IE does not seem to have native autoscroll,
+      // Edge's autoscroll seems too conditional,
+      // MACOS Safari does not have autoscroll,
+      // Firefox and Chrome are good
+
+      if (fallback || this.options.forceAutoScrollFallback || Edge || IE11OrLess || Safari) {
+        autoScroll(evt, this.options, elem, fallback); // Listener for pointer element change
+
+        var ogElemScroller = getParentAutoScrollElement(elem, true);
+
+        if (scrolling && (!pointerElemChangedInterval || x !== lastAutoScrollX || y !== lastAutoScrollY)) {
+          pointerElemChangedInterval && clearPointerElemChangedInterval(); // Detect for pointer elem change, emulating native DnD behaviour
+
+          pointerElemChangedInterval = setInterval(function () {
+            var newElem = getParentAutoScrollElement(document.elementFromPoint(x, y), true);
+
+            if (newElem !== ogElemScroller) {
+              ogElemScroller = newElem;
+              clearAutoScrolls();
+            }
+
+            autoScroll(evt, _this.options, newElem, fallback);
+          }, 10);
+          lastAutoScrollX = x;
+          lastAutoScrollY = y;
+        }
+      } else {
+        // if DnD is enabled (and browser has good autoscrolling), first autoscroll will already scroll, so get parent autoscroll of first autoscroll
+        if (!this.options.bubbleScroll || getParentAutoScrollElement(elem, true) === getWindowScrollingElement()) {
+          clearAutoScrolls();
+          return;
+        }
+
+        autoScroll(evt, this.options, getParentAutoScrollElement(elem, false), false);
+      }
+    }
+  };
+  return _extends(AutoScroll, {
+    pluginName: 'scroll',
+    initializeByDefault: true
+  });
+}
+
+function clearAutoScrolls() {
+  autoScrolls.forEach(function (autoScroll) {
+    clearInterval(autoScroll.pid);
+  });
+  autoScrolls = [];
+}
+
+function clearPointerElemChangedInterval() {
+  clearInterval(pointerElemChangedInterval);
+}
+
+var autoScroll = throttle(function (evt, options, rootEl, isFallback) {
+  // Bug: https://bugzilla.mozilla.org/show_bug.cgi?id=505521
+  if (!options.scroll) return;
+  var x = (evt.touches ? evt.touches[0] : evt).clientX,
+      y = (evt.touches ? evt.touches[0] : evt).clientY,
+      sens = options.scrollSensitivity,
+      speed = options.scrollSpeed,
+      winScroller = getWindowScrollingElement();
+  var scrollThisInstance = false,
+      scrollCustomFn; // New scroll root, set scrollEl
+
+  if (scrollRootEl !== rootEl) {
+    scrollRootEl = rootEl;
+    clearAutoScrolls();
+    scrollEl = options.scroll;
+    scrollCustomFn = options.scrollFn;
+
+    if (scrollEl === true) {
+      scrollEl = getParentAutoScrollElement(rootEl, true);
+    }
+  }
+
+  var layersOut = 0;
+  var currentParent = scrollEl;
+
+  do {
+    var el = currentParent,
+        rect = getRect(el),
+        top = rect.top,
+        bottom = rect.bottom,
+        left = rect.left,
+        right = rect.right,
+        width = rect.width,
+        height = rect.height,
+        canScrollX = void 0,
+        canScrollY = void 0,
+        scrollWidth = el.scrollWidth,
+        scrollHeight = el.scrollHeight,
+        elCSS = css(el),
+        scrollPosX = el.scrollLeft,
+        scrollPosY = el.scrollTop;
+
+    if (el === winScroller) {
+      canScrollX = width < scrollWidth && (elCSS.overflowX === 'auto' || elCSS.overflowX === 'scroll' || elCSS.overflowX === 'visible');
+      canScrollY = height < scrollHeight && (elCSS.overflowY === 'auto' || elCSS.overflowY === 'scroll' || elCSS.overflowY === 'visible');
+    } else {
+      canScrollX = width < scrollWidth && (elCSS.overflowX === 'auto' || elCSS.overflowX === 'scroll');
+      canScrollY = height < scrollHeight && (elCSS.overflowY === 'auto' || elCSS.overflowY === 'scroll');
+    }
+
+    var vx = canScrollX && (Math.abs(right - x) <= sens && scrollPosX + width < scrollWidth) - (Math.abs(left - x) <= sens && !!scrollPosX);
+    var vy = canScrollY && (Math.abs(bottom - y) <= sens && scrollPosY + height < scrollHeight) - (Math.abs(top - y) <= sens && !!scrollPosY);
+
+    if (!autoScrolls[layersOut]) {
+      for (var i = 0; i <= layersOut; i++) {
+        if (!autoScrolls[i]) {
+          autoScrolls[i] = {};
+        }
+      }
+    }
+
+    if (autoScrolls[layersOut].vx != vx || autoScrolls[layersOut].vy != vy || autoScrolls[layersOut].el !== el) {
+      autoScrolls[layersOut].el = el;
+      autoScrolls[layersOut].vx = vx;
+      autoScrolls[layersOut].vy = vy;
+      clearInterval(autoScrolls[layersOut].pid);
+
+      if (vx != 0 || vy != 0) {
+        scrollThisInstance = true;
+        /* jshint loopfunc:true */
+
+        autoScrolls[layersOut].pid = setInterval(function () {
+          // emulate drag over during autoscroll (fallback), emulating native DnD behaviour
+          if (isFallback && this.layer === 0) {
+            Sortable.active._onTouchMove(touchEvt$1); // To move ghost if it is positioned absolutely
+
+          }
+
+          var scrollOffsetY = autoScrolls[this.layer].vy ? autoScrolls[this.layer].vy * speed : 0;
+          var scrollOffsetX = autoScrolls[this.layer].vx ? autoScrolls[this.layer].vx * speed : 0;
+
+          if (typeof scrollCustomFn === 'function') {
+            if (scrollCustomFn.call(Sortable.dragged.parentNode[expando], scrollOffsetX, scrollOffsetY, evt, touchEvt$1, autoScrolls[this.layer].el) !== 'continue') {
+              return;
+            }
+          }
+
+          scrollBy(autoScrolls[this.layer].el, scrollOffsetX, scrollOffsetY);
+        }.bind({
+          layer: layersOut
+        }), 24);
+      }
+    }
+
+    layersOut++;
+  } while (options.bubbleScroll && currentParent !== winScroller && (currentParent = getParentAutoScrollElement(currentParent, false)));
+
+  scrolling = scrollThisInstance; // in case another function catches scrolling as false in between when it is not
+}, 30);
+
+var drop = function drop(_ref) {
+  var originalEvent = _ref.originalEvent,
+      putSortable = _ref.putSortable,
+      dragEl = _ref.dragEl,
+      activeSortable = _ref.activeSortable,
+      dispatchSortableEvent = _ref.dispatchSortableEvent,
+      hideGhostForTarget = _ref.hideGhostForTarget,
+      unhideGhostForTarget = _ref.unhideGhostForTarget;
+  if (!originalEvent) return;
+  var toSortable = putSortable || activeSortable;
+  hideGhostForTarget();
+  var touch = originalEvent.changedTouches && originalEvent.changedTouches.length ? originalEvent.changedTouches[0] : originalEvent;
+  var target = document.elementFromPoint(touch.clientX, touch.clientY);
+  unhideGhostForTarget();
+
+  if (toSortable && !toSortable.el.contains(target)) {
+    dispatchSortableEvent('spill');
+    this.onSpill({
+      dragEl: dragEl,
+      putSortable: putSortable
+    });
+  }
+};
+
+function Revert() {}
+
+Revert.prototype = {
+  startIndex: null,
+  dragStart: function dragStart(_ref2) {
+    var oldDraggableIndex = _ref2.oldDraggableIndex;
+    this.startIndex = oldDraggableIndex;
+  },
+  onSpill: function onSpill(_ref3) {
+    var dragEl = _ref3.dragEl,
+        putSortable = _ref3.putSortable;
+    this.sortable.captureAnimationState();
+
+    if (putSortable) {
+      putSortable.captureAnimationState();
+    }
+
+    var nextSibling = getChild(this.sortable.el, this.startIndex, this.options);
+
+    if (nextSibling) {
+      this.sortable.el.insertBefore(dragEl, nextSibling);
+    } else {
+      this.sortable.el.appendChild(dragEl);
+    }
+
+    this.sortable.animateAll();
+
+    if (putSortable) {
+      putSortable.animateAll();
+    }
+  },
+  drop: drop
+};
+
+_extends(Revert, {
+  pluginName: 'revertOnSpill'
+});
+
+function Remove() {}
+
+Remove.prototype = {
+  onSpill: function onSpill(_ref4) {
+    var dragEl = _ref4.dragEl,
+        putSortable = _ref4.putSortable;
+    var parentSortable = putSortable || this.sortable;
+    parentSortable.captureAnimationState();
+    dragEl.parentNode && dragEl.parentNode.removeChild(dragEl);
+    parentSortable.animateAll();
+  },
+  drop: drop
+};
+
+_extends(Remove, {
+  pluginName: 'removeOnSpill'
+});
+
+Sortable.mount(new AutoScrollPlugin());
+Sortable.mount(Remove, Revert);
+
+const _hoisted_1$6 = /*#__PURE__*/createTextVNode("New row created");
+const _hoisted_2$5 = /*#__PURE__*/createTextVNode("Rows removed");
+const _hoisted_3$5 = /*#__PURE__*/createTextVNode("Saved");
+
+
+var script$h = {
+  props: {
+    name : {
+      type : String,
+      required : true
+    },
+    repo : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const store = props.repo.store;
+
+
+const expanded = ref(false);
+const delrow = ref(false);
+const newrow = ref(false);
+store.fields['--sort'];
+const saved = ref(false);
+
+
+store.setTableCells();
+const cells = store.getEnabledSummaryCells();
+
+const selected = ref(null);
+
+const data = ref([]);
+const active = ref({});
+
+props.repo.load()
+.then(() => {
+   data.value = toTree(props.repo.data.value, store.fields);
+});
+
+
+//repo.active.value['--recursive'] = 0;
+
+const expandedKeys = ref({});
+
+const collapseAll = () => {
+    expandedKeys.value = {};
+    expanded.value = false;
+};
+
+const expandAll = () => {
+    for (let node of data.value) {
+        expandNode(node);
+    }
+    expandedKeys.value = {...expandedKeys.value};
+    expanded.value = true;
+};
+
+const expandNode = (node) => {
+    if (node.children && node.children.length) {
+      expandedKeys.value[node.key] = true;
+      for (let child of node.children) {
+          expandNode(child);
+      }
+    }
+};
+
+
+function setActive(node) {
+  active.value = node.data;
+  saved.value = false;
+}
+
+
+subscribe("effect_created", props.name, (name, response) => {
+    if (props.name == name) {
+        newrow.value = true;
+        repo.reload()
+        .then(response => {
+          data.value = toTree(response, store.fields);
+        });
+        trigger("dialog_close");
+    }
+});
+
+subscribe("effect_deleted", props.name, name => {
+    if (props.name == name) {
+        delrow.value = true;
+        repo.reload()
+        .then(response => {
+          data.value = toTree(response, store.fields);
+        });
+        trigger("dialog_close");
+    }
+});
+
+
+subscribe("effect_updated", props.name, (name, response) => {
+    if (props.name == name) {
+        saved.value = true;
+        repo.reload()
+        .then(response => {
+          data.value = toTree(response, store.fields);
+        });
+    }
+});
+
+onBeforeUnmount(() => {
+  unsubscribe("effect_created", props.name);
+  unsubscribe("effect_updated", props.name);
+  unsubscribe("effect_deleted", props.name);
+});
+
+
+function makeSortable() {
+  const ptrees = document.querySelectorAll(".p-tree-container, .p-treenode-children");
+  alert("Being called");
+  for(const ptree of ptrees) {
+    console.log("trees are ");
+    new Sortable(ptree, {
+      group : 'tree',
+      sort : true,
+      draggable : "li"
+    });
+  }
+}
+
+onUpdated(() => {
+  //get all elements with class of p tree container
+  makeSortable();
+
+});
+
+onMounted(() => {
+  makeSortable();
+});
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$o), null, {
+    default: withCtx(() => [
+      createVNode(unref(script$n), null, {
+        default: withCtx(() => [
+          (newrow.value)
+            ? (openBlock(), createBlock(unref(script$1J), {
+                key: 0,
+                severity: "success"
+              }, {
+                default: withCtx(() => [
+                  _hoisted_1$6
+                ]),
+                _: 1 /* STABLE */
+              }))
+            : createCommentVNode("v-if", true),
+          (delrow.value)
+            ? (openBlock(), createBlock(unref(script$1J), {
+                key: 1,
+                severity: "success"
+              }, {
+                default: withCtx(() => [
+                  _hoisted_2$5
+                ]),
+                _: 1 /* STABLE */
+              }))
+            : createCommentVNode("v-if", true),
+          createVNode(unref(script$t), { class: "mb-4" }, {
+            start: withCtx(() => [
+              (expanded.value)
+                ? (openBlock(), createBlock(unref(script$1K), {
+                    key: 0,
+                    type: "button",
+                    icon: "pi pi-minus",
+                    label: "Collapse All",
+                    onClick: collapseAll
+                  }))
+                : (openBlock(), createBlock(unref(script$1K), {
+                    key: 1,
+                    type: "button",
+                    icon: "pi pi-plus",
+                    label: "Expand All",
+                    onClick: expandAll
+                  }))
+            ]),
+            end: withCtx(() => [
+              (unref(store).perms.includes('post'))
+                ? (openBlock(), createBlock(script$k, {
+                    key: 0,
+                    name: __props.name,
+                    model: unref(store),
+                    parent_id: parseInt(__props.repo.parent_id)
+                  }, null, 8 /* PROPS */, ["name", "model", "parent_id"]))
+                : createCommentVNode("v-if", true)
+            ]),
+            _: 1 /* STABLE */
+          }),
+          createVNode(unref(script$1f), {
+            value: data.value,
+            selectionMode: "single",
+            onNodeSelect: setActive,
+            filter: true,
+            filterMode: "lenient",
+            selectionKeys: selected.value,
+            "onUpdate:selectionKeys": _cache[0] || (_cache[0] = $event => ((selected).value = $event)),
+            expandedKeys: expandedKeys.value
+          }, {
+            default: withCtx((slotProps) => [
+              (openBlock(true), createElementBlock(Fragment, null, renderList(unref(cells), (cell) => {
+                return (openBlock(), createBlock(script$1j, {
+                  row: slotProps.node.data,
+                  field: cell
+                }, null, 8 /* PROPS */, ["row", "field"]))
+              }), 256 /* UNKEYED_FRAGMENT */))
+            ]),
+            _: 1 /* STABLE */
+          }, 8 /* PROPS */, ["value", "selectionKeys", "expandedKeys"])
+        ]),
+        _: 1 /* STABLE */
+      }),
+      createVNode(unref(script$n), null, {
+        default: withCtx(() => [
+          (active.value['--id'])
+            ? (openBlock(), createBlock(unref(script$W), {
+                header: _ctx.$t('models.' +unref(store).name + '.title'),
+                key: active.value['--id']
+              }, {
+                icons: withCtx(() => [
+                  (unref(store).audit)
+                    ? (openBlock(), createBlock(script$I, {
+                        key: 0,
+                        model: unref(store),
+                        data: active.value,
+                        long: true
+                      }, null, 8 /* PROPS */, ["model", "data"]))
+                    : createCommentVNode("v-if", true),
+                  (unref(store).perms.includes('delete'))
+                    ? (openBlock(), createBlock(script$i, {
+                        key: 1,
+                        name: __props.name,
+                        data: active.value
+                      }, null, 8 /* PROPS */, ["name", "data"]))
+                    : createCommentVNode("v-if", true),
+                  createVNode(script$m, {
+                    model: unref(store).name,
+                    id: active.value['--id']
+                  }, null, 8 /* PROPS */, ["model", "id"]),
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
+                    return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({ data: active.value }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
+                  }), 256 /* UNKEYED_FRAGMENT */))
+                ]),
+                default: withCtx(() => [
+                  (saved.value)
+                    ? (openBlock(), createBlock(unref(script$1J), {
+                        key: 0,
+                        severity: "success"
+                      }, {
+                        default: withCtx(() => [
+                          _hoisted_3$5
+                        ]),
+                        _: 1 /* STABLE */
+                      }))
+                    : createCommentVNode("v-if", true),
+                  (active.value['--id'])
+                    ? (openBlock(), createBlock(script$M, {
+                        key: 1,
+                        id: active.value['--id'],
+                        name: __props.name
+                      }, null, 8 /* PROPS */, ["id", "name"]))
+                    : createCommentVNode("v-if", true)
+                ]),
+                _: 1 /* STABLE */
+              }, 8 /* PROPS */, ["header"]))
+            : createCommentVNode("v-if", true)
+        ]),
+        _: 1 /* STABLE */
+      })
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+var css_248z$5 = "\n.tree-vue-vue-type-style-index-0-id-49a3d7ba-scoped-true-lang_wrapper__KEFQt[data-v-49a3d7ba] {\r\n  display : grid;\r\n  margin-left : 0;\r\n  margin-right : 0;\r\n  box-sizing : content-box;\n}\r\n\r\n";
+styleInject$t(css_248z$5);
+
+script$h.__scopeId = "data-v-49a3d7ba";
+script$h.__file = "presstojam/src/components/tree/tree.vue";
+
+var tree = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': script$h
+});
+
+//download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
+// v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
+// v2 added named files via a[download], msSaveBlob, IE (10+) support, and window.URL support for larger+faster saves than dataURLs
+// v3 added dataURL and Blob Input, bind-toggle arity, and legacy dataURL fallback was improved with force-download mime and base64 support
+// data can be a string, Blob, File, or dataURL
+function download(data, strFileName, strMimeType) {
+  var self = window,
+      // this script is only for browsers anyway...
+  u = "application/octet-stream",
+      // this default mime also triggers iframe downloads
+  m = strMimeType || u,
+      x = data,
+      D = document,
+      a = D.createElement("a"),
+      z = function (a) {
+    return String(a);
+  },
+      B = self.Blob || self.MozBlob || self.WebKitBlob || z,
+      BB = self.MSBlobBuilder || self.WebKitBlobBuilder || self.BlobBuilder,
+      fn = strFileName || "download",
+      blob,
+      b,
+      fr; //if(typeof B.bind === 'function' ){ B=B.bind(self); }
+
+
+  if (String(this) === "true") {
+    //reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
+    x = [x, m];
+    m = x[0];
+    x = x[1];
+  } //go ahead and download dataURLs right away
+
+
+  if (String(x).match(/^data\:[\w+\-]+\/[\w+\-]+[,;]/)) {
+    return navigator.msSaveBlob ? // IE10 can't do a[download], only Blobs:
+    navigator.msSaveBlob(d2b(x), fn) : saver(x); // everyone else can save dataURLs un-processed
+  } //end if dataURL passed?
+
+
+  try {
+    blob = x instanceof B ? x : new B([x], {
+      type: m
+    });
+  } catch (y) {
+    if (BB) {
+      b = new BB();
+      b.append([x]);
+      blob = b.getBlob(m); // the blob
+    }
+  }
+
+  function d2b(u) {
+    var p = u.split(/[:;,]/),
+        t = p[1],
+        dec = p[2] == "base64" ? atob : decodeURIComponent,
+        bin = dec(p.pop()),
+        mx = bin.length,
+        i = 0,
+        uia = new Uint8Array(mx);
+
+    for (i; i < mx; ++i) uia[i] = bin.charCodeAt(i);
+
+    return new B([uia], {
+      type: t
+    });
+  }
+
+  function saver(url, winMode) {
+    if ('download' in a) {
+      //html5 A[download] 			
+      a.href = url;
+      a.setAttribute("download", fn);
+      a.innerHTML = "downloading...";
+      D.body.appendChild(a);
+      setTimeout(function () {
+        a.click();
+        D.body.removeChild(a);
+
+        if (winMode === true) {
+          setTimeout(function () {
+            self.URL.revokeObjectURL(a.href);
+          }, 250);
+        }
+      }, 66);
+      return true;
+    } //do iframe dataURL download (old ch+FF):
+
+
+    var f = D.createElement("iframe");
+    D.body.appendChild(f);
+
+    if (!winMode) {
+      // force a mime that will download:
+      url = "data:" + url.replace(/^data:([\w\/\-\+]+)/, u);
+    }
+
+    f.src = url;
+    setTimeout(function () {
+      D.body.removeChild(f);
+    }, 333);
+  } //end saver 
+
+
+  if (navigator.msSaveBlob) {
+    // IE10+ : (has Blob, but not a[download] or URL)
+    return navigator.msSaveBlob(blob, fn);
+  }
+
+  if (self.URL) {
+    // simple fast and modern way using Blob and URL:
+    saver(self.URL.createObjectURL(blob), true);
+  } else {
+    // handle non-Blob()+non-URL browsers:
+    if (typeof blob === "string" || blob.constructor === z) {
+      try {
+        return saver("data:" + m + ";base64," + self.btoa(blob));
+      } catch (y) {
+        return saver("data:" + m + "," + encodeURIComponent(blob));
+      }
+    } // Blob but not URL:
+
+
+    fr = new FileReader();
+
+    fr.onload = function (e) {
+      saver(this.result);
+    };
+
+    fr.readAsDataURL(blob);
+  }
+
+  return true;
+}
+
+function buildData(data, headers) {
+  let value = "";
+
+  for (const rowObj of data) {
+    for (const x in headers) {
+      const header = headers[x].key;
+      let new_val = rowObj[header];
+      if (new_val) new_val = new_val.toString().replace(/\,/g, '');
+      value += new_val; //add value to build an array.
+
+      value += x < headers.length - 1 ? "," : "\n";
+    }
+  }
+
+  return value;
+}
+
+function exportCSV(repo) {
+  const store = repo.store;
+  const cells = store.fields;
+  const i18n = useI18n();
+  const t = i18n.global.t;
+  getClient();
+  const headers = [];
+
+  if (store.export_fields) {
+    if (Array.isArray(store.export_fields)) {
+      for (const index in store.export_fields) {
+        headers.push({
+          key: store.export_fields[index],
+          label: t("models." + store.name + ".fields." + store.export_fields[index] + ".label")
+        });
+      }
+    } else {
+      for (const key in store.export_fields) {
+        headers.push({
+          key: key,
+          label: store.export_fields[key]
+        });
+      }
+    }
+  } else {
+    for (const key in cells) {
+      if (key == "--owner" || key == "--parent") continue;
+      headers.push({
+        key: key,
+        label: t("models." + store.name + ".fields." + key + ".label")
+      });
+    }
+  }
+
+  let value = "";
+
+  for (const x in headers) {
+    value += headers[x].label;
+    value += x < headers.length - 1 ? "," : "\n";
+  }
+
+  if (repo.pagination.count) {
+    //need to load all data
+    repo.loadAll().then(data => {
+      value += buildData(data, headers);
+      download(value, store.name + '.csv');
+    }).catch(e => console.log(e));
+  } else {
+    repo.load().then(data => {
+      value += buildData(data, headers);
+      download(value, store.name + '.csv');
+    });
+  }
+}
+
+var script$g = {
+  props: {
+    name : String
+},
+  setup(__props) {
+
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1K), {
+    label: "Export",
+    icon: "pi pi-external-link",
+    class: "p-button-help mr-2",
+    onClick: _cache[0] || (_cache[0] = $event => (unref(exportCSV)(__props.name)))
+  }))
+}
+}
+
+};
+
+script$g.__file = "presstojam/src/components/actions/export-action.vue";
+
+const _hoisted_1$5 = { key: 0 };
+const _hoisted_2$4 = /*#__PURE__*/createElementVNode("h3", null, "Column Headers", -1 /* HOISTED */);
+const _hoisted_3$4 = { class: "p-inputgroup" };
+const _hoisted_4$4 = ["onUpdate:modelValue"];
+const _hoisted_5$4 = { class: "p-inputgroup-addon" };
+const _hoisted_6$4 = ["onClick"];
+const _hoisted_7$2 = { key: 1 };
+const _hoisted_8$1 = /*#__PURE__*/createElementVNode("h3", null, "Results", -1 /* HOISTED */);
+
+
+var script$f = {
+  props: {
+    name : String,
+    repo : Object
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+const store = props.repo.store;
+
+const client = inject("client");
+
+const is_passed = ref(false);
+const success = ref(0);
+const failed = ref(0);
+
+
+let headers = [];
+const oheaders = [];
+for(let i in store.fields) {
+    if (!store.fields[i].system) {
+        headers.push(i);
+        oheaders.push(i);
+    }
+}
+
+
+
+function importCSV( evt ){
+    const formData = new FormData();
+    for(const key in oheaders) {
+        formData.append("headers[" + oheaders[key] + "]", headers[key]);
+    }
+    formData.append("upload-csv", evt.files[0]);
+    return client.post("/bulk/" + props.name, formData)
+    .then(response => {
+        is_passed.value = true;
+        success.value = response.success;
+        failed.value = response.failure;
+    });
+}
+
+
+function refreshHeader(key, headers) {
+    headers[key] = oheaders[key];
+}
+
+
+
+return (_ctx, _cache) => {
+  return (is_passed.value == false)
+    ? (openBlock(), createElementBlock("div", _hoisted_1$5, [
+        _hoisted_2$4,
+        createElementVNode("table", null, [
+          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(headers), (header, key) => {
+            return (openBlock(), createElementBlock("tr", null, [
+              createElementVNode("td", null, toDisplayString$1((key + 1)) + ".", 1 /* TEXT */),
+              createElementVNode("td", null, [
+                createElementVNode("div", _hoisted_3$4, [
+                  withDirectives(createElementVNode("input", {
+                    type: "text",
+                    "onUpdate:modelValue": $event => ((unref(headers)[key]) = $event),
+                    class: "form-control"
+                  }, null, 8 /* PROPS */, _hoisted_4$4), [
+                    [vModelText, unref(headers)[key]]
+                  ]),
+                  createElementVNode("span", _hoisted_5$4, [
+                    createElementVNode("i", {
+                      class: "pi pi-refresh",
+                      onClick: $event => (refreshHeader(key, unref(headers))),
+                      style: {"cursor":"pointer"}
+                    }, null, 8 /* PROPS */, _hoisted_6$4)
+                  ])
+                ])
+              ])
+            ]))
+          }), 256 /* UNKEYED_FRAGMENT */))
+        ]),
+        createElementVNode("div", null, [
+          createVNode(unref(script$11), {
+            name: "file",
+            mode: "basic",
+            customUpload: true,
+            onUploader: importCSV,
+            auto: true
+          })
+        ])
+      ]))
+    : (openBlock(), createElementBlock("div", _hoisted_7$2, [
+        _hoisted_8$1,
+        createElementVNode("p", null, "Passed: " + toDisplayString$1(success.value), 1 /* TEXT */),
+        createElementVNode("p", null, "Failed: " + toDisplayString$1(failed.value), 1 /* TEXT */)
+      ]))
+}
+}
+
+};
+
+script$f.__file = "presstojam/src/components/import/import.vue";
+
+const _hoisted_1$4 = /*#__PURE__*/createTextVNode("Import");
+
+
+    
+var script$e = {
+  props: {
+        name : String
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+
+    function toggleImport() {
+        trigger(
+            "dialog_open",
+            script$f, 
+            {
+                name : props.name,
+            },
+            "Import"
+        );
+    }
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1K), {
+    icon: "pi pi-upload",
+    class: "mr-2",
+    onClick: toggleImport
+  }, {
+    default: withCtx(() => [
+      _hoisted_1$4
+    ]),
+    _: 1 /* STABLE */
+  }))
+}
+}
+
+};
+
+script$e.__file = "presstojam/src/components/actions/import-action.vue";
+
+var script$d = {
+  props: {
+        id : {
+            type : Number,
+            default : 0
+        },
+        name : String,
+        model : Object
+    },
+  setup(__props) {
+
+const props = __props;
+
+    
+
+    const i18n = inject("i18n");
+    const t = i18n.t;
+
+    const header = "Edit " + t("models." + props.model.name + ".title", 1);
+
+
+    function editRow() {
+        trigger(
+            "dialog_open",
+            script$M, 
+            {
+                id : props.id,
+                name : props.name
+            },
+            header
+        );
+    }
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$1K), {
+    icon: "pi pi-pencil",
+    class: "p-button-rounded p-button-success mr-2",
+    onClick: editRow
+  }))
+}
+}
+
+};
+
+script$d.__file = "presstojam/src/components/actions/edit-action.vue";
+
+var script$c = {
+  props: {
+    name : String,
+    id : Number
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const repo  = new RepoData(props.name);
+
+repo.parent_id = props.id;
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(script$b, {
+    name: __props.name,
+    key: __props.name,
+    repo: unref(repo)
+  }, null, 8 /* PROPS */, ["name", "repo"]))
+}
+}
+
+};
+
+script$c.__file = "presstojam/src/components/table/child-table.vue";
+
+const _withScopeId$1 = n => (pushScopeId("data-v-29f6384d"),n=n(),popScopeId(),n);
+const _hoisted_1$3 = { class: "gc-table" };
+const _hoisted_2$3 = /*#__PURE__*/createTextVNode("New row created");
+const _hoisted_3$3 = /*#__PURE__*/createTextVNode("Rows removed");
+const _hoisted_4$3 = /*#__PURE__*/createTextVNode("Row Updated");
+const _hoisted_5$3 = {
+  key: 0,
+  class: "p-input-icon-left mr-2"
+};
+const _hoisted_6$3 = /*#__PURE__*/ _withScopeId$1(() => /*#__PURE__*/createElementVNode("i", { class: "pi pi-search" }, null, -1 /* HOISTED */));
+const _hoisted_7$1 = { key: 4 };
+
+
+
+
+var script$b = {
+  props: {
+    repo : Object,
+    name : String
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const group = ref();
+const selected = ref([]);
+const search = ref();
+const active_options = ref();
+const newrow = ref(false);
+const delrow = ref(false);
+const editrow = ref(false);
+
+
+const store = props.repo.store;
+
+const max_cols = (!store.max_cols) ? 10 : store.max_cols;
+
+//setup cells
+//const has_export = true;
+store.setTableCells();
+const cells = store.getEnabledCells();
+const col_expandable = (Object.keys(cells).length > max_cols) ? true : false;
+const fixed_fields = [];
+const optional_fields = [];
+
+
+props.repo.load();
+
+
+const fields = computed(() => {
+    const fcells = {};
+    for(let i of fixed_fields) {
+        fcells[i] = cells[i];
+    }
+
+    if (active_options.value) {
+        for(let i of active_options.value) {
+            fcells[i] = cells[i];
+        }
+    }
+
+    return fcells;
+});
+
+
+for(let i in cells) {
+    if (!col_expandable || fixed_fields.length < max_cols)  
+        fixed_fields.push(i);
+    else if (col_expandable) 
+        optional_fields.push(i);
+}
+
+
+subscribe("effect_created", props.name, (name, response) => {
+    if (props.name == name) {
+        newrow.value = true;
+        props.repo.addRow(response);
+        trigger("dialog_close");
+    }
+});
+
+
+subscribe("effect_edited", props.name, (name, response) => {
+    if (props.name == name) {
+        props.repo.editRow(response);
+        editrow.value = true;
+        trigger("dialog_close");
+    }
+});
+
+
+subscribe("effect_deleted", props.name, (name, response) => {
+    if (props.name == name) {
+        delrow.value = true;
+        trigger("dialog_close");
+        props.repo.remove(response);
+    }
+});
+
+
+onBeforeUnmount(() => {
+    unsubscribe("effect_created", props.name);
+    unsubscribe("effect_updated", props.name);
+    unsubscribe("effect_delete", props.name);
+});
+
+
+const children = (store.fields['--id']) ? store.fields['--id'].reference : [];
+const has_primary = (children.length > 1) ? true : false;
+const has_expandable = (children.length == 1) ? true : false;
+const has_sort = store.fields['--sort'];
+const sortable = (!props.nosort && !props.repo.hasPagination() && !has_sort) ? true : false;
+const global_filter_fields = [];
+if (!props.repo.hasPagination()) {
+    for(let field in props.fields) {
+        global_filter_fields.push(field);
+    }
+}
+
+const atts = {};
+const events = {};
+let groupcell;
+if (store.group) {
+    atts.rowGroupMode = "subheader";
+    atts.groupRowsBy=store.group;
+} else if (store.distinguish) {
+    let id = store.distinguish;
+    atts.rowClass = function(data) {
+        return id + "-" + data[id];
+    };
+}
+
+
+const total_records = computed(() => {
+    return props.repo.pagination.count.value;
+});
+
+
+if (props.repo.hasPagination()) {
+    atts.lazy = true;
+    atts.paginator = true;
+    atts.rows = props.repo.pagination.rows_per_page;
+    atts.paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink";
+    events.page = function(evt) {
+        props.repo.setPagination(evt.page)
+        .then(response => {
+            data.value = response;
+        });
+    };
+}
+
+groupcell = fields[store.group];
+
+const filters = computed(() => {
+    if (!props.search) return {};
+    let filters = { 'global' : {  value : props.search, matchMode: FilterMatchMode.CONTAINS } };
+    return filters;
+});
+
+
+
+
+function rowClass(data) {
+    let classes = [];
+    if (store.classes) {
+        for(let cls of store.classes) {
+            if (data[cls.att] == cls.value) classes.push(cls.class);
+        }
+    }
+    return (classes.length) ? classes.join(" ") : null;
+}
+
+//expandable rows function
+const expandedRows = ref([]);
+
+
+
+
+function onRowReorder(e) {
+   //need to emit
+   store.saveOrder(e.value);
+}
+
+
+
+onMounted (() => {
+    const groupclasses = store.groupclasses;
+    if (groupclasses) {
+        for(const cls in groupclasses) {
+            const val = groupclasses[cls];
+            
+            //apply to the rows retroactively
+            let tgs = group.value.getElementsByClassName(cls);
+            for(let el of tgs) {
+                if (el.classList.contains("ptj-group")) {
+                    let pel=el.closest(".p-rowgroup-header");
+                    pel.classList.add(val);
+                    while(pel=pel.nextElementSibling) {
+                        if (pel.classList.contains('p-rowgroup-header')) {
+                            break;
+                        }
+                        pel.classList.add(val);
+                    }
+                }
+            }
+        }
+    }
+
+});
+
+
+
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("div", _hoisted_1$3, [
+    (__props.repo.pagination.rows_per_page && !unref(store).no_filter)
+      ? (openBlock(), createBlock(script$v, {
+          key: 0,
+          repo: __props.repo
+        }, null, 8 /* PROPS */, ["repo"]))
+      : createCommentVNode("v-if", true),
+    (newrow.value)
+      ? (openBlock(), createBlock(unref(script$1J), {
+          key: 1,
+          severity: "success"
+        }, {
+          default: withCtx(() => [
+            _hoisted_2$3
+          ]),
+          _: 1 /* STABLE */
+        }))
+      : createCommentVNode("v-if", true),
+    (delrow.value)
+      ? (openBlock(), createBlock(unref(script$1J), {
+          key: 2,
+          severity: "success"
+        }, {
+          default: withCtx(() => [
+            _hoisted_3$3
+          ]),
+          _: 1 /* STABLE */
+        }))
+      : createCommentVNode("v-if", true),
+    (editrow.value)
+      ? (openBlock(), createBlock(unref(script$1J), {
+          key: 3,
+          severity: "success"
+        }, {
+          default: withCtx(() => [
+            _hoisted_4$3
+          ]),
+          _: 1 /* STABLE */
+        }))
+      : createCommentVNode("v-if", true),
+    createVNode(unref(script$t), { class: "mb-4" }, {
+      start: withCtx(() => [
+        (!__props.repo.pagination.rows_per_page)
+          ? (openBlock(), createElementBlock("span", _hoisted_5$3, [
+              _hoisted_6$3,
+              createVNode(unref(script$1L), {
+                modelValue: search.value,
+                "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => ((search).value = $event)),
+                placeholder: "Keyword Search"
+              }, null, 8 /* PROPS */, ["modelValue"])
+            ]))
+          : createCommentVNode("v-if", true),
+        (unref(col_expandable))
+          ? (openBlock(), createBlock(unref(script$C), {
+              key: 1,
+              modelValue: active_options.value,
+              "onUpdate:modelValue": _cache[1] || (_cache[1] = $event => ((active_options).value = $event)),
+              options: optional_fields,
+              placeholder: "Select Columns",
+              style: {"width":"20em"}
+            }, null, 8 /* PROPS */, ["modelValue"]))
+          : createCommentVNode("v-if", true)
+      ]),
+      end: withCtx(() => [
+        (unref(store).import)
+          ? (openBlock(), createBlock(script$e, {
+              key: 0,
+              name: __props.name
+            }, null, 8 /* PROPS */, ["name"]))
+          : createCommentVNode("v-if", true),
+        (unref(store).export)
+          ? (openBlock(), createBlock(script$g, {
+              key: 1,
+              name: __props.name
+            }, null, 8 /* PROPS */, ["name"]))
+          : createCommentVNode("v-if", true),
+        (unref(store).perms.includes('post'))
+          ? (openBlock(), createBlock(script$k, {
+              key: 2,
+              name: __props.name,
+              model: unref(store),
+              parent_id: parseInt(__props.repo.parent_id)
+            }, null, 8 /* PROPS */, ["name", "model", "parent_id"]))
+          : createCommentVNode("v-if", true),
+        (unref(store).perms.includes('delete'))
+          ? (openBlock(), createBlock(script$i, {
+              key: 3,
+              name: __props.name,
+              data: selected.value.value
+            }, null, 8 /* PROPS */, ["name", "data"]))
+          : createCommentVNode("v-if", true)
+      ]),
+      _: 1 /* STABLE */
+    }),
+    (__props.repo.pagination.rows_per_page)
+      ? (openBlock(), createElementBlock("p", _hoisted_7$1, "Total Rows: " + toDisplayString$1(__props.repo.pagination.count), 1 /* TEXT */))
+      : createCommentVNode("v-if", true),
+    createElementVNode("div", {
+      ref_key: "group",
+      ref: group
+    }, [
+      createVNode(unref(script$L), mergeProps({
+        value: __props.repo.data.value,
+        selection: selected.value.value,
+        "onUpdate:selection": _cache[2] || (_cache[2] = $event => ((selected.value.value) = $event)),
+        dataKey: "--id",
+        rowClass: rowClass,
+        responsiveLayout: "stack",
+        loading: __props.repo.is_loading.value,
+        rowHover: true,
+        onRowReorder: onRowReorder,
+        expandedRows: expandedRows.value,
+        "onUpdate:expandedRows": _cache[3] || (_cache[3] = $event => ((expandedRows).value = $event)),
+        globalFilterFields: global_filter_fields,
+        totalRecords: unref(total_records),
+        filters: unref(filters)
+      }, atts, toHandlers(events)), createSlots({
+        expansion: withCtx((slotProps) => [
+          createVNode(unref(script$1M), null, {
+            title: withCtx(() => [
+              createTextVNode(toDisplayString$1(_ctx.$t("models." + unref(store).children_models[0] + ".title")), 1 /* TEXT */)
+            ]),
+            content: withCtx(() => [
+              (openBlock(), createBlock(script$c, {
+                name: unref(store).children_models[0],
+                id: slotProps.data['--id'],
+                key: slotProps.data['--parent']
+              }, null, 8 /* PROPS */, ["name", "id"]))
+            ]),
+            _: 2 /* DYNAMIC */
+          }, 1024 /* DYNAMIC_SLOTS */)
+        ]),
+        default: withCtx(() => [
+          (unref(has_expandable))
+            ? (openBlock(), createBlock(unref(script$K), {
+                key: 0,
+                expander: true,
+                headerStyle: "width: 3rem"
+              }))
+            : createCommentVNode("v-if", true),
+          (unref(has_sort))
+            ? (openBlock(), createBlock(unref(script$K), {
+                key: 1,
+                rowReorder: true,
+                headerStyle: "width: 3rem",
+                reorderableColumn: false
+              }))
+            : createCommentVNode("v-if", true),
+          (unref(store).perms.includes('delete'))
+            ? (openBlock(), createBlock(unref(script$K), {
+                key: 2,
+                selectionMode: "multiple",
+                style: {"width":"3rem"},
+                exportable: false
+              }))
+            : createCommentVNode("v-if", true),
+          (openBlock(true), createElementBlock(Fragment, null, renderList(unref(fields), (cell) => {
+            return (openBlock(), createBlock(unref(script$K), {
+              field: cell.slug,
+              sortable: unref(sortable),
+              header: _ctx.$t('models.' + cell.model + '.fields.' + cell.name + '.label'),
+              key: cell.name
+            }, {
+              body: withCtx((slotProps) => [
+                createVNode(script$1j, {
+                  row: slotProps.data,
+                  field: cell
+                }, null, 8 /* PROPS */, ["row", "field"])
+              ]),
+              _: 2 /* DYNAMIC */
+            }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["field", "sortable", "header"]))
+          }), 128 /* KEYED_FRAGMENT */)),
+          createVNode(unref(script$K), {
+            exportable: false,
+            style: {"min-width":"8rem"}
+          }, {
+            body: withCtx((slotProps) => [
+              (unref(has_primary))
+                ? (openBlock(), createBlock(script$m, {
+                    key: 0,
+                    model: unref(store).name,
+                    id: slotProps.data['--id']
+                  }, null, 8 /* PROPS */, ["model", "id"]))
+                : createCommentVNode("v-if", true),
+              (unref(store).perms.includes('put'))
+                ? (openBlock(), createBlock(script$d, {
+                    key: 1,
+                    id: slotProps.data['--id'],
+                    name: __props.name,
+                    model: unref(store)
+                  }, null, 8 /* PROPS */, ["id", "name", "model"]))
+                : createCommentVNode("v-if", true),
+              (unref(store).audit)
+                ? (openBlock(), createBlock(script$I, {
+                    key: 2,
+                    data: slotProps.data,
+                    model: unref(store)
+                  }, null, 8 /* PROPS */, ["data", "model"]))
+                : createCommentVNode("v-if", true),
+              (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
+                return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps(component.atts, {
+                  data: slotProps.data,
+                  short: true
+                }), null, 16 /* FULL_PROPS */, ["data"]))
+              }), 256 /* UNKEYED_FRAGMENT */))
+            ]),
+            _: 1 /* STABLE */
+          })
+        ]),
+        _: 2 /* DYNAMIC */
+      }, [
+        (atts.groupRowsBy)
+          ? {
+              name: "groupheader",
+              fn: withCtx((slotProps) => [
+                createElementVNode("div", {
+                  class: normalizeClass(["ptj-group", slotProps.data[unref(groupcell).name]])
+                }, [
+                  createVNode(script$1j, {
+                    row: slotProps.data,
+                    field: unref(groupcell)
+                  }, null, 8 /* PROPS */, ["row", "field"])
+                ], 2 /* CLASS */)
+              ])
+            }
+          : undefined
+      ]), 1040 /* FULL_PROPS, DYNAMIC_SLOTS */, ["value", "selection", "loading", "expandedRows", "totalRecords", "filters"])
+    ], 512 /* NEED_PATCH */)
+  ]))
+}
+}
+
+};
+
+var css_248z$4 = "\ntable[data-v-29f6384d], thead[data-v-29f6384d], tbody[data-v-29f6384d], tr[data-v-29f6384d] {\r\n    width : 100%;\n}\n.table-display-vue-vue-type-style-index-0-id-29f6384d-scoped-true-lang_ptj-table-wrapper__fKjz7[data-v-29f6384d] {\r\n    position : relative;\n}\r\n\r\n\r\n";
+styleInject$t(css_248z$4);
+
+script$b.__scopeId = "data-v-29f6384d";
+script$b.__file = "presstojam/src/components/table/table-display.vue";
+
+var tableDisplay = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  'default': script$b
+});
+
+/*
+
+*/
+
+var script$a = {
+  props: {
+    model : String,
+    id : Number
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const repo = new RepoData(props.model);
+repo.parent_id = props.id;
+const store =repo.store;
+
+repo.load();
+
+let is_recursive = false;
+for(let i in store.fields) {
+    if (store.fields[i].recursive) is_recursive = true;
+}
+
+
+const component = computed(() => {
+    if (store.perms.includes("post") || store.perms.includes("put")) {
+        return (is_recursive) ? script$h : script$b;
+    } else {
+        return (is_recursive) ?script$1i : script$1i;
+    }
+});
+
+repo.trigger("mounted");
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createElementBlock("div", {
+    class: normalizeClass(["gc-master", __props.model])
+  }, [
+    createVNode(script$N, {
+      name: __props.model,
+      store: unref(repo)
+    }, null, 8 /* PROPS */, ["name", "store"]),
+    createVNode(unref(script$W), {
+      header: unref(store).title,
+      class: normalizeClass(["gc-repo", __props.model])
+    }, {
+      default: withCtx(() => [
+        (openBlock(), createBlock(resolveDynamicComponent(unref(component)), {
+          repo: unref(repo),
+          name: __props.model
+        }, null, 8 /* PROPS */, ["repo", "name"]))
+      ]),
+      _: 1 /* STABLE */
+    }, 8 /* PROPS */, ["header", "class"])
+  ], 2 /* CLASS */))
+}
+}
+
+};
+
+var css_248z$3 = "\ntable[data-v-e5ad478c], thead[data-v-e5ad478c], tbody[data-v-e5ad478c], tr[data-v-e5ad478c] {\r\n    width : 100%;\n}\n.repo-vue-vue-type-style-index-0-id-e5ad478c-scoped-true-lang_ptj-table-wrapper__8hxfO[data-v-e5ad478c] {\r\n    position : relative;\n}\r\n\r\n";
+styleInject$t(css_248z$3);
+
+script$a.__scopeId = "data-v-e5ad478c";
+script$a.__file = "presstojam/src/components/repo/repo.vue";
+
+class ActiveData extends Data {
+  constructor(model, active_id) {
+    super(model);
+    this._active_id = active_id;
+    this._data.value = {};
+  }
+
+  get type() {
+    return "active";
+  }
+
+  get active_id() {
+    return this._active_id;
+  }
+
+  load() {
+    if (!this._load_promise) {
+      this._is_loading.value = true;
+      this._load_promise = this._model.loadActive({
+        "--id": this._active_id
+      });
+    }
+
+    this._load_promise.then(response => {
+      this._is_loading.value = false;
+      return response;
+    }).catch(e => {
+      console.log(e);
+      this._is_loading.value = false;
+      throw e;
+    });
+
+    return this._load_promise;
+  }
+
+  reload() {
+    this._active.value = {};
+    this._load_promise = null;
+    return this.load();
+  }
+
+  overwrite(obj) {
+    for (let i in obj) {
+      this._data.value[i] = obj[i];
+    }
+  }
+
+}
 
 var script$9 = {
   props: {
+    model : String
+},
+  setup(__props) {
+
+const props = __props;
+
+
+
+
+const repo = new RepoData(props.model);
+const store =repo.store;
+repo.load();
+
+let is_recursive = false;
+for(let i in store.fields) {
+    if (store.fields[i].recursive) is_recursive = true;
+}
+
+const component = computed(() => {
+    if (store.perms.includes("post") || store.perms.includes("put")) {
+        return (is_recursive) ? script$h : script$b;
+    } else {
+        return (is_recursive) ?script$1i : script$1i;
+    }
+});
+
+
+
+return (_ctx, _cache) => {
+  return (openBlock(), createBlock(unref(script$W), {
+    header: _ctx.$t('models.' + __props.model + '.title', 2),
+    class: normalizeClass(["gc-child", __props.model])
+  }, {
+    default: withCtx(() => [
+      (openBlock(), createBlock(resolveDynamicComponent(unref(component)), {
+        repo: unref(repo),
+        name: __props.model
+      }, null, 8 /* PROPS */, ["repo", "name"]))
+    ]),
+    _: 1 /* STABLE */
+  }, 8 /* PROPS */, ["header", "class"]))
+}
+}
+
+};
+
+script$9.__file = "presstojam/src/components/active/child-panel.vue";
+
+var script$8 = {
+  props: {
     model : String,
-    base : String
+    id : Number
 },
   setup(__props) {
 
@@ -43605,11 +46521,11 @@ const t = i18n.t;
 
 
 
-const repo = getStore(props.model);
-const store =repo.store;
+const active = new ActiveData(props.model, props.id);
+const store = active.store;
 
 const data = ref({});
-repo.load()
+active.load()
 .then(response => {
     data.value = response;
 })
@@ -43620,9 +46536,9 @@ const label = computed(() => {
     return t('models.' + props.model + '.title') + ': ' + getLabel(store.fields, data.value);
 });
 
-subscribe("form_saved", repo.active_id, (response, method, model) => {
+subscribe("form_saved", active.active_id, (response, method, model) => {
     if (model.name == props.model.name) {
-        repo.reload()
+        active.reload()
         .then(response => {
             data.value = response;
         })
@@ -43638,29 +46554,34 @@ if (store.route && store.active && store.active.mounted) {
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$X, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
-    createVNode(unref(script$14), { header: unref(label) }, {
+  return (openBlock(), createElementBlock("div", {
+    class: normalizeClass([__props.model, "gc-detail"])
+  }, [
+    createVNode(script$N, {
+      name: __props.model,
+      store: unref(active)
+    }, null, 8 /* PROPS */, ["name", "store"]),
+    createVNode(unref(script$W), { header: unref(label) }, {
       default: withCtx(() => [
-        createVNode(unref(script$b), { lazy: "" }, {
+        createVNode(unref(script$s), { lazy: "" }, {
           default: withCtx(() => [
-            createVNode(unref(script$a), {
+            createVNode(unref(script$r), {
               header: unref(getLabel)(unref(store).fields, data.value)
             }, {
               default: withCtx(() => [
-                createVNode(unref(script$14), {
+                createVNode(unref(script$W), {
                   header: _ctx.$t('models.' +unref(store).name + '.title')
                 }, {
                   icons: withCtx(() => [
                     (unref(store).audit)
-                      ? (openBlock(), createBlock(script$l, {
+                      ? (openBlock(), createBlock(script$I, {
                           key: 0,
                           model: unref(store),
                           data: data.value,
                           long: true
                         }, null, 8 /* PROPS */, ["model", "data"]))
                       : createCommentVNode("v-if", true),
-                    createVNode(script$p, {
+                    createVNode(script$i, {
                       name: unref(store).name,
                       data: data.value
                     }, null, 8 /* PROPS */, ["name", "data"]),
@@ -43670,11 +46591,11 @@ return (_ctx, _cache) => {
                   ]),
                   default: withCtx(() => [
                     (data.value['--id'])
-                      ? (openBlock(), createBlock(script$W, {
+                      ? (openBlock(), createBlock(script$M, {
                           key: 0,
-                          model: unref(store),
-                          data: data.value
-                        }, null, 8 /* PROPS */, ["model", "data"]))
+                          id: data.value['--id'],
+                          name: props.model
+                        }, null, 8 /* PROPS */, ["id", "name"]))
                       : createCommentVNode("v-if", true)
                   ]),
                   _: 1 /* STABLE */
@@ -43683,11 +46604,11 @@ return (_ctx, _cache) => {
               _: 1 /* STABLE */
             }, 8 /* PROPS */, ["header"]),
             (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).fields['--id'].reference, (child) => {
-              return (openBlock(), createBlock(unref(script$a), {
+              return (openBlock(), createBlock(unref(script$r), {
                 header: _ctx.$t('models.' + child + '.title', 2)
               }, {
                 default: withCtx(() => [
-                  createVNode(script$c, { model: child }, null, 8 /* PROPS */, ["model"])
+                  createVNode(script$9, { model: child }, null, 8 /* PROPS */, ["model"])
                 ]),
                 _: 2 /* DYNAMIC */
               }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["header"]))
@@ -43698,86 +46619,13 @@ return (_ctx, _cache) => {
       ]),
       _: 1 /* STABLE */
     }, 8 /* PROPS */, ["header"])
-  ], 64 /* STABLE_FRAGMENT */))
+  ], 2 /* CLASS */))
 }
 }
 
 };
 
-script$9.__file = "presstojam/src/components/active/active.vue";
-
-var script$8 = {
-  props: {
-    model : String,
-    is_active : false,
-    id : {
-        type : [Number, String],
-        default : 0
-    }
-},
-  setup(__props) {
-
-const props = __props;
-
-
-
-
-const ready = ref(false);
-
-const component = computed(() => {
-    if (!ready.value) return null;
-    else return (props.is_active) ? script$9 : script$d;
-});
-
-
-async function setupModel() {
-
-    clearModelCache();
-    clearStores();
-
-    const store = getModel(props.model);
-
-    
-
-
-    if (props.is_active) {
-        const active = createActiveStore(store, props.id);
-        regStore(props.model, active);
-
-        for(const child of store.fields["--id"].reference) {
-            const child_store = getModel(child);
-            const repo = createRepoStore(child_store);
-            repo.parent_id = props.id;
-            regStore(child, repo);
-        }
-    } else {
-        const repo = createRepoStore(store);
-        repo.parent_id = props.id;
-        regStore(props.model, repo);
-        if (repo.pagination.rows_per_page) {
-            await repo.count();
-        }
-    }
-    ready.value = true;
-}
-
-setupModel();
-
-return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock("div", null, [
-    (unref(component))
-      ? (openBlock(), createBlock(resolveDynamicComponent(unref(component)), {
-          key: 0,
-          model: __props.model
-        }, null, 8 /* PROPS */, ["model"]))
-      : createCommentVNode("v-if", true)
-  ]))
-}
-}
-
-};
-
-script$8.__file = "presstojam/src/components/model.vue";
+script$8.__file = "presstojam/src/components/active/active.vue";
 
 var script$7 = {
   name: 'Accordion',
@@ -44178,7 +47026,7 @@ return (_ctx, _cache) => {
 };
 
 var css_248z$1 = "\nth[data-v-70986bd9] { text-align : left;}\r\n";
-styleInject$u(css_248z$1);
+styleInject$t(css_248z$1);
 
 script$5.__scopeId = "data-v-70986bd9";
 script$5.__file = "presstojam/src/components/dev/sitemap-node.vue";
@@ -44190,7 +47038,7 @@ const routes = getEntities();
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createBlock(unref(script$14), { header: "Routes" }, {
+  return (openBlock(), createBlock(unref(script$W), { header: "Routes" }, {
     default: withCtx(() => [
       createVNode(unref(script$7), null, {
         default: withCtx(() => [
@@ -44264,11 +47112,11 @@ function createAppRouter() {
   });
   croutes.push({
     path: base + "/data/:model/:id?",
-    component: script$8,
+    component: script$a,
     name: 'repo',
     props: route => ({
       model: route.params.model,
-      id: route.params.id
+      id: parseInt(route.params.id)
     })
   });
   croutes.push({
@@ -44278,12 +47126,12 @@ function createAppRouter() {
     props: route => ({
       model: route.params.model,
       is_active: true,
-      id: route.params.id
+      id: parseInt(route.params.id)
     })
   });
   croutes.push({
     path: base + "/data/single/:model/:id?",
-    component: script$V,
+    component: script$H,
     name: 'single',
     props: route => ({
       model: route.params.model,
@@ -44292,7 +47140,7 @@ function createAppRouter() {
   });
   croutes.push({
     path: base + "/reports/:model",
-    component: script$E,
+    component: script$p,
     name: 'report',
     props: route => ({
       model: route.params.model
@@ -44654,7 +47502,7 @@ var index$1 = {
     app.use(PrimeVue);
     let client = getClient();
     app.provide("client", client);
-    app.component("Controller", script$$);
+    app.component("Controller", script$R);
   }
 };
 
@@ -62882,4 +65730,4 @@ var auto = /*#__PURE__*/Object.freeze({
   scales: scales
 });
 
-export { account as Account, script$$ as Controller, filter as Filter, flow as Flow, form as Form, report as Report, tableDisplay as Table, tree as Tree, viewField as ViewField, index$1 as default, download, getClient, initConfigs, slugTrail as slugtrail };
+export { account as Account, script$R as Controller, filter as Filter, flow as Flow, form as Form, report as Report, tableDisplay as Table, tree as Tree, viewField as ViewField, index$1 as default, download, getClient, initConfigs, slugTrail as slugtrail };

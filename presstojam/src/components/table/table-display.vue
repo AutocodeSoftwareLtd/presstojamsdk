@@ -1,5 +1,6 @@
 <template>
-    <ptj-filter-form v-if="repo.pagination.rows_per_page && !store.no_filter"  :model="repo.store" :data="repo.filters" />
+  <div class="gc-table">
+    <ptj-filter-form v-if="repo.pagination.rows_per_page && !store.no_filter"  :repo="repo" />
     <Message severity="success" v-if="newrow">New row created</Message>
     <Message severity="success" v-if="delrow">Rows removed</Message>
     <Message severity="success" v-if="editrow">Row Updated</Message>
@@ -30,7 +31,6 @@
                 dataKey="--id" :rowClass="rowClass"
                 responsiveLayout="stack" :loading="repo.is_loading.value" 
                 :rowHover="true" @rowReorder="onRowReorder" 
-                @rowExpand="onRowExpand" @rowCollapse="onRowCollapse" 
                 v-model:expandedRows="expandedRows" 
                 :globalFilterFields="global_filter_fields"
                 :totalRecords="total_records"
@@ -59,15 +59,16 @@
         <template #expansion="slotProps">
             <Card>
                 <template #title>
-                    {{ $t("models." + child_repo.model.name + ".title") }}
+                    {{ $t("models." + store.children_models[0] + ".title") }}
                 </template>
                 <template #content>
-                    <ChildTable :name="child_repo.model.name + '-' + slotProps.data['--parent']" :id="slotProps.data['--parent']" :key="slotProps.data['--parent']" />
+                    <ChildTable :name="store.children_models[0]" :id="slotProps.data['--id']" :key="slotProps.data['--parent']" />
                 </template>
             </Card>
         </template>
     </DataTable>
     </div>
+   </div>
 </template>
 
 <script setup>
@@ -92,7 +93,6 @@ import PtjPrimaryAction from "../actions/primary-action.vue"
 import PtjViewField from "../view/view-field.vue"
 import DataTable from "primevue/DataTable"
 import ChildTable from "./child-table.vue"
-import { RepoData } from "../../js/data/repodata.js";
 
 
 
@@ -251,23 +251,12 @@ function rowClass(data) {
 
 
 const table_atts = {};
-let child_repo = null;
 if (has_expandable) {
     table_atts["v-model:expandedRows"] ="expandedRows";
-    child_repo = new RepoData(store.children_models[0]);
 }
 
 //expandable rows function
 const expandedRows = ref([]);
-const onRowExpand = (event) => {
-    //expandedRows.value = [{"Time":"Coming"}];
-    event.data.children = [];
-    props.repo.active.value = event.data;
-};
-
-const onRowCollapse = (event) => {
-   event.data.children = [];
-};
 
 
 

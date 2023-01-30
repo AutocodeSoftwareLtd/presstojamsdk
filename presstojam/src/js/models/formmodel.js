@@ -1,6 +1,7 @@
 import configs from "./../configs.js"
 import { getEntity } from "../entity/entitymanager.js"
 import { getClient } from "./../client.js"
+import { sortByDictionary, toReferenceTree } from "./../helperfunctions.js"
 
 
 export class FormModel {
@@ -12,6 +13,7 @@ export class FormModel {
         this._editable_fields = [];
         this._parent = null;
         this._events;
+        this._perms = [];
         
 
 
@@ -61,6 +63,7 @@ export class FormModel {
             throw "Can't create model from entity that doesn't exist ", this._name;
         } 
 
+        if (entity.perms) this._perms = entity.perms;
         return entity;
     }
 
@@ -147,6 +150,30 @@ export class FormModel {
             }
         }
         return cells;
+    }
+
+
+    getOptions(name, id) {
+        const client = getClient();
+        let url = "/reference/" + this._name + "/" + name;
+        if (id) url += "/" + id;
+        return client.get(url)
+        .then(response => {
+            response.sort(sortByDictionary);
+           return response;
+        });
+    }
+
+
+    
+    getRecursiveOptions(name, id) {
+        const client = getClient();
+        let url = "/reference/" + this._name + "/" + name;
+        if (id) url += "/" + id;
+        return client.get(url)
+        .then(response => {
+            return toReferenceTree(response, this._fields)
+        });
     }
 
 }

@@ -11,7 +11,6 @@
 
 <script setup>
 import { computed, ref, inject, onBeforeUnmount } from "vue"
-import { getModel } from "../../js/models/modelmanager.js"
 import PtjSlugTrail from "../slugtrail/slug-trail.vue"
 import Panel from "primevue/panel"
 import EditEffect from "../effects/edit-effect.vue"
@@ -29,9 +28,7 @@ const props = defineProps({
 });
 
 
-const store = getModel(props.model);
-
-const repo = new SingleData(store);
+const repo = new SingleData(props.model);
 
 regStore(props.model, repo);
 repo.load()

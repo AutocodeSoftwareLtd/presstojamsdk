@@ -8,48 +8,38 @@
         class="ptj-filter" 
         v-for="field in filtercells" :bind="field" :key="field.name" />
         </span>
-        <p style="text-align:right">
-        <Button :label="$t('btns.filter')" @click="submit" />
-        </p>
-
     </Fieldset>
 </template>
 <script setup>
 
 import PtjFilter from "./filter.vue"
-import { computed, provide, ref } from "vue"
-import Button from 'primevue/button'
+import { provide } from "vue"
 import Fieldset from 'primevue/fieldset';
 import { Bind } from "./../../js/binds/bind.js"
 
 const props = defineProps({
-    model : Object,
-    data : Object,
+    repo : {
+        type : Object,
+        required : true
+    },
     name : String
 });
 
-provide("model", props.model.name);
+const model = props.repo.model;
 
+provide("model", model);
+provide("repo", props.repo);
 
-const filtercells = computed(() => {
-    let filter_cells = {};
-    for(let i in props.model.fields) {
-        const field = props.model.fields[i];
-        if (field.background) continue;
-        if (field.type == "asset" || field.type == "json") continue;
-        filter_cells[i] = new Bind(field, props.data[i]);
-    }
-    return filter_cells;
-});
+const fields = model.getEnabledCells();
+const filtercells = {};
 
-
-function submit() {
-    const filters = {};
-    for(let i in filter_cells) {
-        filters[i] = filter_cells[i].value;
-    }
-    trigger("filter_form", props.name, filters);
+for(const i in fields) {
+    const field = fields[i];
+    if (i == "--owner" || i == "--sort" || i== "--parent" || field.type == "asset" || field.type == "json" || field.encrypted) continue;
+    filtercells[i] = new Bind(field);
 }
+
+
 </script>
 <style>
 .ptj-filter { 

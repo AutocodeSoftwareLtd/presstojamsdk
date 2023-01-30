@@ -1,9 +1,6 @@
 <template>
     <div>
-    <div v-for="obj in report_models" :key="obj.name">
-        <h2>Reports For {{$t("models." + obj.name + ".title", 1) }}</h2>
-        <report-display  :schema="obj" /> 
-    </div>
+        <report-display  v-for="obj in report_models" :key="obj.name" :schema="obj" /> 
     </div>
 </template>
 <script setup>

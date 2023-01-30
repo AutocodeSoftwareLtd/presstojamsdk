@@ -9,15 +9,16 @@ import Chart from 'primevue/chart';
 
 
 const props = defineProps({
-    data : [Object, Array],
+    repo : Object,
     type : [String]
 });
+
 
 
 const chart_data = computed(() => {
     const obj = {
         labels : ['Count'],
-        datasets : props.data
+        datasets : props.repo.data
     }
     return obj;
 });

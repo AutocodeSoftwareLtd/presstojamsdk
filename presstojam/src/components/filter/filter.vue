@@ -2,7 +2,7 @@
     <div class="ptj-filter">
         <Button 
             type="button"  
-            :label="$t('models.' + model + '.fields.' + bind.cell.name + '.filterlabel')"
+            :label="$t('models.' + model.name + '.fields.' + bind.cell.name + '.label')"
             @click="toggle" 
             aria-haspopup="true" 
             aria-controls="overlay"
@@ -17,7 +17,7 @@
             style="width: 450px" 
             :breakpoints="{'960px': '75vw'}">
             <div>
-                <ptj-filter-field :field="bind.cell" v-model="val" />
+                <ptj-filter-field :bind="bind" v-model="val" />
             </div>
         </OverlayPanel>
     </div>

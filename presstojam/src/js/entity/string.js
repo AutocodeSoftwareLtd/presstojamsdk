@@ -5,7 +5,7 @@ export class String extends Field {
     constructor(name, obj) {
         super(name);
         this._encrypted = false;
-        this._list;
+        this._list = null;
         this._multiple = false;
         this.buildGetterSetters();
         if (obj) this.apply(obj);

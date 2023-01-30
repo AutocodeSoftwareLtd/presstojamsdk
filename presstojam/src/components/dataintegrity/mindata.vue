@@ -14,7 +14,6 @@ import { trigger, subscribe, unsubscribe } from "./../../js/bus/bus.js"
 import { getClient } from "./../../js/client.js"
 import { getEntity } from "./../../js/entity/entitymanager.js"
 import { ref, onBeforeUnmount, computed, inject } from "vue"
-import { getModel } from "./../../js/models/modelmanager.js"
 import DataDisplay from "./../displays/data-display.vue"
 import PtjForm from "./../form/form.vue"
 import Card from 'primevue/card';
@@ -53,7 +52,7 @@ function checkData() {
         for(const i in checks) {
             const entity = getEntity(i);
             if (entity.perms.includes("post") && entity.min_rows && entity.min_rows >= checks[i]) {
-                current_model.value = getModel(i);
+                current_model.value = i;
                 current_num.value = checks[i];
                 return;
             }
