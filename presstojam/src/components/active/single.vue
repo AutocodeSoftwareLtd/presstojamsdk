@@ -1,12 +1,14 @@
 <template>
-    <ptj-slug-trail :name="model" />
+  <div>
+    <ptj-slug-trail :name="model" :store="single"/>
     <Panel :header="label">
         <template #icons>
             <audit-action v-if="store.audit" :model="store" :data="data" :long="true" />
             <component v-for="component in store.actions" :is="component.component" :data="data" v-bind="component.atts"/>
         </template>
-        <edit-effect v-if="repo.data.value['--id']" :id="repo.data.value['--id']" :name="props.model" />
+        <edit-effect v-if="single.data.value['--id']" :id="single.data.value['--id']" :name="props.model" />
     </Panel>
+  </div>
 </template>
 
 <script setup>
@@ -28,25 +30,28 @@ const props = defineProps({
 });
 
 
-const repo = new SingleData(props.model);
+const single = new SingleData(props.model);
+const store = single.model;
 
-regStore(props.model, repo);
-repo.load()
+single.load()
+.then(() => {
+    console.log("Value is", single.data);
+})
 .catch(e => console.log(e));
 
 
 const label = computed(() => {
-    return t('models.' + props.model + '.title') + ': ';// + repo.label.value;
+    return t('models.' + props.model + '.title') + ': ';// + single.label.value;
 });
 
 
-subscribe("effect_edited", props.model.name, response => {
+subscribe("effect_edited", props.model, response => {
     console.log(response, arguments);
 });
 
 
 onBeforeUnmount(() => {
-    unsubscribe("effect_edited", props.model_name);
+    unsubscribe("effect_edited", props.model);
 })
 
 </script>

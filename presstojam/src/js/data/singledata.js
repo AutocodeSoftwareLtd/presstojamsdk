@@ -7,8 +7,8 @@ export class SingleData extends Data {
         super(model);
         this._active_id = 0;
 
-        model.limit = 1;
-        model.order = {"--id" : "ASC"};
+        this._model.limit = 1;
+        this._model.order = {"--id" : "ASC"};
         this._data.value = {};
     }
 
@@ -28,7 +28,8 @@ export class SingleData extends Data {
             
         this._load_promise.then(response => {
             this._is_loading.value = false;
-            this._data.value =response;
+            if (Array.isArray(response)) this._data.value = response.pop();
+            else this._data.value = response;
             this._active_id = this._data.value['--id'];
         })
         .catch(e => {

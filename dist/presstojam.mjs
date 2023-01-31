@@ -1,4 +1,4 @@
-/*! DS Library v3.2.53 */
+/*! DS Library v3.2.54 */
 
 import { h, getCurrentInstance, inject, onMounted, onUnmounted, shallowRef, ref, computed, onBeforeMount, watch, Fragment, effectScope, isRef, createVNode, Text, reactive, openBlock, createElementBlock, renderSlot, createCommentVNode, createElementVNode, normalizeClass, resolveDirective, withDirectives, toDisplayString as toDisplayString$1, createBlock, Transition, withCtx, vShow, unref, createTextVNode, mergeProps, resolveComponent, resolveDynamicComponent, renderList, normalizeStyle, Teleport, onBeforeUnmount, normalizeProps, guardReactiveProps, createSlots, toHandlers, vModelText, withKeys, provide, withAsyncContext, withModifiers, Suspense, nextTick, defineComponent, watchEffect, onUpdated, pushScopeId, popScopeId } from 'vue';
 
@@ -9323,7 +9323,7 @@ function regEntity(i, entity) {
 }
 function getEntity(i) {
   if (!_entities[i]) {
-    console.warn("Trying to get entity " + i + " which isn't registerd in entity store", "entitystore.js");
+    console.warn("Trying to get entity: " + i + " which isn't registerd in entity store", "entitystore.js", _entities);
   }
 
   return _entities[i];
@@ -17645,10 +17645,6 @@ class Model {
           schema[i].disabled = true;
           continue;
         }
-
-        schema[i].disabled = true; //continue - don't use includes or parents
-
-        continue;
       }
 
       if (schema[i].type == "json") {
@@ -27150,7 +27146,7 @@ if (props.method == "put") {
 }
 
 //if (model.parent) {
-  //  bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.id));
+  //  bindGroup.addBind("--parent", new Bind(model.fields["--parent"], props.id));
 //}
 
 
@@ -27211,7 +27207,7 @@ function submit() {
     }         
 
     //return;
-    return Client[props.method]("/data/" + props.model.name, data)
+    return Client[props.method]("/data/" + model.name, data)
     .then(response => {
         if (props.method == "put") {
             response.data["--id"] = props.id;
@@ -27346,8 +27342,9 @@ const client = getClient();
 
 const current_model = ref(null);
 const current_num = ref(0);
+const repo = ref(null);
 
-const data = computed(() => {
+computed(() => {
     const cdata = {};
     if (props.parent_id) cdata["--parent"] = props.parent_id;
     return cdata; 
@@ -27355,8 +27352,8 @@ const data = computed(() => {
 
 const header = computed(() => {
     return (current_model.value.parent)
-        ? "Add " + t("models." + current_model.value.name + ".title", 1) + " to " + t("models." + current_model.value.parent + ".title", 1)
-        : "Create " + t("models." + current_model.value.name + ".title", 1);
+        ? "Add " + t("models." + current_model.value + ".title", 1) + " to " + t("models." + current_model.value.parent + ".title", 1)
+        : "Create " + t("models." + current_model.value + ".title", 1);
 });
 
 function checkData() {
@@ -27366,9 +27363,15 @@ function checkData() {
     .then(checks => {
         for(const i in checks) {
             const entity = getEntity(i);
-            if (entity.perms.includes("post") && entity.min_rows && entity.min_rows >= checks[i]) {
+            if (entity.perms.includes("post") && entity.min_rows && entity.min_rows > checks[i]) {
                 current_model.value = i;
                 current_num.value = checks[i];
+                if (current_num.value) {
+                    repo.value = new RepoData(i);
+                    repo.parent_id = props.parent_id;
+                } else {
+                    repo.value = null;
+                }
                 return;
             }
         }
@@ -27396,9 +27399,8 @@ return (_ctx, _cache) => {
     (current_num.value.value)
       ? (openBlock(), createBlock(script$1i, {
           key: 0,
-          model: current_model.value,
-          parent_id: __props.parent_id
-        }, null, 8 /* PROPS */, ["model", "parent_id"]))
+          repo: repo.value
+        }, null, 8 /* PROPS */, ["repo"]))
       : createCommentVNode("v-if", true),
     (current_model.value)
       ? (openBlock(), createBlock(unref(script$1M), { key: 1 }, {
@@ -27406,10 +27408,7 @@ return (_ctx, _cache) => {
             createElementVNode("h2", null, toDisplayString$1(unref(header)), 1 /* TEXT */)
           ]),
           content: withCtx(() => [
-            createVNode(script$U, {
-              model: current_model.value,
-              data: unref(data)
-            }, null, 8 /* PROPS */, ["model", "data"])
+            createVNode(script$U, { entity_name: current_model.value }, null, 8 /* PROPS */, ["entity_name"])
           ]),
           _: 1 /* STABLE */
         }))
@@ -27466,7 +27465,7 @@ function loadRoutes() {
         }
     })
     .then(() => {
-        
+       
     })
 }
 
@@ -32105,7 +32104,7 @@ const props = __props;
 
  
     subscribe("form_saved", "update", (response, method, model) => {
-        if (model.name == props.model.name && method == "put") {
+        if (model.name == props.name && method == "put") {
             trigger("effect_edited", props.name, props.data);
         }
     });
@@ -37674,8 +37673,8 @@ class SingleData extends Data {
   constructor(model) {
     super(model);
     this._active_id = 0;
-    model.limit = 1;
-    model.order = {
+    this._model.limit = 1;
+    this._model.order = {
       "--id": "ASC"
     };
     this._data.value = {};
@@ -37697,7 +37696,7 @@ class SingleData extends Data {
 
     this._load_promise.then(response => {
       this._is_loading.value = false;
-      this._data.value = response;
+      if (Array.isArray(response)) this._data.value = response.pop();else this._data.value = response;
       this._active_id = this._data.value['--id'];
     }).catch(e => {
       console.log(e);
@@ -37738,57 +37737,63 @@ const t = i18n.t;
 
 
 
-const repo = new SingleData(props.model);
+const single = new SingleData(props.model);
+const store = single.model;
 
-regStore(props.model, repo);
-repo.load()
+single.load()
+.then(() => {
+    console.log("Value is", single.data);
+})
 .catch(e => console.log(e));
 
 
 const label = computed(() => {
-    return t('models.' + props.model + '.title') + ': ';// + repo.label.value;
+    return t('models.' + props.model + '.title') + ': ';// + single.label.value;
 });
 
 
-subscribe("effect_edited", props.model.name, response => {
+subscribe("effect_edited", props.model, response => {
     console.log(response, arguments);
 });
 
 
 onBeforeUnmount(() => {
-    unsubscribe("effect_edited", props.model_name);
+    unsubscribe("effect_edited", props.model);
 });
 
 
 return (_ctx, _cache) => {
-  return (openBlock(), createElementBlock(Fragment, null, [
-    createVNode(script$N, { name: __props.model }, null, 8 /* PROPS */, ["name"]),
+  return (openBlock(), createElementBlock("div", null, [
+    createVNode(script$N, {
+      name: __props.model,
+      store: unref(single)
+    }, null, 8 /* PROPS */, ["name", "store"]),
     createVNode(unref(script$W), { header: unref(label) }, {
       icons: withCtx(() => [
-        (_ctx.store.audit)
+        (unref(store).audit)
           ? (openBlock(), createBlock(script$I, {
               key: 0,
-              model: _ctx.store,
+              model: unref(store),
               data: _ctx.data,
               long: true
             }, null, 8 /* PROPS */, ["model", "data"]))
           : createCommentVNode("v-if", true),
-        (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.store.actions, (component) => {
+        (openBlock(true), createElementBlock(Fragment, null, renderList(unref(store).actions, (component) => {
           return (openBlock(), createBlock(resolveDynamicComponent(component.component), mergeProps({ data: _ctx.data }, component.atts), null, 16 /* FULL_PROPS */, ["data"]))
         }), 256 /* UNKEYED_FRAGMENT */))
       ]),
       default: withCtx(() => [
-        (unref(repo).data.value['--id'])
+        (unref(single).data.value['--id'])
           ? (openBlock(), createBlock(script$M, {
               key: 0,
-              id: unref(repo).data.value['--id'],
+              id: unref(single).data.value['--id'],
               name: props.model
             }, null, 8 /* PROPS */, ["id", "name"]))
           : createCommentVNode("v-if", true)
       ]),
       _: 1 /* STABLE */
     }, 8 /* PROPS */, ["header"])
-  ], 64 /* STABLE_FRAGMENT */))
+  ]))
 }
 }
 
@@ -40484,6 +40489,10 @@ class ReportData extends Data {
 
   set timegroup(timegroup) {
     this._time_group = timegroup;
+  }
+
+  get timegroup() {
+    return this._time_group;
   }
 
   get field() {
@@ -47130,12 +47139,11 @@ function createAppRouter() {
     })
   });
   croutes.push({
-    path: base + "/data/single/:model/:id?",
+    path: base + "/data/single/:model",
     component: script$H,
     name: 'single',
     props: route => ({
-      model: route.params.model,
-      base: base + "/"
+      model: route.params.model
     })
   });
   croutes.push({

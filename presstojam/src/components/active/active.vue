@@ -3,15 +3,21 @@
     <ptj-slug-trail :name="model" :store="active"/>
     <Panel :header="label">
     
+    
    <TabView lazy>
         <TabPanel :header="getLabel(store.fields, data)">
 		    <Panel :header="$t('models.' +store.name + '.title')">
             <template #icons>
                 <audit-action v-if="store.audit" :model="store" :data="data" :long="true" />
-                <ptj-delete-action :name="store.name" :data="data"/>
+                <ptj-delete-action v-if="store.perms.includes('delete')" :name="store.name" :data="data"/>
                 <component v-for="component in store.actions" :is="component.component" :data="data" v-bind="component.atts"/>
             </template>
-            <edit-effect v-if="data['--id']" :id="data['--id']" :name="props.model" />
+            <div v-if="store.perms.includes('put')">
+                <edit-effect v-if="data['--id']" :id="data['--id']" :name="props.model" />
+            </div>
+            <div v-else>
+                <view-model :repo="active" />
+            </div>
             </Panel>
 	    </TabPanel>
         <TabPanel v-for="child in store.fields['--id'].reference" :header="$t('models.' + child + '.title', 2)">
@@ -34,6 +40,7 @@ import EditEffect from "../effects/edit-effect.vue"
 import AuditAction from "../actions/audit-action.vue"
 import PtjDeleteAction from "../actions/delete-action.vue"
 import { subscribe, unsubscribe } from "../../js/bus/bus.js"
+import ViewModel from "./../view/view-model.vue"
 
 const i18n = inject("i18n");
 const t = i18n.t;

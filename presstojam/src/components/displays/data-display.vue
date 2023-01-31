@@ -29,6 +29,7 @@ const props = defineProps({
     repo : Object
 });
 
+
 const store = props.repo.store;
 
 store.setTableCells();

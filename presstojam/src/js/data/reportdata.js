@@ -43,6 +43,10 @@ export class ReportData extends Data {
         this._time_group = timegroup;
     }
 
+    get timegroup() {
+        return this._time_group;
+    }
+
     get field() {
         return this._field;
     }

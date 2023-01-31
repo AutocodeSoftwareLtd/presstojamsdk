@@ -242,8 +242,7 @@ export class Model {
                     schema[i].disabled = true;
                     continue;
                 }
-                schema[i].disabled = true; //continue - don't use includes or parents
-                continue;
+
             }
 
             if (schema[i].type == "json") {

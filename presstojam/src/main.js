@@ -109,11 +109,21 @@ let settings = {
   "profile" : "company", //"accounts",
   "url" : url,
   "base" : "/admin",
-  "user" : {
-      "teleport" : "#user",
-      "role" : ""
-  },
   "models" : {
+    "support-match" : {
+       
+    },
+    "supports" : {
+        "fields" : [
+        "--id",
+        "grant-title",
+        "description",
+        "further-information",
+        "url"
+        ]
+    }
+  }
+ /* "models" : {
       "projects" : {
             "import" : true,
            "export_fields" : {
@@ -167,7 +177,7 @@ let settings = {
     }],
     "routes" : [
         { "path" : "/schema", component : Schema, name :"name"}
-    ]
+    ]*/
 };
 
 const app = createApp(Controller);

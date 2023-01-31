@@ -42,8 +42,10 @@ if (props.store.type == "active") {
 
 while(entity.parent) {
     const parent = getEntity(entity.parent);
-    structure.push(parent);
-    entity = parent;
+    if (parent && parent.perms.includes("get")) {
+        structure.push(parent);
+        entity = parent;
+    }
 }
 structure = structure.reverse();
 

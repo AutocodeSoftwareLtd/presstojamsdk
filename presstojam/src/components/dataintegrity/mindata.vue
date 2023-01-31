@@ -1,11 +1,11 @@
 <template>
-    <data-display v-if="current_num.value" :model="current_model" :parent_id="parent_id" />
+    <data-display v-if="current_num.value" :repo="repo" />
     <Card v-if="current_model" >
         <template #header> 
             <h2>{{header}}</h2>
         </template>
         <template #content>
-            <ptj-form :model="current_model" :data="data" />
+            <ptj-form :entity_name="current_model" />
         </template>
     </Card>
 </template>
@@ -17,6 +17,7 @@ import { ref, onBeforeUnmount, computed, inject } from "vue"
 import DataDisplay from "./../displays/data-display.vue"
 import PtjForm from "./../form/form.vue"
 import Card from 'primevue/card';
+import { RepoData } from "../../js/data/repodata"
 
 const props = defineProps({
     model : String,
@@ -31,6 +32,7 @@ const client = getClient();
 
 const current_model = ref(null);
 const current_num = ref(0);
+const repo = ref(null);
 
 const data = computed(() => {
     const cdata = {};
@@ -40,8 +42,8 @@ const data = computed(() => {
 
 const header = computed(() => {
     return (current_model.value.parent)
-        ? "Add " + t("models." + current_model.value.name + ".title", 1) + " to " + t("models." + current_model.value.parent + ".title", 1)
-        : "Create " + t("models." + current_model.value.name + ".title", 1);
+        ? "Add " + t("models." + current_model.value + ".title", 1) + " to " + t("models." + current_model.value.parent + ".title", 1)
+        : "Create " + t("models." + current_model.value + ".title", 1);
 });
 
 function checkData() {
@@ -51,9 +53,15 @@ function checkData() {
     .then(checks => {
         for(const i in checks) {
             const entity = getEntity(i);
-            if (entity.perms.includes("post") && entity.min_rows && entity.min_rows >= checks[i]) {
+            if (entity.perms.includes("post") && entity.min_rows && entity.min_rows > checks[i]) {
                 current_model.value = i;
                 current_num.value = checks[i];
+                if (current_num.value) {
+                    repo.value = new RepoData(i);
+                    repo.parent_id = props.parent_id;
+                } else {
+                    repo.value = null;
+                }
                 return;
             }
         }

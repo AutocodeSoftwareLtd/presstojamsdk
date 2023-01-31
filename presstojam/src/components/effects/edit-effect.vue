@@ -17,7 +17,7 @@
 
  
     subscribe("form_saved", "update", (response, method, model) => {
-        if (model.name == props.model.name && method == "put") {
+        if (model.name == props.name && method == "put") {
             trigger("effect_edited", props.name, props.data);
         }
     });

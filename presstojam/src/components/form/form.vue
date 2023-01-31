@@ -67,7 +67,7 @@ if (props.method == "put") {
 }
 
 //if (model.parent) {
-  //  bindGroup.addBind("--parent", new Bind(props.model.fields["--parent"], props.id));
+  //  bindGroup.addBind("--parent", new Bind(model.fields["--parent"], props.id));
 //}
 
 
@@ -128,7 +128,7 @@ function submit() {
     }         
 
     //return;
-    return Client[props.method]("/data/" + props.model.name, data)
+    return Client[props.method]("/data/" + model.name, data)
     .then(response => {
         if (props.method == "put") {
             response.data["--id"] = props.id;

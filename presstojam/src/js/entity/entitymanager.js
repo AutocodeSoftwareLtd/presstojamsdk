@@ -9,7 +9,7 @@ export function regEntity(i, entity) {
 
 export function getEntity(i) {
     if (!_entities[i]) {
-        console.warn("Trying to get entity " + i + " which isn't registerd in entity store", "entitystore.js");
+        console.warn("Trying to get entity: " + i + " which isn't registerd in entity store", "entitystore.js", _entities);
     }
     return _entities[i];
 }
@@ -25,7 +25,7 @@ export function loadSiteMap(response) {
         const entity = new Entity();
         entity.name = i;
         entity.audit = response[i].audit;
-        entity.perms = response[i].perms;
+        if (response[i].perms) entity.perms = response[i].perms;
         entity.import = response[i].import;
         entity.export = response[i].export;
         entity.min_rows = response[i].min_rows;
