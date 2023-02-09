@@ -16,9 +16,9 @@ export class JsonGroup extends Field {
         const group = bind.getGroup();
 
         for(const i in this._fields) {
-            const cbind = group.getBind(i);
+            const cbind = group.getBind(this._name + "-" + i);
             if (!cbind.active.value) continue;
-            if (cbind.cell.type() == "json") {
+            if (cbind.cell.type == "json") {
                 obj[i] = this.cbind.cell.buildJSON(cbind);
             } else {
                 obj[i] = cbind.value;

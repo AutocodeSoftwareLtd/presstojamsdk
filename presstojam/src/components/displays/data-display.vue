@@ -1,29 +1,32 @@
 <template>
-<DataView :value="repo.data.value" :layout="layout">
-	<template #header>
-		<DataViewLayoutOptions v-model="layout"></DataViewLayoutOptions>
-	</template>
-    <template #list="slotProps" >
-	 <div class="col-12">
-		<div v-for="cell in cells">
-			<view-field :field="cell" :row="slotProps.data" />
+	 <div class="row"  style="row-gap:32px">
+		<div v-for="irow in repo.data.value" class="col-md-6 col-lg-4">
+			<Card>
+				<template #content> 
+					<div v-for="cell in cells" class="row">
+						<div class="col-6">
+        					{{ $t("models." + cell.model + ".fields." + cell.name + ".label") }}
+    					</div>
+    					<div class="col-6">
+							<view-field :field="cell" :row="irow" />
+						</div>
+					</div>
+				</template>
+				<template #footer>
+					<ptj-primary-action v-if="has_primary" :model="store.name" :id="irow['--id']" />
+					<component v-for="component in store.actions" 
+						:is="component.component"
+						:data="props.repo" v-bind="component.atts" 
+						:short="true"/>
+				</template>
+			</Card>
 		</div>
 	</div>
-	</template>
-	<template #grid="slotProps">
-	  <div>
-		<div class="card" v-for="cell in cells">
-			<view-field :field="cell" :row="slotProps.data" />
-		</div>
-	  </div>
-	</template>
-</DataView>
 </template>
 <script setup>
-import DataView from 'primevue/dataview';
-import DataViewLayoutOptions from 'primevue/dataviewlayoutoptions';
 import ViewField from "../view/view-field.vue"
-import { ref } from "vue"
+import PtjPrimaryAction from "../actions/primary-action.vue"
+import Card from 'primevue/card';
 
 const props = defineProps({
     repo : Object
@@ -35,7 +38,7 @@ const store = props.repo.store;
 store.setTableCells();
 const cells = store.getEnabledCells();
 
-const layout = ref('grid');
-
+const children = (store.fields['--id']) ? store.fields['--id'].reference : [];
+const has_primary = (children.length) ? true : false;
 
 </script>

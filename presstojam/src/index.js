@@ -6,6 +6,7 @@ import { getClient } from "./js/client.js"
 import { initConfigs } from "./js/configs.js"
 import Controller from "./components/controller.vue"
 import { createAppRouter } from "./js/router.js"
+import { subscribe, unsubscribe, trigger } from "./js/bus/bus.js"
 
 export default {
     install : (app, options) => {
@@ -35,7 +36,10 @@ export default {
 export {
   Controller,
   getClient,
-  initConfigs
+  initConfigs,
+  subscribe,
+  unsubscribe,
+  trigger
 }
 
 export * as Filter from "./components/filter/filter.vue"
@@ -47,6 +51,7 @@ export * as Tree from "./components/tree/tree.vue"
 export * as Table from "./components/table/table-display.vue"
 export * as Flow from "./components/flow/flow.vue"
 export * as Report from "./components/reports/report.vue"
+export * as Configs from "./js/configs.js"
 export { download } from "./js/exports/download.js"
 
 

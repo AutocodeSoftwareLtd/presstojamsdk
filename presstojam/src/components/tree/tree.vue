@@ -15,7 +15,9 @@
     </Toolbar>
           <Tree :value="data" selectionMode="single" @node-select="setActive" :filter="true" filterMode="lenient" v-model:selectionKeys="selected" :expandedKeys="expandedKeys">
             <template #default="slotProps">
-              <ptj-view-field v-for="cell in cells" :row="slotProps.node.data" :field="cell" />
+              <div class="branch-id" :class="slotProps.node.data['--id']">
+                <ptj-view-field v-for="cell in cells" :row="slotProps.node.data" :field="cell" />
+              </div>
             </template>
         </Tree>
     </SplitterPanel>
@@ -23,7 +25,7 @@
       <Panel v-if="active['--id']" :header="$t('models.' +store.name + '.title')" :key="active['--id']">
             <template #icons>
                 <audit-action v-if="store.audit" :model="store" :data="active" :long="true" />
-                <ptj-delete-action :name="name" :data="active" v-if="store.perms.includes('delete')"/>
+                <ptj-delete-action :name="name" :data="active" v-if="store.perms.includes('delete')" :store="repo" />
                 <ptj-primary-action :model="store.name" :id="active['--id']" />
                 <component v-for="component in store.actions" :is="component.component" :data="active" v-bind="component.atts"/>
             </template>
@@ -130,61 +132,53 @@ function reload() {
   repo.reload()
   .then(response => {
     data.value = toTree(response, store.fields);
-    console.log("data is", data.value);
   });
   newrow.value = true;
 }
 
 
 subscribe("effect_created", props.name, (name, response) => {
-    if (props.name == name) {
+  if (props.name == name) {
         newrow.value = true;
-        repo.reload()
-        .then(response => {
-          data.value = toTree(response, store.fields);
-        });
+        props.repo.addRow(response)
         trigger("dialog_close");
     }
 });
 
-subscribe("effect_deleted", props.name, name => {
+
+subscribe("effect_edited", props.name, (name, id) => {
+  if (props.name == name) {
+        props.repo.editRow(id)
+        saved.value = true;
+    }
+});
+
+subscribe("effect_deleted", props.name, (name, response) => {
     if (props.name == name) {
         delrow.value = true;
-        repo.reload()
-        .then(response => {
-          data.value = toTree(response, store.fields);
-        });
         trigger("dialog_close");
+        props.repo.remove(response)
     }
 });
 
-
-subscribe("effect_updated", props.name, (name, response) => {
-    if (props.name == name) {
-        saved.value = true;
-        repo.reload()
-        .then(response => {
-          data.value = toTree(response, store.fields);
-        });
-    }
-});
 
 onBeforeUnmount(() => {
   unsubscribe("effect_created", props.name);
-  unsubscribe("effect_updated", props.name);
+  unsubscribe("effect_edited", props.name);
   unsubscribe("effect_deleted", props.name);
 });
 
 
 function makeSortable() {
   const ptrees = document.querySelectorAll(".p-tree-container, .p-treenode-children");
-  alert("Being called");
   for(const ptree of ptrees) {
-    console.log("trees are ")
     let sortable = new Sortable(ptree, {
       group : 'tree',
       sort : true,
-      draggable : "li"
+      draggable : "li",
+      onEnd : (evt) => {
+          console.log("Order is", evt, sortable.toArray());
+      }
     });
   }
 }

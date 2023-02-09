@@ -1,6 +1,9 @@
 <template>
    <div v-if="tag=='textarea'">{{ value }}</div>
-  <span v-else>{{ props.field.clean(value) }}</span>
+   <div v-else-if="props.field.isEnum()" class="row">
+      {{ props.field.clean(value) }}
+   </div>
+   <div v-else="props.field.isEnum()">{{ props.field.clean(value) }}</div>
 </template>
 
 <script setup>

@@ -107,23 +107,20 @@ export class RepoData extends Data {
         return this.load(params);
     }
 
-    loadRow(iobj) {
-        return this._model.reloadRow(iobj['--id'])
-    }
 
     addRow(iobj) {
-        return this.loadRow(iobj)
+        return this._model.reloadRow(iobj['--id'])
         .then(response => {
             this._data.value.push(response);
         });
     }
 
-    editRow(iobj) {
-        return this.loadRow(iobj)
+    editRow(id) {
+        return this._model.reloadRow(id)
         .then(response => {
             for(const i in this._data.value) {
                 if (this._data.value[i]['--id'] == response['--id']) {
-                    this._data.value[i] = obj;
+                    this._data.value[i] = response;
                 }
             }
         });

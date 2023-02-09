@@ -12,7 +12,8 @@
  
     const props = defineProps({
         name : String,
-        data : [Object, Array]
+        data : [Object, Array],
+        store : Object
     });
 
 
@@ -24,7 +25,8 @@
             DeleteEffect, 
             {
                 name : props.name,
-                data : arg_data
+                data : arg_data,
+                store : props.store
             }, 
             "Delete");
     }

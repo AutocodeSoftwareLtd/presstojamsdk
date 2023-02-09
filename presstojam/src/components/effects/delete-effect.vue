@@ -1,7 +1,7 @@
 <template>
    <p>Are you sure you want to delete:</p>
         <ul>
-            <li v-for="item in data">{{ getLabel(repo.model.fields, item) }}</li>
+            <li v-for="item in data">{{ getLabel(store.model.fields, item) }}</li>
         </ul>
         <p>Type <i>{{ check_str }}</i> in the box below</p>
         <div class="p-inputgroup">
@@ -21,7 +21,7 @@
     const props = defineProps({
         name : String,
         data : Array,
-        repo : Object
+        store : Object
     });
 
 
@@ -33,7 +33,7 @@
         return (delval.value == check_str) ? false : true;
     });
 
-
+   
     function del() {
         let params = {};
         const keys = [];
@@ -42,11 +42,10 @@
             keys.push(row['--id']);
         }
         params["--id"] = keys;
-       
 
-        client.delete("/data/" +props.repo.store.name, params)
+        client.delete("/data/" +props.store.store.name, params)
         .then(() => {
-            repo.remove(keys);
+            props.store.remove(keys);
             trigger("effect_deleted", props.name);
         })
         .catch(e => console.log(e));

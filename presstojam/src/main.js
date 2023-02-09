@@ -8,9 +8,12 @@ import Schema from "./schema.vue";
 import TestVue from "./testvue.vue"
 import { createApp } from 'vue'
 import container from "./index.js";
+import "./scss/styles.scss";
+import CreateAction from "./components/actions/create-action.vue"
+import Publish from "./Publish.vue"
 
-//const url = "https://api.presstojam.com";
-const url = "https://api-owen.presstojam.com";
+const url = "https://api.presstojam.com";
+//const url = "https://api-owen.presstojam.com";
 //const url = "https://api.genercode.com";
 //const url = "http://slim.localhost";
 //https://api.presstojam.com
@@ -106,24 +109,21 @@ let settings = {
 
 
 let settings = { 
-  "profile" : "company", //"accounts",
+  "profile" : "accounts",
   "url" : url,
   "base" : "/admin",
   "models" : {
-    "support-match" : {
-       
-    },
-    "supports" : {
-        "fields" : [
-        "--id",
-        "grant-title",
-        "description",
-        "further-information",
-        "url"
+    "projects" : {
+        "actions" : [{
+            component :  Publish,
+            args : {}
+            }
+           
         ]
     }
   }
- /* "models" : {
+  /*
+  "models" : {
       "projects" : {
             "import" : true,
            "export_fields" : {
@@ -177,7 +177,8 @@ let settings = {
     }],
     "routes" : [
         { "path" : "/schema", component : Schema, name :"name"}
-    ]*/
+    ]
+    */
 };
 
 const app = createApp(Controller);

@@ -1,13 +1,13 @@
 <template>
-    <router-link v-if="show_route" :to="{ name : 'primary', params : {'model' : field.reference, 'id' : value }}">
+        <router-link v-if="show_route" :to="{ name : 'primary', params : {'model' : field.reference, 'id' : value }}">
         {{ display }}
-    </router-link>
-    <span v-else>{{ display }}</span>
+        </router-link>
+        <span v-else>{{  display  }}</span>
 </template>
 <script setup>
 import { computed } from "vue"
 import { ReferenceTypes } from "../../js/entity/id.js";
-import { hasEntity } from "./../../js/entity/entitymanager.js"
+import { hasEntity, getEntity } from "./../../js/entity/entitymanager.js"
 import { Model } from "../../js/models/model.js"
 
 const props = defineProps({
@@ -18,8 +18,12 @@ const props = defineProps({
 
 
 let show_route = false;
-if (props.field.reference_type == ReferenceTypes.REFERENCE && hasEntity(props.field.reference) && props.value) {
-    show_route = true;
+if (
+    props.field.reference_type == ReferenceTypes.REFERENCE 
+    && hasEntity(props.field.reference) 
+    && props.value) {
+        if (getEntity(props.field.reference).perms.includes("get"))
+            show_route = true;
 }
 
 

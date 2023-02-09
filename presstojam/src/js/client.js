@@ -130,7 +130,7 @@ export class Client {
 
     getAsset(url) {
 
-        const options = this.createOptions("GET", { mode : 'no-cors'});
+        const options = this.createOptions("GET");
     
         return fetch(this._main_url + url, options)
         .then(response => {

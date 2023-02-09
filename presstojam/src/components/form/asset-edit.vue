@@ -29,6 +29,7 @@ function onUpload(e) {
     if (e.files.length == 0) {
         props.bind.value = null;
     } else {
+        console.log("Value is", e.files[0]);
         props.bind.setValue(e.files[0]);
     }
 }

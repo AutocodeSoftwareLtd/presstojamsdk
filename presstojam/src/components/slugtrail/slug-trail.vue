@@ -6,9 +6,9 @@
     </Breadcrumb>
 </template>
 <script setup>
-import { ref, computed, inject } from "vue";
+import { computed, inject } from "vue";
 import { rowToTree } from "../../js/helperfunctions.js"
-import { getEntity } from "../../js/entity/entitymanager.js"
+import { getEntity, hasEntity } from "../../js/entity/entitymanager.js"
 
 import Breadcrumb from "primevue/breadcrumb"
 import PtjCrumb from "./crumb.vue"
@@ -35,21 +35,28 @@ let parent_id;
 
 let entity = getEntity(props.store.model.name);
 let structure = [];
-const parent = entity.parent;
-if (props.store.type == "active") {
-    structure.push(entity);
-}
+let parent = entity.parent;
 
-while(entity.parent) {
-    const parent = getEntity(entity.parent);
-    if (parent && parent.perms.includes("get")) {
-        structure.push(parent);
-        entity = parent;
+//if no get permissions, then no slug trail
+if (hasEntity(parent) && getEntity(parent).perms.includes("get")) {
+
+    if (props.store.type == "active") {
+        structure.push(entity);
     }
+
+    while(entity.parent) {
+        const iparent = getEntity(entity.parent);
+        if (iparent && iparent.perms.includes("get")) {
+            structure.push(iparent);
+            entity = iparent;
+        } else {
+            break;
+        }
+    }
+    structure = structure.reverse();
+} else {
+    parent = null;
 }
-structure = structure.reverse();
-
-
 
 async function getData() {
     if (parent) {

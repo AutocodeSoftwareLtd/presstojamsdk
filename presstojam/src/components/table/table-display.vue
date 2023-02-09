@@ -21,8 +21,8 @@
                 <template #end>
                     <ptj-import-action v-if="store.import" :name="name" />
                     <ptj-export-action v-if="store.export" :name="name" />
-                    <ptj-create-action v-if="store.perms.includes('post')" :name="name" :model="store" :parent_id="parseInt(repo.parent_id)"/> 
-                    <ptj-delete-action :name="name" :data="selected.value" v-if="store.perms.includes('delete')"/>
+                    <ptj-create-action v-if="store.perms.includes('post')" :name="name" :model="store" :id="parseInt(repo.parent_id)"/> 
+                    <ptj-delete-action :name="name" :data="selected.value" :store="repo" v-if="store.perms.includes('delete')"/>
                 </template>
     </Toolbar>
     <p v-if="repo.pagination.rows_per_page">Total Rows: {{ repo.pagination.count }}</p>
@@ -159,9 +159,9 @@ subscribe("effect_created", props.name, (name, response) => {
 });
 
 
-subscribe("effect_edited", props.name, (name, response) => {
+subscribe("effect_edited", props.name, (name, id) => {
     if (props.name == name) {
-        props.repo.editRow(response)
+        props.repo.editRow(id)
         editrow.value = true;
         trigger("dialog_close");
     }
@@ -221,10 +221,7 @@ if (props.repo.hasPagination()) {
     atts.rows = props.repo.pagination.rows_per_page;
     atts.paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
     events.page = function(evt) {
-        props.repo.setPagination(evt.page)
-        .then(response => {
-            data.value = response;
-        });
+        props.repo.setPagination(evt.page);
     }
 }
 

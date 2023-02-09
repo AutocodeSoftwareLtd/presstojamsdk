@@ -1,6 +1,5 @@
 <template>
    <span>{{ value }}   <a @click="download()"><i class="pi pi-download"></i></a></span>
-   
 </template>
 
 <script setup>

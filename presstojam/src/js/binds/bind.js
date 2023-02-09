@@ -4,7 +4,7 @@ export class Bind {
     
     constructor(cell, value = null) {
         this._cell = cell;
-        this._value = value;
+        this._value = this._cell.clean(value);
         this._error = ref(0);
         this._is_dirty = false;
         this._bind_group; 
@@ -22,7 +22,15 @@ export class Bind {
     }
 
     get is_dirty() {
-        return this._is_dirty;
+        if (this._cell.type == "json") {
+            for(let i in this._cell.fields) {
+                if (this._bind_group.getBind(this._cell.name + "-" + i).is_dirty) 
+                    return true;
+            }
+            return false;
+        } else {
+            return this._is_dirty;
+        }      
     }
 
     get error() {
@@ -46,12 +54,18 @@ export class Bind {
         return this._show_error;
     }
 
+    set value(val) {
+        this.setValue(val);
+    }
+
 
     get classes() {
+        if (!this._show_error.value) return "";
+        
         if (this._error.value) {
-            return "p-invalid";
+            return "is-invalid";
         } else {
-            return "";
+            return "is-valid";
         }
     }
 

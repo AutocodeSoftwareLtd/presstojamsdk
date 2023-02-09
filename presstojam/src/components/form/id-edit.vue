@@ -2,7 +2,7 @@
   <div v-if="bind.cell.isReferenceType()" class="p-inputgroup">
     <AutocompleteSelect :bind="bind" :options="options" />
     <span class="p-inputgroup-addon" v-if="store.perms.includes('post')">
-        <reference-action :name="bind.cell.reference" />
+        <reference-action :name="bind.cell.reference" :model="store" />
     </span>
   </div>
   <TreeSelect v-else-if="bind.cell.recursive" v-model="value" :options="options" placeholder="Select Item" @blur="bind.setShowError(true)"/>
@@ -30,12 +30,17 @@ const props = defineProps({
 const store = inject("model");
 
 const options = ref([]);
+
+let obj = {};
+obj[props.bind.value] = true;
+let cvalue = ref(obj);
 let value;
+
+
 
 const parent_id =(props.data['--parent']) ? props.data["--parent"] : 0;
 
 const cell = props.bind.cell;
-
 
 
 if (cell.isReferenceType()) {
@@ -50,10 +55,11 @@ if (cell.isReferenceType()) {
 
     value = computed({
         get() {
-            return props.bind.value;
+            return cvalue.value;
         },
         set(val) {
             props.bind.setValue(val);
+            cvalue.value = val;
         }
     });
 
@@ -68,13 +74,12 @@ if (cell.isReferenceType()) {
 
     value = computed({
         get() {
-            let obj = {};
-            obj[props.bind.value] = true;
-            return obj;
+            return cvalue.value;
         },
         set(val) {
             const keys = Object.keys(val);
             props.bind.setValue(keys[0]);
+            cvalue.value= val;
         }
     });
 } 

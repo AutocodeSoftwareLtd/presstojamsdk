@@ -1,9 +1,9 @@
 <template>
    <router-link :to="{ name : 'primary', params : {'model' : model, 'id' : id }}"
-                    v-slot="{isActive, href, navigate}">
+                    v-slot="{isActive, href, navigate}" style="text-decoration: none;">
         <Button 
-            icon="pi pi-chevron-right" 
-            class="p-button-rounded p-button-success mr-2" 
+            icon="pi pi-arrow-circle-right" 
+            class="p-button-rounded p-button-success mr-2"
         />
     </router-link>
 </template>

@@ -1,5 +1,5 @@
 <template>
-   <span>{{ val }}</span>
+    <span>{{ val }}</span>
 </template>
 
 <script setup>

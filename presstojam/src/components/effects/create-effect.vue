@@ -18,7 +18,7 @@
 
       
     subscribe("form_saved", "create", (response, method, model) => {
-        if (model.name == props.model.name && method == "post") {
+        if (model.name == props.name && method == "post") {
             trigger("effect_created", props.name, response);
         }
     });

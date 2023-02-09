@@ -1,6 +1,6 @@
 import { useI18n } from '../i18n.js';
 import { download } from "./download.js"
-import { getClient } from "./../client.js"
+import { Model } from "./../models/model.js"
 
 
 
@@ -22,17 +22,14 @@ function buildData(data, headers) {
 }
 
 
-export function exportCSV(repo) {
+export function exportCSV(name) {
 
-    const store = repo.store;
-
+    const store = new Model(name);
+    store.limit = 0;
     const cells = store.fields;
 
     const i18n = useI18n();
     const t = i18n.global.t
-
-    const client = getClient();
-
 
     const headers = [];
     if (store.export_fields) {
@@ -59,21 +56,9 @@ export function exportCSV(repo) {
     }
 
 
-	if (repo.pagination.count) {
-		//need to load all data
-		repo.loadAll()
-		.then(data => {
-			value += buildData(data, headers);
-			download(value, store.name + '.csv');
-		})
-		.catch(e => console.log(e));
-	} else {
-        repo.load()
-        .then(data => {
-            value += buildData(data, headers);
-            download(value, store.name + '.csv');
-        });
-		
-		
-	}
+	store.load({})
+    .then(data => {
+        value += buildData(data, headers);
+        download(value, store.name + '.csv');
+    });
 }

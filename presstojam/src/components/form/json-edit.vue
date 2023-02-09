@@ -1,7 +1,7 @@
 <template>
    <Fieldset :legend="$t('models.' + bind.cell.model + '.fields.' + bind.cell.name + '.label')">
     <div class="field form-group" v-for="jbind in binds" :key="jbind.cell.name">
-        <ptj-edit-field :bind="jbind" />
+        <ptj-edit-field :bind="jbind" :active_validation="active_validation" :data="bind.cell.clean(data)"/>
     </div>
    </Fieldset>
 </template>
@@ -16,7 +16,9 @@ const props = defineProps({
     bind : {
         type : Object,
         required : true
-    }
+    },
+    active_validation : Boolean,
+    data : Object
 });
 
 let group = props.bind.getGroup();

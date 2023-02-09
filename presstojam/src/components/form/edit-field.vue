@@ -1,22 +1,27 @@
  <template>
-    <div class="form-check field-checkbox" v-if="bind.cell.type=='flag'">
-        <Flag :bind="bind" />
-        <label :for="bind.cell.name" class="form-check-label">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}</label>
-        <Error v-if="bind.show_error" :bind="bind" />
-
+    <div class="form-check mt-3" v-if="bind.cell.type=='flag'">
+        <div class="offset-3 col-md-9">
+            <Flag :bind="bind" />
+            <label class="form-check-label" :for="bind.cell.name">
+                {{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }}
+            </label>
+            <Error v-if="bind.show_error" :bind="bind" />
+        </div>
     </div>
     <div class="json-group" v-else-if="bind.cell.type=='json'">
-        <PtjJson :bind="bind" :active_validation="active_validation" />
+        <PtjJson :bind="bind" :active_validation="active_validation" :data="data"/>
     </div>
-    <div class="form-group field row" v-else>
-        <label :for="bind.cell.name" class="form-label">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }} </label>
-        <Number v-if="bind.cell.type=='number'" :bind="bind" class="col"/>
-        <Id v-else-if="bind.cell.type=='id'" :bind="bind" class="col" :data="data"/>
-        <Asset v-else-if="bind.cell.type=='asset'" :bind="bind" class="col"/>
-        <Time v-else-if="bind.cell.type=='time'" :bind="bind" class="col"/>
-        <PtjJson v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" class="col"/>
-        <PtjString v-else :bind="bind" class="col"/>
-        <Error v-if="bind.show_error" :bind="bind" class="col"/>
+    <div class="row" v-else>
+        <label :for="bind.cell.name" class="control-label col-md-3">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }} </label>
+        <div class="col-md-9">
+                <Number v-if="bind.cell.type=='number'" :bind="bind" class="col"/>
+                <Id v-else-if="bind.cell.type=='id'" :bind="bind" class="col" :data="data"/>
+                <Asset v-else-if="bind.cell.type=='asset'" :bind="bind" class="col"/>
+                <Time v-else-if="bind.cell.type=='time'" :bind="bind" class="col"/>
+                <PtjJson v-else-if="bind.cell.type=='json'" :bind="bind" :active_validation="active_validation" class="col"/>
+                <PtjString v-else :bind="bind" class="col"/>
+                <Error v-if="bind.show_error" :bind="bind" class="col"/>
+        </div>
     </div>
 </template>
 <script setup>
@@ -37,9 +42,7 @@ const props = defineProps({
     data : Object
 });
 
-const emits = defineEmits([
-    "update:modelValue"
-]);
+
 
 const error = computed(() => {
     if (props.bind.show_error) return props.error;

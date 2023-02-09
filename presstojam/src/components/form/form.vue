@@ -1,13 +1,19 @@
 <template>
 
- <form v-show="processing == false" @submit.prevent="submit" class="card needs-validation" novalidate>
+ <form v-show="processing == false" @submit.prevent="submit" novalidate>
     <Message severity="error" v-show="global_error">{{ global_error }}</Message>
-    <div v-if="model.parent" class="form-group">
-        <label>{{ $t("models." + store.parent + ".title")}}</label>
-        <ptj-parent-select v-model="proxy_values['--parent']" :model="store.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
+    <div v-if="model.parent" class="row mt-3">
+        <label class="control-label col-md-3">{{ $t("models." + store.parent + ".title")}}</label>
+        <div class="col-md-9">
+            <ptj-parent-select v-model="proxy_values['--parent']" :model="store.parent" :common_parent="common_parent" :common_parent_id="common_parent_id" />
+        </div>
     </div>
     <ptj-edit-field v-for="cell in cells" :bind="bindGroup.getBind(cell.name)" :key="cell.name" :data="data"/>
-    <Button :label="$t('btns.save')" @click="submit" />
+    <div class="row">
+        <div class="offset-3 col-9">
+            <Button :label="$t('btns.save')" @click="submit" />
+        </div>
+    </div>
   </form>
   <Panel v-show="processing" Panel header="Processing">
         <p>Please do not refresh or close the browser until complete</p>
@@ -64,6 +70,8 @@ const bindGroup = new BindGroup();
 let data = {};
 if (props.method == "put") {
     data = await model.load();
+} else if (props.id) {
+    data['--parent'] = props.id;
 }
 
 //if (model.parent) {
@@ -72,10 +80,12 @@ if (props.method == "put") {
 
 
 for(const field in cells) {
-    bindGroup.regBind(field, new Bind(cells[field], data[field]));
+    const bind = new Bind(cells[field], data[field]);
+    bindGroup.regBind(field, bind);
     if (cells[field].type == "json") {
+
         for(let ocell in cells[field].fields) {
-            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (data[field]) ? data[field][ocell] : null));
+            bindGroup.regBind(field + "-" + ocell, new Bind(cells[field].fields[ocell], (bind.value) ? bind.value[ocell] : null));
         }
     } 
 }
@@ -103,11 +113,28 @@ function serializeData() {
             const field = bind.cell;
             if (field.type == "time") formData.append(i, bind.cell.buildString(bind.value));
             else if (field.type == "json") formData.append(i, JSON.stringify(bind.cell.buildJSON(bind)));
-            else formData.append(i, bind.value);
+            else if (field.type != "asset" || props.method == 'post') {
+                formData.append(i, bind.value);
+            }
         }
     } 
     return formData;
 }
+
+
+function submitFiles() {
+    const promises = [];
+    for(const i in cells) {
+        const bind = bindGroup.getBind(i);
+        if (bind.is_dirty && bind.cell.type == "asset") {
+            const formData = new FormData();
+            formData.append(i, bind.value);
+            promises.push(Client.post("/asset/" + model.name + "/" + bind.cell.name + "/" + props.id, formData));
+        }
+    }
+    return promises; 
+}
+
 
 
 function submit() {
@@ -119,8 +146,9 @@ function submit() {
         return;
     }
     processing.value = true;
-    const data = serializeData();
  
+    const data = serializeData();
+
     if (props.method == "put") {
         data.append("--id", props.id);
     } else if (props.method == "post" && props.id) {
@@ -128,19 +156,37 @@ function submit() {
     }         
 
     //return;
-    return Client[props.method]("/data/" + model.name, data)
+    let promise;
+    console.log("Total is", Array.from(data.keys()).length);
+    if (props.method == "put" && Array.from(data.keys()).length == 1) {
+        promise = Promise.resolve(true);
+    } else {
+        promise = Client[props.method]("/data/" + model.name, data);
+    }
+    return promise
     .then(response => {
-        if (props.method == "put") {
+        if (props.method == "put" && response.data) {
             response.data["--id"] = props.id;
         }
         return response;
     })
     .then(response => {
-        if (response['--dispatchid']) {
+        if (props.method == "put") {
+            Promise.resolve(submitFiles())
+            .then(() => {
+                return response;
+            });
+        } else {
+            return response;
+        }
+    })
+    .then(response => {
+        if (response && response['--dispatchid']) {
             runDispatch(response['--dispatchid'], response);
         } else {
             trigger("form_saved", response, props.method, model);
         }
+        processing.value = false;
         return response;
     })
     .catch(err => {

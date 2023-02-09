@@ -20,6 +20,7 @@ export class Field {
         this._entity = null;
         this._slug;
         this._disabled = false;
+        this._multiple = false;
     }
 
     buildGetterSetters() {

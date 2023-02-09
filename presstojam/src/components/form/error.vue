@@ -1,5 +1,5 @@
 <template>
-    <small class="form-text text-muted p-invalid alert-danger">{{ err_message}}</small>
+    <div class="invalid-feedback">{{ err_message}}</div>
 </template>
 
 <script setup>

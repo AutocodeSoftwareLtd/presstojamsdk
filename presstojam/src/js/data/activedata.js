@@ -25,6 +25,7 @@ export class ActiveData extends Data {
             
         this._load_promise.then(response => {
             this._is_loading.value = false;
+            this._data.value = response;
             return response;
         })
         .catch(e => {

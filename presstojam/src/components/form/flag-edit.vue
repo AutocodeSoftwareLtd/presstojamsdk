@@ -1,8 +1,9 @@
 <template>
     <Checkbox 
         v-model="value" 
-        :binary="true" 
         :class="bind.classes"
+        :inputId="bind.cell.name"
+        :binary="true"
         @blur="bind.setShowError(true)">
     </Checkbox>
 </template>
@@ -18,16 +19,18 @@ const props = defineProps({
     }
 });
 
+const cvalue = ref(props.bind.value ? true : false);
 
-const checked = ref(props.bind.value);
+
+
 
 const value = computed({
     get() {
-        return (checked.value) ? true : false;
+        return cvalue.value;
     },
     set(val) {
-        props.bind.setValue(val);
-        checked.value = props.bind.value;
+        props.bind.value = (val) ? 1 : 0;
+        cvalue.value = val;
     }
 });
 

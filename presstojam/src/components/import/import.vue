@@ -27,13 +27,13 @@
 <script setup>
 import { ref, inject } from "vue"
 import FileUpload from 'primevue/FileUpload'
+import { Model } from "./../../js/models/model.js"
 
 const props = defineProps({
-    name : String,
-    repo : Object
+    name : String
 });
 
-const store = props.repo.store;
+const store = new Model(props.name);
 
 const client = inject("client");
 
