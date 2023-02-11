@@ -1,6 +1,7 @@
 import { Field } from "./field.js"
+import { t, te } from "./../../js/i18n.js"
 
-const { t } = VueI18n.useI18n()
+
 export class String extends Field {
 
     constructor(name, obj) {
@@ -16,11 +17,15 @@ export class String extends Field {
         let opts = [];
         if (Array.isArray(this._list)) {
             for(const item of this._list) {
-                opts.push({ value : item, label : t("models." + this._model + ".fields." + this._name + ".options." + item)});
+                const key = "models." + this._model + ".fields." + this._name + ".options." + item;
+                const label = (te(key)) ? t(key) : item;
+                opts.push({ value : item, label : label });
             }
         } else {
             for(const key in this._list) {
-                opts.push({ value : key, label : this._list[key]});
+                const tkey = "models." + this._model + ".fields." + this._name + ".options." + this._list[key];
+                const label = (te(tkey)) ? t(tkey) : key;
+                opts.push({ value : key, label : label});
             }
         }
         return opts;

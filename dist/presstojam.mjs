@@ -1,4 +1,4 @@
-/*! DS Library v3.2.62 */
+/*! DS Library v3.2.64 */
 
 import { h, getCurrentInstance, inject, onMounted, onUnmounted, shallowRef, ref, computed, onBeforeMount, watch, Fragment, effectScope, isRef, createVNode, Text, reactive, openBlock, createElementBlock, renderSlot, createCommentVNode, createElementVNode, normalizeClass, resolveDirective, withDirectives, toDisplayString as toDisplayString$1, createBlock, Transition, withCtx, vShow, unref, createTextVNode, mergeProps, resolveComponent, resolveDynamicComponent, renderList, normalizeStyle, Teleport, onBeforeUnmount, normalizeProps, guardReactiveProps, toHandlers, vModelText, createSlots, withKeys, provide, withAsyncContext, withModifiers, Suspense, nextTick, defineComponent, watchEffect, onUpdated, pushScopeId, popScopeId } from 'vue';
 
@@ -7413,6 +7413,12 @@ function createI18n(options) {
 function useI18n() {
   return i18n;
 }
+function t(key) {
+  return i18n.global.t(key);
+}
+function te(key) {
+  return i18n.global.te(key);
+}
 
 var DomHandler = {
   innerWidth(el) {
@@ -9194,7 +9200,9 @@ class Number$1 extends Field {
   }
 
   clean(val) {
-    if (this._round) return parseFloat(val);else if (val !== null && typeof val !== 'undefined') return parseInt(val);else return val;
+    if (this._round) val = parseFloat(val);else if (val !== null && typeof val !== 'undefined') val = parseInt(val);
+    if (isNaN(val)) val = null;
+    return val;
   }
 
   get round() {
@@ -9226,16 +9234,20 @@ class String$1 extends Field {
 
     if (Array.isArray(this._list)) {
       for (const item of this._list) {
+        const key = "models." + this._model + ".fields." + this._name + ".options." + item;
+        const label = te(key) ? t(key) : item;
         opts.push({
           value: item,
-          label: item
+          label: label
         });
       }
     } else {
       for (const key in this._list) {
+        const tkey = "models." + this._model + ".fields." + this._name + ".options." + this._list[key];
+        const label = te(tkey) ? t(tkey) : key;
         opts.push({
           value: key,
-          label: this._list[key]
+          label: label
         });
       }
     }
@@ -15034,6 +15046,7 @@ const props = __props;
 
 
 
+
 const cvalue = ref(props.bind.value);
 
 const value = computed({
@@ -18575,11 +18588,20 @@ const props = __props;
 
 
 
+const is_multiple = (props.bind.cell.multiple) ? true : false;
 
 const filtered_options = ref([]);
 
+const cvalue = ref();
+if(is_multiple) {
+    cvalue.value = [];
+    for(let i in props.bind.value) {
+        cvalue.value.push({ value : i, label : ''});
+    }
+} else {
+    cvalue.value = { value : props.bind.value, label : ''};
+}
 
-let cvalue = ref({ value : props.bind.value, label : ''});
 
 const def = props.options.filter(opt => opt.value == props.bind.value);
 
@@ -18594,12 +18616,22 @@ const value = computed({
     },
     set(val) {
         cvalue.value = val;
-        props.bind.setValue(val.value);
+        if (is_multiple) {
+            let arr = [];
+            for(const i in val) {
+                arr.push(val[i].value);
+            }
+            props.bind.setValue(arr);
+        } else {
+            props.bind.setValue(val.value);
+        }
     }
 });
 
 function searchOptions(e) {
-    const active = props.options.filter(opt => opt.value == cvalue.value.value);
+    const active = (is_multiple) 
+    ? props.options.filter(opt => cvalue.value.includes(opt.value))
+    : props.options.filter(opt => opt.value == cvalue.value.value);
     if (active.length > 0) cvalue.value = active[0];
     let vl = (!e || !e.query) ? "" : e.query.trim().toLowerCase();
     filtered_options.value = props.options.filter((opt) => {
@@ -18624,7 +18656,7 @@ return (_ctx, _cache) => {
     suggestions: filtered_options.value,
     placeholder: "Please Select",
     class: normalizeClass(["focus:border-primary", __props.bind.classes]),
-    multiple: __props.bind.cell.multiple,
+    multiple: unref(is_multiple),
     onComplete: _cache[1] || (_cache[1] = $event => (searchOptions($event))),
     onBlur: _cache[2] || (_cache[2] = $event => (__props.bind.setShowError(true)))
   }, null, 8 /* PROPS */, ["modelValue", "name", "suggestions", "class", "multiple"]))
@@ -18664,8 +18696,16 @@ const store = inject("model");
 
 const options = ref([]);
 
+
 let obj = {};
-obj[props.bind.value] = true;
+
+if (props.bind.cell.multiple) {
+    for(const i in props.bind.value) {
+        obj[i] = true;
+    }
+} else {
+    obj[props.bind.value] = true;
+}
 let cvalue = ref(obj);
 let value;
 
@@ -24345,8 +24385,16 @@ class Bind {
   }
 
   setValue(val) {
-    val = this._cell.clean(val);
-    this._error.value = this._cell.validate(val);
+    if (this._cell.multiple) {
+      for (let i in val) {
+        val[i] = this._cell.clean(val);
+        if (!this._error.value) this._cell.validate(val[i]);
+      }
+    } else {
+      val = this._cell.clean(val);
+      this._error.value = this._cell.validate(val);
+    }
+
     this._value = val;
     this.setDirty(true);
 
@@ -24901,6 +24949,8 @@ if (props.method == "put") {
   __restore(),
   __temp
 );
+} else if (props.id) {
+    data['--parent'] = props.id;
 }
 
 //if (model.parent) {
@@ -44982,6 +45032,7 @@ subscribe("effect_created", props.name, (name, response) => {
   if (props.name == name) {
         newrow.value = true;
         props.repo.addRow(response);
+        data.value = toTree(props.repo.data.value, store.fields);
         trigger("dialog_close");
     }
 });
@@ -44999,6 +45050,7 @@ subscribe("effect_deleted", props.name, (name, response) => {
         delrow.value = true;
         trigger("dialog_close");
         props.repo.remove(response);
+        data.value = toTree(props.repo.data.value, store.fields);
     }
 });
 
@@ -45086,8 +45138,8 @@ return (_ctx, _cache) => {
                     key: 0,
                     name: __props.name,
                     model: unref(store),
-                    parent_id: parseInt(__props.repo.parent_id)
-                  }, null, 8 /* PROPS */, ["name", "model", "parent_id"]))
+                    id: parseInt(__props.repo.parent_id)
+                  }, null, 8 /* PROPS */, ["name", "model", "id"]))
                 : createCommentVNode("v-if", true)
             ]),
             _: 1 /* STABLE */
@@ -45947,8 +45999,8 @@ return (_ctx, _cache) => {
               key: 2,
               name: __props.name,
               model: unref(store),
-              parent_id: parseInt(__props.repo.parent_id)
-            }, null, 8 /* PROPS */, ["name", "model", "parent_id"]))
+              id: parseInt(__props.repo.parent_id)
+            }, null, 8 /* PROPS */, ["name", "model", "id"]))
           : createCommentVNode("v-if", true),
         (unref(store).perms.includes('delete'))
           ? (openBlock(), createBlock(script$k, {
@@ -46243,8 +46295,6 @@ var script$b = {
 const props = __props;
 
 
-
-console.log("ID is", props.id);
 
 const repo = new RepoData(props.model);
 repo.parent_id = props.id;

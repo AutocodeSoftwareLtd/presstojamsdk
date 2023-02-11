@@ -42,6 +42,7 @@ export class RepoData extends Data {
         this._parent_id = id;
     }
 
+
     buildParams(all = false) {
         let filters = {... this._filters};
         if (this._parent_id) filters["--parent"] = this._parent_id;
@@ -130,6 +131,7 @@ export class RepoData extends Data {
         this._data.value.filter(function(item) {
             return !ids.include(item['--id']);
         });
+
     }
 
 }

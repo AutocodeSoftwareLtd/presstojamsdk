@@ -42,3 +42,11 @@ export function createI18n(options) {
 export function useI18n() {
     return i18n;
 }
+
+export function t(key) {
+  return i18n.global.t(key);
+}
+
+export function te(key) {
+  return i18n.global.te(key);
+}

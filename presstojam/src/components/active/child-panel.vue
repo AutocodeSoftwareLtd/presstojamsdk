@@ -17,8 +17,6 @@ const props = defineProps({
     id : Number
 });
 
-console.log("ID is", props.id);
-
 const repo = new RepoData(props.model);
 repo.parent_id = props.id;
 const store =repo.store;

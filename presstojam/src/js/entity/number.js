@@ -10,9 +10,11 @@ export class Number extends Field {
     }
 
     clean(val) {
-        if (this._round) return parseFloat(val);
-        else if (val !== null && typeof val !== 'undefined') return parseInt(val);
-        else return val;
+        if (this._round) val = parseFloat(val);
+        else if (val !== null && typeof val !== 'undefined') val = parseInt(val);
+        
+        if(isNaN(val)) val = null;
+        return val;
     }
 
     get round() {

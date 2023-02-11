@@ -31,8 +31,16 @@ const store = inject("model");
 
 const options = ref([]);
 
+
 let obj = {};
-obj[props.bind.value] = true;
+
+if (props.bind.cell.multiple) {
+    for(const i in props.bind.value) {
+        obj[i] = true;
+    }
+} else {
+    obj[props.bind.value] = true;
+}
 let cvalue = ref(obj);
 let value;
 

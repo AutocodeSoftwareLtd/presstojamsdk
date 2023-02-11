@@ -76,8 +76,15 @@ export class Bind {
 
     
     setValue(val) {
-        val = this._cell.clean(val);
-        this._error.value = this._cell.validate(val);
+        if (this._cell.multiple) {
+            for(let i in val) {
+                val[i] = this._cell.clean(val);
+                if (!this._error.value) this._cell.validate(val[i]);
+            }
+        } else {
+            val = this._cell.clean(val);
+            this._error.value = this._cell.validate(val);
+        }
         this._value = val;
         this.setDirty(true)
         this._bind_group.trigger(this._cell.name, this._value);

@@ -10,7 +10,7 @@
                   
       </template>
       <template #end> 
-          <ptj-create-action :name="name" v-if="store.perms.includes('post')" :model="store" :parent_id="parseInt(repo.parent_id)"/> 
+          <ptj-create-action :name="name" v-if="store.perms.includes('post')" :model="store" :id="parseInt(repo.parent_id)"/> 
       </template>
     </Toolbar>
           <Tree :value="data" selectionMode="single" @node-select="setActive" :filter="true" filterMode="lenient" v-model:selectionKeys="selected" :expandedKeys="expandedKeys">
@@ -128,7 +128,7 @@ function setActive(node) {
 
 
 function reload() {
-  repo.selected.value = [];
+  selected.value = [];
   repo.reload()
   .then(response => {
     data.value = toTree(response, store.fields);
@@ -140,7 +140,8 @@ function reload() {
 subscribe("effect_created", props.name, (name, response) => {
   if (props.name == name) {
         newrow.value = true;
-        props.repo.addRow(response)
+        props.repo.addRow(response);
+        data.value = toTree(props.repo.data.value, store.fields);
         trigger("dialog_close");
     }
 });
@@ -157,7 +158,8 @@ subscribe("effect_deleted", props.name, (name, response) => {
     if (props.name == name) {
         delrow.value = true;
         trigger("dialog_close");
-        props.repo.remove(response)
+        props.repo.remove(response);
+        data.value = toTree(props.repo.data.value, store.fields);
     }
 });
 
