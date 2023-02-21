@@ -11,6 +11,9 @@
     <div class="json-group" v-else-if="bind.cell.type=='json'">
         <PtjJson :bind="bind" :active_validation="active_validation" :data="data"/>
     </div>
+    <div class="logic-group" v-else-if="bind.cell.type=='logic'">
+        <PtjLogic :bind="bind" :active_validation="active_validation" />
+    </div>
     <div class="row" v-else>
         <label :for="bind.cell.name" class="control-label col-md-3">{{ $t("models." + bind.cell.model + ".fields." + bind.cell.name + ".label") }} </label>
         <div class="col-md-9">
@@ -32,6 +35,7 @@
  import PtjString from "./string-edit.vue"
  import Asset from "./asset-edit.vue"
  import PtjJson from "./json-edit.vue"
+ import PtjLogic from "./logic-edit.vue"
  import Error from "./error.vue"
  import { computed } from "vue"
 
