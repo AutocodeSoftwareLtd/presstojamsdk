@@ -12,11 +12,12 @@ import "./scss/styles.scss";
 import CreateAction from "./components/actions/create-action.vue"
 import Publish from "./Publish.vue"
 
-const url = "https://api.presstojam.com";
+//const url = "https://api.presstojam.com";
 //const url = "https://api-owen.presstojam.com";
 //const url = "https://api.genercode.com";
 //const url = "http://slim.localhost";
 //https://api.presstojam.com
+const url = "http://apiptj.localhost";
 
 /*const url = "https://dev-local.api-capstonegroup.com/v4";
 

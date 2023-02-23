@@ -1,5 +1,24 @@
 import configs from "./configs.js"
 
+let _has_cookie = false;
+
+function runCsrfCookie(url) {
+    if (!_has_cookie) {
+        _has_cookie = true;
+        fetch(url + "/sanctum/csrf-cookie", {
+            method  : 'GET',
+            mode : 'cors',
+            cache : 'no-cache',
+            credentials : 'include',
+        })
+        .then(response => {
+        })
+        .catch(e => {
+
+        });
+    }
+}
+
 export class Client {
 
     constructor(url, headers = null) {
@@ -10,6 +29,7 @@ export class Client {
                 this._custom_headers[name] = headers[name];
             }
         }
+        runCsrfCookie(this._main_url);
     }
 
 
@@ -58,10 +78,6 @@ export class Client {
         }
     }
 
-    switchTokens() {
-        const options = this.createOptions("PUT", this.createHeaders({"x-force-auth-cookies" : 1}));
-        return fetch(this._main_url + "/user/switch-tokens", options)
-    }
 
     call(url, options) {
         return fetch(this._main_url + url, options)
@@ -142,6 +158,124 @@ export class Client {
         });
     }
     
+}
+
+
+export class ClientAPI {
+
+    constructor() {
+        this._type = configs.get("apitype");
+    }
+
+    get(model, params) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.get("/data/" + model, params);
+        } else {
+            return client.get("/" + model, params);
+        }
+    }
+
+    active(model, id) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.get("/data/" + model + "/active", {"--id" : id});
+        } else {
+            return client.get("/" + model + "/" + id);
+        }
+    }
+
+    create(model, params) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.post("/data/" + model, params);
+        } else {
+            return client.post("/" + model, params);
+        }
+    }
+
+    update(model, id, params) {
+        const client = getClient();
+        if (this._type == "slim") {
+            params["--id"] = id;
+            return client.put("/data/" + model, params);
+        } else {
+            return client.put("/" + model + "/" + id, params);
+        }
+    }
+
+    destroy(model, id) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.delete("/data/" + model, {"--id" : id});
+        } else {
+            return client.delete("/" + model + "/" + id);
+        }
+    }
+
+    destroyMany(model, params) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.delete("/data/" + model, params);
+        } else {
+            return client.delete("/" + model, params);
+        }
+    }
+
+    import(model, params) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.import("/data/" + model, params);
+        } else {
+            return client.import("/" + model, params);
+        }
+    }
+
+    resort(model, params) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.put("/data/" + model, params);
+        } else {
+            return client.put("/" + model + "/resort", params);
+        }
+    }
+
+    reference(model, field, id) {
+        const client = getClient();
+        if (this._type == "slim") {
+            let url = "/reference/" + model + "/" + field;
+            if (id) url += "/" + id;
+            return client.get(url, params);
+        } else {
+            let url = "/" + model + "/" + field;
+            if (id) url += "/" + id;
+            return client.get(url, params);
+        }
+    }
+
+    getAsset(model, field, id) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.get("/asset/" + model + "/" + field + "/" + id, params);
+        } else {
+            return client.get( "/" + model + "/" + field + "/" + id, params);
+        }
+    }
+
+    login(email, password, type) {
+        const client = getClient();
+        if (this._type == "slim") {
+            return client.post("/user/login/" + type, {"email":email, "password":password }, {"Accept" : 'application/json'});
+        } else {
+            return client.post("/user/login", {"email":email, "password":password }, {"Accept" : 'application/json'});
+        }
+    }
+
+    checkUser() {
+        const client = getClient();
+        return client.get("/user/check-user");
+    }
+
 }
 
 

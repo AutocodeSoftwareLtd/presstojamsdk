@@ -5,5 +5,4 @@
 </template>
 <script setup>
 import PtjUser from "./user.vue"
-
 </script>

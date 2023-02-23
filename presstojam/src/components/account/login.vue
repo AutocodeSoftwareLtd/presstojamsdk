@@ -26,9 +26,11 @@ import { ref, inject } from 'vue'
 import Button from 'primevue/button'
 import configs from "../../js/configs.js"
 import Message from 'primevue/message'
+import { ClientAPI } from "../../js/client.js"
 
 
-const Client = inject("client");
+const Client = new ClientAPI();
+
 const expected_user = configs.get("profile");
 const base = configs.get("base");
 
@@ -43,13 +45,9 @@ const password = ref('');
 function submit() {
     error.value = "";
 
-    const formData = new FormData();
-    formData.append("email", email.value);
-    formData.append("password", password.value);
-
-    Client.post("/user/login/" + expected_user, formData)
+    Client.login(email.value, password.value)
     .then(() => {
-        return Client.get("/user/check-user")
+        return Client.checkUser()
         //location.href = base + "/";
     })
     .then(response => {

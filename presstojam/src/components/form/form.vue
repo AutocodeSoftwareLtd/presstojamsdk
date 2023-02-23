@@ -185,8 +185,8 @@ function submit() {
             runDispatch(response['--dispatchid'], response);
         } else {
             trigger("form_saved", response, props.method, model);
+            processing.value = false;
         }
-        processing.value = false;
         return response;
     })
     .catch(err => {
