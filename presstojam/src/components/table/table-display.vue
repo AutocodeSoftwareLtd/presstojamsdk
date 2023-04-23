@@ -20,7 +20,7 @@
 
                 <template #end>
                     <ptj-import-action v-if="store.import" :name="name" />
-                    <ptj-export-action v-if="store.export" :name="name" />
+                    <ptj-export-action v-if="store.export" :name="name" :parent_id="repo.parent_id"/>
                     <ptj-create-action v-if="store.perms.includes('post')" :name="name" :model="store" :id="parseInt(repo.parent_id)"/> 
                     <ptj-delete-action :name="name" :data="selected.value" :store="repo" v-if="store.perms.includes('delete')"/>
                 </template>

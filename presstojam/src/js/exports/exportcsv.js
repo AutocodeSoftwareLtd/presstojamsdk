@@ -22,7 +22,7 @@ function buildData(data, headers) {
 }
 
 
-export function exportCSV(name) {
+export function exportCSV(name, parent_id) {
 
     const store = new Model(name);
     store.limit = 0;
@@ -32,6 +32,7 @@ export function exportCSV(name) {
     const t = i18n.global.t
 
     const headers = [];
+    console.log("Being called");
     if (store.export_fields) {
         if (Array.isArray(store.export_fields)) {
             for(const index in store.export_fields){
@@ -49,14 +50,17 @@ export function exportCSV(name) {
         }
     }
 
+    console.log("Headers are now", headers);
+
     let value = "";
     for(const x in headers) {
         value += headers[x].label;
         value += (x < headers.length - 1) ? "," : "\n";
     }
 
-
-	store.load({})
+    const filters = {};
+    if (parent_id) filters["--parent"] = parent_id;
+	store.load(filters)
     .then(data => {
         value += buildData(data, headers);
         download(value, store.name + '.csv');

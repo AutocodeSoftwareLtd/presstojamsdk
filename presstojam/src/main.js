@@ -12,19 +12,21 @@ import "./scss/styles.scss";
 import CreateAction from "./components/actions/create-action.vue"
 import Publish from "./Publish.vue"
 
-const url = "https://api.presstojam.com";
+//const url = "https://api.presstojam.com";
 //const url = "https://api-owen.presstojam.com";
 //const url = "https://api.genercode.com";
 //const url = "http://slim.localhost";
 //https://api.presstojam.com
 
-/*const url = "https://dev-local.api-capstonegroup.com/v4";
+const url = "https://dev-aml2.api-capstonegroup.com/v4";
 
 let settings = {
-    "client" : { "url" : url, "debug" : true, custom_headers : {
+    "profile" : "pi-users",
+    "url" : url,
+    "client" : {  "debug" : true, custom_headers : {
         'x-domain' : "petinsure.ie"
     } },
-    "map" : { base : "/admin/" },
+    base : "/admin/",
     "models" : {
         "pi-claims" : {
             "limit" : 50,
@@ -73,40 +75,33 @@ let settings = {
             "limit" : 50
         },
         "eft-batch-payments" : {
+            "export_fields" : {
+                "risk-key" : "YourCustRef",
+                "account-holder" : "Name",
+                "bic" : "BIC",
+                "iban" : "IBAN",
+                "amount" : "Amount",
+                "mandate-ref" : "UMR",
+                "date-of-signing" : "DateOfSigning",
+                "due-date" : "DueDate"
+            },
             "fields" : [
-                "policy-payments-id/policy-id",
-                { 
-                  name : "risk-key", 
-                  label : "Risk Key",
-                  type : "aggregate",
-                  ws : "-",
-                  "fields" : [
-                    "policy-payments-id/policy-id",
-                    "policy-payments-id/renewal"
-                  ]
-                },
-                {  "path" : "policy-payments-id/policy-id/..pi-policy-account-details",
-                "fields" : [
-                    "account-holder", //from 
-                    "pay-ref",
-                    "mandate-ref",
-                    "pay-ref",
-                    "bic",
-                    "sort-code",
-                    "account-number",
-                    "date-of-signing"
-            ]},
-
-            "policy-payments-id/amount",
-            "policy-payments-id",
-            "policy-payments-id/due-date"
+                "--parent",
+                "risk-key",
+                "account-holder",
+                "bic",
+                "iban",
+                "amount",
+                "mandate-ref",
+                "date-of-signing",
+                "due-date",
+                "is-verified"
             ]
         }
     }
 };
 
-*/
-
+/*
 
 let settings = { 
   "profile" : "accounts",
@@ -179,7 +174,7 @@ let settings = {
         { "path" : "/schema", component : Schema, name :"name"}
     ]
     */
-};
+//};
 
 const app = createApp(Controller);
 app.use(container, settings);
