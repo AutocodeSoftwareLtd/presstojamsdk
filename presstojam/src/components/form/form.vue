@@ -157,7 +157,6 @@ function submit() {
 
     //return;
     let promise;
-    console.log("Total is", Array.from(data.keys()).length);
     if (props.method == "put" && Array.from(data.keys()).length == 1) {
         promise = Promise.resolve(true);
     } else {
@@ -185,8 +184,8 @@ function submit() {
             runDispatch(response['--dispatchid'], response);
         } else {
             trigger("form_saved", response, props.method, model);
+            processing.value = false;
         }
-        processing.value = false;
         return response;
     })
     .catch(err => {
